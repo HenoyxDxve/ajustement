@@ -1,119 +1,143 @@
 // src/auth/auth.service.ts
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User } from './entities/user.entity';
+import { User, Role } from './entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Restaurant } from '../restaurants/entities/restaurant.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    private readonly jwtService: JwtService,
+    private userRepository: Repository<User>,
+    @InjectRepository(Restaurant)
+    private restaurantRepository: Repository<Restaurant>,
+    private jwtService: JwtService,
   ) {}
 
-  //  REGISTER — Création compte avec rôle respecté (RG-31, RG-32)
-  async register(dto: RegisterDto): Promise<{ message: string }> {
-    // Vérifier si l'email existe déjà
-    const existing = await this.userRepository.findOne({ where: { email: dto.email } });
-    if (existing) {
-      throw new ConflictException('Cet email est déjà utilisé');
-    }
-
-    // Hash du mot de passe (bcrypt cost=12 conforme RG sécurité)
-    const passwordHash = await bcrypt.hash(dto.password, 12);
-
-    // Création utilisateur — rôle fourni OU CLIENT par défaut (RG-31)
-    const user = this.userRepository.create({
-      email: dto.email,
-      password: passwordHash,
-      nom: dto.nom,
-      telephone: dto.telephone,
-      role: dto.role || 'CLIENT', //  Respecte le rôle si fourni
-      actif: true, // RG-32: nouveau compte activé par défaut
-    });
-
-    await this.userRepository.save(user);
-
-    return { message: 'Compte créé avec succès' };
-  }
-
-  //  LOGIN — Génération JWT avec rôle CORRECT dans le payload
-  async login(dto: LoginDto): Promise<{
+  private buildAuthResponse(
+    user: User,
+    message?: string,
+  ): {
     access_token: string;
-    user: { id: string; email: string; role: string; nom: string };
-  }> {
-    // Trouver l'utilisateur par email
-    const user = await this.userRepository.findOne({
-      where: { email: dto.email },
-      select: ['id', 'email', 'nom', 'role', 'password', 'actif'],
-    });
-
-    if (!user) {
-      throw new UnauthorizedException('Identifiants invalides');
-    }
-
-    // RG-32: Vérifier que le compte est actif
-    if (!user.actif) {
-      throw new UnauthorizedException('Compte désactivé. Contactez l\'administrateur.');
-    }
-
-    // Vérifier le mot de passe
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Identifiants invalides');
-    }
-
-    //  Payload JWT avec le VRAI rôle de l'utilisateur (sauvegardé en DB)
+    token: string;
+    user: Record<string, any>;
+    message?: string;
+  } {
     const payload = {
       sub: user.id,
       email: user.email,
-      role: user.role, // ← CRITIQUE: utiliser saved.role, pas une valeur hardcodée
+      role: user.role,
     };
+    const accessToken = this.jwtService.sign(payload);
 
-    // Signer le token (24h expiration — RG-35)
-    const access_token = this.jwtService.sign(payload, {
-      expiresIn: '24h',
-      secret: process.env.JWT_SECRET || 'dev-secret-change-me-in-prod',
-    });
-
-    // Retourner user sans le mot de passe
     return {
-      access_token,
+      access_token: accessToken,
+      token: accessToken,
       user: {
         id: user.id,
         email: user.email,
-        role: user.role, // ← Le frontend verra le bon rôle
+        role: user.role,
         nom: user.nom,
+        telephone: user.telephone,
+        restaurant: user.restaurant
+          ? { id: user.restaurant.id, nom: user.restaurant.nom }
+          : undefined,
       },
+      ...(message ? { message } : {}),
     };
   }
 
-  //  GET USER BY ID — Pour les guards et les routes protégées
-  async findById(id: string): Promise<User | null> {
-    return this.userRepository.findOne({
-      where: { id, actif: true },
-      select: ['id', 'email', 'nom', 'role', 'actif'],
+  async register(dto: RegisterDto) {
+    const email = dto.email.trim().toLowerCase();
+    const existing = await this.userRepository.findOne({
+      where: { email },
     });
+    if (existing) {
+      throw new ConflictException('Email déjà utilisé');
+    }
+
+    // Utiliser password (envoyé par le frontend)
+    const passwordToHash = dto.password;
+    if (!passwordToHash || passwordToHash.length < 6) {
+      throw new BadRequestException(
+        'Le mot de passe doit contenir au moins 6 caractères',
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(passwordToHash, 12);
+
+    // Déterminer le rôle basé sur le type
+    let role = Role.CLIENT;
+    let restaurant: Restaurant | null = null;
+
+    if (dto.type === 'RESTAURANT') {
+      role = Role.GERANT;
+
+      // Vérifier que les données du restaurant sont présentes
+      if (!dto.restaurantNom || !dto.adresse) {
+        throw new BadRequestException(
+          "Pour créer un restaurant, fournissez le nom et l'adresse",
+        );
+      }
+
+      // Créer le restaurant
+      const newRestaurant = this.restaurantRepository.create({
+        nom: dto.restaurantNom,
+        description: dto.description || '',
+        adresse: dto.adresse,
+        telephone: dto.restaurantTelephone || dto.telephone || '',
+      });
+      const savedRestaurant =
+        await this.restaurantRepository.save(newRestaurant);
+      restaurant = savedRestaurant;
+    } else if (dto.type === 'BUSINESS_CLIENT') {
+      role = Role.B2B;
+    } else {
+      role = Role.CLIENT;
+    }
+
+    // Créer l'utilisateur
+    const user = this.userRepository.create({
+      email,
+      password: passwordHash,
+      nom: dto.nom,
+      role: role,
+      telephone: dto.telephone,
+      restaurant: restaurant ? { id: restaurant.id } : undefined,
+    });
+
+    const savedUser = await this.userRepository.save(user);
+    savedUser.restaurant = restaurant ?? undefined;
+
+    // Retourner le token et les infos utilisateur pour la redirection
+    return this.buildAuthResponse(savedUser, 'Compte créé avec succès');
   }
 
-  // UPDATE USER ROLE — Admin uniquement (RG-31)
-  async updateRole(userId: string, newRole: string): Promise<User> {
-    const validRoles = ['ADMIN', 'GERANT', 'STAFF', 'CLIENT', 'B2B'];
-    if (!validRoles.includes(newRole)) {
-      throw new Error(`Rôle invalide: ${newRole}`);
+  async login(dto: LoginDto) {
+    const email = dto.email.trim().toLowerCase();
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ['restaurant'], // Charger le restaurant
+    });
+
+    if (!user || !(await bcrypt.compare(dto.password, user.password))) {
+      throw new UnauthorizedException('Identifiants incorrects');
     }
 
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new UnauthorizedException('Utilisateur non trouvé');
+    if (!user.actif) {
+      throw new BadRequestException('Compte désactivé');
     }
 
-    user.role = newRole as any;
-    return this.userRepository.save(user);
+    return this.buildAuthResponse(user);
   }
 }

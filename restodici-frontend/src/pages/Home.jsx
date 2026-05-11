@@ -1,183 +1,220 @@
-// src/pages/Home.jsx
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import { UtensilsCrossed, MapPin, Smartphone, BarChart3, Building2, ArrowRight, CheckCircle, Clock, Shield, Star } from "lucide-react";
+import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  UtensilsCrossed,
+  ChefHat,
+  Building2,
+  Users,
+  Clock,
+  Wallet,
+  Truck,
+  Shield,
+  Package,
+  BarChart3,
+} from 'lucide-react';
 
-// Palette officielle "Savane Moderne"
-const COLORS = {
-  bg: "bg-[#F9F7F5]",
-  text: "text-[#2D2720]",
-  textMuted: "text-[#8B7355]",
-  primary: "text-[#D94500]",
-  primaryBg: "bg-[#D94500]",
-  primaryHover: "hover:bg-[#B83A00]",
-  success: "text-[#2ECC71]",
-  successBg: "bg-[#2ECC71]",
-  card: "bg-white",
-  border: "border-[#E8E2D9]",
-};
-
-// Données statiques (à remplacer par API plus tard)
-const MENU_ITEMS = [
-  { name: "Attiéké Poisson Braisé", price: "3 500 FCFA", tag: "Best-seller", img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&q=80", cat: "Plat local" },
-  { name: "Grillades de Poulet", price: "4 200 FCFA", tag: "Populaire", img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c4?w=400&q=80", cat: "Grillades" },
-  { name: "Bowl Salade Fraîche", price: "2 800 FCFA", tag: "Healthy", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80", cat: "Salade" },
-  { name: "Jus de Gingembre", price: "800 FCFA", tag: "Frais", img: "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=400&q=80", cat: "Boisson" },
-  { name: "Alloco Crevettes", price: "3 000 FCFA", tag: "Nouveau", img: "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=400&q=80", cat: "Entrée" },
-  { name: "Thiéboudienne", price: "3 800 FCFA", tag: "Coup de cœur", img: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400&q=80", cat: "Plat" },
+const sections = [
+  { label: 'Menu', href: '/menu' },
+  { label: 'B2C', href: '#clients' },
+  { label: 'B2B', href: '#b2b' },
+  { label: 'Aide', href: '#faq' },
 ];
 
-const STATS = [
-  { val: "12 000+", label: "Commandes livrées", icon: "📦" },
-  { val: "340+", label: "Restaurants partenaires", icon: "🍽️" },
-  { val: "98%", label: "Clients satisfaits", icon: "⭐" },
-  { val: "< 30 min", label: "Livraison express", icon: "⚡" },
+
+const stats = [
+  { value: '340+', label: 'Restaurants partenaires' },
+  { value: '12 000+', label: 'Commandes mensuelles' },
+  { value: '98%', label: 'Clients satisfaits' },
+  { value: '30 min', label: 'Livraison rapide' },
 ];
 
-const FEATURES = [
-  { icon: <MapPin className="w-6 h-6" />, title: "Commande en table", desc: "Scannez le QR code et commandez sans attendre.", color: COLORS.primary },
-  { icon: <Smartphone className="w-6 h-6" />, title: "Mobile Money intégré", desc: "Orange Money, MTN MoMo, Wave — paiement en 3 clics.", color: COLORS.success },
-  { icon: <BarChart3 className="w-6 h-6" />, title: "Dashboard temps réel", desc: "Stocks, CA et commandes en direct pour les gérants.", color: COLORS.primary },
-  { icon: <Building2 className="w-6 h-6" />, title: "Portail B2B entreprises", desc: "Commandes groupées et facturation mensuelle automatique.", color: COLORS.primary },
+const features = [
+  {
+    icon: <Package className="w-6 h-6" />,
+    title: 'Gestion des commandes',
+    description: 'Recevez et traitez les commandes en temps réel avec un KDS moderne.',
+  },
+  {
+    icon: <Wallet className="w-6 h-6" />,
+    title: 'Paiement intégré',
+    description: 'Paiements Mobile Money sécurisés et suivi automatique.',
+  },
+  {
+    icon: <Shield className="w-6 h-6" />,
+    title: 'Suivi des stocks',
+    description: 'Alertes de rupture et inventaire simplifié pour chaque restaurant.',
+  },
+  {
+    icon: <BarChart3 className="w-6 h-6" />,
+    title: 'Rapports clairs',
+    description: 'Analysez ventes, marges et performances en un seul tableau de bord.',
+  },
 ];
 
-const TESTIMONIALS = [
-  { name: "Aminata K.", role: "Directrice RH, Orange CI", text: "Organiser les déjeuners d'équipe prenait 2h. Maintenant c'est 5 minutes.", avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=80" },
-  { name: "Jean-Claude M.", role: "Gérant, Le Maquis d'Abidjan", text: "Mon CA a augmenté de 35% en 3 mois. Les alertes de stock m'ont évité des ruptures.", avatar: "https://images.unsplash.com/photo-1566753323558-f4e0952af115?w=80&q=80" },
-  { name: "Fatou D.", role: "Cliente fidèle", text: "Je commande depuis mon bureau, je passe prendre à emporter. Le reçu arrive instantanément.", avatar: "https://images.unsplash.com/photo-1589156280159-27698a70f29e?w=80&q=80" },
+const clientSteps = [
+  {
+    step: '01',
+    title: 'Choisissez un restaurant',
+    description: 'Parcourez les menus mis à jour en temps réel.',
+  },
+  {
+    step: '02',
+    title: 'Payez facilement',
+    description: 'Mobile Money sécurisé en quelques clics.',
+  },
+  {
+    step: '03',
+    title: 'Suivez votre repas',
+    description: 'Recevez chaque étape jusqu’à la livraison.',
+  },
 ];
 
-// Hook pour animation au scroll
-function useScrollReveal() {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.1 });
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
-  return [ref, visible];
-}
+const b2bHighlights = [
+  { icon: <Users className="w-5 h-5" />, label: 'Commandes groupées pour l’équipe' },
+  { icon: <Wallet className="w-5 h-5" />, label: 'Facturation mensuelle SYSCOHADA' },
+  { icon: <Shield className="w-5 h-5" />, label: 'Budget collaborateur maîtrisé' },
+  { icon: <Clock className="w-5 h-5" />, label: 'Suivi des livraisons en temps réel' },
+];
+
+const testimonials = [
+  {
+    quote: 'Notre restaurant a gagné en réactivité et les clients reconnaissent la fluidité du service.',
+    name: 'Jean-Claude, restaurateur',
+  },
+  {
+    quote: 'Les commandes d’équipe se font maintenant en quelques minutes avec une facture claire.',
+    name: 'Aminata, responsable RH',
+  },
+];
 
 function Reveal({ children, delay = 0 }) {
-  const [ref, visible] = useScrollReveal();
+  const ref = useRef(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          node.classList.add('opacity-100', 'translate-y-0');
+          node.classList.remove('opacity-0', 'translate-y-8');
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div ref={ref} className={`transition-all duration-700 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`} style={{ transitionDelay: `${delay}ms` }}>
+    <div
+      ref={ref}
+      className="opacity-0 translate-y-8 transition-all duration-700"
+      style={{ transitionDelay: `${delay}ms` }}
+    >
       {children}
     </div>
   );
 }
 
-// Navbar
 function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-[#E8E2D9]" : "bg-transparent"}`}>
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className={`w-9 h-9 rounded-xl ${COLORS.primaryBg} flex items-center justify-center text-white font-bold shadow-sm`}>R</div>
-          <span className={`font-serif text-xl font-bold ${COLORS.text}`}>Resto <span className={COLORS.primary}>d'ici</span></span>
+    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#E8E2D9]">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+        <Link to="/" className="flex items-center gap-2 text-[#2D2720] font-semibold">
+          <div className="w-10 h-10 rounded-xl bg-[#D94500] text-white grid place-items-center">R</div>
+          <span>Resto d&apos;ici</span>
         </Link>
 
-        {/* Links */}
-        <div className="hidden md:flex items-center gap-6">
-          {["Menu", "Fonctionnalités", "B2B", "À propos"].map(item => (
-            <a key={item} href={`#${item.toLowerCase()}`} className={`text-sm font-medium ${COLORS.textMuted} hover:${COLORS.primary} transition-colors`}>{item}</a>
+        <div className="hidden md:flex items-center gap-6 text-sm text-[#8B7355]">
+          {sections.map((link) => (
+            <a key={link.href} href={link.href} className="hover:text-[#D94500] transition-colors">
+              {link.label}
+            </a>
           ))}
         </div>
 
-        {/* Auth buttons */}
-        <div className="flex items-center gap-3">
-          <Link to="/login" className={`px-4 py-2 text-sm font-medium ${COLORS.primary} border border-[#D94500]/40 rounded-lg hover:bg-[#D94500]/10 transition-all`}>Connexion</Link>
-          <Link to="/register" className={`px-4 py-2 text-sm font-semibold text-white ${COLORS.primaryBg} ${COLORS.primaryHover} rounded-lg shadow-sm transition-all`}>S'inscrire</Link>
+        <div className="hidden md:flex items-center gap-3">
+          <Link
+            to="/login"
+            className="px-4 py-2 rounded-xl border border-[#D94500] text-[#D94500] hover:bg-[#D94500]/10 transition"
+          >
+            Connexion
+          </Link>
+          <Link
+            to="/register?type=restaurant"
+            className="px-4 py-2 rounded-xl bg-[#D94500] text-white hover:bg-[#B83A00] transition"
+          >
+            Restaurateur
+          </Link>
         </div>
       </div>
     </nav>
   );
 }
 
-// Hero Section
-function HeroSection() {
+function Hero() {
   return (
-    <section className={`min-h-screen ${COLORS.bg} pt-20 pb-16 px-6 flex items-center`}>
-      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-        {/* Texte */}
+    <section className="bg-[#FFF5EB] py-20 px-6">
+      <div className="max-w-7xl mx-auto grid gap-12 lg:grid-cols-2 items-center">
         <Reveal>
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFF5EB] border border-[#D94500]/30">
-              <span className="w-2 h-2 rounded-full bg-[#2ECC71] animate-pulse" />
-              <span className={`text-xs font-semibold ${COLORS.primary}`}>Disponible à Abidjan · Côte d'Ivoire</span>
-            </div>
-            
-            <h1 className={`font-serif text-4xl md:text-5xl lg:text-6xl font-bold ${COLORS.text} leading-tight`}>
-              La gastronomie <span className={`${COLORS.primary} italic`}>africaine</span><br />à portée de clic.
-            </h1>
-            
-            <p className={`text-lg ${COLORS.textMuted} max-w-lg leading-relaxed`}>
-              Commander, payer et se faire livrer n'a jamais été aussi simple. Découvrez les meilleurs restaurants de votre ville, payez par Mobile Money et suivez votre plat en temps réel.
+          <div className="space-y-8">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#D94500] border border-[#D94500]/20">
+              Plateforme tout-en-un pour restaurants et clients
             </p>
-
+            <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#2D2720] leading-tight">
+              Commandez, gérez et suivez vos repas avec <span className="text-[#D94500] italic">Resto d&apos;ici</span>
+            </h1>
+            <p className="max-w-xl text-[#8B7355] leading-relaxed">
+              Simplifiez la vie des restaurateurs, des clients et des entreprises avec une expérience claire,
+              rapide et entièrement adaptée aux besoins ivoiriens.
+            </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/menu" className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-semibold ${COLORS.primaryBg} ${COLORS.primaryHover} shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5`}>
-                <UtensilsCrossed className="w-4 h-4" /> Commander maintenant
+              <Link
+                to="/menu"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#D94500] px-6 py-3 text-white font-semibold hover:bg-[#B83A00] transition"
+              >
+                <UtensilsCrossed className="w-4 h-4" /> Commander
               </Link>
-              <Link to="/register?type=restaurant" className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold border-2 border-[#D94500]/30 ${COLORS.text} hover:bg-[#D94500]/5 transition-all`}>
-                🏪 Inscrire mon restaurant
+              <Link
+                to="/register?type=restaurant"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#D94500] px-6 py-3 text-[#D94500] font-semibold hover:bg-[#D94500]/10 transition"
+              >
+                <ChefHat className="w-4 h-4" /> Restaurateur
               </Link>
-            </div>
-
-            {/* Stats rapides */}
-            <div className="flex gap-8 pt-4">
-              {STATS.slice(0, 3).map(({ val, label }) => (
-                <div key={label}>
-                  <div className={`font-serif text-2xl font-bold ${COLORS.text}`}>{val}</div>
-                  <div className={`text-xs ${COLORS.textMuted}`}>{label}</div>
-                </div>
-              ))}
             </div>
           </div>
         </Reveal>
 
-        {/* Image / Mockup */}
         <Reveal delay={150}>
-          <div className="relative">
-            <div className="absolute -inset-4 bg-[#D94500]/10 rounded-3xl blur-2xl" />
-            <div className="relative bg-white rounded-3xl shadow-xl border border-[#E8E2D9] overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80" alt="Plat" className="w-full h-64 md:h-80 object-cover" />
-              <div className="p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className={`font-semibold ${COLORS.text}`}>Plat du jour</h3>
-                    <p className={`text-sm ${COLORS.textMuted}`}>Poulet Braisé + Alloco</p>
+          <div className="rounded-[2rem] bg-white p-8 shadow-xl border border-[#E8E2D9]">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-3xl bg-[#FFF5EB] p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-[#D94500] mb-3">Client</p>
+                <div className="space-y-3">
+                  <div className="rounded-2xl bg-white p-3 shadow-sm">
+                    <p className="text-sm font-semibold text-[#2D2720]">Poulet Yassa</p>
+                    <p className="text-xs text-[#8B7355]">3 500 FCFA</p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${COLORS.successBg} text-white`}>-15%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex -space-x-2">
-                    {[1,2,3].map(i => <img key={i} src={`https://i.pravatar.cc/40?img=${i+10}`} className="w-8 h-8 rounded-full border-2 border-white" alt="" />)}
+                  <div className="rounded-2xl bg-white p-3 shadow-sm">
+                    <p className="text-sm font-semibold text-[#2D2720]">Attiéké Poisson</p>
+                    <p className="text-xs text-[#8B7355]">Livraison 30 min</p>
                   </div>
-                  <div className={`text-sm ${COLORS.textMuted}`}>+128 commandes aujourd'hui</div>
                 </div>
-                <button className={`w-full py-3 rounded-xl text-white font-semibold ${COLORS.primaryBg} ${COLORS.primaryHover} transition-all`}>
-                  Ajouter au panier · 3 500 FCFA
-                </button>
               </div>
-            </div>
-            {/* Badges flottants */}
-            <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg border border-[#E8E2D9] p-3 flex items-center gap-2 animate-bounce">
-              <Clock className={`w-4 h-4 ${COLORS.primary}`} />
-              <span className={`text-xs font-medium ${COLORS.text}`}>Livraison 28 min</span>
-            </div>
-            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg border border-[#E8E2D9] p-3 flex items-center gap-2">
-              <Shield className={`w-4 h-4 ${COLORS.success}`} />
-              <span className={`text-xs font-medium ${COLORS.text}`}>Paiement sécurisé</span>
+              <div className="rounded-3xl bg-[#E6F7ED] p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-[#2ECC71] mb-3">Restaurant</p>
+                <div className="space-y-3">
+                  <div className="rounded-2xl bg-white p-3 shadow-sm">
+                    <p className="text-sm font-semibold text-[#2D2720]">Commandes actives</p>
+                    <p className="text-xs text-[#8B7355]">124</p>
+                  </div>
+                  <div className="rounded-2xl bg-white p-3 shadow-sm">
+                    <p className="text-sm font-semibold text-[#2D2720]">CA du jour</p>
+                    <p className="text-xs text-[#8B7355]">450 000 FCFA</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </Reveal>
@@ -186,264 +223,234 @@ function HeroSection() {
   );
 }
 
-// Stats Bar
-function StatsBar() {
+function Stats() {
   return (
-    <Reveal>
-      <section className={`py-12 ${COLORS.bg} border-y ${COLORS.border}`}>
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {STATS.map(({ val, label, icon }) => (
-            <div key={label} className="text-center">
-              <div className="text-3xl mb-2">{icon}</div>
-              <div className={`font-serif text-2xl font-bold ${COLORS.primary}`}>{val}</div>
-              <div className={`text-sm ${COLORS.textMuted}`}>{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-    </Reveal>
+    <section className="bg-white py-16 px-6">
+      <div className="max-w-7xl mx-auto grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((item) => (
+          <div key={item.label} className="rounded-3xl border border-[#E8E2D9] bg-[#FFF5EB] p-6 text-center">
+            <p className="text-3xl font-bold text-[#2D2720]">{item.value}</p>
+            <p className="mt-2 text-sm text-[#8B7355]">{item.label}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
-// Menu Preview
-function MenuSection() {
-  const [active, setActive] = useState("Tous");
-  const cats = ["Tous", "Plat local", "Grillades", "Salade", "Boisson", "Entrée", "Plat"];
-  const filtered = active === "Tous" ? MENU_ITEMS : MENU_ITEMS.filter(i => i.cat === active);
-
+function Features() {
   return (
-    <section id="menu" className={`py-20 ${COLORS.bg} px-6`}>
+    <section className="bg-[#F9F7F5] py-20 px-6" id="restaurants">
       <div className="max-w-7xl mx-auto">
-        <Reveal>
-          <div className="text-center mb-12">
-            <span className={`text-xs font-semibold tracking-wider uppercase ${COLORS.primary}`}>Notre Catalogue</span>
-            <h2 className={`font-serif text-3xl md:text-4xl font-bold ${COLORS.text} mt-2`}>Des saveurs qui font <span className={`${COLORS.primary} italic`}>voyager</span></h2>
-          </div>
-        </Reveal>
+        <div className="mb-12 text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#D94500]">Pour les restaurateurs</p>
+          <h2 className="mt-4 text-3xl md:text-4xl font-serif font-bold text-[#2D2720]">Tout ce dont votre restaurant a besoin</h2>
+          <p className="mt-4 mx-auto max-w-2xl text-[#8B7355]">Un seul outil pour gérer les commandes, les paiements et les stocks sans perdre de temps.</p>
+        </div>
 
-        <Reveal delay={100}>
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
-            {cats.map(c => (
-              <button key={c} onClick={() => setActive(c)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${active === c ? `${COLORS.primaryBg} text-white shadow-md` : `bg-white ${COLORS.textMuted} border ${COLORS.border} hover:border-[#D94500]/50`}`}>{c}</button>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {features.map((feature) => (
+            <div key={feature.title} className="rounded-3xl border border-[#E8E2D9] bg-white p-6 hover:shadow-lg transition">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF5EB] text-[#D94500]">
+                {feature.icon}
+              </div>
+              <h3 className="font-semibold text-lg text-[#2D2720] mb-2">{feature.title}</h3>
+              <p className="text-sm text-[#8B7355] leading-relaxed">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ClientSection() {
+  return (
+    <section className="bg-white py-20 px-6" id="clients">
+      <div className="max-w-7xl mx-auto grid gap-12 lg:grid-cols-2 items-center">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#2ECC71]">Pour les clients</p>
+          <h2 className="mt-4 text-3xl md:text-4xl font-serif font-bold text-[#2D2720]">Commandez en quelques minutes</h2>
+          <p className="mt-4 max-w-xl text-[#8B7355] leading-relaxed">Trouvez votre restaurant préféré, payez par Mobile Money et suivez votre commande de l’écran de la cuisine à la livraison.</p>
+
+          <div className="mt-8 space-y-4">
+            {clientSteps.map((step) => (
+              <div key={step.step} className="flex gap-4 rounded-3xl border border-[#E8E2D9] p-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2ECC71] text-white font-bold">{step.step}</div>
+                <div>
+                  <h3 className="font-semibold text-[#2D2720]">{step.title}</h3>
+                  <p className="text-sm text-[#8B7355]">{step.description}</p>
+                </div>
+              </div>
             ))}
           </div>
-        </Reveal>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((item, i) => (
-            <Reveal key={item.name} delay={i * 80}>
-              <div className={`group ${COLORS.card} rounded-2xl overflow-hidden border ${COLORS.border} hover:shadow-lg hover:border-[#D94500]/50 transition-all cursor-pointer`}>
-                <div className="relative h-48 overflow-hidden">
-                  <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${COLORS.primaryBg} text-white`}>{item.tag}</span>
-                  <span className={`absolute bottom-3 left-3 px-3 py-1 rounded-full text-xs ${COLORS.textMuted} bg-white/90 backdrop-blur`}>{item.cat}</span>
-                </div>
-                <div className="p-5">
-                  <h3 className={`font-semibold ${COLORS.text} mb-2`}>{item.name}</h3>
-                  <div className="flex items-center justify-between">
-                    <span className={`font-serif text-lg font-bold ${COLORS.primary}`}>{item.price}</span>
-                    <button className={`px-4 py-2 rounded-lg text-sm font-semibold text-white ${COLORS.primaryBg} ${COLORS.primaryHover} transition-all hover:scale-105`}>+ Panier</button>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-
-        <Reveal delay={300}>
-          <div className="text-center mt-12">
-            <Link to="/menu" className={`inline-flex items-center gap-2 ${COLORS.primary} font-semibold hover:gap-3 transition-all`}>
-              Voir tout le menu <ArrowRight className="w-4 h-4" />
+          <div className="mt-8">
+            <Link
+              to="/menu"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] px-6 py-3 text-white font-semibold hover:bg-[#27AE60] transition"
+            >
+              <UtensilsCrossed className="w-4 h-4" /> Explorer les menus
             </Link>
           </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
+        </div>
 
-// Features
-function FeaturesSection() {
-  return (
-    <section id="fonctionnalités" className={`py-20 bg-white px-6`}>
-      <div className="max-w-7xl mx-auto">
-        <Reveal>
-          <div className="text-center mb-12">
-            <span className={`text-xs font-semibold tracking-wider uppercase ${COLORS.success}`}>Fonctionnalités</span>
-            <h2 className={`font-serif text-3xl md:text-4xl font-bold ${COLORS.text} mt-2`}>Tout ce dont vous avez <span className={`${COLORS.success} italic`}>besoin</span></h2>
-          </div>
-        </Reveal>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURES.map((f, i) => (
-            <Reveal key={i} delay={i * 100}>
-              <div className={`p-6 rounded-2xl ${COLORS.card} border ${COLORS.border} hover:shadow-md hover:border-[#D94500]/50 transition-all group`}>
-                <div className={`w-12 h-12 rounded-xl bg-[#FFF5EB] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${f.color}`}>{f.icon}</div>
-                <h3 className={`font-semibold ${COLORS.text} mb-2`}>{f.title}</h3>
-                <p className={`text-sm ${COLORS.textMuted}`}>{f.desc}</p>
+        <div className="rounded-[2rem] bg-[#F9F7F5] p-8 shadow-lg border border-[#E8E2D9]">
+          <div className="grid gap-4">
+            <div className="rounded-3xl bg-white p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="rounded-2xl bg-[#E6F7ED] p-3 text-[#2ECC71]"><Clock className="w-5 h-5" /></span>
+                <div>
+                  <p className="font-semibold text-[#2D2720]">Suivi en direct</p>
+                  <p className="text-sm text-[#8B7355]">Toutes les étapes visibles sur votre smartphone.</p>
+                </div>
               </div>
-            </Reveal>
-          ))}
+            </div>
+            <div className="rounded-3xl bg-white p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="rounded-2xl bg-[#E6F7ED] p-3 text-[#2ECC71]"><Wallet className="w-5 h-5" /></span>
+                <div>
+                  <p className="font-semibold text-[#2D2720]">Paiement fiable</p>
+                  <p className="text-sm text-[#8B7355]">MTN MoMo, Orange Money et Wave supportés.</p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-3xl bg-white p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="rounded-2xl bg-[#E6F7ED] p-3 text-[#2ECC71]"><Truck className="w-5 h-5" /></span>
+                <div>
+                  <p className="font-semibold text-[#2D2720]">Livraison rapide</p>
+                  <p className="text-sm text-[#8B7355]">Recevez votre repas en moins de 30 minutes.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-// Testimonials
-function TestimonialsSection() {
-  return (
-    <section id="témoignages" className={`py-20 ${COLORS.bg} px-6`}>
-      <div className="max-w-7xl mx-auto">
-        <Reveal>
-          <div className="text-center mb-12">
-            <span className={`text-xs font-semibold tracking-wider uppercase ${COLORS.primary}`}>Témoignages</span>
-            <h2 className={`font-serif text-3xl md:text-4xl font-bold ${COLORS.text} mt-2`}>Ils nous font <span className={`${COLORS.primary} italic`}>confiance</span></h2>
-          </div>
-        </Reveal>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map((t, i) => (
-            <Reveal key={i} delay={i * 100}>
-              <div className={`p-6 rounded-2xl ${COLORS.card} border ${COLORS.border} hover:shadow-md transition-all`}>
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => <Star key={j} className={`w-4 h-4 ${COLORS.primary} fill-current`} />)}
-                </div>
-                <p className={`text-sm ${COLORS.textMuted} mb-6 leading-relaxed`}>"{t.text}"</p>
-                <div className="flex items-center gap-3">
-                  <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full border-2 border-[#E8E2D9]" />
-                  <div>
-                    <div className={`text-sm font-semibold ${COLORS.text}`}>{t.name}</div>
-                    <div className={`text-xs ${COLORS.textMuted}`}>{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// B2B Section
 function B2BSection() {
   return (
-    <section id="b2b" className={`py-20 bg-white px-6`}>
-      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-        <Reveal>
-          <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E6F7ED] border border-[#2ECC71]/30 mb-6">
-              <Building2 className={`w-4 h-4 ${COLORS.success}`} />
-              <span className={`text-xs font-semibold ${COLORS.success}`}>Solution Entreprise</span>
-            </div>
-            <h2 className={`font-serif text-3xl md:text-4xl font-bold ${COLORS.text} mb-4`}>Gérez les repas de toute votre <span className={`${COLORS.success} italic`}>équipe</span></h2>
-            <p className={`${COLORS.textMuted} mb-8 leading-relaxed`}>Commandes groupées, budgets individuels, facturation mensuelle automatique au format SYSCOHADA. Tout ce qu'il faut pour les RH et les DAF.</p>
-            
-            {[
-              { icon: "📋", text: "50 repas commandés en 2 minutes" },
-              { icon: "💳", text: "Facturation mensuelle consolidée" },
-              { icon: "📊", text: "Rapport de dépenses par collaborateur" },
-              { icon: "🔒", text: "Limites de budget par employé" },
-            ].map(({ icon, text }) => (
-              <div key={text} className="flex items-center gap-3 mb-4">
-                <CheckCircle className={`w-5 h-5 ${COLORS.success}`} />
-                <span className={`${COLORS.text}`}>{text}</span>
+    <section className="bg-[#F9F7F5] py-20 px-6" id="b2b">
+      <div className="max-w-7xl mx-auto grid gap-12 lg:grid-cols-2 items-center">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#2ECC71]">Entreprises</p>
+          <h2 className="mt-4 text-3xl md:text-4xl font-serif font-bold text-[#2D2720]">Simplifiez les commandes d’équipe</h2>
+          <p className="mt-4 max-w-xl text-[#8B7355] leading-relaxed">Commandes groupées, budgets par collaborateur et facturation mensuelle claire pour les RH et la finance.</p>
+
+          <div className="mt-8 space-y-4">
+            {b2bHighlights.map((item) => (
+              <div key={item.label} className="flex gap-4 rounded-3xl border border-[#E8E2D9] bg-white p-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E6F7ED] text-[#2ECC71]">{item.icon}</div>
+                <p className="text-sm text-[#2D2720]">{item.label}</p>
               </div>
             ))}
-            
-            <Link to="/register?type=b2b" className={`inline-flex items-center gap-2 mt-8 px-6 py-3 rounded-xl text-white font-semibold ${COLORS.successBg} hover:bg-[#27AE60] transition-all`}>
-              Créer un compte entreprise <ArrowRight className="w-4 h-4" />
+          </div>
+
+          <div className="mt-8">
+            <Link
+              to="/register?type=b2b"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] px-6 py-3 text-white font-semibold hover:bg-[#27AE60] transition"
+            >
+              <Building2 className="w-4 h-4" /> Ouvrir un compte<br/>entreprise
             </Link>
           </div>
-        </Reveal>
+        </div>
 
-        <Reveal delay={150}>
-          <div className="relative">
-            <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=700&q=80" alt="B2B" className="rounded-2xl shadow-lg border border-[#E8E2D9]" />
-            <div className="absolute -bottom-6 -right-6 bg-white rounded-xl shadow-lg border border-[#E8E2D9] p-4 max-w-xs">
-              <div className={`text-xs ${COLORS.textMuted} mb-1`}>Commande groupée</div>
-              <div className={`font-serif text-2xl font-bold ${COLORS.success}`}>48 repas</div>
-              <div className={`text-xs ${COLORS.textMuted}`}>livraison en 35 min ⚡</div>
-            </div>
+        <div className="rounded-[2rem] bg-white p-8 shadow-lg border border-[#E8E2D9]">
+          <div className="grid gap-6">
+            {testimonials.map((item) => (
+              <div key={item.name} className="rounded-3xl border border-[#E8E2D9] p-6">
+                <p className="text-[#2D2720] leading-relaxed">“{item.quote}”</p>
+                <p className="mt-4 font-semibold text-[#D94500]">{item.name}</p>
+              </div>
+            ))}
           </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   );
 }
 
-// CTA Section
-function CTASection() {
+function CTA() {
   return (
-    <Reveal>
-      <section className={`py-20 ${COLORS.bg} px-6`}>
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className={`font-serif text-3xl md:text-4xl font-bold ${COLORS.text} mb-4`}>Prêt à rejoindre <span className={`${COLORS.primary} italic`}>Resto d'ici ?</span></h2>
-          <p className={`${COLORS.textMuted} text-lg mb-8 max-w-2xl mx-auto`}>Inscription gratuite · Première commande offerte · Livraison express</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/register" className={`inline-flex items-center gap-2 px-8 py-4 rounded-xl text-white font-semibold ${COLORS.primaryBg} ${COLORS.primaryHover} shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5`}>
-              🍽️ S'inscrire gratuitement
-            </Link>
-            <Link to="/login" className={`inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold border-2 border-[#D94500]/30 ${COLORS.text} hover:bg-[#D94500]/5 transition-all`}>
-              Se connecter →
-            </Link>
-          </div>
+    <section className="bg-[#2D2720] py-20 px-6">
+      <div className="max-w-5xl mx-auto text-center text-white">
+        <p className="text-sm uppercase tracking-[0.3em] text-[#D94500]">Prêt à démarrer</p>
+        <h2 className="mt-4 text-3xl md:text-4xl font-serif font-bold">Votre restaurant, vos clients et vos équipes réunis</h2>
+        <p className="mt-4 text-[#E8D7C7] max-w-2xl mx-auto leading-relaxed">Resto d&apos;ici simplifie les commandes, les paiements et les opérations pour tous les acteurs du marché.</p>
+
+        <div className="mt-10 flex flex-wrap justify-center gap-4">
+          <Link
+            to="/register?type=restaurant"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#D94500] px-6 py-3 font-semibold text-white hover:bg-[#B83A00] transition"
+          >
+            <ChefHat className="w-4 h-4" /> Restaurateur
+          </Link>
+          <Link
+            to="/menu"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-3 font-semibold text-white hover:bg-white/20 transition"
+          >
+            <UtensilsCrossed className="w-4 h-4" /> Commander
+          </Link>
+          <Link
+            to="/register?type=b2b"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#2ECC71]/40 bg-[#2ECC71]/10 px-6 py-3 font-semibold text-[#2ECC71] hover:bg-[#2ECC71]/20 transition"
+          >
+            <Building2 className="w-4 h-4" /> Entreprise
+          </Link>
         </div>
-      </section>
-    </Reveal>
+      </div>
+    </section>
   );
 }
 
-// Footer
 function Footer() {
   return (
-    <footer className={`bg-[#2D2720] text-white py-12 px-6`}>
-      <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-[#D94500] flex items-center justify-center font-bold">R</div>
-              <span className="font-serif text-lg font-bold">Resto <span className="text-[#FFB399]">d'ici</span></span>
-            </div>
-            <p className="text-[#B8A694] text-sm max-w-sm">La plateforme de restauration digitale B2B & B2C dédiée au marché ivoirien et africain.</p>
-            <div className="flex gap-2 mt-4">
-              {["Orange Money", "MTN MoMo", "Wave"].map(p => (
-                <span key={p} className="px-3 py-1 rounded bg-white/10 text-xs">{p}</span>
-              ))}
-            </div>
+    <footer className="bg-[#1A1410] text-white py-12 px-6">
+      <div className="max-w-7xl mx-auto grid gap-8 md:grid-cols-3">
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-[#D94500] grid place-items-center">R</div>
+            <span className="font-semibold text-lg">Resto d&apos;ici</span>
           </div>
-          {[
-            { title: "Plateforme", links: ["Menu", "Commander", "Suivi", "Paiements"] },
-            { title: "Professionnels", links: ["Restaurants", "Entreprises B2B", "Partenaires"] },
-            { title: "Légal", links: ["CGU", "Confidentialité", "Contact"] },
-          ].map(({ title, links }) => (
-            <div key={title}>
-              <h4 className="font-semibold mb-3">{title}</h4>
-              {links.map(l => <a key={l} href="#" className="block text-[#B8A694] text-sm hover:text-[#FFB399] transition-colors">{l}</a>)}
-            </div>
-          ))}
+          <p className="text-sm text-[#BFA38D]">La plateforme qui simplifie la restauration en Côte d&apos;Ivoire.</p>
         </div>
-        <div className="border-t border-white/10 pt-6 text-center text-[#B8A694] text-sm">
-          © 2026 Resto d'ici · Novasend · Abidjan, Côte d'Ivoire
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#D94500] mb-4">Liens</h3>
+          <div className="space-y-2 text-sm text-[#BFA38D]">
+            <Link to="/menu" className="block hover:text-white transition">Commander</Link>
+            <Link to="/register?type=restaurant" className="block hover:text-white transition">Restaurateur</Link>
+            <Link to="/register?type=b2b" className="block hover:text-white transition">Entreprise</Link>
+          </div>
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#D94500] mb-4">Contact</h3>
+          <p className="text-sm text-[#BFA38D]">Abidjan, Côte d&apos;Ivoire</p>
+          <p className="text-sm text-[#BFA38D]">support@restodici.ci</p>
         </div>
       </div>
+      <div className="mt-10 border-t border-white/10 pt-6 text-center text-[#BFA38D] text-sm">2026 • Resto d&apos;ici</div>
     </footer>
   );
 }
 
-// Page principale
 export default function Home() {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   return (
-    <div className={COLORS.bg}>
+    <div className="bg-[#F9F7F5] text-[#2D2720]">
       <Navbar />
-      <HeroSection />
-      <StatsBar />
-      <MenuSection />
-      <FeaturesSection />
-      <TestimonialsSection />
+      <Hero />
+      <Stats />
+      <Features />
+      <ClientSection />
       <B2BSection />
-      <CTASection />
+      <CTA />
       <Footer />
     </div>
   );

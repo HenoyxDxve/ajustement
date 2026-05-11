@@ -1,29 +1,85 @@
 // src/auth/dto/register.dto.ts
-import { IsString, IsEmail, IsOptional, IsIn, MinLength, Matches } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  IsIn,
+  MinLength,
+  IsUUID,
+} from 'class-validator';
 
 export class RegisterDto {
-  @IsEmail({}, { message: 'Email invalide' })
+  @IsEmail()
   email!: string;
 
   @IsString()
-  @MinLength(2, { message: 'Le nom doit contenir au moins 2 caractères' })
+  @MinLength(2)
   nom!: string;
 
   @IsString()
-  @MinLength(6, { message: 'Le mot de passe doit contenir au moins 6 caractères' })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-    message: 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre',
-  })
-  password!: string;
+  @MinLength(6)
+  password!: string; // Frontend envoie password (cohérent avec login)
 
   @IsString()
   @IsOptional()
   telephone?: string;
 
-  //  RG-31 : Rôle optionnel à l'inscription (défaut: CLIENT)
+  // Type d'utilisateur : CLIENT, RESTAURANT, BUSINESS_CLIENT
+  @IsString()
+  @IsIn(['CLIENT', 'RESTAURANT', 'BUSINESS_CLIENT'])
+  type!: string;
+
+  // --- Champs pour RESTAURANT ---
   @IsOptional()
-  @IsIn(['ADMIN', 'GERANT', 'STAFF', 'CLIENT', 'B2B'], {
-    message: 'Rôle invalide. Valeurs acceptées: ADMIN, GERANT, STAFF, CLIENT, B2B',
-  })
-  role?: 'ADMIN' | 'GERANT' | 'STAFF' | 'CLIENT' | 'B2B';
+  @IsString()
+  restaurantNom?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  adresse?: string;
+
+  @IsOptional()
+  @IsString()
+  restaurantTelephone?: string;
+
+  @IsOptional()
+  @IsString()
+  restaurantEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  horaires?: string;
+
+  @IsOptional()
+  zonesLivraison?: string[];
+
+  // --- Champs pour BUSINESS_CLIENT ---
+  @IsOptional()
+  @IsString()
+  nomEntreprise?: string;
+
+  @IsOptional()
+  @IsString()
+  emailProfessionnel?: string;
+
+  @IsOptional()
+  @IsString()
+  numeroFiscal?: string;
+
+  @IsOptional()
+  @IsString()
+  responsableCompte?: string;
+
+  // --- Champs pour CLIENT (QR Code ou Sélection Restaurant) ---
+  @IsOptional()
+  @IsUUID()
+  restaurantId?: string;
+
+  @IsOptional()
+  @IsString()
+  qrCode?: string;
 }

@@ -5,23 +5,28 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { CompteB2B } from '../../b2b/entities/compte-b2b.entity';
+import { Role } from '../entities/user.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(CompteB2B)
+    private compteB2BRepository: Repository<CompteB2B>,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'dev-secret-change-me-in-prod',
+      secretOrKey: process.env.JWT_SECRET || 'dev-secret-change-me',
     });
   }
 
   async validate(payload: { sub: string; email: string; role: string }) {
     const user = await this.userRepository.findOne({
       where: { id: payload.sub, actif: true },
+      relations: ['restaurant'], // Charger le restaurant lié
       select: ['id', 'email', 'nom', 'role', 'actif'],
     });
 
@@ -29,14 +34,25 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Utilisateur non trouvé ou désactivé');
     }
 
-    //  CRITIQUE : Retourner un objet PLAIN avec le rôle
-    // Passport attachera cet objet à request.user
+    let compteB2BId: string | undefined;
+
+    // Si le user est Responsable B2B, on rattache son CompteB2B
+    if (user.role === Role.B2B) {
+      const compteB2B = await this.compteB2BRepository.findOne({
+        where: { responsable: { id: user.id } },
+        select: ['id'],
+      });
+      compteB2BId = compteB2B?.id;
+    }
+
     return {
       id: user.id,
       email: user.email,
-      nom: user.nom,
-      role: user.role, // ← Doit être présent
-      actif: user.actif,
+      role: user.role,
+      compteB2BId,
+      restaurant: user.restaurant
+        ? { id: user.restaurant.id, nom: user.restaurant.nom }
+        : undefined,
     };
   }
 }

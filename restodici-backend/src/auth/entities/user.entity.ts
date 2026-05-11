@@ -1,12 +1,65 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  ManyToMany,
+  JoinTable, // ← AJOUTER CES IMPORTS
+} from 'typeorm';
+import { Restaurant } from '../../restaurants/entities/restaurant.entity';
+
+//  Exporter l'enum pour qu'il soit utilisable ailleurs
+export enum Role {
+  ADMIN = 'ADMIN',
+  GERANT = 'GERANT',
+  STAFF = 'STAFF',
+  CLIENT = 'CLIENT',
+  B2B = 'B2B',
+}
+
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid') id!: string;
-  @Column({ unique: true }) email!: string;
-  @Column() password!: string;
-  @Column() nom!: string;
-  @Column({ nullable: true }) telephone!: string;
-  @Column({ default: 'CLIENT' }) role!: string;
-  @Column({ default: true }) actif!: boolean;
-  @CreateDateColumn() createdAt!: Date;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column({ nullable: true })
+  nom!: string;
+
+  @Column({ unique: true })
+  email!: string;
+
+  @Column()
+  password!: string;
+
+  @Column({ nullable: true })
+  telephone!: string;
+
+  // ✅ Rôle avec enum exporté
+  @Column({ type: 'enum', enum: Role, default: Role.CLIENT })
+  role!: Role;
+
+  @Column({ default: true })
+  actif!: boolean;
+
+  // 🔗 NOUVEAU : Lien vers le restaurant (pour GERANT et STAFF)
+  @ManyToOne(() => Restaurant, (restaurant) => restaurant.users, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  restaurant?: Restaurant;
+  // 🔗 FAVORIS : Restaurants favoris du client (remplace abonnement)
+  @ManyToMany(() => Restaurant, { cascade: true, onDelete: 'CASCADE' })
+  @JoinTable({
+    name: 'user_favorites',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'restaurantId', referencedColumnName: 'id' },
+  })
+  favorites?: Restaurant[];
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }

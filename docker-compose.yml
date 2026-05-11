@@ -1,22 +1,27 @@
+# docker-compose.yml (extrait)
 services:
-  postgres:
-    image: postgres:16
+  db:
+    image: postgres:15-alpine
     container_name: restodici-db
-    restart: always
     environment:
       POSTGRES_USER: restodici_user
-      POSTGRES_PASSWORD: restodici_password
+      POSTGRES_PASSWORD: restodici_pass
       POSTGRES_DB: restodici_db
     ports:
-      - "5433:5432"  # ← Mac: port 5433 pour éviter conflits
+      - "5433:5432"  # Map 5433 (host) → 5432 (container)
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U restodici_user -d restodici_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     container_name: restodici-redis
     ports:
       - "6379:6379"
 
 volumes:
-  postgres_data:
+  pgdata:

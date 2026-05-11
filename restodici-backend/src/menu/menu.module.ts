@@ -1,23 +1,21 @@
+// src/menu/menu.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CacheModule } from '@nestjs/cache-manager';
+import { CacheModule } from '@nestjs/cache-manager'; // Add CacheModule import
 import { MenuController } from './menu.controller';
 import { MenuService } from './menu.service';
 import { Article } from './entities/article.entity';
 import { Categorie } from './entities/categorie.entity';
-import { AuthModule } from '../auth/auth.module';
+import { Restaurant } from '../restaurants/entities/restaurant.entity'; // ✅ Import
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Article, Categorie]),
-    CacheModule.register({
-      ttl: 300, // 5 minutes
-      max: 100, // max 100 entrées en cache
-    }),
-    AuthModule, // Pour les guards RBAC
+    CacheModule.register(), // Register CacheModule
+    // Enregistrer TOUTES les entités utilisées par ce module
+    TypeOrmModule.forFeature([Article, Categorie, Restaurant]),
   ],
   controllers: [MenuController],
   providers: [MenuService],
-  exports: [MenuService],
+  exports: [MenuService], // Pour l'utiliser dans d'autres modules si besoin
 })
 export class MenuModule {}

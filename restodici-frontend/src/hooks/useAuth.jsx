@@ -1,63 +1,125 @@
-// src/hooks/useAuth.js
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+// src/hooks/useAuth.jsx
+import { createContext, useContext, useState } from "react";
+import { authService } from "../services/auth.service";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
+
+function decodeToken(token) {
+  const rawPayload = token.split(".")[1];
+  const payload = rawPayload?.replace(/-/g, "+").replace(/_/g, "/");
+  if (!payload) throw new Error("Token invalide");
+  const paddedPayload = payload.padEnd(
+    payload.length + ((4 - (payload.length % 4)) % 4),
+    "=",
+  );
+  return JSON.parse(atob(paddedPayload));
+}
+
+function isExpired(payload) {
+  return payload?.exp ? payload.exp * 1000 <= Date.now() : false;
+}
+
+function getErrorMessage(error, fallback) {
+  const apiError = error?.response?.data;
+  const message = apiError?.message || apiError?.error || apiError;
+
+  if (Array.isArray(message)) return message.join(", ");
+  if (typeof message === "string") return message;
+
+  return error?.message || fallback;
+}
+
+function getStoredSession() {
+  const token = localStorage.getItem("token");
+  const storedUser = localStorage.getItem("user");
+  if (token) {
+    try {
+      const payload = decodeToken(token);
+      if (isExpired(payload)) {
+        throw new Error("Token expiré");
+      }
+      const userFromStorage = storedUser ? JSON.parse(storedUser) : null;
+      return userFromStorage
+        ? { ...userFromStorage, token }
+        : { ...payload, token };
+    } catch {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    }
+  }
+
+  return null;
+}
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // ← Pour la redirection
+  const [user, setUser] = useState(getStoredSession);
+  const loading = false;
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({
-          id: payload.sub,
-          email: payload.email,
-          role: payload.role,
-          nom: payload.nom || 'Utilisateur'
-        });
-      } catch (err) {
-        localStorage.removeItem('token');
+  const login = async (email, password) => {
+    try {
+      const data = await authService.login(email, password);
+      const { access_token, token, user: userData } = data;
+      const jwtToken = access_token ?? token;
+
+      if (!jwtToken || !userData) {
+        return { success: false, error: "Réponse invalide du serveur" };
       }
-    }
-    setLoading(false);
-  }, []);
 
-  const login = async ({ email, password }) => {
-    const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000' });
-    
-    const { data } = await api.post('/auth/login', { email, password });
-    
-    // Stockage du token
-    localStorage.setItem('token', data.access_token);
-    setUser(data.user);
-    
-    // Redirection immédiate selon le rôle (RG-31)
-    if (data.user.role === 'ADMIN' || data.user.role === 'GERANT') {
-      navigate('/admin', { replace: true });
-    } else {
-      navigate('/menu', { replace: true });
+      localStorage.setItem("token", jwtToken);
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser({ ...userData, token: jwtToken });
+
+      return { success: true, user: userData };
+    } catch (error) {
+      console.error("Login error:", error);
+      return {
+        success: false,
+        error: getErrorMessage(error, "Erreur de connexion"),
+      };
     }
-    
-    return data;
+  };
+
+  const register = async (userData) => {
+    try {
+      const data = await authService.register(userData);
+      const { access_token, token, user: newUser } = data;
+      const jwtToken = access_token ?? token;
+
+      if (!jwtToken || !newUser) {
+        return { success: false, error: "Réponse invalide du serveur" };
+      }
+
+      localStorage.setItem("token", jwtToken);
+      localStorage.setItem("user", JSON.stringify(newUser));
+      setUser({ ...newUser, token: jwtToken });
+      return { success: true, user: newUser };
+    } catch (error) {
+      console.error("Register error:", error);
+      return {
+        success: false,
+        error: getErrorMessage(error, "Erreur d'inscription"),
+      };
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
-    navigate('/login', { replace: true });
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

@@ -1,87 +1,219 @@
-// src/pages/Login.jsx — Version corrigée
+// src/pages/Login.jsx
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Mail, Lock, ArrowLeft, UserPlus, UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { Link } from 'react-router-dom';
-import { Mail, Lock, UtensilsCrossed } from 'lucide-react';
 
 export default function Login() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = async (data) => {
+  // Get redirect parameter from URL
+  const redirectParam = searchParams.get('redirect') || location.state?.redirect || '/';
+  const registered = searchParams.get('registered') === '1';
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Trim whitespace from email and password
+    const trimmedEmail = formData.email.trim();
+    const trimmedPassword = formData.password.trim();
+    
+    if (!trimmedEmail) {
+      newErrors.email = 'Email requis';
+    } else if (!/\S+@\S+\.\S+/.test(trimmedEmail)) {
+      newErrors.email = 'Email invalide';
+    }
+    
+    if (!trimmedPassword) {
+      newErrors.password = 'Mot de passe requis';
+    } else if (trimmedPassword.length < 6) {
+      newErrors.password = 'Minimum 6 caractères';
+    } else if (typeof trimmedPassword !== 'string') {
+      newErrors.password = 'Mot de passe doit être une chaîne de caractères';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate form first
+    if (!validateForm()) return;
+
+    // Ensure we're sending trimmed, clean data
+    const loginData = {
+      email: formData.email.trim(),
+      password: formData.password.trim()
+    };
+
+    setIsSubmitting(true);
     try {
-      setLoading(true);
-      setError('');
-      await login({ email: data.email, password: data.password });
-      // ← La redirection est gérée dans useAuth.login()
-    } catch (err) {
-      setError(err.response?.data?.message || 'Email ou mot de passe incorrect');
+      const result = await login(loginData.email, loginData.password);
+      if (!result.success) {
+        setErrors({ submit: result.error || 'Erreur lors de la connexion' });
+        return;
+      }
+      const userData = result.user;
+
+      // DEBUG: Log exactly what we received from backend
+      console.log('Login successful - User data received:', userData);
+      console.log('User role:', userData.role);
+      
+      // Robust role-based redirection
+      const userRole = userData.role?.toUpperCase();
+      
+      if (redirectParam === 'checkout') {
+        console.log('Redirecting to checkout');
+        navigate('/checkout');
+      } 
+      // Restaurant Manager (GERANT)
+      else if (userRole === 'GERANT') {
+        console.log('Redirecting GERANT to /gerant');
+        navigate('/gerant');
+      } 
+      // Business Client (B2B)  
+      else if (userRole === 'B2B') {
+        console.log('Redirecting B2B to /b2b/dashboard');
+        navigate('/b2b/dashboard');
+      }
+      // Regular Customer (CLIENT) or any other role
+      else {
+        console.log('Redirecting to /menu (role:', userRole, ')');
+        navigate('/menu');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      // Parse backend validation errors
+      let errorMessage = 'Erreur lors de la connexion';
+      if (error.response?.data?.message) {
+        const backendMessage = error.response.data.message;
+        // Handle concatenated validation errors
+        if (backendMessage.includes('email must be an email') || 
+            backendMessage.includes('password must be longer than or equal to 6 characters')) {
+          errorMessage = 'Veuillez vérifier votre email et mot de passe';
+        } else {
+          errorMessage = backendMessage;
+        }
+      }
+      setErrors({ submit: errorMessage });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  const getTitleAndSubtitle = () => {
+    return {
+      title: 'Resto d\'ici',
+      subtitle: 'Connexion unique pour tous les utilisateurs'
+    };
+  };
+
+  const { title, subtitle } = getTitleAndSubtitle();
+
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 mb-2">
-            <UtensilsCrossed className="w-8 h-8 text-primary" />
+    <div className="min-h-screen bg-[#F9F7F5] flex items-center justify-center p-4">
+      {registered && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-lg px-4">
+          <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-4 text-sm shadow-sm">
+            Inscription réussie. Veuillez vous connecter pour accéder à votre espace.
           </div>
-          <h1 className="text-3xl font-bold font-headline text-primary-700">Resto d'ici</h1>
-          <p className="text-neutral-600 text-sm">Bienvenue à la table digitale.</p>
+        </div>
+      )}
+      <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-8 space-y-6 border border-[#E8E2D9]">
+        
+        {/* Logo + Titre */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#FFF5EB] mb-2">
+            <UtensilsCrossed className="w-8 h-8 text-[#D94500]" />
+          </div>
+          <h1 className="text-3xl font-bold text-[#2D2720]">{title}</h1>
+          <p className="text-[#8B7355] text-sm">{subtitle}</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Formulaire */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          
+          {/* Email */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-neutral-700">Email</label>
+            <label className="text-sm font-semibold text-[#2D2720]">Email</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-neutral-400" />
-              </div>
+              <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-[#8B7355]" />
               <input
-                {...register('email', { required: 'L\'email est requis' })}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 type="email"
                 placeholder="votre@email.com"
-                className="block w-full pl-10 pr-3 py-3 border border-neutral-200 rounded-lg bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="block w-full pl-10 pr-3 py-3 bg-[#F9F7F5] border border-[#E8E2D9] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D94500] focus:border-transparent transition-all"
               />
             </div>
-            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
 
+          {/* Password */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-neutral-700">Mot de passe</label>
+            <label className="text-sm font-semibold text-[#2D2720]">Mot de passe</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-neutral-400" />
-              </div>
+              <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-[#8B7355]" />
               <input
-                {...register('password', { required: 'Le mot de passe est requis', minLength: { value: 6, message: 'Minimum 6 caractères' } })}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 type="password"
                 placeholder="••••••••"
-                className="block w-full pl-10 pr-3 py-3 border border-neutral-200 rounded-lg bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="block w-full pl-10 pr-3 py-3 bg-[#F9F7F5] border border-[#E8E2D9] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D94500] focus:border-transparent transition-all"
               />
             </div>
-            {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
           </div>
 
-          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
+          {/* Erreur globale */}
+          {errors.submit && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              {errors.submit}
+            </div>
+          )}
 
+          {/* Submit */}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white font-medium bg-primary hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all disabled:opacity-50"
+            disabled={isSubmitting}
+            className={`w-full py-3 px-4 rounded-2xl font-bold text-white bg-[#D94500] hover:bg-[#B83A00] transition-colors ${
+              isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+            }`}
           >
-            {loading ? 'Connexion...' : 'Se connecter →'}
+            {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
           </button>
         </form>
 
-        <Link to="/register" className="block w-full py-3 px-4 border-2 border-primary-700 rounded-lg text-center text-primary-700 font-medium hover:bg-primary-50 transition-colors">
-          Créer un compte
-        </Link>
+        {/* Liens supplémentaires */}
+        <div className="pt-4 border-t border-[#E8E2D9] space-y-3">
+          <Link 
+            to="/register" 
+            className="flex items-center justify-center text-[#2ECC71] font-medium hover:underline"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            Pas encore inscrit ? Créer un compte
+          </Link>
+          
+          <Link 
+            to="/" 
+            className="flex items-center text-[#8B7355] hover:text-[#2D2720] text-sm"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Retour à l'accueil
+          </Link>
+        </div>
       </div>
     </div>
   );

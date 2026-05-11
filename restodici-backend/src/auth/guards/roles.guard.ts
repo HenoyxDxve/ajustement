@@ -1,5 +1,10 @@
 // src/auth/guards/roles.guard.ts
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
@@ -16,10 +21,8 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-   
     const request = context.switchToHttp().getRequest();
-    
-    
+
     const user = request.user;
 
     // Debug log (à supprimer en prod)
@@ -30,13 +33,17 @@ export class RolesGuard implements CanActivate {
     });
 
     if (!user || !user.role) {
-      throw new ForbiddenException('Accès refusé : utilisateur non authentifié');
+      throw new ForbiddenException(
+        'Accès refusé : utilisateur non authentifié',
+      );
     }
 
     const hasRole = requiredRoles.includes(user.role);
-    
+
     if (!hasRole) {
-      throw new ForbiddenException(`Accès refusé : rôle "${user.role}" non autorisé`);
+      throw new ForbiddenException(
+        `Accès refusé : rôle "${user.role}" non autorisé`,
+      );
     }
 
     return true;

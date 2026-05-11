@@ -1,56 +1,176 @@
-// src/App.jsx — Version épurée (conflit résolu)
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+// src/App.jsx — Version corrigée ESM strict
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './hooks/useAuth';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 import { CartProvider } from './hooks/useCart';
-import Home  from './pages/Home';
 
-// Pages
+// ===== LAYOUTS — Imports directs sans extension .jsx =====
+import GerantLayout from './layouts/GerantLayout';
+import ClientLayout from './layouts/ClientLayout';
+
+// ===== PAGES PUBLIQUES — Imports directs sans extension .jsx =====
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MenuPage from './pages/Menu';
-import AdminDashboard from './pages/AdminDashboard';
+import CartPage from './pages/Cart';
+import CheckoutPage from './pages/Checkout';
+import OrdersPage from './pages/Orders';
+import PaymentSuccessPage from './pages/PaymentSuccess';
+import OrderTrackingPage from './pages/order/OrderTracking';
 
+// ===== DASHBOARDS — Imports directs sans extension .jsx =====
+import GerantDashboard from './pages/gerant/GerantDashboard';
+import KDSPage from './pages/gerant/KDSPage';
+import StaffDashboard from './pages/staff/StaffDashboard';
+import KDSStaff from './pages/staff/KDSStaff';
+import B2BDashboard from './pages/b2b/B2BDashboard';
+import BulkOrder from './pages/b2b/BulkOrder';
+import B2BOrders from './pages/b2b/B2BOrders';
+import B2BTeams from './pages/b2b/B2BTeams';
+import B2BInvoices from './pages/b2b/B2BInvoices';
+import B2BReports from './pages/b2b/B2BReports';
+
+// ===== UTILITAIRES — Imports directs sans extension .jsx =====
 const queryClient = new QueryClient();
 
-// 🔐 Route protégée — juste vérifier le token, PAS de redirection rôle
-function ProtectedRoute({ children }) {
+// ─── Composant de protection des routes gérant ──────────────────────────────
+function ProtectedGerantRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+  if (!user || user.role !== 'GERANT') return <Navigate to="/login" replace />;
+  return children;
+}
+
+// ─── Composant de protection des routes staff ───────────────────────────────
+function ProtectedStaffRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+  if (!user || (user.role !== 'STAFF' && user.role !== 'GERANT')) return <Navigate to="/login" replace />;
+  return children;
+}
+
+// ─── Composant de protection pour le checkout (requiert authentification) ────
+function ProtectedCheckoutRoute({ children }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+  if (!user) {
+    // Redirect to login with checkout as redirect parameter
+    return <Navigate to="/login" state={{ redirect: 'checkout' }} replace />;
+  }
+  return children;
+}
+
+// ─── Composant de protection des routes entreprise ───────────────────────────
+function ProtectedBusinessRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+  if (!user || user.role !== 'B2B') return <Navigate to="/login" replace />;
+  return children;
+}
+
+// ─── Wrapper pour le tableau de bord gérant avec props nécessaires ───────────
+function GerantDashboardWrapper() {
+  const { user } = useAuth();
   const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" replace />;
+  
+  // Extraire l'ID du restaurant depuis l'utilisateur, puis fallback sur l'id utilisateur
+  const restaurantId = user?.restaurant?.id || user?.restaurantId || user?.id;
+  
+  return <GerantDashboard restaurantId={restaurantId} token={token} />;
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <CartProvider>
-            <div className="min-h-screen bg-[#F9F7F5] text-[#2D2720]">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                
-                {/*  Route /menu : protégée, mais PAS de RoleRedirect ici */}
-                <Route path="/menu" element={
-                  <ProtectedRoute>
-                    <MenuPage />
-                  </ProtectedRoute>
-                } />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* === ROUTES PUBLIQUES avec ClientLayout et CartProvider === */}
+            <Route element={
+              <CartProvider>
+                <ClientLayout />
+              </CartProvider>
+            }>
+              <Route path="/" element={<Home />} />
+              <Route path="/menu" element={<MenuPage />} />
+              <Route path="/cart" element={<CartPage />} />
+            </Route>
+            
+            {/* === ROUTES REQUIÈRENT AUTHENTIFICATION === */}
+            <Route 
+              element={
+                <CartProvider>
+                  <ClientLayout />
+                  <ProtectedCheckoutRoute>
+                    <Outlet />
+                  </ProtectedCheckoutRoute>
+                </CartProvider>
+              }
+            >
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/checkout/success/:id" element={<PaymentSuccessPage />} />
+              <Route path="/suivi/:id" element={<OrderTrackingPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
+            </Route>
+            
+            {/* === ROUTES SANS LAYOUT (authentification) === */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-                {/*  Route /admin : protégée */}
-                <Route path="/admin" element={
-                  <ProtectedRoute>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } />
+            {/* === DASHBOARD GÉRANT === */}
+            <Route 
+              path="/gerant/*" 
+              element={
+                <ProtectedGerantRoute>
+                  <GerantLayout />
+                </ProtectedGerantRoute>
+              } 
+            >
+              <Route index element={<GerantDashboardWrapper />} />
+              <Route path="kds" element={<KDSPage />} />
+            </Route>
 
-                <Route path="*" element={<Navigate to="/menu" replace />} />
-              </Routes>
-            </div>
-          </CartProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+            {/* === DASHBOARD STAFF (KDS) === */}
+            <Route 
+              path="/staff/*" 
+              element={
+                <ProtectedStaffRoute>
+                  <ClientLayout />
+                </ProtectedStaffRoute>
+              } 
+            >
+              <Route index element={<KDSStaff />} />
+            </Route>
+
+            {/* === DASHBOARD ENTREPRISE (B2B) === */}
+            <Route 
+              path="/b2b/*" 
+              element={
+                <ProtectedBusinessRoute>
+                  <ClientLayout />
+                </ProtectedBusinessRoute>
+              } 
+            >
+              <Route index element={<B2BDashboard />} />
+              <Route path="dashboard" element={<B2BDashboard />} />
+              <Route path="order" element={<BulkOrder />} />
+              <Route path="bulk-order" element={<BulkOrder />} />
+              <Route path="orders" element={<B2BOrders />} />
+              <Route path="billing" element={<B2BInvoices />} />
+              <Route path="invoices" element={<B2BInvoices />} />
+              <Route path="teams" element={<B2BTeams />} />
+              <Route path="reports" element={<B2BReports />} />
+              <Route path="deliveries" element={<B2BOrders />} />
+            </Route>
+
+            {/* === REDIRECTION PAR DÉFAUT === */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

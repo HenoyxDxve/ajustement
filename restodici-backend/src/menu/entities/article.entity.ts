@@ -1,19 +1,80 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+// src/menu/entities/article.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Categorie } from './categorie.entity';
+import { Restaurant } from '../../restaurants/entities/restaurant.entity';
+import { LigneCommande } from '../../commandes/entities/ligne-commande.entity';
+
+export enum CibleEnum {
+  CLIENT = 'CLIENT',
+  B2B = 'B2B',
+  TOUS = 'TOUS',
+}
 
 @Entity('articles')
 export class Article {
-  @PrimaryGeneratedColumn('uuid') id!: string;
-  @Column() nom!: string;
-  @Column({ type: 'text', nullable: true }) description!: string;
-  @Column('decimal', { precision: 10, scale: 2 }) prix!: number; // RG-05: prix > 0
-  @Column({ nullable: true }) photoUrl!: string;
-  @Column({ default: true }) disponible!: boolean; // RG-02: synchro < 30s
-  @Column({ default: 0 }) stock!: number; // RG-03: rupture auto si 0
-  @Column('simple-array', { nullable: true }) allergenes!: string[];
-  @Column({ default: 'CLIENT' }) cible!: string; // CLIENT | B2B | TOUS
-  @ManyToOne(() => Categorie, (cat) => cat.articles, { eager: true })
-  categorie!: Categorie; // RG-01: article obligatoirement dans une catégorie
-  @CreateDateColumn() createdAt!: Date;
-  @UpdateDateColumn() updatedAt!: Date;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column()
+  nom!: string; //  Requis (pas nullable)
+
+  @Column({ type: 'text', nullable: true })
+  description!: string | null;
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  prix!: number;
+
+  @Column({ type: 'text', nullable: true })
+  photoUrl!: string | null; // Correction TS
+
+  @Column({ default: true })
+  disponible!: boolean;
+
+  @Column({ type: 'enum', enum: CibleEnum, default: CibleEnum.CLIENT })
+  cible!: CibleEnum;
+
+  @Column({ type: 'simple-array', nullable: true }) // Stocke les tableaux en DB
+  allergenes!: string[];
+
+  @Column({ default: 0 })
+  stock!: number;
+
+  @Column({ nullable: true })
+  seuilMin!: number;
+
+  @Column({ nullable: true })
+  categorieId!: string;
+
+  @Column()
+  restaurantId!: string;
+
+  @ManyToOne(() => Categorie, (categorie) => categorie.articles, {
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'categorieId' })
+  categorie!: Categorie;
+
+  @ManyToOne(() => Restaurant, (restaurant) => restaurant.articles, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'restaurantId' })
+  restaurant!: Restaurant;
+
+  @OneToMany(() => LigneCommande, (ligne) => ligne.article)
+  lignesCommandes!: LigneCommande[];
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }

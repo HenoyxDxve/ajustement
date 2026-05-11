@@ -1,7 +1,7 @@
 // src/pages/ProductDetail.jsx
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Share2, AlertTriangle, Flame } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, AlertTriangle, Flame, ShoppingBag } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 
 export default function ProductDetail() {

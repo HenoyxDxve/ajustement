@@ -12,8 +12,6 @@ import {
   DefaultValuePipe,
   ParseIntPipe,
   BadRequestException,
-  ForbiddenException,
-  NotFoundException,
 } from '@nestjs/common';
 import { CommandesService } from './commandes.service';
 import { CreateCommandeDto } from './dto/create-commande.dto';
@@ -112,7 +110,7 @@ export class CommandesController {
   // ✅ RG-10 : Mise à jour statut (GERANT/STAFF uniquement)
   @Patch(':id/statut')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('GERANT', 'STAFF')
+  @Roles('GERANT', 'STAFF', 'ADMIN')
   async updateStatut(
     @Param('id') id: string,
     @Body('statut') statut: StatutCommande,
@@ -120,7 +118,9 @@ export class CommandesController {
   ) {
     // RG-31: Un gérant ne modifie que SES commandes
     const restaurantId =
-      req.user.role === 'GERANT' ? req.user.restaurant?.id : undefined;
+      req.user.role === 'GERANT' || req.user.role === 'STAFF'
+        ? req.user.restaurant?.id
+        : undefined;
     return this.commandesService.updateStatut(id, statut, restaurantId);
   }
 }

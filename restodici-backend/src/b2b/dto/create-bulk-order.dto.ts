@@ -5,7 +5,7 @@ import {
   IsOptional,
   ValidateNested,
   IsBoolean,
-  IsDate,
+  IsDateString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -18,6 +18,10 @@ class BulkOrderItemDto {
 
   @IsNumber()
   unitPrice!: number;
+
+  @IsNumber()
+  @IsOptional()
+  total?: number;
 }
 
 export class CreateBulkOrderDto {
@@ -44,10 +48,9 @@ export class CreateBulkOrderDto {
   @IsOptional()
   notes?: string;
 
-  @IsDate()
+  @IsDateString()
   @IsOptional()
-  @Type(() => Date)
-  deliveryDateTime?: Date;
+  deliveryDateTime?: string;
 
   @IsBoolean()
   @IsOptional()

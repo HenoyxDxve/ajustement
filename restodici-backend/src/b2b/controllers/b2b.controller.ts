@@ -71,9 +71,22 @@ export class B2BController {
     return this.b2bService.createBulkOrder(req.user.id, createBulkOrderDto);
   }
 
+  @Post('orders/bulk')
+  async createBulkOrderAlias(
+    @Req() req: RequestWithUser,
+    @Body() createBulkOrderDto: CreateBulkOrderDto,
+  ) {
+    return this.b2bService.createBulkOrder(req.user.id, createBulkOrderDto);
+  }
+
   @Get('bulk-orders')
   async getBulkOrders(@Req() req: RequestWithUser) {
     return this.b2bService.getBulkOrdersByUser(req.user.id);
+  }
+
+  @Get('orders')
+  async getOrders(@Req() req: RequestWithUser) {
+    return this.b2bService.getOrdersByUser(req.user.id);
   }
 
   @Put('bulk-orders/:orderId/status')
@@ -111,6 +124,11 @@ export class B2BController {
   @Get('collaborators')
   async getCollaborators(@Req() req: RequestWithUser) {
     return this.b2bService.getCollaboratorsByUser(req.user.id);
+  }
+
+  @Post('collaborators')
+  async createCollaborator(@Req() req: RequestWithUser, @Body() dto: any) {
+    return this.b2bService.createCollaborator(req.user.id, dto);
   }
 
   @Get('reports')

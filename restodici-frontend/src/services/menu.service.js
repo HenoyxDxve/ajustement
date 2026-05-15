@@ -22,17 +22,19 @@ api.interceptors.request.use((config) => {
 
 export const menuService = {
   //  GET /api/menu?categorie=xxx&cible=CLIENT
-  getMenu: async (categorieId, cible = "CLIENT") => {
+  getMenu: async (categorieId, cible = "CLIENT", restaurantId) => {
     const params = new URLSearchParams();
     if (categorieId) params.append("categorie", categorieId);
     if (cible) params.append("cible", cible);
+    if (restaurantId) params.append("restaurantId", restaurantId);
     const { data } = await api.get(`/menu?${params}`);
     return data;
   },
 
   //  GET /api/menu/categories
-  getCategories: async () => {
-    const { data } = await api.get("/menu/categories");
+  getCategories: async (restaurantId) => {
+    const params = restaurantId ? { restaurantId } : undefined;
+    const { data } = await api.get("/menu/categories", { params });
     return data;
   },
 

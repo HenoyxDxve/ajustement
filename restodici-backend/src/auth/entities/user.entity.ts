@@ -27,6 +27,9 @@ export class User {
   @Column({ nullable: true })
   nom!: string;
 
+  @Column({ nullable: true })
+  prenom!: string;
+
   @Column({ unique: true })
   email!: string;
 
@@ -36,12 +39,26 @@ export class User {
   @Column({ nullable: true })
   telephone!: string;
 
-  // ✅ Rôle avec enum exporté
+  //  Rôle avec enum exporté
   @Column({ type: 'enum', enum: Role, default: Role.CLIENT })
   role!: Role;
 
   @Column({ default: true })
   actif!: boolean;
+
+  // Email verification fields
+  @Column({ default: false })
+  emailVerified!: boolean;
+
+  @Column({ nullable: true })
+  emailVerificationToken?: string;
+
+  @Column({ nullable: true })
+  emailVerificationExpires?: Date;
+
+  // Google OAuth fields
+  @Column({ nullable: true })
+  googleId?: string;
 
   // 🔗 NOUVEAU : Lien vers le restaurant (pour GERANT et STAFF)
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.users, {

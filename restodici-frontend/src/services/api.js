@@ -46,10 +46,16 @@ api.interceptors.response.use(
 export const menuAPI = {
   // GET /menu?cible=CLIENT&restaurantId=xxx
   get: (params) => api.get("/menu", { params }),
+  getAll: (params) => api.get("/menu", { params }),
+  getRestaurants: () => api.get("/menu/restaurants"),
+  getByRestaurant: (restaurantId, params = {}) =>
+    api.get(`/menu/restaurant/${restaurantId}`, { params }),
 
   // Récupérer les catégories d'un restaurant (pour création article)
   getCategories: ({ restaurantId }) =>
-    api.get(`/menu/categories?restaurantId=${restaurantId}`),
+    api.get("/menu/categories", {
+      params: restaurantId ? { restaurantId } : undefined,
+    }),
 
   // POST /menu/categories — avec restaurantId pour isolation (RG-31)
   createCategorie: (data) => {
@@ -67,6 +73,7 @@ export const menuAPI = {
     }
     return api.post("/menu/categories", payload);
   },
+  createCategory: (data) => menuAPI.createCategorie(data),
 
   // POST /menu/articles — avec restaurantId pour isolation (RG-31)
   createArticle: (data) => {
@@ -120,6 +127,8 @@ export const commandesService = {
   // PATCH /commandes/:id/statut
   updateStatus: (id, statut) =>
     api.patch(`/commandes/${id}/statut`, { statut }),
+  updateStatut: (id, statut) =>
+    api.patch(`/commandes/${id}/statut`, { statut }),
 
   // GET /commandes/:id — détail d'une commande
   findOne: (id) => api.get(`/commandes/${id}`),
@@ -129,6 +138,8 @@ export const commandesService = {
 
   // GET /commandes/me — historique client
   getMyOrders: () => api.get("/commandes/me"),
+  getRecentOrders: (restaurantId, limit = 50) =>
+    api.get("/commandes", { params: { restaurantId, limit } }),
 };
 
 export const stocksAPI = {
@@ -148,7 +159,7 @@ export const b2bAPI = {
   getCollaborators: () => api.get("/b2b/collaborators"),
   createCollaborator: (data) => api.post("/b2b/collaborators", data),
   bulkOrder: (data) => api.post("/b2b/bulk-orders", data),
-  getOrders: () => api.get("/b2b/bulk-orders"),
+  getOrders: () => api.get("/b2b/orders"),
   getInvoices: () => api.get("/b2b/invoices"),
   getReports: () => api.get("/b2b/reports"),
 };

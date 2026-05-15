@@ -10,6 +10,7 @@ import {
   Delete,
   Query,
   Put,
+  ForbiddenException,
 } from '@nestjs/common';
 import { RestaurantsService } from './restaurants.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -69,7 +70,7 @@ export class RestaurantsController {
       req.user.role === 'GERANT' &&
       req.user.restaurant?.id !== restaurantId
     ) {
-      throw new Error(
+      throw new ForbiddenException(
         'Access denied: Gérant can only manage their own restaurant',
       );
     }
@@ -91,7 +92,7 @@ export class RestaurantsController {
       req.user.role === 'GERANT' &&
       req.user.restaurant?.id !== restaurantId
     ) {
-      throw new Error(
+      throw new ForbiddenException(
         'Access denied: Gérant can only manage their own restaurant',
       );
     }
@@ -108,7 +109,7 @@ export class RestaurantsController {
       req.user.role === 'GERANT' &&
       req.user.restaurant?.id !== restaurantId
     ) {
-      throw new Error(
+      throw new ForbiddenException(
         'Access denied: Gérant can only view their own restaurant staff',
       );
     }

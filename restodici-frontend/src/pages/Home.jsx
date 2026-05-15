@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   UtensilsCrossed,
@@ -11,81 +11,13 @@ import {
   Shield,
   Package,
   BarChart3,
+  Smartphone,
+  QrCode,
+  ArrowRight,
+  Star
 } from 'lucide-react';
 
-const sections = [
-  { label: 'Menu', href: '/menu' },
-  { label: 'B2C', href: '#clients' },
-  { label: 'B2B', href: '#b2b' },
-  { label: 'Aide', href: '#faq' },
-];
-
-
-const stats = [
-  { value: '340+', label: 'Restaurants partenaires' },
-  { value: '12 000+', label: 'Commandes mensuelles' },
-  { value: '98%', label: 'Clients satisfaits' },
-  { value: '30 min', label: 'Livraison rapide' },
-];
-
-const features = [
-  {
-    icon: <Package className="w-6 h-6" />,
-    title: 'Gestion des commandes',
-    description: 'Recevez et traitez les commandes en temps réel avec un KDS moderne.',
-  },
-  {
-    icon: <Wallet className="w-6 h-6" />,
-    title: 'Paiement intégré',
-    description: 'Paiements Mobile Money sécurisés et suivi automatique.',
-  },
-  {
-    icon: <Shield className="w-6 h-6" />,
-    title: 'Suivi des stocks',
-    description: 'Alertes de rupture et inventaire simplifié pour chaque restaurant.',
-  },
-  {
-    icon: <BarChart3 className="w-6 h-6" />,
-    title: 'Rapports clairs',
-    description: 'Analysez ventes, marges et performances en un seul tableau de bord.',
-  },
-];
-
-const clientSteps = [
-  {
-    step: '01',
-    title: 'Choisissez un restaurant',
-    description: 'Parcourez les menus mis à jour en temps réel.',
-  },
-  {
-    step: '02',
-    title: 'Payez facilement',
-    description: 'Mobile Money sécurisé en quelques clics.',
-  },
-  {
-    step: '03',
-    title: 'Suivez votre repas',
-    description: 'Recevez chaque étape jusqu’à la livraison.',
-  },
-];
-
-const b2bHighlights = [
-  { icon: <Users className="w-5 h-5" />, label: 'Commandes groupées pour l’équipe' },
-  { icon: <Wallet className="w-5 h-5" />, label: 'Facturation mensuelle SYSCOHADA' },
-  { icon: <Shield className="w-5 h-5" />, label: 'Budget collaborateur maîtrisé' },
-  { icon: <Clock className="w-5 h-5" />, label: 'Suivi des livraisons en temps réel' },
-];
-
-const testimonials = [
-  {
-    quote: 'Notre restaurant a gagné en réactivité et les clients reconnaissent la fluidité du service.',
-    name: 'Jean-Claude, restaurateur',
-  },
-  {
-    quote: 'Les commandes d’équipe se font maintenant en quelques minutes avec une facture claire.',
-    name: 'Aminata, responsable RH',
-  },
-];
+// --- Composants UI ---
 
 function Reveal({ children, delay = 0 }) {
   const ref = useRef(null);
@@ -101,7 +33,6 @@ function Reveal({ children, delay = 0 }) {
       },
       { threshold: 0.1 },
     );
-
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
@@ -109,7 +40,7 @@ function Reveal({ children, delay = 0 }) {
   return (
     <div
       ref={ref}
-      className="opacity-0 translate-y-8 transition-all duration-700"
+      className="opacity-0 translate-y-8 transition-all duration-700 ease-out"
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -117,35 +48,52 @@ function Reveal({ children, delay = 0 }) {
   );
 }
 
-function Navbar() {
+function Badge({ children }) {
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#E8E2D9]">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-        <Link to="/" className="flex items-center gap-2 text-[#2D2720] font-semibold">
-          <div className="w-10 h-10 rounded-xl bg-[#D94500] text-white grid place-items-center">R</div>
-          <span>Resto d&apos;ici</span>
+    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-[#D94500]/10 text-[#D94500] border border-[#D94500]/20">
+      {children}
+    </span>
+  );
+}
+
+// --- Sections ---
+
+function Navbar() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md py-3' : 'bg-transparent py-5'
+    }`}>
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 text-[#2D2720] font-bold text-xl">
+          <div className="w-10 h-10 rounded-xl bg-[#D94500] text-white grid place-items-center shadow-lg shadow-orange-500/30">
+            <span className="font-serif italic">R</span>
+          </div>
+          <span className="hidden sm:block">Resto d&apos;ici</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-6 text-sm text-[#8B7355]">
-          {sections.map((link) => (
-            <a key={link.href} href={link.href} className="hover:text-[#D94500] transition-colors">
-              {link.label}
-            </a>
-          ))}
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#8B7355]">
+          <a href="#menu" className="hover:text-[#D94500] transition-colors">Menu</a>
+          <a href="#fonctionnalites" className="hover:text-[#D94500] transition-colors">Fonctionnalités</a>
+          <a href="#b2b" className="hover:text-[#D94500] transition-colors">Espace Pro</a>
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
-          <Link
-            to="/login"
-            className="px-4 py-2 rounded-xl border border-[#D94500] text-[#D94500] hover:bg-[#D94500]/10 transition"
-          >
+        <div className="flex items-center gap-3">
+          <Link to="/login" className="text-sm font-medium text-[#2D2720] hover:text-[#D94500] transition-colors">
             Connexion
           </Link>
           <Link
-            to="/register?type=restaurant"
-            className="px-4 py-2 rounded-xl bg-[#D94500] text-white hover:bg-[#B83A00] transition"
+            to="/register"
+            className="px-5 py-2.5 rounded-xl bg-[#D94500] text-white text-sm font-semibold hover:bg-[#B83A00] transition-all shadow-md hover:shadow-lg"
           >
-            Restaurateur
+            S'inscrire
           </Link>
         </div>
       </div>
@@ -155,108 +103,141 @@ function Navbar() {
 
 function Hero() {
   return (
-    <section className="bg-[#FFF5EB] py-20 px-6">
-      <div className="max-w-7xl mx-auto grid gap-12 lg:grid-cols-2 items-center">
-        <Reveal>
-          <div className="space-y-8">
-            <p className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#D94500] border border-[#D94500]/20">
-              Plateforme tout-en-un pour restaurants et clients
-            </p>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#2D2720] leading-tight">
-              Commandez, gérez et suivez vos repas avec <span className="text-[#D94500] italic">Resto d&apos;ici</span>
-            </h1>
-            <p className="max-w-xl text-[#8B7355] leading-relaxed">
-              Simplifiez la vie des restaurateurs, des clients et des entreprises avec une expérience claire,
-              rapide et entièrement adaptée aux besoins ivoiriens.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link
-                to="/menu"
-                className="inline-flex items-center gap-2 rounded-xl bg-[#D94500] px-6 py-3 text-white font-semibold hover:bg-[#B83A00] transition"
-              >
-                <UtensilsCrossed className="w-4 h-4" /> Commander
-              </Link>
-              <Link
-                to="/register?type=restaurant"
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D94500] px-6 py-3 text-[#D94500] font-semibold hover:bg-[#D94500]/10 transition"
-              >
-                <ChefHat className="w-4 h-4" /> Restaurateur
-              </Link>
-            </div>
-          </div>
-        </Reveal>
+    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-[#F9F7F5]">
+      {/* Décoration de fond */}
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-[#FFF5EB] rounded-l-[5rem] -z-0 hidden lg:block" />
+      
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* Texte Principal */}
+          <Reveal>
+            <div className="space-y-8">
+              <Badge>La restauration digitale en Côte d'Ivoire</Badge>
+              
+              <h1 className="text-5xl lg:text-6xl font-serif font-bold text-[#2D2720] leading-[1.1]">
+                Commandez vos plats <br/>
+                préférés en <span className="text-[#D94500] italic">un clic</span>.
+              </h1>
+              
+              <p className="text-lg text-[#8B7355] max-w-xl leading-relaxed">
+                Que ce soit pour un déjeuner rapide ou des commandes groupées pour votre entreprise, 
+                Resto d'ici simplifie tout : Menu, Paiement Mobile Money et Suivi temps réel.
+              </p>
 
-        <Reveal delay={150}>
-          <div className="rounded-[2rem] bg-white p-8 shadow-xl border border-[#E8E2D9]">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-3xl bg-[#FFF5EB] p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-[#D94500] mb-3">Client</p>
-                <div className="space-y-3">
-                  <div className="rounded-2xl bg-white p-3 shadow-sm">
-                    <p className="text-sm font-semibold text-[#2D2720]">Poulet Yassa</p>
-                    <p className="text-xs text-[#8B7355]">3 500 FCFA</p>
-                  </div>
-                  <div className="rounded-2xl bg-white p-3 shadow-sm">
-                    <p className="text-sm font-semibold text-[#2D2720]">Attiéké Poisson</p>
-                    <p className="text-xs text-[#8B7355]">Livraison 30 min</p>
-                  </div>
-                </div>
+              <div className="flex flex-wrap gap-4 pt-4">
+                <Link
+                  to="/menu"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-[#D94500] text-white font-bold hover:bg-[#B83A00] transition-all shadow-xl shadow-orange-500/20"
+                >
+                  <UtensilsCrossed className="w-5 h-5" /> Commander maintenant
+                </Link>
+                <Link
+                  to="/register?type=b2b"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-[#2D2720] font-bold border border-[#E8E2D9] hover:border-[#D94500] transition-all"
+                >
+                  <Building2 className="w-5 h-5" /> Espace Entreprise
+                </Link>
               </div>
-              <div className="rounded-3xl bg-[#E6F7ED] p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-[#2ECC71] mb-3">Restaurant</p>
-                <div className="space-y-3">
-                  <div className="rounded-2xl bg-white p-3 shadow-sm">
-                    <p className="text-sm font-semibold text-[#2D2720]">Commandes actives</p>
-                    <p className="text-xs text-[#8B7355]">124</p>
-                  </div>
-                  <div className="rounded-2xl bg-white p-3 shadow-sm">
-                    <p className="text-sm font-semibold text-[#2D2720]">CA du jour</p>
-                    <p className="text-xs text-[#8B7355]">450 000 FCFA</p>
-                  </div>
+
+              {/* Preuve Sociale / Stats rapides */}
+              <div className="flex items-center gap-6 pt-4 border-t border-[#E8E2D9]">
+                <div className="flex -space-x-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <img 
+                      key={i}
+                      src={`https://i.pravatar.cc/100?img=${i + 20}`} 
+                      alt="User" 
+                      className="w-10 h-10 rounded-full border-2 border-[#F9F7F5]"
+                    />
+                  ))}
+                </div>
+                <div>
+                  <p className="font-bold text-[#2D2720]">12 000+ clients</p>
+                  <p className="text-xs text-[#8B7355]">Satisfaits ce mois-ci</p>
                 </div>
               </div>
             </div>
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
+          </Reveal>
 
-function Stats() {
-  return (
-    <section className="bg-white py-16 px-6">
-      <div className="max-w-7xl mx-auto grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((item) => (
-          <div key={item.label} className="rounded-3xl border border-[#E8E2D9] bg-[#FFF5EB] p-6 text-center">
-            <p className="text-3xl font-bold text-[#2D2720]">{item.value}</p>
-            <p className="mt-2 text-sm text-[#8B7355]">{item.label}</p>
-          </div>
-        ))}
+          {/* Image Hero (Contexte Africain/Restaurant) */}
+          <Reveal delay={200}>
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#D94500]/20 rounded-[3rem] rotate-3 transform" />
+              <img
+                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop"
+                alt="Table garnie restaurant africain"
+                className="relative rounded-[3rem] shadow-2xl w-full object-cover h-[500px]"
+              />
+              
+              {/* Carte flottante : Paiement Mobile */}
+              <div className="absolute bottom-8 left-8 bg-white p-4 rounded-2xl shadow-xl border border-[#E8E2D9] flex items-center gap-4 animate-bounce-slow">
+                <div className="w-12 h-12 rounded-full bg-[#E6F7ED] flex items-center justify-center text-[#2ECC71]">
+                  <Wallet className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-[#2D2720]">Paiement validé</p>
+                  <p className="text-xs text-[#8B7355]">Mobile Money • 3 500 FCFA</p>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
       </div>
     </section>
   );
 }
 
 function Features() {
-  return (
-    <section className="bg-[#F9F7F5] py-20 px-6" id="restaurants">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-12 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#D94500]">Pour les restaurateurs</p>
-          <h2 className="mt-4 text-3xl md:text-4xl font-serif font-bold text-[#2D2720]">Tout ce dont votre restaurant a besoin</h2>
-          <p className="mt-4 mx-auto max-w-2xl text-[#8B7355]">Un seul outil pour gérer les commandes, les paiements et les stocks sans perdre de temps.</p>
-        </div>
+  const features = [
+    {
+      icon: <QrCode className="w-7 h-7 text-[#D94500]" />,
+      title: "Commande en Table",
+      desc: "Scannez le QR Code sur votre table et commandez directement depuis votre téléphone. Fini l'attente."
+    },
+    {
+      icon: <Smartphone className="w-7 h-7 text-[#D94500]" />,
+      title: "Paiement Mobile Money",
+      desc: "Payez en toute sécurité via Orange Money, MTN MoMo ou Wave grâce à Novasend."
+    },
+    {
+      icon: <Truck className="w-7 h-7 text-[#D94500]" />,
+      title: "Suivi Temps Réel",
+      desc: "Recevez des notifications à chaque étape : Reçue, En cuisine, En livraison."
+    },
+    {
+      icon: <BarChart3 className="w-7 h-7 text-[#D94500]" />,
+      title: "Gestion Intelligente",
+      desc: "Suivi des stocks et tableau de bord financier pour les gérants et la direction."
+    }
+  ];
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature) => (
-            <div key={feature.title} className="rounded-3xl border border-[#E8E2D9] bg-white p-6 hover:shadow-lg transition">
-              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF5EB] text-[#D94500]">
-                {feature.icon}
+  return (
+    <section className="py-24 bg-white" id="fonctionnalites">
+      <div className="max-w-7xl mx-auto px-6">
+        <Reveal>
+          <div className="text-center mb-16">
+            <Badge>Pourquoi nous choisir ?</Badge>
+            <h2 className="mt-6 text-3xl md:text-4xl font-serif font-bold text-[#2D2720]">
+              Une expérience pensée pour l'Afrique
+            </h2>
+            <p className="mt-4 text-lg text-[#8B7355] max-w-2xl mx-auto">
+              Nous combinons technologie de pointe et réalités locales pour offrir le meilleur service possible.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {features.map((feat, idx) => (
+            <Reveal key={idx} delay={idx * 100}>
+              <div className="group p-8 rounded-3xl bg-[#F9F7F5] border border-[#E8E2D9] hover:bg-white hover:shadow-xl hover:border-[#D94500]/30 transition-all duration-300">
+                <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-6 group-hover:bg-[#FFF5EB] transition-colors">
+                  {feat.icon}
+                </div>
+                <h3 className="text-xl font-bold text-[#2D2720] mb-3">{feat.title}</h3>
+                <p className="text-[#8B7355] leading-relaxed">{feat.desc}</p>
               </div>
-              <h3 className="font-semibold text-lg text-[#2D2720] mb-2">{feature.title}</h3>
-              <p className="text-sm text-[#8B7355] leading-relaxed">{feature.description}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -264,110 +245,141 @@ function Features() {
   );
 }
 
-function ClientSection() {
+function B2C_VS_B2B() {
   return (
-    <section className="bg-white py-20 px-6" id="clients">
-      <div className="max-w-7xl mx-auto grid gap-12 lg:grid-cols-2 items-center">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#2ECC71]">Pour les clients</p>
-          <h2 className="mt-4 text-3xl md:text-4xl font-serif font-bold text-[#2D2720]">Commandez en quelques minutes</h2>
-          <p className="mt-4 max-w-xl text-[#8B7355] leading-relaxed">Trouvez votre restaurant préféré, payez par Mobile Money et suivez votre commande de l’écran de la cuisine à la livraison.</p>
-
-          <div className="mt-8 space-y-4">
-            {clientSteps.map((step) => (
-              <div key={step.step} className="flex gap-4 rounded-3xl border border-[#E8E2D9] p-5">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2ECC71] text-white font-bold">{step.step}</div>
-                <div>
-                  <h3 className="font-semibold text-[#2D2720]">{step.title}</h3>
-                  <p className="text-sm text-[#8B7355]">{step.description}</p>
-                </div>
-              </div>
-            ))}
+    <section className="py-24 bg-[#2D2720] text-white relative overflow-hidden" id="b2b">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
+      
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <Reveal>
+          <div className="text-center mb-16">
+            <span className="text-[#D94500] font-bold uppercase tracking-widest text-sm">Deux mondes, une solution</span>
+            <h2 className="mt-4 text-3xl md:text-4xl font-serif font-bold">Particuliers & Entreprises</h2>
           </div>
+        </Reveal>
 
-          <div className="mt-8">
-            <Link
-              to="/menu"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] px-6 py-3 text-white font-semibold hover:bg-[#27AE60] transition"
-            >
-              <UtensilsCrossed className="w-4 h-4" /> Explorer les menus
-            </Link>
-          </div>
-        </div>
+        <div className="grid lg:grid-cols-2 gap-12">
+          
+          {/* Carte B2C */}
+          <Reveal>
+            <div className="bg-[#1A1410] rounded-[2rem] p-2 border border-white/10 hover:border-[#D94500]/50 transition-all">
+              <div className="bg-[#F9F7F5] text-[#2D2720] rounded-[1.7rem] overflow-hidden h-full">
+                <div className="p-8 lg:p-10 flex flex-col h-full">
+                  <div className="mb-8">
+                    <Badge>Grand Public</Badge>
+                    <h3 className="mt-6 text-3xl font-serif font-bold text-[#2D2720]">Commande en famille</h3>
+                    <p className="mt-4 text-[#8B7355] text-lg">Retrouvez les saveurs d'Abidjan et payez facilement via Mobile Money.</p>
+                  </div>
+                  
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {[
+                      "Menu dynamique & QR Code Table",
+                      "Paiement Orange / MTN / Wave",
+                      "Suivi de livraison en temps réel"
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-[#2D2720]">
+                        <div className="w-6 h-6 rounded-full bg-[#D94500] text-white flex items-center justify-center text-xs font-bold">✓</div>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
 
-        <div className="rounded-[2rem] bg-[#F9F7F5] p-8 shadow-lg border border-[#E8E2D9]">
-          <div className="grid gap-4">
-            <div className="rounded-3xl bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="rounded-2xl bg-[#E6F7ED] p-3 text-[#2ECC71]"><Clock className="w-5 h-5" /></span>
-                <div>
-                  <p className="font-semibold text-[#2D2720]">Suivi en direct</p>
-                  <p className="text-sm text-[#8B7355]">Toutes les étapes visibles sur votre smartphone.</p>
+                  <Link to="/menu" className="block w-full py-4 text-center rounded-xl bg-[#D94500] text-white font-bold hover:bg-[#B83A00] transition">
+                    Voir le Menu
+                  </Link>
                 </div>
               </div>
             </div>
-            <div className="rounded-3xl bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="rounded-2xl bg-[#E6F7ED] p-3 text-[#2ECC71]"><Wallet className="w-5 h-5" /></span>
-                <div>
-                  <p className="font-semibold text-[#2D2720]">Paiement fiable</p>
-                  <p className="text-sm text-[#8B7355]">MTN MoMo, Orange Money et Wave supportés.</p>
+          </Reveal>
+
+          {/* Carte B2B */}
+          <Reveal delay={200}>
+            <div className="bg-[#1A1410] rounded-[2rem] p-2 border border-white/10 hover:border-[#2ECC71]/50 transition-all">
+              <div className="bg-white text-[#2D2720] rounded-[1.7rem] overflow-hidden h-full">
+                <div className="p-8 lg:p-10 flex flex-col h-full">
+                  <div className="mb-8">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-[#2ECC71]/10 text-[#2ECC71] border border-[#2ECC71]/20">
+                      Professionnels
+                    </span>
+                    <h3 className="mt-6 text-3xl font-serif font-bold text-[#2D2720]">Commandes groupées</h3>
+                    <p className="mt-4 text-[#8B7355] text-lg">Gérez les repas de vos équipes et centralisez la facturation.</p>
+                  </div>
+                  
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {[
+                      "Facturation mensuelle consolidée",
+                      "Gestion des budgets collaborateurs",
+                      "Conformité SYSCOHADA (TVA/NIF)"
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-[#2D2720]">
+                        <div className="w-6 h-6 rounded-full bg-[#2ECC71] text-white flex items-center justify-center text-xs font-bold">✓</div>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link to="/register?type=b2b" className="block w-full py-4 text-center rounded-xl bg-[#2ECC71] text-white font-bold hover:bg-[#27AE60] transition">
+                    Créer un compte Pro
+                  </Link>
                 </div>
               </div>
             </div>
-            <div className="rounded-3xl bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="rounded-2xl bg-[#E6F7ED] p-3 text-[#2ECC71]"><Truck className="w-5 h-5" /></span>
-                <div>
-                  <p className="font-semibold text-[#2D2720]">Livraison rapide</p>
-                  <p className="text-sm text-[#8B7355]">Recevez votre repas en moins de 30 minutes.</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          </Reveal>
+
         </div>
       </div>
     </section>
   );
 }
 
-function B2BSection() {
+function Testimonials() {
   return (
-    <section className="bg-[#F9F7F5] py-20 px-6" id="b2b">
-      <div className="max-w-7xl mx-auto grid gap-12 lg:grid-cols-2 items-center">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#2ECC71]">Entreprises</p>
-          <h2 className="mt-4 text-3xl md:text-4xl font-serif font-bold text-[#2D2720]">Simplifiez les commandes d’équipe</h2>
-          <p className="mt-4 max-w-xl text-[#8B7355] leading-relaxed">Commandes groupées, budgets par collaborateur et facturation mensuelle claire pour les RH et la finance.</p>
+    <section className="py-24 bg-[#F9F7F5]">
+      <div className="max-w-7xl mx-auto px-6">
+        <Reveal>
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#2D2720] text-center mb-16">
+            Ils nous font confiance
+          </h2>
+        </Reveal>
 
-          <div className="mt-8 space-y-4">
-            {b2bHighlights.map((item) => (
-              <div key={item.label} className="flex gap-4 rounded-3xl border border-[#E8E2D9] bg-white p-5">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E6F7ED] text-[#2ECC71]">{item.icon}</div>
-                <p className="text-sm text-[#2D2720]">{item.label}</p>
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            {
+              text: "La commande via QR code a révolutionné le service dans notre restaurant. Moins d'erreurs, clients plus satisfaits !",
+              author: "Koffi Jean-Claude",
+              role: "Gérant - Le Wôrôwôrô",
+              img: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&w=200&q=80"
+            },
+            {
+              text: "Le module B2B nous permet de gérer les repas de nos 50 employés facilement. La facture mensuelle est un vrai gain de temps.",
+              author: "Aminata Touré",
+              role: "Responsable RH - TechCI",
+              img: "https://images.unsplash.com/photo-1589156280159-27698a70f29e?auto=format&fit=crop&w=200&q=80"
+            },
+            {
+              text: "J'adore payer avec Wave et suivre ma commande en temps réel. C'est simple et rapide.",
+              author: "Marc Kouassi",
+              role: "Client Fidèle",
+              img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
+            }
+          ].map((item, i) => (
+            <Reveal key={i} delay={i * 150}>
+              <div className="bg-white p-8 rounded-3xl border border-[#E8E2D9] shadow-sm hover:shadow-md transition">
+                <div className="flex text-[#D94500] mb-4">
+                  {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 fill-current" />)}
+                </div>
+                <p className="text-[#2D2720] mb-6 leading-relaxed italic">"{item.text}"</p>
+                <div className="flex items-center gap-4">
+                  <img src={item.img} alt={item.author} className="w-12 h-12 rounded-full object-cover" />
+                  <div>
+                    <p className="font-bold text-[#2D2720]">{item.author}</p>
+                    <p className="text-xs text-[#8B7355]">{item.role}</p>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-
-          <div className="mt-8">
-            <Link
-              to="/register?type=b2b"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#2ECC71] px-6 py-3 text-white font-semibold hover:bg-[#27AE60] transition"
-            >
-              <Building2 className="w-4 h-4" /> Ouvrir un compte<br/>entreprise
-            </Link>
-          </div>
-        </div>
-
-        <div className="rounded-[2rem] bg-white p-8 shadow-lg border border-[#E8E2D9]">
-          <div className="grid gap-6">
-            {testimonials.map((item) => (
-              <div key={item.name} className="rounded-3xl border border-[#E8E2D9] p-6">
-                <p className="text-[#2D2720] leading-relaxed">“{item.quote}”</p>
-                <p className="mt-4 font-semibold text-[#D94500]">{item.name}</p>
-              </div>
-            ))}
-          </div>
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>
@@ -376,31 +388,25 @@ function B2BSection() {
 
 function CTA() {
   return (
-    <section className="bg-[#2D2720] py-20 px-6">
-      <div className="max-w-5xl mx-auto text-center text-white">
-        <p className="text-sm uppercase tracking-[0.3em] text-[#D94500]">Prêt à démarrer</p>
-        <h2 className="mt-4 text-3xl md:text-4xl font-serif font-bold">Votre restaurant, vos clients et vos équipes réunis</h2>
-        <p className="mt-4 text-[#E8D7C7] max-w-2xl mx-auto leading-relaxed">Resto d&apos;ici simplifie les commandes, les paiements et les opérations pour tous les acteurs du marché.</p>
-
-        <div className="mt-10 flex flex-wrap justify-center gap-4">
-          <Link
-            to="/register?type=restaurant"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#D94500] px-6 py-3 font-semibold text-white hover:bg-[#B83A00] transition"
-          >
-            <ChefHat className="w-4 h-4" /> Restaurateur
-          </Link>
-          <Link
-            to="/menu"
-            className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-3 font-semibold text-white hover:bg-white/20 transition"
-          >
-            <UtensilsCrossed className="w-4 h-4" /> Commander
-          </Link>
-          <Link
-            to="/register?type=b2b"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#2ECC71]/40 bg-[#2ECC71]/10 px-6 py-3 font-semibold text-[#2ECC71] hover:bg-[#2ECC71]/20 transition"
-          >
-            <Building2 className="w-4 h-4" /> Entreprise
-          </Link>
+    <section className="py-24 px-6">
+      <div className="max-w-5xl mx-auto rounded-[3rem] bg-[#D94500] p-12 md:p-20 text-center relative overflow-hidden">
+        {/* Decorative Circles */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-64 h-64 bg-[#B83A00] rounded-full translate-x-1/2 translate-y-1/2 blur-3xl" />
+        
+        <div className="relative z-10 text-white">
+          <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">Prêt à commander ?</h2>
+          <p className="text-white/90 text-lg mb-10 max-w-2xl mx-auto">
+            Rejoignez des milliers de clients et de restaurateurs sur la plateforme de restauration n°1 en Côte d'Ivoire.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/menu" className="px-8 py-4 bg-white text-[#D94500] font-bold rounded-xl hover:bg-[#FFF5EB] transition shadow-lg">
+              Explorer le Menu
+            </Link>
+            <Link to="/register" className="px-8 py-4 bg-[#D94500] border border-white/30 text-white font-bold rounded-xl hover:bg-[#B83A00] transition">
+              Devenir Partenaire
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -409,47 +415,61 @@ function CTA() {
 
 function Footer() {
   return (
-    <footer className="bg-[#1A1410] text-white py-12 px-6">
-      <div className="max-w-7xl mx-auto grid gap-8 md:grid-cols-3">
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-[#D94500] grid place-items-center">R</div>
-            <span className="font-semibold text-lg">Resto d&apos;ici</span>
+    <footer className="bg-[#1A1410] text-[#BFA38D] py-16 px-6 border-t border-white/5">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="col-span-1 md:col-span-2">
+          <Link to="/" className="flex items-center gap-2 text-white font-bold text-2xl mb-6">
+            <div className="w-10 h-10 rounded-xl bg-[#D94500] grid place-items-center text-white">R</div>
+            Resto d&apos;ici
+          </Link>
+          <p className="max-w-sm mb-6">
+            La plateforme digitale qui modernise la restauration en Afrique. Commandez, gérez et payez en toute simplicité.
+          </p>
+          <div className="flex gap-4">
+             {/* Social Icons Placeholder */}
+             <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#D94500] transition cursor-pointer">F</div>
+             <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#D94500] transition cursor-pointer">In</div>
+             <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#D94500] transition cursor-pointer">X</div>
           </div>
-          <p className="text-sm text-[#BFA38D]">La plateforme qui simplifie la restauration en Côte d&apos;Ivoire.</p>
         </div>
+
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#D94500] mb-4">Liens</h3>
-          <div className="space-y-2 text-sm text-[#BFA38D]">
-            <Link to="/menu" className="block hover:text-white transition">Commander</Link>
-            <Link to="/register?type=restaurant" className="block hover:text-white transition">Restaurateur</Link>
-            <Link to="/register?type=b2b" className="block hover:text-white transition">Entreprise</Link>
-          </div>
+          <h4 className="text-white font-bold mb-6">Liens Rapides</h4>
+          <ul className="space-y-4">
+            <li><Link to="/menu" className="hover:text-white transition">Menu</Link></li>
+            <li><Link to="/login" className="hover:text-white transition">Connexion</Link></li>
+            <li><a href="#b2b" className="hover:text-white transition">Espace B2B</a></li>
+            <li><Link to="/register?type=restaurant" className="hover:text-white transition">Inscription Restaurateur</Link></li>
+          </ul>
         </div>
+
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#D94500] mb-4">Contact</h3>
-          <p className="text-sm text-[#BFA38D]">Abidjan, Côte d&apos;Ivoire</p>
-          <p className="text-sm text-[#BFA38D]">support@restodici.ci</p>
+          <h4 className="text-white font-bold mb-6">Contact</h4>
+          <ul className="space-y-4">
+            <li className="flex items-center gap-3">📍 Abidjan, Cocody Riviera</li>
+            <li className="flex items-center gap-3">📞 +225 07 00 00 00 00</li>
+            <li className="flex items-center gap-3">✉️ contact@restodici.ci</li>
+          </ul>
         </div>
       </div>
-      <div className="mt-10 border-t border-white/10 pt-6 text-center text-[#BFA38D] text-sm">2026 • Resto d&apos;ici</div>
+      
+      <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-white/10 text-center text-sm">
+        <p>© 2026 Resto d&apos;ici. Tous droits réservés. Développé par Sankofa-Lab.</p>
+      </div>
     </footer>
   );
 }
 
-export default function Home() {
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+// --- Main Page ---
 
+export default function Home() {
   return (
-    <div className="bg-[#F9F7F5] text-[#2D2720]">
+    <div className="bg-[#F9F7F5] min-h-screen text-[#2D2720] font-sans selection:bg-[#D94500] selection:text-white">
       <Navbar />
       <Hero />
-      <Stats />
       <Features />
-      <ClientSection />
-      <B2BSection />
+      <B2C_VS_B2B />
+      <Testimonials />
       <CTA />
       <Footer />
     </div>

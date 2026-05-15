@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { Restaurant } from './entities/restaurant.entity';
 import { User } from '../auth/entities/user.entity';
 import { Role } from '../auth/entities/user.entity'; // Import Role enum
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class RestaurantsService {
@@ -138,7 +139,10 @@ export class RestaurantsService {
     });
 
     // Set password separately
-    staffUser.password = staffData.password || this.generateTemporaryPassword();
+    staffUser.password = await bcrypt.hash(
+      staffData.password || this.generateTemporaryPassword(),
+      12,
+    );
 
     const savedStaff = await this.userRepo.save(staffUser);
 

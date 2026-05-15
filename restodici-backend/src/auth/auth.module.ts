@@ -2,26 +2,33 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User } from './entities/user.entity';
+import { PasswordReset } from './entities/password-reset.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { RolesGuard } from './guards/roles.guard';
-import { Restaurant } from '../restaurants/entities/restaurant.entity'; // Import
+import { Restaurant } from '../restaurants/entities/restaurant.entity';
 import { RestaurantsModule } from '../restaurants/restaurants.module';
 import { CompteB2B } from '../b2b/entities/compte-b2b.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Restaurant, CompteB2B]), // Ajout de Restaurant + CompteB2B
+    TypeOrmModule.forFeature([User, Restaurant, CompteB2B, PasswordReset]),
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'dev-secret-change-me',
-      signOptions: { expiresIn: '24h' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET') || 'dev-secret-change-me',
+        signOptions: { expiresIn: '24h' },
+      }),
+      inject: [ConfigService],
     }),
     RestaurantsModule,
   ],
-  providers: [AuthService, JwtStrategy, RolesGuard],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, RolesGuard],
   controllers: [AuthController],
   exports: [AuthService],
 })

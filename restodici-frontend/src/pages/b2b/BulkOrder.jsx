@@ -34,7 +34,10 @@ export default function BulkOrder() {
   const navigate = useNavigate();
 
   // Calculate total order amount
-  const totalOrderAmount = orderItems.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+  const totalOrderAmount = orderItems.reduce(
+    (sum, item) => sum + item.prix * item.quantity,
+    0,
+  );
   
   // Check if budget validation is required
   useEffect(() => {
@@ -48,12 +51,8 @@ export default function BulkOrder() {
       try {
         setLoading(true);
         
-        // Load restaurants (this should work as menuAPI is implemented)
-        const restaurantsRes = await menuAPI.get({ cible: 'CLIENT' });
-        const uniqueRestaurants = Array.from(
-          new Map(restaurantsRes.data.map(item => [item.restaurantId, item])).values()
-        );
-        setRestaurants(uniqueRestaurants);
+        const restaurantsRes = await menuAPI.getRestaurants();
+        setRestaurants(restaurantsRes.data || []);
         
         // Load employees with fallback
         try {
@@ -87,7 +86,10 @@ export default function BulkOrder() {
     
     const loadMenu = async () => {
       try {
-        const menuRes = await menuAPI.get({ cible: 'CLIENT', restaurantId: selectedRestaurant.restaurantId });
+        const menuRes = await menuAPI.get({
+          cible: 'CLIENT',
+          restaurantId: selectedRestaurant.id,
+        });
         setMenuItems(menuRes.data || []);
       } catch (err) {
         console.error('Error loading menu:', err);
@@ -232,7 +234,7 @@ export default function BulkOrder() {
                     }`}
                   >
                     <img 
-                      src={restaurant.photoUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop'} 
+                      src={restaurant.logo || restaurant.photoUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop'} 
                       alt={restaurant.nom}
                       className="w-full h-32 object-cover rounded-lg mb-3"
                     />

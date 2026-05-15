@@ -7,6 +7,12 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
+type GuardUser = { role?: string };
+
+type GuardRequest = {
+  user?: GuardUser;
+};
+
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -21,16 +27,8 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-
+    const request = context.switchToHttp().getRequest<GuardRequest>();
     const user = request.user;
-
-    // Debug log (à supprimer en prod)
-    console.log('🔍 RolesGuard:', {
-      hasUser: !!user,
-      userRole: user?.role,
-      requiredRoles,
-    });
 
     if (!user || !user.role) {
       throw new ForbiddenException(

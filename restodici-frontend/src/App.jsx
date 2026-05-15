@@ -12,6 +12,8 @@ import ClientLayout from './layouts/ClientLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
+import GoogleCallback from './pages/GoogleCallback';
 import MenuPage from './pages/Menu';
 import CartPage from './pages/Cart';
 import CheckoutPage from './pages/Checkout';
@@ -119,6 +121,8 @@ export default function App() {
             {/* === ROUTES SANS LAYOUT (authentification) === */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
 
             {/* === DASHBOARD GÉRANT === */}
             <Route 

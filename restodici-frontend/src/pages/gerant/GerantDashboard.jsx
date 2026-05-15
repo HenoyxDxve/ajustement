@@ -20,6 +20,16 @@ import {
   Calendar,
   MapPin,
   UserPlus,
+  DollarSign,
+  RefreshCcw,
+  Zap,
+  Star,
+  Activity,
+  PieChart,
+  Wallet,
+  ShoppingBag,
+  Truck,
+  UtensilsCrossed,
 } from "lucide-react";
 import {
   menuAPI,
@@ -28,6 +38,59 @@ import {
   tresorerieAPI,
   staffAPI,
 } from "../../services/api";
+
+// ==================== COLOR THEME CONSTANTS ====================
+const COLORS = {
+  primary: {
+    bg: "bg-violet-50",
+    border: "border-violet-200",
+    text: "text-violet-700",
+    button: "bg-violet-500 hover:bg-violet-600",
+    light: "bg-violet-100",
+  },
+  secondary: {
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    text: "text-emerald-700",
+    button: "bg-emerald-500 hover:bg-emerald-600",
+    light: "bg-emerald-100",
+  },
+  accent: {
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    text: "text-amber-700",
+    button: "bg-amber-500 hover:bg-amber-600",
+    light: "bg-amber-100",
+  },
+  warning: {
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-700",
+    button: "bg-orange-500 hover:bg-orange-600",
+    light: "bg-orange-100",
+  },
+  info: {
+    bg: "bg-sky-50",
+    border: "border-sky-200",
+    text: "text-sky-700",
+    button: "bg-sky-500 hover:bg-sky-600",
+    light: "bg-sky-100",
+  },
+  danger: {
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-700",
+    button: "bg-rose-500 hover:bg-rose-600",
+    light: "bg-rose-100",
+  },
+  success: {
+    bg: "bg-green-50",
+    border: "border-green-200",
+    text: "text-green-700",
+    button: "bg-green-500 hover:bg-green-600",
+    light: "bg-green-100",
+  },
+};
 
 // ==================== MENU MODULE ====================
 function MenuTab({ restaurantId, token }) {
@@ -194,7 +257,7 @@ function MenuTab({ restaurantId, token }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -212,14 +275,14 @@ function MenuTab({ restaurantId, token }) {
         <div className="flex gap-2">
           <button
             onClick={() => setShowCategoryForm(!showCategoryForm)}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-violet-500 text-white rounded-xl text-sm font-medium hover:bg-violet-600 transition"
           >
             <Plus className="w-4 h-4" />
             {showCategoryForm ? "Annuler" : "Nouvelle catégorie"}
           </button>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-medium hover:bg-orange-600 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-medium hover:bg-emerald-600 transition"
           >
             <Plus className="w-4 h-4" />
             {showAddForm ? "Annuler" : "Nouvel article"}
@@ -229,7 +292,7 @@ function MenuTab({ restaurantId, token }) {
 
       {/* Formulaire création catégorie */}
       {showCategoryForm && (
-        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-200 space-y-4">
+        <div className="bg-violet-50 rounded-2xl p-6 border border-violet-200 space-y-4">
           <h4 className="font-bold text-gray-800">
             Créer une nouvelle catégorie
           </h4>
@@ -244,7 +307,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewCategory({ ...newCategory, nom: e.target.value })
                 }
-                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none ${categoryErrors.nom ? "border-red-500" : "border-amber-200"}`}
+                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-violet-500 outline-none ${categoryErrors.nom ? "border-red-500" : "border-violet-200"}`}
                 placeholder="Ex: Plats Principaux"
               />
               {categoryErrors.nom && (
@@ -263,7 +326,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewCategory({ ...newCategory, icone: e.target.value })
                 }
-                className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
+                className="w-full px-4 py-2.5 bg-white border border-violet-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
                 placeholder="Ex: 🍽️ ou emoji"
               />
             </div>
@@ -271,7 +334,7 @@ function MenuTab({ restaurantId, token }) {
           <div className="flex gap-3 pt-2">
             <button
               onClick={handleCreateCategory}
-              className="px-6 py-2.5 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition"
+              className="px-6 py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 transition"
             >
               Créer la catégorie
             </button>
@@ -280,7 +343,7 @@ function MenuTab({ restaurantId, token }) {
                 setShowCategoryForm(false);
                 setCategoryErrors({});
               }}
-              className="px-6 py-2.5 bg-white border border-amber-200 text-gray-800 rounded-xl font-medium hover:bg-amber-50 transition"
+              className="px-6 py-2.5 bg-white border border-violet-200 text-gray-800 rounded-xl font-medium hover:bg-violet-50 transition"
             >
               Annuler
             </button>
@@ -290,7 +353,7 @@ function MenuTab({ restaurantId, token }) {
 
       {/* Formulaire d'ajout */}
       {showAddForm && (
-        <div className="bg-orange-50 rounded-2xl p-6 border border-orange-200 space-y-4">
+        <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-200 space-y-4">
           <h4 className="font-bold text-gray-800">Créer un nouvel article</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -303,7 +366,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewArticle({ ...newArticle, nom: e.target.value })
                 }
-                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none ${formErrors.nom ? "border-red-500" : "border-orange-200"}`}
+                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none ${formErrors.nom ? "border-red-500" : "border-emerald-200"}`}
                 placeholder="Ex: Attiéké Poisson"
               />
               {formErrors.nom && (
@@ -321,7 +384,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewArticle({ ...newArticle, prix: e.target.value })
                 }
-                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none ${formErrors.prix ? "border-red-500" : "border-orange-200"}`}
+                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none ${formErrors.prix ? "border-red-500" : "border-emerald-200"}`}
                 placeholder="Ex: 3500"
               />
               {formErrors.prix && (
@@ -337,7 +400,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewArticle({ ...newArticle, categorieId: e.target.value })
                 }
-                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none ${formErrors.categorieId ? "border-red-500" : "border-orange-200"}`}
+                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none ${formErrors.categorieId ? "border-red-500" : "border-emerald-200"}`}
               >
                 <option value="">Sélectionner une catégorie</option>
                 {categories.map((cat) => (
@@ -363,7 +426,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewArticle({ ...newArticle, stock: e.target.value })
                 }
-                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none ${formErrors.stock ? "border-red-500" : "border-orange-200"}`}
+                className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none ${formErrors.stock ? "border-red-500" : "border-emerald-200"}`}
                 placeholder="Ex: 50"
               />
               {formErrors.stock && (
@@ -382,7 +445,7 @@ function MenuTab({ restaurantId, token }) {
                     onChange={(e) =>
                       setNewArticle({ ...newArticle, photoUrl: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                    className="w-full px-4 py-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
                     placeholder="URL de l'image ou laissez vide"
                   />
                   <p className="text-xs text-gray-600 mt-1">
@@ -396,13 +459,13 @@ function MenuTab({ restaurantId, token }) {
                     disabled={uploading}
                   />
                   {uploading && (
-                    <p className="text-sm text-orange-600 mt-1">
+                    <p className="text-sm text-emerald-600 mt-1">
                       Chargement en cours...
                     </p>
                   )}
                 </div>
                 {newArticle.photoUrl && (
-                  <div className="w-24 h-24 rounded-xl overflow-hidden border border-orange-200">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden border border-emerald-200">
                     <img
                       src={newArticle.photoUrl}
                       alt="Preview"
@@ -422,7 +485,7 @@ function MenuTab({ restaurantId, token }) {
               onChange={(e) =>
                 setNewArticle({ ...newArticle, description: e.target.value })
               }
-              className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
               rows="3"
               placeholder="Description du plat..."
             />
@@ -430,7 +493,7 @@ function MenuTab({ restaurantId, token }) {
           <div className="flex gap-3 pt-2">
             <button
               onClick={handleAddArticle}
-              className="px-6 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition"
+              className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition"
             >
               Créer l'article
             </button>
@@ -439,7 +502,7 @@ function MenuTab({ restaurantId, token }) {
                 setShowAddForm(false);
                 setFormErrors({});
               }}
-              className="px-6 py-2.5 bg-white border border-orange-200 text-gray-800 rounded-xl font-medium hover:bg-orange-50 transition"
+              className="px-6 py-2.5 bg-white border border-emerald-200 text-gray-800 rounded-xl font-medium hover:bg-emerald-50 transition"
             >
               Annuler
             </button>
@@ -455,7 +518,7 @@ function MenuTab({ restaurantId, token }) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Rechercher un article ou une catégorie..."
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-violet-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
         />
       </div>
 
@@ -465,10 +528,10 @@ function MenuTab({ restaurantId, token }) {
           filteredArticles.map((a) => (
             <div
               key={a.id}
-              className="flex items-center justify-between p-4 bg-white rounded-2xl border border-orange-100 shadow-sm"
+              className="flex items-center justify-between p-4 bg-white rounded-2xl border border-violet-100 shadow-sm"
             >
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-xl bg-orange-50 flex items-center justify-center text-2xl overflow-hidden">
+                <div className="w-16 h-16 rounded-xl bg-violet-50 flex items-center justify-center text-2xl overflow-hidden">
                   {a.photoUrl ? (
                     <img
                       src={a.photoUrl}
@@ -487,7 +550,7 @@ function MenuTab({ restaurantId, token }) {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="font-bold text-orange-600">
+                <span className="font-bold text-violet-600">
                   {Number(a.prix).toLocaleString()} FCFA
                 </span>
                 <button
@@ -546,12 +609,12 @@ function OrdersTab({ restaurantId }) {
 
   const getStatusColor = (status) => {
     const colors = {
-      RECEIVED: "bg-blue-100 text-blue-800",
-      CONFIRMED: "bg-green-100 text-green-800",
-      PREPARING: "bg-yellow-100 text-yellow-800",
-      READY: "bg-purple-100 text-purple-800",
+      RECEIVED: "bg-sky-100 text-sky-800",
+      CONFIRMED: "bg-violet-100 text-violet-800",
+      PREPARING: "bg-amber-100 text-amber-800",
+      READY: "bg-green-100 text-green-800",
       DELIVERED: "bg-gray-100 text-gray-800",
-      CANCELLED: "bg-red-100 text-red-800",
+      CANCELLED: "bg-rose-100 text-rose-800",
     };
     return colors[status] || "bg-gray-100 text-gray-800";
   };
@@ -563,7 +626,7 @@ function OrdersTab({ restaurantId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="w-8 h-8 border-4 border-[#D94500] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -571,10 +634,10 @@ function OrdersTab({ restaurantId }) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="font-bold text-[#2D2720] text-lg">
+        <h3 className="font-bold text-gray-800 text-lg">
           Gestion des Commandes
         </h3>
-        <p className="text-sm text-[#8B7355]">
+        <p className="text-sm text-gray-600">
           Valider, annuler et suivre les commandes en temps réel
         </p>
       </div>
@@ -583,7 +646,7 @@ function OrdersTab({ restaurantId }) {
         {orders.map((order) => (
           <div
             key={order.id}
-            className="bg-white rounded-2xl border border-[#E8E2D9] p-4"
+            className="bg-white rounded-2xl border border-violet-100 p-4"
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -597,10 +660,10 @@ function OrdersTab({ restaurantId }) {
                     {order.statut}
                   </span>
                 </div>
-                <p className="text-sm text-[#8B7355]">
+                <p className="text-sm text-gray-600">
                   {new Date(order.createdAt).toLocaleString("fr-FR")}
                 </p>
-                <p className="font-medium text-[#D94500]">
+                <p className="font-medium text-violet-600">
                   {Number(order.total).toLocaleString()} FCFA
                 </p>
               </div>
@@ -608,7 +671,7 @@ function OrdersTab({ restaurantId }) {
                 {canCancelOrder(order.statut) && (
                   <button
                     onClick={() => updateOrderStatus(order.id, "CANCELLED")}
-                    className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition"
+                    className="px-3 py-1.5 bg-rose-500 text-white rounded-lg text-sm hover:bg-rose-600 transition"
                   >
                     Annuler
                   </button>
@@ -616,7 +679,7 @@ function OrdersTab({ restaurantId }) {
                 {order.statut === "RECEIVED" && (
                   <button
                     onClick={() => updateOrderStatus(order.id, "CONFIRMED")}
-                    className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition"
+                    className="px-3 py-1.5 bg-violet-500 text-white rounded-lg text-sm hover:bg-violet-600 transition"
                   >
                     Confirmer
                   </button>
@@ -624,7 +687,7 @@ function OrdersTab({ restaurantId }) {
                 {order.statut === "CONFIRMED" && (
                   <button
                     onClick={() => updateOrderStatus(order.id, "PREPARING")}
-                    className="px-3 py-1.5 bg-yellow-500 text-white rounded-lg text-sm hover:bg-yellow-600 transition"
+                    className="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600 transition"
                   >
                     Préparer
                   </button>
@@ -632,7 +695,7 @@ function OrdersTab({ restaurantId }) {
                 {order.statut === "PREPARING" && (
                   <button
                     onClick={() => updateOrderStatus(order.id, "READY")}
-                    className="px-3 py-1.5 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 transition"
+                    className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition"
                   >
                     Prête
                   </button>
@@ -644,7 +707,7 @@ function OrdersTab({ restaurantId }) {
       </div>
 
       {orders.length === 0 && (
-        <div className="text-center py-12 text-[#8B7355]">
+        <div className="text-center py-12 text-gray-600">
           <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-300" />
           <p>Aucune commande récente</p>
         </div>
@@ -741,7 +804,7 @@ function StocksTab({ restaurantId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -757,15 +820,15 @@ function StocksTab({ restaurantId }) {
 
       {/* Alertes */}
       {alerts.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-          <h4 className="font-semibold text-red-800 mb-2">
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+          <h4 className="font-semibold text-rose-800 mb-2">
             ⚠️ Alertes de stock
           </h4>
           <div className="space-y-2">
             {alerts.map((alert) => (
               <div
                 key={alert.id}
-                className="flex items-center gap-2 text-sm text-red-700"
+                className="flex items-center gap-2 text-sm text-rose-700"
               >
                 <AlertTriangle className="w-4 h-4" />
                 <span>
@@ -778,7 +841,7 @@ function StocksTab({ restaurantId }) {
       )}
 
       {/* Ajustement manuel */}
-      <div className="bg-white rounded-2xl border border-orange-100 p-6">
+      <div className="bg-white rounded-2xl border border-amber-100 p-6">
         <h4 className="font-semibold text-gray-800 mb-4">
           Ajustement manuel de stock
         </h4>
@@ -795,7 +858,7 @@ function StocksTab({ restaurantId }) {
                   articleId: e.target.value,
                 })
               }
-              className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
             >
               <option value="">Sélectionner un article</option>
               {stocks.map((item) => (
@@ -818,7 +881,7 @@ function StocksTab({ restaurantId }) {
                   quantity: e.target.value,
                 })
               }
-              className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
               placeholder="Ex: +5 ou -2"
             />
           </div>
@@ -832,28 +895,28 @@ function StocksTab({ restaurantId }) {
               onChange={(e) =>
                 setAdjustmentForm({ ...adjustmentForm, motif: e.target.value })
               }
-              className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
               placeholder="Optionnel"
             />
           </div>
         </div>
         <button
           onClick={handleAdjustStock}
-          className="mt-4 px-6 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition"
+          className="mt-4 px-6 py-2.5 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition"
         >
           Ajuster le stock
         </button>
       </div>
 
       {/* Inventaire */}
-      <div className="bg-white rounded-2xl border border-orange-100 overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-orange-50 font-semibold">
+      <div className="bg-white rounded-2xl border border-amber-100 overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-amber-50 font-semibold">
           <div>Article</div>
           <div className="text-center">Stock actuel</div>
           <div className="text-center">Seuil min</div>
           <div className="text-center">Statut</div>
         </div>
-        <div className="divide-y divide-orange-100">
+        <div className="divide-y divide-amber-100">
           {stocks.map((item) => (
             <div
               key={item.id}
@@ -870,7 +933,7 @@ function StocksTab({ restaurantId }) {
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium ${
                     (item.stock || 0) <= (item.seuilMin || 5)
-                      ? "bg-red-100 text-red-800"
+                      ? "bg-rose-100 text-rose-800"
                       : "bg-green-100 text-green-800"
                   }`}
                 >
@@ -991,7 +1054,7 @@ function FinanceTab({ restaurantId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -1015,8 +1078,8 @@ function FinanceTab({ restaurantId }) {
             onClick={() => setPeriod(p)}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
               period === p
-                ? "bg-orange-500 text-white"
-                : "bg-orange-50 text-orange-700 hover:bg-orange-100"
+                ? "bg-emerald-500 text-white"
+                : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
             }`}
           >
             {p === "day" ? "Jour" : p === "week" ? "Semaine" : "Mois"}
@@ -1025,16 +1088,16 @@ function FinanceTab({ restaurantId }) {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-orange-100 p-4">
-          <div className="text-sm text-orange-700 mb-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-4 border border-emerald-200">
+          <div className="text-sm text-emerald-700 mb-1">
             {period === "day"
               ? "CA Aujourd'hui"
               : period === "week"
                 ? "CA Semaine"
                 : "CA Mois"}
           </div>
-          <div className="text-2xl font-bold text-orange-600">
+          <div className="text-2xl font-bold text-emerald-800">
             {period === "day"
               ? kpiData.caJour.toLocaleString()
               : period === "week"
@@ -1043,20 +1106,20 @@ function FinanceTab({ restaurantId }) {
             FCFA
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-orange-100 p-4">
-          <div className="text-sm text-orange-700 mb-1">Nb Commandes</div>
+        <div className="bg-white rounded-2xl p-4 border border-violet-100">
+          <div className="text-sm text-violet-700 mb-1">Nb Commandes</div>
           <div className="text-2xl font-bold text-gray-800">
             {kpiData.nbCommandes}
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-orange-100 p-4">
-          <div className="text-sm text-orange-700 mb-1">Ticket Moyen</div>
+        <div className="bg-white rounded-2xl p-4 border border-amber-100">
+          <div className="text-sm text-amber-700 mb-1">Ticket Moyen</div>
           <div className="text-2xl font-bold text-gray-800">
             {kpiData.ticketMoyen.toLocaleString()} FCFA
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-orange-100 p-4">
-          <div className="text-sm text-orange-700 mb-1">Marge Brute</div>
+        <div className="bg-white rounded-2xl p-4 border border-sky-100">
+          <div className="text-sm text-sky-700 mb-1">Marge Brute</div>
           <div className="text-2xl font-bold text-gray-800">
             {kpiData.margesBrutes}%
           </div>
@@ -1064,7 +1127,7 @@ function FinanceTab({ restaurantId }) {
       </div>
 
       {/* Enregistrement des dépenses */}
-      <div className="bg-white rounded-2xl border border-orange-100 p-6">
+      <div className="bg-white rounded-2xl border border-emerald-100 p-6">
         <h4 className="font-semibold text-gray-800 mb-4">
           Saisir une dépense opérationnelle
         </h4>
@@ -1078,7 +1141,7 @@ function FinanceTab({ restaurantId }) {
               onChange={(e) =>
                 setExpenseForm({ ...expenseForm, categorie: e.target.value })
               }
-              className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
             >
               <option value="">Sélectionner...</option>
               <option value="loyer">Loyer</option>
@@ -1100,7 +1163,7 @@ function FinanceTab({ restaurantId }) {
               onChange={(e) =>
                 setExpenseForm({ ...expenseForm, montant: e.target.value })
               }
-              className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
               placeholder="Ex: 50000"
             />
           </div>
@@ -1114,44 +1177,44 @@ function FinanceTab({ restaurantId }) {
               onChange={(e) =>
                 setExpenseForm({ ...expenseForm, description: e.target.value })
               }
-              className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
               placeholder="Optionnel"
             />
           </div>
         </div>
         <button
           onClick={handleRecordExpense}
-          className="mt-4 px-6 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition"
+          className="mt-4 px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition"
         >
           Enregistrer la dépense
         </button>
       </div>
 
       {/* Actions */}
-      <div className="bg-white rounded-2xl border border-orange-100 p-6">
+      <div className="bg-white rounded-2xl border border-violet-100 p-6">
         <h4 className="font-semibold text-gray-800 mb-4">
           Actions disponibles
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             onClick={() => handleGenerateReport("monthly")}
-            className="flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-xl hover:bg-orange-100 transition border border-orange-200"
+            className="flex items-center gap-2 px-4 py-3 bg-violet-50 rounded-xl hover:bg-violet-100 transition border border-violet-200"
           >
-            <Download className="w-5 h-5 text-orange-600" />
+            <Download className="w-5 h-5 text-violet-600" />
             Rapport mensuel (PDF/Excel)
           </button>
           <button
             onClick={() => handleGenerateReport("quarterly")}
-            className="flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-xl hover:bg-orange-100 transition border border-orange-200"
+            className="flex items-center gap-2 px-4 py-3 bg-amber-50 rounded-xl hover:bg-amber-100 transition border border-amber-200"
           >
-            <BarChart3 className="w-5 h-5 text-orange-600" />
+            <BarChart3 className="w-5 h-5 text-amber-600" />
             Rapport trimestriel
           </button>
           <button
             onClick={() => handleGenerateReport("yearly")}
-            className="flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-xl hover:bg-orange-100 transition border border-orange-200"
+            className="flex items-center gap-2 px-4 py-3 bg-sky-50 rounded-xl hover:bg-sky-100 transition border border-sky-200"
           >
-            <TrendingUp className="w-5 h-5 text-orange-600" />
+            <TrendingUp className="w-5 h-5 text-sky-600" />
             Rapport annuel
           </button>
           <div className="flex flex-col gap-2">
@@ -1167,12 +1230,12 @@ function FinanceTab({ restaurantId }) {
                     plafondMensuel: e.target.value,
                   })
                 }
-                className="px-3 py-2 bg-white border border-orange-200 rounded-lg text-sm"
+                className="px-3 py-2 bg-white border border-emerald-200 rounded-lg text-sm"
                 placeholder="Plafond (FCFA)"
               />
               <button
                 onClick={handleConfigureBudget}
-                className="px-3 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600 transition"
+                className="px-3 py-2 bg-emerald-500 text-white rounded-lg text-sm hover:bg-emerald-600 transition"
               >
                 Sauvegarder
               </button>
@@ -1187,7 +1250,7 @@ function FinanceTab({ restaurantId }) {
                     alerte80: e.target.checked,
                   })
                 }
-                className="w-4 h-4 text-orange-500 rounded"
+                className="w-4 h-4 text-emerald-500 rounded"
               />
               <span>Alerte à 80%</span>
               <input
@@ -1199,7 +1262,7 @@ function FinanceTab({ restaurantId }) {
                     alerte100: e.target.checked,
                   })
                 }
-                className="w-4 h-4 text-orange-500 rounded ml-4"
+                className="w-4 h-4 text-emerald-500 rounded ml-4"
               />
               <span>Alerte à 100%</span>
             </div>
@@ -1332,7 +1395,7 @@ function SettingsTab({ restaurantId, user }) {
       </div>
 
       {/* Mode Sombre */}
-      <div className="bg-white rounded-2xl border border-orange-100 p-6">
+      <div className="bg-white rounded-2xl border border-sky-100 p-6">
         <h4 className="font-semibold text-gray-800 mb-4">Apparence</h4>
         <div className="flex items-center justify-between">
           <div>
@@ -1344,7 +1407,7 @@ function SettingsTab({ restaurantId, user }) {
           <button
             onClick={toggleDarkMode}
             className={`relative w-12 h-7 rounded-full transition-all ${
-              settings.darkMode ? "bg-orange-500" : "bg-gray-300"
+              settings.darkMode ? "bg-sky-500" : "bg-gray-300"
             }`}
           >
             <span
@@ -1357,7 +1420,7 @@ function SettingsTab({ restaurantId, user }) {
       </div>
 
       {/* Horaires */}
-      <div className="bg-white rounded-2xl border border-orange-100 p-6">
+      <div className="bg-white rounded-2xl border border-violet-100 p-6">
         <h4 className="font-semibold text-gray-800 mb-4">
           Horaires d'ouverture
         </h4>
@@ -1375,7 +1438,7 @@ function SettingsTab({ restaurantId, user }) {
                   horaires: { ...prev.horaires, ouverture: e.target.value },
                 }))
               }
-              className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-violet-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
             />
           </div>
           <div>
@@ -1391,7 +1454,7 @@ function SettingsTab({ restaurantId, user }) {
                   horaires: { ...prev.horaires, fermeture: e.target.value },
                 }))
               }
-              className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-violet-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
             />
           </div>
         </div>
@@ -1401,7 +1464,7 @@ function SettingsTab({ restaurantId, user }) {
       </div>
 
       {/* Zones de livraison avec carte */}
-      <div className="bg-white rounded-2xl border border-orange-100 p-6">
+      <div className="bg-white rounded-2xl border border-amber-100 p-6">
         <h4 className="font-semibold text-gray-800 mb-4">Zones de livraison</h4>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
@@ -1413,11 +1476,11 @@ function SettingsTab({ restaurantId, user }) {
                   setSettings((prev) => ({ ...prev, newZone: e.target.value }))
                 }
                 placeholder="Ajouter une nouvelle zone..."
-                className="flex-1 px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                className="flex-1 px-4 py-2.5 bg-white border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
               />
               <button
                 onClick={handleAddZone}
-                className="px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition"
+                className="px-4 py-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition"
               >
                 Ajouter
               </button>
@@ -1426,12 +1489,12 @@ function SettingsTab({ restaurantId, user }) {
               {settings.zonesLivraison.map((zone, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-full text-sm"
+                  className="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full text-sm"
                 >
                   {zone}
                   <button
                     onClick={() => handleRemoveZone(zone)}
-                    className="text-gray-600 hover:text-orange-600 transition"
+                    className="text-gray-600 hover:text-amber-600 transition"
                   >
                     ×
                   </button>
@@ -1446,7 +1509,7 @@ function SettingsTab({ restaurantId, user }) {
             <h5 className="font-medium text-gray-800 mb-2">Carte des zones</h5>
             <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl h-64 flex items-center justify-center">
               <div className="text-center">
-                <MapPin className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                <MapPin className="w-8 h-8 text-amber-500 mx-auto mb-2" />
                 <p className="text-sm text-gray-600">Intégration Google Maps</p>
                 <p className="text-xs text-gray-500 mt-1">
                   Affichage des zones de livraison
@@ -1462,13 +1525,13 @@ function SettingsTab({ restaurantId, user }) {
       </div>
 
       {/* Gestion Staff */}
-      <div className="bg-white rounded-2xl border border-orange-100 p-6">
+      <div className="bg-white rounded-2xl border border-violet-100 p-6">
         <h4 className="font-semibold text-gray-800 mb-4">
           Gestion des comptes Staff (RBAC)
         </h4>
 
         {/* Formulaire création staff */}
-        <div className="mb-6 p-4 bg-orange-50 rounded-xl">
+        <div className="mb-6 p-4 bg-violet-50 rounded-xl">
           <h5 className="font-medium text-gray-800 mb-3">
             Créer un nouveau compte Staff
           </h5>
@@ -1483,7 +1546,7 @@ function SettingsTab({ restaurantId, user }) {
                 onChange={(e) =>
                   setStaffForm({ ...staffForm, email: e.target.value })
                 }
-                className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full px-4 py-2.5 bg-white border border-violet-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
                 placeholder="staff@restaurant.com"
               />
             </div>
@@ -1497,7 +1560,7 @@ function SettingsTab({ restaurantId, user }) {
                 onChange={(e) =>
                   setStaffForm({ ...staffForm, telephone: e.target.value })
                 }
-                className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full px-4 py-2.5 bg-white border border-violet-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
                 placeholder="+225 XX XX XX XX"
               />
             </div>
@@ -1511,14 +1574,14 @@ function SettingsTab({ restaurantId, user }) {
                 onChange={(e) =>
                   setStaffForm({ ...staffForm, nom: e.target.value })
                 }
-                className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full px-4 py-2.5 bg-white border border-violet-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
                 placeholder="Ex: Konan Aya"
               />
             </div>
           </div>
           <button
             onClick={handleCreateStaff}
-            className="mt-4 px-6 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition"
+            className="mt-4 px-6 py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 transition"
           >
             Créer le compte Staff
           </button>
@@ -1531,7 +1594,7 @@ function SettingsTab({ restaurantId, user }) {
           </h5>
           {loadingStaff ? (
             <div className="flex items-center justify-center py-4">
-              <div className="w-6 h-6 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-3 border-violet-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : staffAccounts.length > 0 ? (
             <div className="space-y-3">
@@ -1552,7 +1615,7 @@ function SettingsTab({ restaurantId, user }) {
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
                         staff.actif
                           ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
+                          : "bg-rose-100 text-rose-800"
                       }`}
                     >
                       {staff.actif ? "Actif" : "Inactif"}
@@ -1561,7 +1624,7 @@ function SettingsTab({ restaurantId, user }) {
                       onClick={() => handleToggleStaff(staff.id, staff.actif)}
                       className={`px-3 py-1 rounded-lg text-sm font-medium ${
                         staff.actif
-                          ? "bg-red-500 text-white hover:bg-red-600"
+                          ? "bg-rose-500 text-white hover:bg-rose-600"
                           : "bg-green-500 text-white hover:bg-green-600"
                       }`}
                     >
@@ -1671,7 +1734,7 @@ function OverviewTab({ restaurantId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -1679,11 +1742,11 @@ function OverviewTab({ restaurantId }) {
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-8 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-3xl p-8 text-white shadow-lg">
         <h2 className="text-3xl font-bold mb-2">
           Bienvenue dans votre Restaurant!
         </h2>
-        <p className="text-orange-100 text-lg">
+        <p className="text-violet-100 text-lg">
           Gérez vos opérations en temps réel avec des outils puissants et
           intuitifs.
         </p>
@@ -1691,69 +1754,69 @@ function OverviewTab({ restaurantId }) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-orange-50 rounded-2xl p-6 border border-orange-200">
+        <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-2xl p-6 border border-violet-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-orange-700 font-medium">
+              <p className="text-sm text-violet-700 font-medium">
                 Commandes Aujourd'hui
               </p>
               <p className="text-2xl font-bold text-gray-800">
                 {stats.todayOrders}
               </p>
             </div>
-            <ClipboardList className="w-8 h-8 text-orange-500" />
+            <ClipboardList className="w-8 h-8 text-violet-500" />
           </div>
         </div>
-        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-200">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-amber-700 font-medium">
+              <p className="text-sm text-emerald-700 font-medium">
                 Chiffre d'Affaires
               </p>
               <p className="text-2xl font-bold text-gray-800">
                 {stats.todayRevenue.toLocaleString()} FCFA
               </p>
             </div>
-            <TrendingUp className="w-8 h-8 text-amber-500" />
+            <TrendingUp className="w-8 h-8 text-emerald-500" />
           </div>
         </div>
-        <div className="bg-red-50 rounded-2xl p-6 border border-red-200">
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 border border-amber-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-red-700 font-medium">
+              <p className="text-sm text-amber-700 font-medium">
                 Commandes Actives
               </p>
               <p className="text-2xl font-bold text-gray-800">
                 {stats.activeOrders}
               </p>
             </div>
-            <ChefHat className="w-8 h-8 text-red-500" />
+            <ChefHat className="w-8 h-8 text-amber-500" />
           </div>
         </div>
-        <div className="bg-yellow-50 rounded-2xl p-6 border border-yellow-200">
+        <div className="bg-gradient-to-br from-rose-50 to-rose-100 rounded-2xl p-6 border border-rose-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-yellow-700 font-medium">
+              <p className="text-sm text-rose-700 font-medium">
                 Alertes Stock
               </p>
               <p className="text-2xl font-bold text-gray-800">
                 {stats.lowStockItems}
               </p>
             </div>
-            <AlertTriangle className="w-8 h-8 text-yellow-500" />
+            <AlertTriangle className="w-8 h-8 text-rose-500" />
           </div>
         </div>
-        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-200">
+        <div className="bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 border border-sky-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-amber-700 font-medium">
+              <p className="text-sm text-sky-700 font-medium">
                 Nouveaux Clients
               </p>
               <p className="text-2xl font-bold text-gray-800">
                 {stats.newCustomers}
               </p>
             </div>
-            <Users className="w-8 h-8 text-amber-500" />
+            <Users className="w-8 h-8 text-sky-500" />
           </div>
         </div>
       </div>
@@ -1761,7 +1824,7 @@ function OverviewTab({ restaurantId }) {
       {/* Recent Orders & Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Orders */}
-        <div className="bg-white rounded-2xl border border-orange-100 p-6">
+        <div className="bg-white rounded-2xl border border-violet-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-gray-800 text-lg">
               Dernières Commandes
@@ -1769,7 +1832,7 @@ function OverviewTab({ restaurantId }) {
             <button
               onClick={handleExportPDF}
               disabled={recentOrders.length === 0}
-              className="flex items-center gap-2 px-3 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-3 py-2 bg-violet-500 text-white rounded-lg text-sm hover:bg-violet-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4" />
               Export PDF
@@ -1780,7 +1843,7 @@ function OverviewTab({ restaurantId }) {
               {recentOrders.map((order) => (
                 <div
                   key={order.id}
-                  className="flex items-center justify-between p-3 bg-orange-50 rounded-xl"
+                  className="flex items-center justify-between p-3 bg-violet-50 rounded-xl"
                 >
                   <div>
                     <p className="font-medium text-gray-800">
@@ -1791,7 +1854,7 @@ function OverviewTab({ restaurantId }) {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-orange-600">
+                    <p className="font-bold text-violet-600">
                       {Number(order.total).toLocaleString()} FCFA
                     </p>
                     <span
@@ -1799,9 +1862,9 @@ function OverviewTab({ restaurantId }) {
                         order.statut === "READY"
                           ? "bg-green-100 text-green-800"
                           : order.statut === "PREPARING"
-                            ? "bg-yellow-100 text-yellow-800"
+                            ? "bg-amber-100 text-amber-800"
                             : order.statut === "CONFIRMED"
-                              ? "bg-orange-100 text-orange-800"
+                              ? "bg-violet-100 text-violet-800"
                               : "bg-gray-100 text-gray-800"
                       }`}
                     >
@@ -1819,27 +1882,27 @@ function OverviewTab({ restaurantId }) {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl border border-amber-100 p-6">
+        <div className="bg-white rounded-2xl border border-emerald-100 p-6">
           <h3 className="font-bold text-gray-800 text-lg mb-4">
             Actions Rapides
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            <button className="flex flex-col items-center gap-2 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition border border-amber-200">
-              <Package className="w-6 h-6 text-amber-600" />
+            <button className="flex flex-col items-center gap-2 p-4 bg-violet-50 rounded-xl hover:bg-violet-100 transition border border-violet-200">
+              <Package className="w-6 h-6 text-violet-600" />
               <span className="text-sm font-medium text-gray-800">Menu</span>
             </button>
-            <button className="flex flex-col items-center gap-2 p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition border border-orange-200">
-              <ClipboardList className="w-6 h-6 text-orange-600" />
+            <button className="flex flex-col items-center gap-2 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition border border-amber-200">
+              <ClipboardList className="w-6 h-6 text-amber-600" />
               <span className="text-sm font-medium text-gray-800">
                 Commandes
               </span>
             </button>
-            <button className="flex flex-col items-center gap-2 p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition border border-orange-200">
-              <AlertTriangle className="w-6 h-6 text-orange-600" />
+            <button className="flex flex-col items-center gap-2 p-4 bg-rose-50 rounded-xl hover:bg-rose-100 transition border border-rose-200">
+              <AlertTriangle className="w-6 h-6 text-rose-600" />
               <span className="text-sm font-medium text-gray-800">Stocks</span>
             </button>
-            <button className="flex flex-col items-center gap-2 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition border border-amber-200">
-              <BarChart3 className="w-6 h-6 text-amber-600" />
+            <button className="flex flex-col items-center gap-2 p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition border border-emerald-200">
+              <BarChart3 className="w-6 h-6 text-emerald-600" />
               <span className="text-sm font-medium text-gray-800">
                 Trésorerie
               </span>
@@ -1849,11 +1912,11 @@ function OverviewTab({ restaurantId }) {
       </div>
 
       {/* Performance Chart Placeholder */}
-      <div className="bg-white rounded-2xl border border-orange-100 p-6">
+      <div className="bg-white rounded-2xl border border-sky-100 p-6">
         <h3 className="font-bold text-gray-800 text-lg mb-4">
           Performance Hebdomadaire
         </h3>
-        <div className="h-64 flex items-center justify-center bg-orange-50 rounded-xl">
+        <div className="h-64 flex items-center justify-center bg-sky-50 rounded-xl">
           <p className="text-gray-600">
             Graphique des ventes et commandes (à implémenter avec Chart.js)
           </p>
@@ -1897,4 +1960,3 @@ export default function GerantDashboard({ restaurantId, token }) {
     </div>
   );
 }
-

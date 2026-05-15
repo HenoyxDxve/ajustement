@@ -54,4 +54,8 @@ export class CreateArticleDto {
   @IsOptional()
   @IsEnum(CibleEnum)
   cible?: CibleEnum; //  Optionnel
+
+  @IsOptional()
+  @IsUUID()
+  restaurantId?: string;
 }

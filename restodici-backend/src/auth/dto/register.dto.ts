@@ -6,7 +6,9 @@ import {
   IsIn,
   MinLength,
   IsUUID,
+  IsEnum,
 } from 'class-validator';
+import { Role } from '../entities/user.entity';
 
 export class RegisterDto {
   @IsEmail()
@@ -15,6 +17,11 @@ export class RegisterDto {
   @IsString()
   @MinLength(2)
   nom!: string;
+
+  @IsString()
+  @MinLength(2)
+  @IsOptional()
+  prenom?: string;
 
   @IsString()
   @MinLength(6)
@@ -27,7 +34,13 @@ export class RegisterDto {
   // Type d'utilisateur : CLIENT, RESTAURANT, BUSINESS_CLIENT
   @IsString()
   @IsIn(['CLIENT', 'RESTAURANT', 'BUSINESS_CLIENT'])
-  type!: string;
+  @IsOptional()
+  type?: string;
+
+  // Rôle de l'utilisateur (pour tests et compatibilité)
+  @IsEnum(Role)
+  @IsOptional()
+  role?: Role;
 
   // --- Champs pour RESTAURANT ---
   @IsOptional()

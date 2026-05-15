@@ -19,7 +19,17 @@ API.interceptors.request.use((config) => {
 
 export const commandesService = {
   create: (data: any) => API.post("/commandes", data),
+  getAll: (params?: any) => API.get("/commandes", { params }),
+  getRecentOrders: async (restaurantId: string, limit = 50) => {
+    const { data } = await API.get("/commandes", {
+      params: { restaurantId, limit },
+    });
+    return data;
+  },
+  getMyOrders: () => API.get("/commandes/me"),
   findOne: (id: string) => API.get(`/commandes/${id}`),
+  updateStatus: (id: string, statut: string) =>
+    API.patch(`/commandes/${id}/statut`, { statut }),
   updateStatut: (id: string, statut: string) =>
     API.patch(`/commandes/${id}/statut`, { statut }),
   getKDS: () => API.get("/commandes/kds"),

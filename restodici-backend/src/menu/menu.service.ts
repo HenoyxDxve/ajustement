@@ -7,7 +7,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, DeepPartial } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Article, CibleEnum } from './entities/article.entity';
 import { Categorie } from './entities/categorie.entity';
 import { Restaurant } from '../restaurants/entities/restaurant.entity';
@@ -34,8 +34,13 @@ export class MenuService {
     categorieId?: string,
     cible: string = 'CLIENT',
     user?: { id: string; role: string; restaurant?: { id: string } },
+    restaurantId?: string,
   ): Promise<Article[]> {
-    const cacheKey = `menu:${cible}:${categorieId || 'all'}:${user?.restaurant?.id || 'global'}`;
+    const scopedRestaurantId =
+      user?.role === 'GERANT'
+        ? user.restaurant?.id
+        : restaurantId || user?.restaurant?.id;
+    const cacheKey = `menu:${cible}:${categorieId || 'all'}:${scopedRestaurantId || 'global'}`;
 
     //  Lecture cache (désactivable en dev)
     if (process.env.NODE_ENV !== 'development') {
@@ -54,9 +59,9 @@ export class MenuService {
       .where('categorie.actif = :actif', { actif: true });
 
     //  ISOLATION MULTI-TENANT (RG-31)
-    if (user?.role === 'GERANT' && user?.restaurant?.id) {
+    if (scopedRestaurantId) {
       query.andWhere('article.restaurantId = :restId', {
-        restId: user.restaurant.id,
+        restId: scopedRestaurantId,
       });
     }
 
@@ -111,17 +116,19 @@ export class MenuService {
     dto: CreateCategorieDto,
     user?: { role: string; restaurant?: { id: string } },
   ): Promise<Categorie> {
-    if (user?.role === 'GERANT' && !user?.restaurant?.id) {
+    const restaurantId = user?.restaurant?.id || dto.restaurantId;
+
+    if (user?.role === 'GERANT' && !restaurantId) {
       throw new BadRequestException('Gérant sans restaurant associé');
     }
 
     const categorie = this.categorieRepo.create({
       ...dto,
-      restaurant: user?.restaurant?.id ? { id: user.restaurant.id } : undefined,
+      restaurant: restaurantId ? { id: restaurantId } : undefined,
     });
 
     const saved = await this.categorieRepo.save(categorie);
-    await this.invalidateMenuCache(user?.restaurant?.id);
+    await this.invalidateMenuCache(restaurantId);
 
     this.logger.log(`Catégorie créée: ${saved.nom} (ID: ${saved.id})`);
     return saved;
@@ -132,6 +139,7 @@ export class MenuService {
     query: string,
     cible: string = 'CLIENT',
     user?: { id: string; role: string; restaurant?: { id: string } },
+    restaurantId?: string,
   ): Promise<Article[]> {
     if (!query || query.trim().length < 2) return [];
 
@@ -147,9 +155,13 @@ export class MenuService {
       )
       .andWhere('categorie.actif = true');
 
-    if (user?.role === 'GERANT' && user?.restaurant?.id) {
+    const scopedRestaurantId =
+      user?.role === 'GERANT'
+        ? user.restaurant?.id
+        : restaurantId || user?.restaurant?.id;
+    if (scopedRestaurantId) {
       qb.andWhere('article.restaurantId = :restId', {
-        restId: user.restaurant.id,
+        restId: scopedRestaurantId,
       });
     }
 
@@ -173,11 +185,26 @@ export class MenuService {
     user: { id: string; role: string; restaurant?: { id: string } },
   ): Promise<Article> {
     // 1. Vérifier catégorie (RG-01)
+    const restaurantId = user?.restaurant?.id || dto.restaurantId;
+
+    if (!restaurantId) {
+      throw new BadRequestException(
+        'Impossible de créer un article : aucun restaurant associé à ce compte.',
+      );
+    }
+
     const categorie = await this.categorieRepo.findOne({
       where: { id: dto.categorieId, actif: true },
+      relations: ['restaurant'],
     });
     if (!categorie) {
       throw new NotFoundException(`Catégorie "${dto.categorieId}" introuvable`);
+    }
+
+    if (categorie.restaurant?.id && categorie.restaurant.id !== restaurantId) {
+      throw new BadRequestException(
+        "La catégorie n'appartient pas au restaurant ciblé",
+      );
     }
 
     // 2. Validation RG-05 (Prix > 0)
@@ -187,15 +214,6 @@ export class MenuService {
 
     // 3. Stock et disponibilité (RG-03)
     const stock = dto.stock ?? 0;
-    const isDisponible = stock > 0;
-
-    // 4. Isolation multi-tenant (RG-31)
-    if (!user?.restaurant?.id) {
-      throw new BadRequestException(
-        'Impossible de créer un article : aucun restaurant associé à ce compte.',
-      );
-    }
-
     // src/menu/menu.service.ts — Dans createArticle()
     const article = new Article();
     article.nom = dto.nom!; //  DTO @IsNotEmpty garantit la présence
@@ -208,15 +226,15 @@ export class MenuService {
     article.allergenes = dto.allergenes ?? [];
     article.seuilMin = dto.seuilMin ?? 5;
     article.categorieId = dto.categorieId!; //  DTO @IsNotEmpty + @IsUUID
-    article.restaurantId = user.restaurant.id;
+    article.restaurantId = restaurantId;
     // Sauvegarde explicite
     const saved = await this.articleRepo.save(article);
 
     // 7. Invalidation cache (RG-02: sync <30s)
-    await this.invalidateMenuCache(user.restaurant.id);
+    await this.invalidateMenuCache(restaurantId);
 
     this.logger.log(
-      `Article créé: ${saved.nom} (Restaurant: ${user.restaurant.id})`,
+      `Article créé: ${saved.nom} (Restaurant: ${restaurantId})`,
     );
     return saved;
   }
@@ -388,11 +406,7 @@ export class MenuService {
       );
     }
 
-    return this.getMenu(categorieId, cible, {
-      id: 'system',
-      role: 'CLIENT',
-      restaurant: { id: restaurantId },
-    });
+    return this.getMenu(categorieId, cible, undefined, restaurantId);
   }
 
   //  Méthode privée: Invalider le cache menu

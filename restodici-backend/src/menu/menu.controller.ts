@@ -29,9 +29,16 @@ export class MenuController {
   getMenu(
     @Query('categorie') categorieId?: string,
     @Query('cible') cible: string = 'CLIENT',
+    @Query('restaurantId') restaurantId?: string,
     @Req() req?,
   ) {
-    return this.menuService.getMenu(categorieId, cible, req.user);
+    return this.menuService.getMenu(categorieId, cible, req.user, restaurantId);
+  }
+
+  // GET /menu/restaurants — Liste des restaurants actifs
+  @Get('restaurants')
+  getRestaurants() {
+    return this.menuService.getRestaurants();
   }
 
   // GET /menu/categories — Liste catégories
@@ -45,9 +52,20 @@ export class MenuController {
   searchArticles(
     @Query('q') query: string,
     @Query('cible') cible: string = 'CLIENT',
+    @Query('restaurantId') restaurantId?: string,
     @Req() req?,
   ) {
-    return this.menuService.searchArticles(query, cible, req.user);
+    return this.menuService.searchArticles(query, cible, req.user, restaurantId);
+  }
+
+  // GET /menu/restaurant/:id — Menu d'un restaurant spécifique
+  @Get('restaurant/:id')
+  getMenuByRestaurant(
+    @Param('id') restaurantId: string,
+    @Query('categorie') categorieId?: string,
+    @Query('cible') cible: string = 'CLIENT',
+  ) {
+    return this.menuService.getMenuByRestaurant(restaurantId, categorieId, cible);
   }
 
   //  POST /menu/categories — Création (Lier au restaurant du gérant)

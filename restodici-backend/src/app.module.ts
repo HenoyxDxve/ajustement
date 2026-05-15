@@ -2,6 +2,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { MenuModule } from './menu/menu.module';
 import { CommandesModule } from './commandes/commandes.module';
@@ -39,5 +41,7 @@ import { B2BModule } from './b2b/b2b.module';
     StocksModule,
     TresorerieModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

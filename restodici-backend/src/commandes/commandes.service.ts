@@ -69,6 +69,10 @@ export class CommandesService {
           throw new NotFoundException(
             `Article ${ligneDto.articleId} introuvable`,
           );
+        if (article.restaurantId !== restaurantId)
+          throw new BadRequestException(
+            `Article ${article.nom} n'appartient pas au restaurant demandé`,
+          );
         if (!article.disponible)
           throw new BadRequestException(`Article ${article.nom} indisponible`);
         if (article.stock < ligneDto.quantite)
@@ -77,10 +81,11 @@ export class CommandesService {
           );
 
         // Déduction stock immédiate
+        const stockRestant = article.stock - ligneDto.quantite;
         await manager.update(
           Article,
           { id: article.id },
-          { stock: article.stock - ligneDto.quantite },
+          { stock: stockRestant, disponible: stockRestant > 0 },
         );
 
         montantTotal += Number(article.prix) * ligneDto.quantite;
@@ -197,6 +202,19 @@ export class CommandesService {
     ];
     const currentIndex = order.indexOf(commande.statut);
     const newIndex = order.indexOf(newStatut);
+
+    if (newStatut === StatutCommande.ANNULEE) {
+      if (
+        commande.statut === StatutCommande.LIVREE ||
+        commande.statut === StatutCommande.ANNULEE
+      ) {
+        throw new BadRequestException(
+          `Transition invalide: ${commande.statut} → ${newStatut}`,
+        );
+      }
+      commande.statut = newStatut;
+      return this.commandeRepo.save(commande);
+    }
 
     // Bloquer transitions rétrogrades ou invalides
     if (newIndex <= currentIndex || newIndex === -1) {

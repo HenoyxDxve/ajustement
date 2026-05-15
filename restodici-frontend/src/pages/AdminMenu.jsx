@@ -7,8 +7,10 @@ export default function AdminMenuPage() {
   const [articles, setArticles] = useState([]);
 
   useEffect(() => {
-    menuService.getMenu(null, 'TOUS').then(res => setArticles(res.data));
-  }, []);
+    menuService
+      .getMenu(null, 'TOUS', user?.restaurant?.id)
+      .then(data => setArticles(data || []));
+  }, [user?.restaurant?.id]);
 
   const handleToggle = async (id, currentStatus) => {
     try {

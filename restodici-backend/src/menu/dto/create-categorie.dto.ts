@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsUUID } from 'class-validator';
 
 export class CreateCategorieDto {
   @IsString()
@@ -15,4 +15,8 @@ export class CreateCategorieDto {
   @IsBoolean()
   @IsOptional()
   actif?: boolean;
+
+  @IsUUID()
+  @IsOptional()
+  restaurantId?: string;
 }

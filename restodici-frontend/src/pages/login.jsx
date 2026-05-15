@@ -1,7 +1,7 @@
 // src/pages/Login.jsx
 import { useState } from 'react';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { Mail, Lock, ArrowLeft, UserPlus, UtensilsCrossed } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, UserPlus, UtensilsCrossed, Chrome } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Login() {
@@ -15,6 +15,7 @@ export default function Login() {
     password: ''
   });
   const [errors, setErrors] = useState({});
+  const verifyEmailCta = errors.verifyEmailCta === true;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get redirect parameter from URL
@@ -107,7 +108,15 @@ export default function Login() {
           errorMessage = backendMessage;
         }
       }
-      setErrors({ submit: errorMessage });
+      // Si email non vérifié, proposer la redirection vers verify-email
+      if (typeof backendMessage === 'string' && backendMessage.toLowerCase().includes('email non vérifié')) {
+        setErrors({
+          submit: backendMessage,
+          verifyEmailCta: true,
+        });
+      } else {
+        setErrors({ submit: errorMessage });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -181,6 +190,16 @@ export default function Login() {
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
               {errors.submit}
+              {verifyEmailCta && (
+                <div className="mt-4 space-y-2">
+                  <Link
+                    to="/verify-email"
+                    className="block w-full text-center py-2 px-4 rounded-xl font-bold bg-[#2ECC71] text-white hover:bg-[#27AE60] transition-colors"
+                  >
+                    Vérifier mon email
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 
@@ -196,15 +215,44 @@ export default function Login() {
           </button>
         </form>
 
+        {/* Google Sign-In Button */}
+        <div className="space-y-3">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#E8E2D9]"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-[#8B7355]">Ou continuer avec</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/google`}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-[#E8E2D9] rounded-2xl font-medium text-[#2D2720] hover:bg-[#F9F7F5] transition-colors"
+          >
+            <Chrome className="w-5 h-5" />
+            <span>Se connecter avec Google</span>
+          </button>
+        </div>
+
         {/* Liens supplémentaires */}
         <div className="pt-4 border-t border-[#E8E2D9] space-y-3">
-          <Link 
-            to="/register" 
-            className="flex items-center justify-center text-[#2ECC71] font-medium hover:underline"
-          >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Pas encore inscrit ? Créer un compte
-          </Link>
+          <div className="flex justify-between items-center">
+            <Link 
+              to="/forgot-password" 
+              className="text-[#8B7355] hover:text-[#2D2720] text-sm font-medium"
+            >
+              Mot de passe oublié ?
+            </Link>
+            <Link 
+              to="/register" 
+              className="flex items-center text-[#2ECC71] font-medium hover:underline text-sm"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Créer un compte
+            </Link>
+          </div>
           
           <Link 
             to="/" 

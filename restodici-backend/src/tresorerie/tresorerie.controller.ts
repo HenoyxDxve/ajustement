@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import { TresorerieService } from './tresorerie.service';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -28,7 +29,7 @@ export class TresorerieController {
   ) {
     const restaurantId = req.user?.restaurant?.id;
     if (!restaurantId) {
-      throw new Error('Restaurant ID required');
+      throw new BadRequestException('Restaurant ID required');
     }
     return this.tresorerieService.getRevenueStats(restaurantId, period);
   }
@@ -44,7 +45,7 @@ export class TresorerieController {
   ) {
     const restaurantId = req.user?.restaurant?.id;
     if (!restaurantId) {
-      throw new Error('Restaurant ID required');
+      throw new BadRequestException('Restaurant ID required');
     }
 
     const pdfBuffer = await this.tresorerieService.generateReceiptPdf(
@@ -67,7 +68,7 @@ export class TresorerieController {
   recordExpense(@Body() expenseData: any, @Req() req) {
     const restaurantId = req.user?.restaurant?.id;
     if (!restaurantId) {
-      throw new Error('Restaurant ID required');
+      throw new BadRequestException('Restaurant ID required');
     }
     return this.tresorerieService.recordExpense(expenseData, restaurantId);
   }
@@ -82,7 +83,7 @@ export class TresorerieController {
   ) {
     const restaurantId = req.user?.restaurant?.id;
     if (!restaurantId) {
-      throw new Error('Restaurant ID required');
+      throw new BadRequestException('Restaurant ID required');
     }
     return this.tresorerieService.generateFinancialReport(restaurantId, period);
   }
@@ -94,7 +95,7 @@ export class TresorerieController {
   configureBudgetAlerts(@Body() config: any, @Req() req) {
     const restaurantId = req.user?.restaurant?.id;
     if (!restaurantId) {
-      throw new Error('Restaurant ID required');
+      throw new BadRequestException('Restaurant ID required');
     }
     return this.tresorerieService.configureBudgetAlerts(restaurantId, config);
   }

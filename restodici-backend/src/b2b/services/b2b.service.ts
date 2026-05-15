@@ -5,8 +5,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../../auth/entities/user.entity';
+import { In, Repository } from 'typeorm';
+import { Role, User } from '../../auth/entities/user.entity';
 import { Team } from '../entities/team.entity';
 import { TeamMember } from '../entities/team-member.entity';
 import { BulkOrder } from '../entities/bulk-order.entity';
@@ -15,6 +15,7 @@ import { CreateTeamDto } from '../dto/create-team.dto';
 import { AddTeamMemberDto } from '../dto/add-team-member.dto';
 import { CreateBulkOrderDto } from '../dto/create-bulk-order.dto';
 import { UpdateBulkOrderStatusDto } from '../dto/update-bulk-order-status.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class B2BService {
@@ -151,8 +152,31 @@ export class B2BService {
       throw new ForbiddenException('Only B2B users can create bulk orders');
     }
 
+    const items = createBulkOrderDto.items.map((item) => ({
+      articleId: item.articleId,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      total: item.total ?? item.quantity * item.unitPrice,
+    }));
+
+    const subtotal =
+      createBulkOrderDto.subtotal ??
+      items.reduce((sum, item) => sum + Number(item.total), 0);
+    const deliveryFee = createBulkOrderDto.deliveryFee ?? 0;
+    const total = createBulkOrderDto.total ?? subtotal + deliveryFee;
+
     const bulkOrder = this.bulkOrderRepository.create({
-      ...createBulkOrderDto,
+      items,
+      subtotal,
+      deliveryFee,
+      total,
+      deliveryAddress: createBulkOrderDto.deliveryAddress,
+      notes: createBulkOrderDto.notes,
+      deliveryDateTime: createBulkOrderDto.deliveryDateTime
+        ? new Date(createBulkOrderDto.deliveryDateTime)
+        : undefined,
+      isRecurring: createBulkOrderDto.isRecurring ?? false,
+      recurrencePattern: createBulkOrderDto.recurrencePattern,
       createdByUserId: userId,
       status: 'PENDING',
     });
@@ -165,6 +189,11 @@ export class B2BService {
       where: { createdByUserId: userId },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async getOrdersByUser(userId: string): Promise<Record<string, any>[]> {
+    const orders = await this.getBulkOrdersByUser(userId);
+    return orders.map((order) => this.toOrderResponse(order));
   }
 
   async updateBulkOrderStatus(
@@ -192,7 +221,7 @@ export class B2BService {
       throw new BadRequestException('status is required');
     }
 
-    if (!validTransitions[order.status].includes(updateDto.status)) {
+    if (!validTransitions[order.status]?.includes(updateDto.status)) {
       throw new BadRequestException(
         `Cannot transition from ${order.status} to ${updateDto.status}`,
       );
@@ -203,11 +232,27 @@ export class B2BService {
   }
 
   // === INVOICE MANAGEMENT ===
-  async getInvoicesByUser(userId: string): Promise<Invoice[]> {
-    return this.invoiceRepository.find({
+  async getInvoicesByUser(userId: string): Promise<Record<string, any>[]> {
+    const invoices = await this.invoiceRepository.find({
       where: { b2bClientId: userId },
       order: { issueDate: 'DESC' },
     });
+
+    return invoices.map((invoice) => ({
+      id: invoice.id,
+      month: invoice.issueDate.toLocaleDateString('fr-FR', {
+        month: 'long',
+        year: 'numeric',
+      }),
+      amount: Number(invoice.totalAmount),
+      status: invoice.status === 'PAID' ? 'paid' : 'pending',
+      dueDate: invoice.dueDate.toISOString().slice(0, 10),
+      pdfUrl: '#',
+      nifRestaurant: 'N/A',
+      nifClient: invoice.b2bClientId,
+      tva: Number(invoice.taxAmount),
+      includesTVA: Number(invoice.taxAmount) > 0,
+    }));
   }
 
   async getInvoiceById(invoiceId: string, userId: string): Promise<Invoice> {
@@ -247,6 +292,11 @@ export class B2BService {
       .getRawOne();
 
     const totalOrderValue = parseFloat(totalOrderValueResult?.sum ?? '0');
+    const unpaidInvoices = await this.invoiceRepository.count({
+      where: { b2bClientId: userId, status: In(['PENDING', 'OVERDUE']) },
+    });
+    const recentOrders = await this.getOrdersByUser(userId);
+    const monthlyBudget = 2000000;
 
     return {
       totalTeams: teamCount,
@@ -254,6 +304,17 @@ export class B2BService {
       totalInvoices: invoiceCount,
       activeCollaborators,
       totalOrderValue,
+      monthlyExpenses: totalOrderValue,
+      monthlyOrders: orderCount,
+      unpaidInvoices,
+      monthlyBudget,
+      budgetUsage: monthlyBudget > 0 ? (totalOrderValue / monthlyBudget) * 100 : 0,
+      recentOrders: recentOrders.slice(0, 5).map((order) => ({
+        id: order.id,
+        date: order.dateLivraison,
+        amount: order.total,
+        status: order.status.toLowerCase(),
+      })),
     };
   }
 
@@ -272,6 +333,81 @@ export class B2BService {
         role: member.role,
         actif: member.active,
       }));
+  }
+
+  async createCollaborator(
+    currentUserId: string,
+    dto: { nom?: string; email?: string; role?: string },
+  ): Promise<Record<string, any>> {
+    if (!dto?.nom || !dto?.email) {
+      throw new BadRequestException('nom et email sont requis');
+    }
+
+    let targetUser = await this.userRepository.findOne({
+      where: { email: dto.email.trim().toLowerCase() },
+    });
+
+    if (targetUser && targetUser.role !== Role.B2B) {
+      throw new BadRequestException('Le collaborateur doit être un utilisateur B2B');
+    }
+
+    if (!targetUser) {
+      targetUser = this.userRepository.create({
+        nom: dto.nom,
+        email: dto.email.trim().toLowerCase(),
+        role: Role.B2B,
+        actif: true,
+        password: await bcrypt.hash(Math.random().toString(36).slice(-10), 12),
+      });
+      targetUser = await this.userRepository.save(targetUser);
+    }
+
+    let team = await this.teamRepository.findOne({
+      where: { createdByUserId: currentUserId, active: true },
+      order: { createdAt: 'ASC' },
+    });
+
+    if (!team) {
+      team = await this.teamRepository.save(
+        this.teamRepository.create({
+          name: 'Collaborateurs',
+          description: 'Equipe principale B2B',
+          createdByUserId: currentUserId,
+        }),
+      );
+      await this.teamMemberRepository.save(
+        this.teamMemberRepository.create({
+          teamId: team.id,
+          userId: currentUserId,
+          role: 'OWNER',
+        }),
+      );
+    }
+
+    let member = await this.teamMemberRepository.findOne({
+      where: { teamId: team.id, userId: targetUser.id },
+    });
+
+    if (member) {
+      member.active = true;
+      member.role = dto.role || member.role || 'MEMBER';
+    } else {
+      member = this.teamMemberRepository.create({
+        teamId: team.id,
+        userId: targetUser.id,
+        role: dto.role || 'MEMBER',
+      });
+    }
+
+    await this.teamMemberRepository.save(member);
+
+    return {
+      id: targetUser.id,
+      nom: targetUser.nom,
+      email: targetUser.email,
+      role: member.role,
+      actif: member.active,
+    };
   }
 
   async getReportsByUser(userId: string): Promise<any> {
@@ -351,5 +487,38 @@ export class B2BService {
       relations: ['team'],
     });
     return teamMembers.map((tm) => tm.team);
+  }
+
+  private toOrderResponse(order: BulkOrder): Record<string, any> {
+    const deliveryDate = order.deliveryDateTime ?? order.createdAt;
+    return {
+      id: order.id,
+      restaurantNom: 'Restaurant partenaire',
+      dateLivraison: deliveryDate?.toISOString().slice(0, 10),
+      heureLivraison: deliveryDate
+        ? deliveryDate.toISOString().slice(11, 16)
+        : undefined,
+      status: this.toFrontendOrderStatus(order.status),
+      total: Number(order.total),
+      deliveryAddress: order.deliveryAddress ?? 'Adresse non renseignée',
+      items: (order.items ?? []).map((item) => ({
+        articleId: item.articleId,
+        quantity: Number(item.quantity),
+        nom: item.articleId,
+        unitPrice: Number(item.unitPrice),
+        total: Number(item.total),
+      })),
+    };
+  }
+
+  private toFrontendOrderStatus(status: string): string {
+    const statusMap: Record<string, string> = {
+      PENDING: 'EN_VALIDATION',
+      CONFIRMED: 'CONFIRMEE',
+      PROCESSING: 'EN_PREP',
+      DELIVERED: 'LIVREE',
+      CANCELLED: 'ANNULEE',
+    };
+    return statusMap[status] ?? status;
   }
 }

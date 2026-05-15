@@ -4,39 +4,39 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { User } from './entities/user.entity';
 import { Restaurant } from '../restaurants/entities/restaurant.entity';
-
-const mockUserRepository = {};
-const mockRestaurantRepository = {};
-const mockJwtService = {
-  sign: jest.fn(() => 'mock-token'),
-};
+import { PasswordReset } from './entities/password-reset.entity';
+import { ConfigService } from '@nestjs/config';
 
 describe('AuthService', () => {
-  let service: AuthService;
-
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         {
           provide: getRepositoryToken(User),
-          useValue: mockUserRepository,
+          useValue: {},
         },
         {
           provide: getRepositoryToken(Restaurant),
-          useValue: mockRestaurantRepository,
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(PasswordReset),
+          useValue: {},
         },
         {
           provide: JwtService,
-          useValue: mockJwtService,
+          useValue: { sign: () => 'mock-token' },
+        },
+        {
+          provide: ConfigService,
+          useValue: { get: () => 'http://localhost:5173' },
         },
       ],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
-  });
-
-  it('should be defined', () => {
+    const service = module.get<AuthService>(AuthService);
     expect(service).toBeDefined();
   });
 });
+

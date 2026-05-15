@@ -7,6 +7,7 @@ import {
   Req,
   Param,
   Body,
+  Query,
 } from '@nestjs/common';
 import { StocksService } from './stocks.service';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -16,6 +17,15 @@ import { AuthGuard } from '@nestjs/passport';
 @Controller('stocks')
 export class StocksController {
   constructor(private readonly stocksService: StocksService) {}
+
+  // GET /stocks — Inventaire complet du restaurant
+  @Get()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('GERANT', 'ADMIN', 'STAFF')
+  getAll(@Req() req, @Query('restaurantId') restaurantId?: string) {
+    const targetRestaurantId = req.user?.restaurant?.id || restaurantId;
+    return this.stocksService.getAll(targetRestaurantId);
+  }
 
   // GET /stocks/alerts — Alertes seuils minimum (RG-23)
   @Get('alerts')

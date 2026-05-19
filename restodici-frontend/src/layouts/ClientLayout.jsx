@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, ChefHat } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChefHat, Package } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
+import { getClientOrdersPath } from '../utils/order-ux';
 
 export default function ClientLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -69,6 +71,15 @@ export default function ClientLayout() {
                   )}
                 </button>
               )}
+              {user && (
+                <Link
+                  to={getClientOrdersPath()}
+                  className="inline-flex items-center gap-2 rounded-xl border border-[#E8E2D9] bg-[#FFF8F3] px-3 py-2 text-sm font-semibold text-[#D94500] transition hover:border-[#D94500] hover:bg-[#FFF1E8]"
+                >
+                  <Package className="w-4 h-4" />
+                  Voir commande
+                </Link>
+              )}
               
               <div className="flex items-center gap-2">
                 <Link 
@@ -82,10 +93,7 @@ export default function ClientLayout() {
                 </Link>
                 {user && (
                   <button 
-                    onClick={() => { 
-                      logout(); 
-                      navigate('/login'); 
-                    }}
+                    onClick={() => setShowLogoutModal(true)}
                     className="hidden text-xs text-[#8B7355] transition hover:text-red-600 sm:block"
                   >
                     Déconnexion
@@ -130,11 +138,11 @@ export default function ClientLayout() {
             )}
             {user && (
               <Link 
-                to="/cart"
+                to={getClientOrdersPath()}
                 onClick={() => setMobileMenuOpen(false)}
                 className="block py-2 text-[#2D2720] font-medium"
               >
-                Commander
+                Voir commande
               </Link>
             )}
             <Link 
@@ -146,8 +154,7 @@ export default function ClientLayout() {
             </Link>
             {user && (
               <button onClick={() => { 
-                logout(); 
-                navigate('/login'); 
+                setShowLogoutModal(true);
                 setMobileMenuOpen(false);
               }} className="block w-full text-left py-2 text-red-600 font-medium">🚪 Déconnexion</button>
             )}
@@ -159,6 +166,34 @@ export default function ClientLayout() {
       <main className="flex-1 w-full">
         <Outlet />
       </main>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-[#2D2720] mb-2">Confirmer la déconnexion ?</h3>
+            <p className="text-sm text-[#8B7355] mb-6">Vous serez redirigé vers la page de connexion.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-[#E8E2D9] text-[#2D2720] font-medium hover:bg-[#F9F7F5]"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                  setShowLogoutModal(false);
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700"
+              >
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

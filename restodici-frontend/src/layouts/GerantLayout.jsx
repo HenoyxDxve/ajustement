@@ -26,6 +26,7 @@ export default function GerantLayout() {
     const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
     return cachedUser?.restaurant?.nom || user?.restaurant?.nom || '';
   });
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const searchParams = new URLSearchParams(location.search);
   const activeTab = searchParams.get('tab') || 'overview';
@@ -50,7 +51,15 @@ export default function GerantLayout() {
   }, [user?.restaurant?.nom]);
 
   const handleNav = (path) => navigate(path);
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    navigate('/login');
+    setShowLogoutModal(false);
+  };
 
   return (
     <div className={`flex min-h-screen ${darkMode ? 'gerant-theme-dark bg-[#111827] text-slate-100' : 'bg-gradient-to-b from-[#FDFCFB] via-white to-[#FFF7F2]'}`}>
@@ -222,6 +231,29 @@ export default function GerantLayout() {
       }`}>
         <Outlet />
       </main>
+
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-lg font-semibold text-[#2D2720]">Confirmer la déconnexion ?</h3>
+            <p className="mb-6 text-sm text-[#8B7355]">Vous serez redirigé vers la page de connexion.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 rounded-xl border border-[#E8E2D9] px-4 py-2.5 font-medium text-[#2D2720] transition hover:bg-[#F9F7F5]"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 font-medium text-white transition hover:bg-red-700"
+              >
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

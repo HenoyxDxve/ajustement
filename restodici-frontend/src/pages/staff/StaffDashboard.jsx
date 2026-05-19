@@ -76,6 +76,7 @@ export default function StaffDashboard() {
   const [paymentDrafts, setPaymentDrafts] = useState({});
   const [error, setError] = useState('');
   const [lastEvent, setLastEvent] = useState('');
+  const [actionHistory, setActionHistory] = useState([]);
 
   const refreshDashboard = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -98,9 +99,49 @@ export default function StaffDashboard() {
     }
   }, []);
 
+  const actionHistoryKey = user?.restaurant?.id
+    ? `staff-action-history:${user.restaurant.id}`
+    : user?.id
+      ? `staff-action-history:${user.id}`
+      : 'staff-action-history:global';
+
+  const appendHistory = useCallback(
+    (type, title, description) => {
+      const entry = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        type,
+        title,
+        description,
+        createdAt: new Date().toISOString(),
+      };
+
+      setActionHistory((current) => {
+        const nextHistory = [entry, ...current].slice(0, 8);
+        try {
+          localStorage.setItem(actionHistoryKey, JSON.stringify(nextHistory));
+        } catch {
+          localStorage.removeItem(actionHistoryKey);
+        }
+        return nextHistory;
+      });
+    },
+    [actionHistoryKey],
+  );
+
   useEffect(() => {
     void refreshDashboard();
   }, [refreshDashboard]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    try {
+      const storedHistory = JSON.parse(localStorage.getItem(actionHistoryKey) || '[]');
+      setActionHistory(Array.isArray(storedHistory) ? storedHistory : []);
+    } catch {
+      setActionHistory([]);
+    }
+  }, [actionHistoryKey, user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -112,22 +153,29 @@ export default function StaffDashboard() {
     const socket = createCommandesSocket(user);
 
     socket.on('commande.nouvelle', (payload) => {
-      setLastEvent(`Nouvelle commande ${payload?.numero || ''}`.trim());
+      const label = `Nouvelle commande ${payload?.numero || ''}`.trim();
+      setLastEvent(label);
+      appendHistory('commande', label, 'Commande reçue en cuisine');
       void refreshDashboard({ silent: true });
     });
 
     socket.on('commande.statut', (payload) => {
-      setLastEvent(`Statut mis à jour ${payload?.numero || ''}`.trim());
+      const label = `Statut mis à jour ${payload?.numero || ''}`.trim();
+      setLastEvent(label);
+      appendHistory('statut', label, `Commande passée à ${payload?.statut || 'mise à jour'}`);
       void refreshDashboard({ silent: true });
     });
 
     socket.on('commande.paiement', (payload) => {
-      setLastEvent(`Paiement confirmé ${payload?.numero || ''}`.trim());
+      const label = `Paiement confirmé ${payload?.numero || ''}`.trim();
+      setLastEvent(label);
+      appendHistory('paiement', label, 'Paiement validé pour la commande');
       void refreshDashboard({ silent: true });
     });
 
     socket.on('restaurant.profile.updated', () => {
       setLastEvent('Profil restaurant mis à jour');
+      appendHistory('profil', 'Profil restaurant mis à jour', 'Les informations opérationnelles ont été synchronisées');
       void refreshDashboard({ silent: true });
     });
 
@@ -135,7 +183,7 @@ export default function StaffDashboard() {
       clearInterval(pollingInterval);
       socket.disconnect();
     };
-  }, [refreshDashboard, user]);
+  }, [appendHistory, refreshDashboard, user]);
 
   const activeOrders = useMemo(
     () =>
@@ -185,6 +233,7 @@ export default function StaffDashboard() {
       setSavingOrderId(orderId);
       setError('');
       await commandesService.updateStatut(orderId, nextStatus);
+      appendHistory('action', `Commande ${orderId} mise à jour`, `Statut changé vers ${STATUS_LABELS[nextStatus] || nextStatus}`);
       await refreshDashboard();
     } catch {
       setError('Mise à jour du statut impossible');
@@ -210,6 +259,7 @@ export default function StaffDashboard() {
         montantRemis,
         modePaiement,
       });
+      appendHistory('paiement', `Paiement ${order.numero}`, `Encaissement validé en ${modePaiement}`);
       await refreshDashboard();
     } catch {
       setError('Paiement refusé: le montant doit être exact');
@@ -223,6 +273,7 @@ export default function StaffDashboard() {
       setSavingStockId(articleId);
       setError('');
       await stocksAPI.adjust(articleId, quantity, motif);
+      appendHistory('stock', `Stock ajusté ${articleId}`, `${motif} (${quantity > 0 ? '+' : ''}${quantity})`);
       await refreshDashboard();
     } catch {
       setError('Ajustement de stock impossible');
@@ -570,6 +621,50 @@ export default function StaffDashboard() {
                 </div>
               );
             })}
+          </div>
+        </section>
+
+        <section className="rounded-[26px] border border-[#F0E0D4] bg-white/95 p-4 shadow-[0_16px_45px_rgba(45,39,32,0.06)] backdrop-blur">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 font-semibold text-[#2D2720]">
+                <Bell className="w-4 h-4 text-[#D94500]" /> Historique d'actions
+              </div>
+              <p className="mt-1 text-sm text-[#8B7355]">
+                Les dernières actions staff et événements reçus en temps réel.
+              </p>
+            </div>
+            <span className="rounded-full bg-[#FFF5EB] px-3 py-1 text-xs font-medium text-[#D94500]">
+              {actionHistory.length} entrée{actionHistory.length > 1 ? 's' : ''}
+            </span>
+          </div>
+
+          {actionHistory.length === 0 && (
+            <EmptyState
+              icon={<RefreshCw className="h-6 w-6 text-[#D94500]" />}
+              title="Aucun historique pour le moment"
+              description="Les prochaines actions apparaîtront ici dès qu'une commande, un paiement ou un ajustement sera traité."
+            />
+          )}
+
+          <div className="space-y-3">
+            {actionHistory.map((entry) => (
+              <div
+                key={entry.id}
+                className="rounded-[22px] border border-[#EEE8DF] bg-[#FCFBFA] px-4 py-3 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-semibold text-[#2D2720]">{entry.title}</div>
+                    <div className="mt-1 text-sm text-[#8B7355]">{entry.description}</div>
+                  </div>
+                  <div className="text-right text-xs text-[#8B7355]">
+                    <div className="uppercase tracking-[0.16em] text-[#D94500]">{entry.type}</div>
+                    <div className="mt-1">{formatDate(entry.createdAt)}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       </div>

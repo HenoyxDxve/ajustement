@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Calendar,
   ChevronRight,
@@ -21,6 +21,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { authAPI, commandesService } from '../../services/api';
 import { createCommandesSocket } from '../../services/commandes.service';
 import {
+  getClientOrdersPath,
+  readDeliveryFeedback,
+  writeDeliveryFeedback,
+} from '../../utils/order-ux';
+import {
   formatDate,
   formatDeliveryMode,
   formatFCFA,
@@ -38,8 +43,12 @@ const tabs = [
 export default function ClientDashboard() {
   const { user, refreshProfile, syncUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const userId = user?.id;
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(() => {
+    const initialTab = new URLSearchParams(location.search).get('tab');
+    return tabs.some((tab) => tab.id === initialTab) ? initialTab : 'overview';
+  });
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -109,6 +118,13 @@ export default function ClientDashboard() {
       active = false;
     };
   }, [userId, navigate, refreshClientData]);
+
+  useEffect(() => {
+    const requestedTab = new URLSearchParams(location.search).get('tab');
+    if (requestedTab && tabs.some((tab) => tab.id === requestedTab)) {
+      setActiveTab(requestedTab);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (!userId) return;
@@ -253,6 +269,13 @@ export default function ClientDashboard() {
                 >
                   <ShoppingBag className="h-4 w-4" />
                   Commander maintenant
+                </button>
+                <button
+                  onClick={() => navigate(getClientOrdersPath())}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-[#E8E2D9] px-5 py-3 font-semibold text-[#2D2720] transition hover:bg-[#F9F7F5]"
+                >
+                  <Package className="h-4 w-4 text-[#D94500]" />
+                  Voir commande
                 </button>
                 <button
                   onClick={() => setActiveTab('payments')}
@@ -641,6 +664,19 @@ function EmptyBlock({ title, description, actionLabel, onAction }) {
 }
 
 function OrderRow({ order, onTrack, onDownload, downloading, expanded = false }) {
+  const [deliveryFeedback, setDeliveryFeedback] = useState(() =>
+    readDeliveryFeedback(order.id),
+  );
+
+  useEffect(() => {
+    setDeliveryFeedback(readDeliveryFeedback(order.id));
+  }, [order.id]);
+
+  const handleDeliveryFeedback = (value) => {
+    const savedFeedback = writeDeliveryFeedback(order.id, value);
+    setDeliveryFeedback(savedFeedback);
+  };
+
   return (
     <article className="rounded-[24px] border border-[#EEE8DF] bg-[#FCFBFA] p-4 sm:p-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -677,6 +713,33 @@ function OrderRow({ order, onTrack, onDownload, downloading, expanded = false })
               </span>
             )}
           </div>
+
+          {order.statut === 'LIVREE' && (
+            <div className="mt-4 rounded-[22px] border border-[#E8E2D9] bg-white px-4 py-4">
+              <p className="text-sm font-semibold text-[#2D2720]">Votre commande est-elle bien arrivée ?</p>
+              <p className="mt-1 text-xs text-[#8B7355]">Répondez Oui ou Non sans modifier le statut de la commande.</p>
+              {deliveryFeedback ? (
+                <div className="mt-3 rounded-xl bg-[#FFF5EB] px-4 py-3 text-sm font-semibold text-[#D94500]">
+                  Merci pour votre retour : {deliveryFeedback.value}
+                </div>
+              ) : (
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <button
+                    onClick={() => handleDeliveryFeedback('OUI')}
+                    className="flex-1 rounded-xl bg-[#2ECC71] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#26B565]"
+                  >
+                    Oui
+                  </button>
+                  <button
+                    onClick={() => handleDeliveryFeedback('NON')}
+                    className="flex-1 rounded-xl border border-[#E8E2D9] bg-white px-4 py-2.5 text-sm font-bold text-[#D94500] transition hover:bg-[#FFF5EB]"
+                  >
+                    Non
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {expanded && Array.isArray(order.lignes) && order.lignes.length > 0 && (
             <div className="mt-4 grid gap-3 sm:grid-cols-2">

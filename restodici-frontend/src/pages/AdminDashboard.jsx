@@ -66,6 +66,7 @@ export default function AdminDashboard() {
   const [restaurantConfig, setRestaurantConfig] = useState({
     nom: '', horaires: {}, zonesLivraison: [], actif: true,
   });
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Sync tab avec l'URL
   useEffect(() => {
@@ -181,8 +182,13 @@ export default function AdminDashboard() {
 
   // Logout
   const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
     logout();
     navigate('/login');
+    setShowLogoutModal(false);
   };
 
   // Loading state
@@ -898,6 +904,29 @@ export default function AdminDashboard() {
         )}
 
       </main>
+
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-lg font-semibold text-[#2D2720]">Confirmer la déconnexion ?</h3>
+            <p className="mb-6 text-sm text-[#8B7355]">Vous serez redirigé vers la page de connexion.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 rounded-xl border border-[#E8E2D9] px-4 py-2.5 font-medium text-[#2D2720] transition hover:bg-[#F9F7F5]"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 font-medium text-white transition hover:bg-red-700"
+              >
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

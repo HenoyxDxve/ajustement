@@ -113,6 +113,7 @@ export default function App() {
               <Route path="/checkout/success/:id" element={<PaymentSuccessPage />} />
               <Route path="/suivi/:id" element={<OrderTrackingPage />} />
               <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/client/orders" element={<ClientDashboard />} />
               <Route path="/account" element={<ClientDashboard />} />
             </Route>
             

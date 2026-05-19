@@ -7,6 +7,11 @@ import {
   createCommandesSocket,
 } from '../../services/commandes.service';
 import { formatFCFA, formatDate, STATUS_LABELS, STATUS_COLORS } from '../../utils/formatters';
+import {
+  getClientOrdersPath,
+  readDeliveryFeedback,
+  writeDeliveryFeedback,
+} from '../../utils/order-ux';
 
 const STEPS = [
   { key: 'RECUE', label: 'Reçue en cuisine', icon: Check, color: 'bg-gray-300' },
@@ -22,6 +27,16 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deliveryFeedback, setDeliveryFeedback] = useState(null);
+
+  useEffect(() => {
+    setDeliveryFeedback(readDeliveryFeedback(id));
+  }, [id]);
+
+  const handleDeliveryFeedback = (value) => {
+    const savedFeedback = writeDeliveryFeedback(id, value);
+    setDeliveryFeedback(savedFeedback);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -192,6 +207,35 @@ export default function OrderTrackingPage() {
           </div>
         </div>
 
+        {order.statut === 'LIVREE' && (
+          <div className="bg-white rounded-2xl border border-[#E8E2D9] p-6 mb-6">
+            <h3 className="font-bold text-[#2D2720] mb-2">Votre commande est-elle bien arrivée ?</h3>
+            <p className="text-sm text-[#8B7355] mb-4">
+              Répondez Oui ou Non sans modifier le statut de la commande.
+            </p>
+            {deliveryFeedback ? (
+              <div className="rounded-xl bg-[#FFF5EB] px-4 py-3 text-sm font-semibold text-[#D94500]">
+                Merci pour votre retour : {deliveryFeedback.value}
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => handleDeliveryFeedback('OUI')}
+                  className="flex-1 rounded-xl bg-[#2ECC71] px-4 py-3 font-bold text-white transition hover:bg-[#26B565]"
+                >
+                  Oui
+                </button>
+                <button
+                  onClick={() => handleDeliveryFeedback('NON')}
+                  className="flex-1 rounded-xl bg-white px-4 py-3 font-bold text-[#D94500] border border-[#E8E2D9] transition hover:bg-[#FFF5EB]"
+                >
+                  Non
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4">
           <button 
@@ -201,10 +245,10 @@ export default function OrderTrackingPage() {
             Commander autre chose
           </button>
           <button 
-            onClick={() => navigate('/client/orders')}
+            onClick={() => navigate(getClientOrdersPath())}
             className="flex-1 bg-[#D94500] hover:bg-[#B83A00] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
           >
-            Voir mes commandes <ChevronRight className="w-5 h-5" />
+            Voir commande <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </main>

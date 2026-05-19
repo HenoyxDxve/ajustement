@@ -618,3 +618,50 @@ For each scenario, record:
 - Confirmation UX consistency across roles.
 
 Investigation.md updated: yes.
+
+## Step 2 implementation notes — delivery feedback, orders access, staff history, logout confirmation
+
+1. **Client order access made explicit**
+   - Added a shared route helper and explicit client orders entry path: `./restodici-frontend/src/utils/order-ux.js`.
+   - Wired `./restodici-frontend/src/layouts/ClientLayout.jsx` to expose a visible `Voir commande` action in the header and mobile menu.
+   - Added the `/client/orders` route alias in `./restodici-frontend/src/App.jsx`.
+   - Updated `./restodici-frontend/src/pages/client/clientDashboard.jsx` so `/client/orders?tab=orders` opens the orders tab directly.
+
+2. **Post-delivery feedback prompt without status mutation**
+   - Added a client-side feedback prompt for delivered orders in both `./restodici-frontend/src/pages/order/OrderTracking.jsx` and `./restodici-frontend/src/pages/client/clientDashboard.jsx`.
+   - The prompt stores a local receipt feedback response (`Oui` / `Non`) and does not change the order status.
+   - Reused shared storage helpers from `./restodici-frontend/src/utils/order-ux.js`.
+
+3. **Staff action history / traces**
+   - Extended `./restodici-frontend/src/pages/staff/StaffDashboard.jsx` with a persisted action history list.
+   - History entries are appended for socket-received events and staff-triggered actions, giving staff an operational trace similar to client order visibility.
+
+4. **Logout confirmation for client, staff, manager, and admin**
+   - Kept the client/staff confirmation modal in `./restodici-frontend/src/layouts/ClientLayout.jsx`.
+   - Added confirmation modals to `./restodici-frontend/src/layouts/GerantLayout.jsx` and `./restodici-frontend/src/pages/AdminDashboard.jsx`.
+   - All role-specific logout paths now require explicit confirmation before clearing session state.
+
+5. **Regression tests added**
+   - Added `./restodici-frontend/src/utils/order-ux.test.js`.
+   - Covers the explicit client orders path plus delivery-feedback storage/readback helpers.
+
+### Test / lint / build results (Step 2 current)
+- `node --test src/utils/order-ux.test.js src/services/backend-endpoints.test.js` (frontend)
+  - ✅ 9/9 tests passed.
+
+- `npm run lint` (frontend)
+  - ✅ Completed with warnings only, no errors.
+
+- `npm run build` (frontend)
+  - ✅ Completed successfully (bundle-size warning only).
+
+### Files changed in this Step 2 pass
+- `./restodici-frontend/src/App.jsx`
+- `./restodici-frontend/src/layouts/ClientLayout.jsx`
+- `./restodici-frontend/src/layouts/GerantLayout.jsx`
+- `./restodici-frontend/src/pages/AdminDashboard.jsx`
+- `./restodici-frontend/src/pages/client/clientDashboard.jsx`
+- `./restodici-frontend/src/pages/order/OrderTracking.jsx`
+- `./restodici-frontend/src/pages/staff/StaffDashboard.jsx`
+- `./restodici-frontend/src/utils/order-ux.js`
+- `./restodici-frontend/src/utils/order-ux.test.js`

@@ -49,8 +49,13 @@ export class CreateCommandeDto {
   @IsString()
   adresseLivraison?: string;
 
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }) => {
+    // Accept any UUID-format string; strip everything else.
+    // Frontend enforces strict UUID v4 — this is a safety net for the transport layer.
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return typeof value === 'string' && UUID_RE.test(value.trim()) ? value.trim() : undefined;
+  })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   restaurantId?: string;
 }

@@ -13,6 +13,10 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { B2BService } from './b2b.service';
 
 @Controller('b2b')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+// Legacy B2B controller (historique).
+// NOTE: on l’autorise aussi pour GERANT/STAFF/ADMIN pour éviter les blocages du parcours staff/KDS.
+@Roles('B2B', 'GERANT', 'STAFF', 'ADMIN')
 export class B2BController {
   constructor(private readonly b2bService: B2BService) {}
 
@@ -25,8 +29,23 @@ export class B2BController {
   // GET /b2b/dashboard
   @Get('dashboard')
   getDashboard(@Req() req: any) {
+    // TEMP DEBUG (à retirer après diagnostic)
+    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG][b2b/dashboard] CALLED');
+    // eslint-disable-next-line no-console
+    console.log(
+      '[DEBUG][b2b/dashboard] hasUser=',
+      !!req?.user,
+      'role=',
+      req?.user?.role,
+      'authHeader=',
+      req?.headers?.authorization ? 'present' : 'missing',
+    );
+
     return this.b2bService.getDashboard(req?.user);
   }
+
 
   // GET /b2b/collaborators
   @Get('collaborators')

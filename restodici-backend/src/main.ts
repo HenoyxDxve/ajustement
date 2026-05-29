@@ -12,7 +12,11 @@ async function bootstrap() {
 
   // Validation automatique des DTOs
   app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
   );
 
   // CORS pour le frontend React - supporte tous les ports de développement courants

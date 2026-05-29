@@ -14,6 +14,7 @@ import {
 } from './entities/commande.entity';
 import { LigneCommande } from './entities/ligne-commande.entity';
 import { AvisCommande } from './entities/avis-commande.entity';
+import { CommandeStatusHistory } from './entities/commande-status-history.entity';
 import { Article } from '../menu/entities/article.entity';
 import { Restaurant } from '../restaurants/entities/restaurant.entity';
 import { CreateCommandeDto } from './dto/create-commande.dto';
@@ -35,6 +36,8 @@ export class CommandesService {
     private ligneRepo: Repository<LigneCommande>,
     @InjectRepository(AvisCommande)
     private avisRepo: Repository<AvisCommande>,
+    @InjectRepository(CommandeStatusHistory)
+    private historyRepo: Repository<CommandeStatusHistory>,
     @InjectRepository(Restaurant)
     private restaurantRepo: Repository<Restaurant>,
     private dataSource: DataSource,
@@ -60,11 +63,10 @@ export class CommandesService {
       throw new BadRequestException('Adresse obligatoire en mode livraison');
     }
 
-    const count = await this.commandeRepo.count({
-      where: { restaurant: { id: restaurantId } },
-    });
     const year = new Date().getFullYear();
-    const numero = `CMD-${year}-${String(count + 1).padStart(3, '0')}`;
+    const ts = Date.now().toString(36).toUpperCase().slice(-5);
+    const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const numero = `CMD-${year}-${ts}${rand}`;
 
     const commande = await this.dataSource.transaction(async (manager) => {
       const ligneEntities: LigneCommande[] = [];
@@ -131,6 +133,16 @@ export class CommandesService {
       return manager.save(Commande, created);
     });
 
+    await this.historyRepo.save(
+      this.historyRepo.create({
+        commandeId: commande.id,
+        actorId: clientId,
+        actorRole: 'CLIENT',
+        statutPrecedent: undefined,
+        statutNouvel: StatutCommande.RECUE,
+      }),
+    );
+
     const orderPayload = {
       id: commande.id,
       numero: commande.numero,
@@ -142,7 +154,11 @@ export class CommandesService {
       notification: 'sound+visual',
     };
 
-    this.commandesGateway.emitToKitchen(restaurantId, 'commande.nouvelle', orderPayload);
+    this.commandesGateway.emitToKitchen(
+      restaurantId,
+      'commande.nouvelle',
+      orderPayload,
+    );
     this.commandesGateway.emitToManagers('commande.nouvelle', orderPayload);
 
     this.commandesGateway.emitToClient(clientId, 'commande.creee', {
@@ -236,6 +252,7 @@ export class CommandesService {
     id: string,
     newStatut: StatutCommande,
     restaurantId?: string,
+    actor?: { id: string; role: string; nom?: string },
   ): Promise<Commande> {
     const commande = await this.commandeRepo.findOne({
       where: { id },
@@ -264,11 +281,31 @@ export class CommandesService {
         );
       }
 
+      const prevStatut = commande.statut;
       commande.statut = newStatut;
       const saved = await this.commandeRepo.save(commande);
 
-      const cancelPayload = { id: saved.id, numero: saved.numero, statut: saved.statut };
-      this.commandesGateway.emitToKitchen(commande.restaurant.id, 'commande.statut', cancelPayload);
+      await this.historyRepo.save(
+        this.historyRepo.create({
+          commandeId: saved.id,
+          actorId: actor?.id,
+          actorRole: actor?.role,
+          actorNom: actor?.nom,
+          statutPrecedent: prevStatut,
+          statutNouvel: newStatut,
+        }),
+      );
+
+      const cancelPayload = {
+        id: saved.id,
+        numero: saved.numero,
+        statut: saved.statut,
+      };
+      this.commandesGateway.emitToKitchen(
+        commande.restaurant.id,
+        'commande.statut',
+        cancelPayload,
+      );
       this.commandesGateway.emitToManagers('commande.statut', cancelPayload);
       this.commandesGateway.emitToClient(saved.client.id, 'commande.statut', {
         id: saved.id,
@@ -297,11 +334,31 @@ export class CommandesService {
       );
     }
 
+    const prevStatut = commande.statut;
     commande.statut = newStatut;
     const saved = await this.commandeRepo.save(commande);
 
-    const statusPayload = { id: saved.id, numero: saved.numero, statut: saved.statut };
-    this.commandesGateway.emitToKitchen(commande.restaurant.id, 'commande.statut', statusPayload);
+    await this.historyRepo.save(
+      this.historyRepo.create({
+        commandeId: saved.id,
+        actorId: actor?.id,
+        actorRole: actor?.role,
+        actorNom: actor?.nom,
+        statutPrecedent: prevStatut,
+        statutNouvel: newStatut,
+      }),
+    );
+
+    const statusPayload = {
+      id: saved.id,
+      numero: saved.numero,
+      statut: saved.statut,
+    };
+    this.commandesGateway.emitToKitchen(
+      commande.restaurant.id,
+      'commande.statut',
+      statusPayload,
+    );
     this.commandesGateway.emitToManagers('commande.statut', statusPayload);
     this.commandesGateway.emitToClient(saved.client.id, 'commande.statut', {
       id: saved.id,
@@ -370,7 +427,11 @@ export class CommandesService {
       estPaye: saved.estPaye,
       modePaiement: saved.modePaiement,
     };
-    this.commandesGateway.emitToKitchen(saved.restaurant.id, 'commande.paiement', paymentPayload);
+    this.commandesGateway.emitToKitchen(
+      saved.restaurant.id,
+      'commande.paiement',
+      paymentPayload,
+    );
     this.commandesGateway.emitToManagers('commande.paiement', paymentPayload);
     this.commandesGateway.emitToClient(saved.client.id, 'commande.paiement', {
       id: saved.id,
@@ -423,8 +484,17 @@ export class CommandesService {
       payeAt: saved.payeAt,
     });
 
-    const clientPayPayload = { id: saved.id, numero: saved.numero, estPaye: true, modePaiement: mode };
-    this.commandesGateway.emitToKitchen(saved.restaurant.id, 'commande.paiement', clientPayPayload);
+    const clientPayPayload = {
+      id: saved.id,
+      numero: saved.numero,
+      estPaye: true,
+      modePaiement: mode,
+    };
+    this.commandesGateway.emitToKitchen(
+      saved.restaurant.id,
+      'commande.paiement',
+      clientPayPayload,
+    );
     this.commandesGateway.emitToManagers('commande.paiement', clientPayPayload);
     this.commandesGateway.emitToClient(saved.client.id, 'commande.paiement', {
       id: saved.id,
@@ -494,5 +564,56 @@ export class CommandesService {
     return this.avisRepo.findOne({
       where: { commande: { id: commandeId }, client: { id: clientId } },
     });
+  }
+
+  async getCommandeHistory(
+    commandeId: string,
+    clientId?: string,
+    restaurantId?: string,
+  ): Promise<CommandeStatusHistory[]> {
+    const commande = await this.commandeRepo.findOne({
+      where: { id: commandeId },
+      relations: ['client', 'restaurant'],
+    });
+    if (!commande) throw new NotFoundException('Commande introuvable');
+    if (clientId && commande.client.id !== clientId)
+      throw new ForbiddenException('Accès refusé');
+    if (restaurantId && commande.restaurant.id !== restaurantId)
+      throw new ForbiddenException('Accès refusé');
+
+    return this.historyRepo.find({
+      where: { commandeId },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async getRestaurantActivity(
+    restaurantId: string,
+    limit: number = 50,
+  ): Promise<CommandeStatusHistory[]> {
+    return this.historyRepo
+      .createQueryBuilder('h')
+      .innerJoin('h.commande', 'c')
+      .where('c.restaurantId = :restaurantId', { restaurantId })
+      .orderBy('h.createdAt', 'DESC')
+      .take(limit)
+      .select([
+        'h.id',
+        'h.commandeId',
+        'h.actorId',
+        'h.actorRole',
+        'h.actorNom',
+        'h.statutPrecedent',
+        'h.statutNouvel',
+        'h.createdAt',
+        'c.numero',
+      ])
+      .getRawAndEntities()
+      .then(({ entities, raw }) =>
+        entities.map((e, i) => ({
+          ...e,
+          commandeNumero: raw[i]?.c_numero,
+        })),
+      ) as any;
   }
 }

@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { EmailModule } from '../email/email.module';
 import { B2BController } from './controllers/b2b.controller';
+import { B2BInvitationsController } from './controllers/b2b-invitations.controller';
 import { B2BService } from './services/b2b.service';
 import { Team } from './entities/team.entity';
 import { TeamMember } from './entities/team-member.entity';
@@ -34,9 +36,10 @@ import { CommandesModule } from '../commandes/commandes.module';
       Article,
     ]),
     AuthModule,
+    EmailModule,
     CommandesModule,
   ],
-  controllers: [B2BController],
+  controllers: [B2BController, B2BInvitationsController],
   providers: [B2BService],
   exports: [B2BService],
 })

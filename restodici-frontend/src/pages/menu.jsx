@@ -55,7 +55,9 @@ function buildDynamicCategories(menuData, categoryList) {
   return Array.from(categoryMap.values()).sort((a, b) => a.nom.localeCompare(b.nom));
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Strict UUID v4 — rejects legacy placeholder IDs (11111111-... etc.) so stale
+// localStorage values don't trigger 404s against migrated restaurant IDs.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const validUUID = (v) => typeof v === 'string' && UUID_RE.test(v) ? v : '';
 
 export default function MenuPage() {

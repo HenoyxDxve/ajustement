@@ -103,22 +103,24 @@ export const menuAPI = {
   deleteArticle: (id) => api.delete(`/menu/articles/${id}`),
 };
 
+const _UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const _isUUID = (v) => typeof v === 'string' && _UUID_RE.test(v.trim());
+
 export const commandesService = {
   // GET /commandes?restaurantId=xxx&limit=50
   getAll: (params) => api.get("/commandes", { params }),
 
-  // POST /commandes — création avec restaurantId
+  // POST /commandes — création avec restaurantId (UUID-validated)
   create: (data) => {
     const payload = { ...data };
-    if (!payload.restaurantId) {
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          if (user?.restaurant?.id) payload.restaurantId = user.restaurant.id;
-        } catch {
-          // Ignore malformed cached user data.
-        }
+    if (!_isUUID(payload.restaurantId)) {
+      delete payload.restaurantId;
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const rid = user?.restaurant?.id ?? localStorage.getItem("currentRestaurantId");
+        if (_isUUID(rid)) payload.restaurantId = rid;
+      } catch {
+        // Ignore malformed cached user data.
       }
     }
     return api.post("/commandes", payload);
@@ -150,6 +152,13 @@ export const commandesService = {
 
   // GET /commandes/:id/avis
   getAvis: (id) => api.get(`/commandes/${id}/avis`),
+
+  // GET /commandes/:id/history — audit timeline for one order
+  getCommandeHistory: (id) => api.get(`/commandes/${id}/history`),
+
+  // GET /commandes/activity/restaurant — recent status changes for gérant/staff
+  getRestaurantActivity: (limit = 50) =>
+    api.get('/commandes/activity/restaurant', { params: { limit } }),
 };
 
 export const stocksAPI = {
@@ -205,6 +214,14 @@ export const b2bAPI = {
 
   // Legacy invoices
   getInvoices: () => api.get("/b2b/invoices"),
+
+  // Commande groupée — détail + avis
+  getCommandeGroupeeDetail: (id) => api.get(`/b2b/commandes-groupees/${id}`),
+  submitAvis: (id, data) => api.post(`/b2b/commandes-groupees/${id}/avis`, data),
+
+  // Invitations collaborateur (public — pas besoin de token dans le header)
+  getInvitation: (token) => api.get(`/b2b/invitations/${token}`),
+  acceptInvitation: (token, data) => api.post(`/b2b/invitations/${token}/accept`, data),
 
   // Audit logs
   getAuditLogs: () => api.get("/b2b/audit-logs"),

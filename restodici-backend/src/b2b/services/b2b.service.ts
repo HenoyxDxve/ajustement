@@ -7,6 +7,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { In, Repository, Between } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
+import { EmailService } from '../../email/email.service';
 import { Role, User } from '../../auth/entities/user.entity';
 import { Team } from '../entities/team.entity';
 import { TeamMember } from '../entities/team-member.entity';
@@ -30,8 +33,18 @@ import * as bcrypt from 'bcrypt';
 import { CommandesGateway } from '../../commandes/commandes.gateway';
 
 const MOIS_FR = [
-  'JANVIER', 'FEVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN',
-  'JUILLET', 'AOUT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DECEMBRE',
+  'JANVIER',
+  'FEVRIER',
+  'MARS',
+  'AVRIL',
+  'MAI',
+  'JUIN',
+  'JUILLET',
+  'AOUT',
+  'SEPTEMBRE',
+  'OCTOBRE',
+  'NOVEMBRE',
+  'DECEMBRE',
 ];
 
 @Injectable()
@@ -62,18 +75,25 @@ export class B2BService {
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
     private commandesGateway: CommandesGateway,
+    private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   // ============================================================
   // === COMPTE B2B (Company account) ===========================
   // ============================================================
 
-  async createCompteB2B(userId: string, dto: CreateCompteB2BDto): Promise<CompteB2B> {
+  async createCompteB2B(
+    userId: string,
+    dto: CreateCompteB2BDto,
+  ): Promise<CompteB2B> {
     const existing = await this.compteB2BRepository.findOne({
       where: { responsable: { id: userId } },
     });
     if (existing) {
-      throw new BadRequestException('Un compte entreprise existe déjà pour cet utilisateur');
+      throw new BadRequestException(
+        'Un compte entreprise existe déjà pour cet utilisateur',
+      );
     }
 
     // Validate RCCM format (basic: non-empty, min 5 chars)
@@ -99,8 +119,13 @@ export class B2BService {
     });
 
     const saved = await this.compteB2BRepository.save(compte);
-    await this.logAudit('CONNEXION', saved.id, userId, { action: 'Création compte B2B', raisonSociale: dto.raisonSociale });
-    return saved;
+    await this.logAudit('CONNEXION', saved.id, userId, {
+      action: 'Création compte B2B',
+      raisonSociale: dto.raisonSociale,
+    });
+    // Strip sensitive user fields before returning
+    const { responsable: _, ...safeCompte } = saved as any;
+    return safeCompte as CompteB2B;
   }
 
   async getCompteB2B(userId: string): Promise<CompteB2B | null> {
@@ -109,7 +134,10 @@ export class B2BService {
     });
   }
 
-  async updateCompteB2B(userId: string, dto: Partial<CreateCompteB2BDto>): Promise<CompteB2B> {
+  async updateCompteB2B(
+    userId: string,
+    dto: Partial<CreateCompteB2BDto>,
+  ): Promise<CompteB2B> {
     const compte = await this.compteB2BRepository.findOne({
       where: { responsable: { id: userId } },
     });
@@ -117,16 +145,26 @@ export class B2BService {
 
     Object.assign(compte, {
       ...(dto.raisonSociale && { raisonSociale: dto.raisonSociale.trim() }),
-      ...(dto.telephoneProfessionnel && { telephoneProfessionnel: dto.telephoneProfessionnel.trim() }),
-      ...(dto.emailProfessionnel && { emailProfessionnel: dto.emailProfessionnel.trim().toLowerCase() }),
+      ...(dto.telephoneProfessionnel && {
+        telephoneProfessionnel: dto.telephoneProfessionnel.trim(),
+      }),
+      ...(dto.emailProfessionnel && {
+        emailProfessionnel: dto.emailProfessionnel.trim().toLowerCase(),
+      }),
     });
 
     return this.compteB2BRepository.save(compte);
   }
 
   // Admin validates a B2B account
-  async validateCompteB2B(adminId: string, compteId: string, approved: boolean): Promise<CompteB2B> {
-    const compte = await this.compteB2BRepository.findOne({ where: { id: compteId } });
+  async validateCompteB2B(
+    adminId: string,
+    compteId: string,
+    approved: boolean,
+  ): Promise<CompteB2B> {
+    const compte = await this.compteB2BRepository.findOne({
+      where: { id: compteId },
+    });
     if (!compte) throw new NotFoundException('Compte B2B introuvable');
 
     compte.statutValidation = approved ? 'VALIDE' : 'REJETE';
@@ -141,61 +179,69 @@ export class B2BService {
   // === COLLABORATEURS B2B (with budget limits) ================
   // ============================================================
 
-  async createCollaborateurB2B(userId: string, dto: CreateCollaborateurB2BDto): Promise<Record<string, any>> {
+  async createCollaborateurB2B(
+    userId: string,
+    dto: CreateCollaborateurB2BDto,
+  ): Promise<Record<string, any>> {
     const compte = await this.getCompteB2B(userId);
     if (!compte) {
-      throw new BadRequestException('Créez d\'abord votre compte entreprise');
+      throw new BadRequestException("Créez d'abord votre compte entreprise");
     }
+
+    // Accept budgetMensuel as alias for limiteBudget (frontend naming convention)
+    const limiteBudget = dto.limiteBudget ?? dto.budgetMensuel ?? 50000;
+
+    const email = dto.email.trim().toLowerCase();
 
     // Check email uniqueness in this company
     const existing = await this.collaborateurRepository.findOne({
-      where: { email: dto.email.trim().toLowerCase(), compteB2BId: compte.id },
+      where: { email, compteB2BId: compte.id },
     });
     if (existing) {
       if (!existing.actif) {
+        // Re-invite: generate new token
+        const token = uuidv4();
+        const expiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         existing.actif = true;
-        existing.limiteBudget = dto.limiteBudget;
+        existing.limiteBudget = limiteBudget;
+        existing.invitationToken = token;
+        existing.invitationExpiry = expiry;
+        existing.invitationAccepted = false;
         await this.collaborateurRepository.save(existing);
-        return this.formatCollaborateurResponse(existing, 0);
+        await this.sendInvitationEmail(existing, compte, userId);
+        return { ...this.formatCollaborateurResponse(existing, 0), invitationEnvoyee: true };
       }
-      throw new BadRequestException('Ce collaborateur existe déjà dans votre entreprise');
+      throw new BadRequestException(
+        'Ce collaborateur existe déjà dans votre entreprise',
+      );
     }
 
-    // Create or find user account for the collaborator
-    let targetUser = await this.userRepository.findOne({
-      where: { email: dto.email.trim().toLowerCase() },
-    });
-
-    let tempPassword: string | undefined;
-    if (!targetUser) {
-      tempPassword = Math.random().toString(36).slice(-8).toUpperCase();
-      targetUser = this.userRepository.create({
-        nom: dto.nom.trim(),
-        email: dto.email.trim().toLowerCase(),
-        role: Role.B2B,
-        actif: true,
-        password: await bcrypt.hash(tempPassword, 12),
-      });
-      targetUser = await this.userRepository.save(targetUser);
-    }
+    // Create collaborateur with invitation token (user account created on acceptance)
+    const token = uuidv4();
+    const expiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const collaborateur = this.collaborateurRepository.create({
       nom: dto.nom.trim(),
-      email: dto.email.trim().toLowerCase(),
-      limiteBudget: dto.limiteBudget,
-      userId: targetUser.id,
+      email,
+      limiteBudget,
       actif: true,
+      invitationToken: token,
+      invitationExpiry: expiry,
+      invitationAccepted: false,
       compteB2BId: compte.id,
       compteB2B: compte,
     });
 
     const saved = await this.collaborateurRepository.save(collaborateur);
+
     await this.logAudit('CREATION_COLLABORATEUR', compte.id, userId, {
-      collaborateurEmail: dto.email,
-      limiteBudget: dto.limiteBudget,
+      collaborateurEmail: email,
+      limiteBudget,
     });
 
-    return { ...this.formatCollaborateurResponse(saved, 0), tempPassword };
+    await this.sendInvitationEmail(saved, compte, userId);
+
+    return { ...this.formatCollaborateurResponse(saved, 0), invitationEnvoyee: true };
   }
 
   async getCollaborateursB2B(userId: string): Promise<Record<string, any>[]> {
@@ -225,7 +271,10 @@ export class B2BService {
     return results;
   }
 
-  async getCollaborateurSolde(collaborateurId: string, userId: string): Promise<Record<string, any>> {
+  async getCollaborateurSolde(
+    collaborateurId: string,
+    userId: string,
+  ): Promise<Record<string, any>> {
     const compte = await this.getCompteB2B(userId);
     if (!compte) throw new NotFoundException('Compte entreprise introuvable');
 
@@ -238,7 +287,11 @@ export class B2BService {
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const firstOfNext = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-    const depense = await this.getDepenseMensuelleCollaborateur(collaborateurId, firstOfMonth, firstOfNext);
+    const depense = await this.getDepenseMensuelleCollaborateur(
+      collaborateurId,
+      firstOfMonth,
+      firstOfNext,
+    );
     const solde = Math.max(0, Number(collab.limiteBudget) - depense);
 
     return {
@@ -247,13 +300,17 @@ export class B2BService {
       limiteBudget: Number(collab.limiteBudget),
       depenseActuelle: depense,
       soldeDisponible: solde,
-      pourcentageUtilise: collab.limiteBudget > 0
-        ? Math.round((depense / Number(collab.limiteBudget)) * 100)
-        : 0,
+      pourcentageUtilise:
+        collab.limiteBudget > 0
+          ? Math.round((depense / Number(collab.limiteBudget)) * 100)
+          : 0,
     };
   }
 
-  async deactivateCollaborateur(collaborateurId: string, userId: string): Promise<void> {
+  async deactivateCollaborateur(
+    collaborateurId: string,
+    userId: string,
+  ): Promise<void> {
     const compte = await this.getCompteB2B(userId);
     if (!compte) throw new NotFoundException('Compte entreprise introuvable');
 
@@ -264,6 +321,171 @@ export class B2BService {
 
     collab.actif = false;
     await this.collaborateurRepository.save(collab);
+  }
+
+  private async sendInvitationEmail(
+    collab: CollaborateurB2B,
+    compte: CompteB2B,
+    inviteurId: string,
+  ): Promise<void> {
+    const inviteur = await this.userRepository.findOne({ where: { id: inviteurId } });
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    try {
+      await this.emailService.sendCollaborateurInvitation(
+        collab.email,
+        collab.nom,
+        inviteur?.nom || compte.raisonSociale,
+        compte.raisonSociale,
+        collab.invitationToken!,
+        frontendUrl,
+      );
+    } catch {
+      // Non-blocking — invitation is created even if email fails
+    }
+  }
+
+  async getInvitationByToken(token: string): Promise<Record<string, any>> {
+    const collab = await this.collaborateurRepository.findOne({
+      where: { invitationToken: token },
+      relations: ['compteB2B'],
+    });
+    if (!collab) throw new NotFoundException('Invitation introuvable ou expirée');
+    if (collab.invitationAccepted) throw new BadRequestException('Invitation déjà acceptée');
+    if (collab.invitationExpiry && collab.invitationExpiry < new Date()) {
+      throw new BadRequestException("L'invitation a expiré. Demandez une nouvelle invitation.");
+    }
+    return {
+      nom: collab.nom,
+      email: collab.email,
+      entreprise: collab.compteB2B?.raisonSociale ?? '',
+      limiteBudget: Number(collab.limiteBudget),
+      valid: true,
+    };
+  }
+
+  async acceptInvitation(
+    token: string,
+    password: string,
+    prenom?: string,
+  ): Promise<Record<string, any>> {
+    const collab = await this.collaborateurRepository.findOne({
+      where: { invitationToken: token },
+      relations: ['compteB2B'],
+    });
+    if (!collab) throw new NotFoundException('Invitation introuvable');
+    if (collab.invitationAccepted) throw new BadRequestException('Invitation déjà acceptée');
+    if (collab.invitationExpiry && collab.invitationExpiry < new Date()) {
+      throw new BadRequestException("L'invitation a expiré");
+    }
+    if (!password || password.length < 8) {
+      throw new BadRequestException('Mot de passe requis (8 caractères minimum)');
+    }
+
+    // Create or reuse user account
+    let user = await this.userRepository.findOne({ where: { email: collab.email } });
+    if (!user) {
+      user = this.userRepository.create({
+        nom: collab.nom,
+        prenom: prenom?.trim() || undefined,
+        email: collab.email,
+        role: Role.B2B,
+        actif: true,
+        password: await bcrypt.hash(password, 12),
+      });
+      user = await this.userRepository.save(user);
+    } else {
+      // Update password for existing inactive account
+      user.password = await bcrypt.hash(password, 12);
+      user.actif = true;
+      if (prenom) user.prenom = prenom.trim();
+      user = await this.userRepository.save(user);
+    }
+
+    collab.userId = user.id;
+    collab.invitationAccepted = true;
+    collab.invitationToken = undefined;
+    await this.collaborateurRepository.save(collab);
+
+    await this.logAudit('CONNEXION', collab.compteB2BId, user.id, {
+      action: 'Invitation acceptée',
+      email: collab.email,
+    });
+
+    return { message: 'Invitation acceptée. Vous pouvez maintenant vous connecter.', email: collab.email };
+  }
+
+  async submitAvis(
+    commandeId: string,
+    userId: string,
+    note: number,
+    commentaire?: string,
+  ): Promise<Record<string, any>> {
+    const compte = await this.getCompteB2B(userId);
+    if (!compte) throw new NotFoundException('Compte entreprise introuvable');
+
+    const commande = await this.commandeGroupeeRepository.findOne({
+      where: { id: commandeId, compteB2B: { id: compte.id } },
+    });
+    if (!commande) throw new NotFoundException('Commande introuvable');
+    if (commande.statut !== 'LIVREE') {
+      throw new BadRequestException('Seules les commandes livrées peuvent être évaluées');
+    }
+    if (commande.avisNote) throw new BadRequestException('Un avis a déjà été soumis');
+    if (note < 1 || note > 5) throw new BadRequestException('Note invalide (1–5)');
+
+    commande.avisNote = note;
+    commande.avisCommentaire = commentaire?.trim() || undefined;
+    commande.avisAt = new Date();
+    await this.commandeGroupeeRepository.save(commande);
+
+    return { id: commande.id, avisNote: note, avisCommentaire: commande.avisCommentaire };
+  }
+
+  async getCommandeGroupeeDetail(
+    commandeId: string,
+    userId: string,
+  ): Promise<Record<string, any>> {
+    const compte = await this.getCompteB2B(userId);
+    if (!compte) throw new NotFoundException('Compte entreprise introuvable');
+
+    const commande = await this.commandeGroupeeRepository.findOne({
+      where: { id: commandeId, compteB2B: { id: compte.id } },
+      relations: ['lignes', 'lignes.collaborateur'],
+    });
+    if (!commande) throw new NotFoundException('Commande introuvable');
+
+    // Enrich lines with article names
+    const articleIds = [...new Set(commande.lignes.map((l) => l.articleId))];
+    const articles = articleIds.length
+      ? await this.articleRepository.find({ where: { id: In(articleIds) } })
+      : [];
+    const articleMap = new Map(articles.map((a) => [a.id, a.nom]));
+
+    return {
+      id: commande.id,
+      numero: commande.numero,
+      statut: commande.statut,
+      dateLivraison: commande.dateLivraison?.toISOString().slice(0, 10),
+      heureLivraison: commande.heureLivraison,
+      lieuLivraison: commande.lieuLivraison,
+      adresseLivraison: commande.adresseLivraison,
+      totalEstime: Number(commande.totalEstime),
+      avisNote: commande.avisNote ?? null,
+      avisCommentaire: commande.avisCommentaire ?? null,
+      avisAt: commande.avisAt ?? null,
+      createdAt: commande.createdAt,
+      entreprise: compte.raisonSociale,
+      lignes: commande.lignes.map((l) => ({
+        id: l.id,
+        articleId: l.articleId,
+        nomArticle: articleMap.get(l.articleId) ?? l.articleId,
+        quantite: l.quantite,
+        prixUnitaire: Number(l.prixUnitaire),
+        instructions: l.instructions,
+        collaborateurNom: l.collaborateur?.nom ?? null,
+      })),
+    };
   }
 
   private async getDepenseMensuelleCollaborateur(
@@ -284,7 +506,10 @@ export class B2BService {
     return parseFloat(result?.total ?? '0');
   }
 
-  private formatCollaborateurResponse(collab: CollaborateurB2B, depenseActuelle: number): Record<string, any> {
+  private formatCollaborateurResponse(
+    collab: CollaborateurB2B,
+    depenseActuelle: number,
+  ): Record<string, any> {
     const limite = Number(collab.limiteBudget);
     return {
       id: collab.id,
@@ -293,7 +518,8 @@ export class B2BService {
       limiteBudget: limite,
       depenseActuelle,
       soldeDisponible: Math.max(0, limite - depenseActuelle),
-      pourcentageUtilise: limite > 0 ? Math.round((depenseActuelle / limite) * 100) : 0,
+      pourcentageUtilise:
+        limite > 0 ? Math.round((depenseActuelle / limite) * 100) : 0,
       actif: collab.actif,
       userId: collab.userId,
     };
@@ -303,17 +529,26 @@ export class B2BService {
   // === COMMANDES GROUPÉES (Grouped orders) ====================
   // ============================================================
 
-  async createCommandeGroupee(userId: string, dto: CreateCommandeGroupeeDto): Promise<Record<string, any>> {
+  async createCommandeGroupee(
+    userId: string,
+    dto: CreateCommandeGroupeeDto,
+  ): Promise<Record<string, any>> {
     const compte = await this.getCompteB2B(userId);
     if (!compte) {
-      throw new BadRequestException('Compte entreprise requis pour passer une commande groupée');
+      throw new BadRequestException(
+        'Compte entreprise requis pour passer une commande groupée',
+      );
     }
 
     // Validate minimum 4h advance notice
-    const deliveryDateTime = new Date(`${dto.dateLivraison}T${dto.heureLivraison}`);
+    const deliveryDateTime = new Date(
+      `${dto.dateLivraison}T${dto.heureLivraison}`,
+    );
     const minDelivery = new Date(Date.now() + 4 * 60 * 60 * 1000);
     if (deliveryDateTime < minDelivery) {
-      throw new BadRequestException('Délai minimum de 4 heures requis pour une commande groupée');
+      throw new BadRequestException(
+        'Délai minimum de 4 heures requis pour une commande groupée',
+      );
     }
 
     const totalCouverts = dto.lignes.reduce((sum, l) => sum + l.quantite, 0);
@@ -338,7 +573,9 @@ export class B2BService {
         });
         if (collab) {
           const depense = await this.getDepenseMensuelleCollaborateur(
-            collab.id, firstOfMonth, firstOfNext,
+            collab.id,
+            firstOfMonth,
+            firstOfNext,
           );
           const ligneTotal = ligne.quantite * ligne.prixUnitaire;
           if (depense + ligneTotal > Number(collab.limiteBudget)) {
@@ -354,7 +591,9 @@ export class B2BService {
 
     // Infer restaurantId from first article so staff of that restaurant can track this order
     const firstArticle = dto.lignes[0]?.articleId
-      ? await this.articleRepository.findOne({ where: { id: dto.lignes[0].articleId } })
+      ? await this.articleRepository.findOne({
+          where: { id: dto.lignes[0].articleId },
+        })
       : null;
     const restaurantId = firstArticle?.restaurantId ?? undefined;
 
@@ -409,7 +648,11 @@ export class B2BService {
 
     // Notify restaurant staff (kitchen) and managers
     if (restaurantId) {
-      this.commandesGateway.emitToKitchen(restaurantId, 'commande.b2b.nouvelle', notifPayload);
+      this.commandesGateway.emitToKitchen(
+        restaurantId,
+        'commande.b2b.nouvelle',
+        notifPayload,
+      );
     }
     this.commandesGateway.emitToManagers('commande.b2b.nouvelle', notifPayload);
 
@@ -426,7 +669,9 @@ export class B2BService {
     };
   }
 
-  async getB2BKDSForRestaurant(restaurantId: string): Promise<Record<string, any>[]> {
+  async getB2BKDSForRestaurant(
+    restaurantId: string,
+  ): Promise<Record<string, any>[]> {
     const commandes = await this.commandeGroupeeRepository.find({
       where: {
         restaurantId,
@@ -483,7 +728,13 @@ export class B2BService {
       throw new ForbiddenException('Accès refusé à cette commande');
     }
 
-    const valid = ['EN_ATTENTE', 'CONFIRMEE', 'EN_PREPARATION', 'LIVREE', 'ANNULEE'];
+    const valid = [
+      'EN_ATTENTE',
+      'CONFIRMEE',
+      'EN_PREPARATION',
+      'LIVREE',
+      'ANNULEE',
+    ];
     if (!valid.includes(statut)) {
       throw new BadRequestException(`Statut invalide: ${statut}`);
     }
@@ -492,11 +743,15 @@ export class B2BService {
     const saved = await this.commandeGroupeeRepository.save(commande);
 
     if (commande.restaurantId) {
-      this.commandesGateway.emitToKitchen(commande.restaurantId, 'commande.b2b.statut', {
-        id: saved.id,
-        numero: saved.numero,
-        statut: saved.statut,
-      });
+      this.commandesGateway.emitToKitchen(
+        commande.restaurantId,
+        'commande.b2b.statut',
+        {
+          id: saved.id,
+          numero: saved.numero,
+          statut: saved.statut,
+        },
+      );
     }
     this.commandesGateway.emitToManagers('commande.b2b.statut', {
       id: saved.id,
@@ -546,7 +801,10 @@ export class B2BService {
     return factures.map((f) => this.formatFacture(f, compte));
   }
 
-  async payFacture(factureId: string, userId: string): Promise<Record<string, any>> {
+  async payFacture(
+    factureId: string,
+    userId: string,
+  ): Promise<Record<string, any>> {
     const compte = await this.getCompteB2B(userId);
     if (!compte) throw new NotFoundException('Compte entreprise introuvable');
 
@@ -554,7 +812,8 @@ export class B2BService {
       where: { id: factureId, compteB2B: { id: compte.id } },
     });
     if (!facture) throw new NotFoundException('Facture introuvable');
-    if (facture.statut === 'PAYEE') throw new BadRequestException('Facture déjà payée');
+    if (facture.statut === 'PAYEE')
+      throw new BadRequestException('Facture déjà payée');
 
     facture.statut = 'PAYEE';
     const saved = await this.factureRepository.save(facture);
@@ -589,7 +848,11 @@ export class B2BService {
     }
   }
 
-  async generateFactureForCompte(compte: CompteB2B, mois: string, annee: number): Promise<FactureMensuelleB2B | null> {
+  async generateFactureForCompte(
+    compte: CompteB2B,
+    mois: string,
+    annee: number,
+  ): Promise<FactureMensuelleB2B | null> {
     // Avoid duplicate
     const existing = await this.factureRepository.findOne({
       where: { compteB2B: { id: compte.id }, mois, annee },
@@ -614,7 +877,9 @@ export class B2BService {
     const bulkResult = await this.bulkOrderRepository
       .createQueryBuilder('order')
       .select('SUM(order.total)', 'total')
-      .where('order.createdByUserId = :userId', { userId: compte.responsable?.id ?? '' })
+      .where('order.createdByUserId = :userId', {
+        userId: compte.responsable?.id ?? '',
+      })
       .andWhere('order.createdAt >= :from', { from })
       .andWhere('order.createdAt < :to', { to })
       .andWhere('order.status != :cancelled', { cancelled: 'CANCELLED' })
@@ -674,7 +939,10 @@ export class B2BService {
     }
   }
 
-  private formatFacture(f: FactureMensuelleB2B, compte: CompteB2B): Record<string, any> {
+  private formatFacture(
+    f: FactureMensuelleB2B,
+    compte: CompteB2B,
+  ): Record<string, any> {
     return {
       id: f.id,
       numeroFacture: f.numeroFacture,
@@ -725,7 +993,9 @@ export class B2BService {
     try {
       let actorEmail: string | undefined;
       if (actorUserId !== 'SYSTEM') {
-        const actor = await this.userRepository.findOne({ where: { id: actorUserId } });
+        const actor = await this.userRepository.findOne({
+          where: { id: actorUserId },
+        });
         actorEmail = actor?.email;
       } else {
         actorEmail = 'system@restodici.ci';
@@ -750,16 +1020,16 @@ export class B2BService {
 
   async getReportsB2B(userId: string): Promise<Record<string, any>> {
     const compte = await this.getCompteB2B(userId);
-    const collaborateurs = compte ? await this.getCollaborateursB2B(userId) : [];
+    const collaborateurs = compte
+      ? await this.getCollaborateursB2B(userId)
+      : [];
     const commandes = compte ? await this.getCommandesGroupees(userId) : [];
 
     const now = new Date();
     const currentMois = MOIS_FR[now.getMonth()];
     const currentAnnee = now.getFullYear();
 
-    const factures = compte
-      ? await this.getFacturesMensuelles(userId)
-      : [];
+    const factures = compte ? await this.getFacturesMensuelles(userId) : [];
 
     // Aggregate spending by collaborator
     const expenses = collaborateurs.map((c) => ({
@@ -812,7 +1082,10 @@ export class B2BService {
   // === LEGACY — TEAM MANAGEMENT (kept for backward compat) ====
   // ============================================================
 
-  async createTeam(userId: string, createTeamDto: CreateTeamDto): Promise<Team> {
+  async createTeam(
+    userId: string,
+    createTeamDto: CreateTeamDto,
+  ): Promise<Team> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user || user.role !== 'B2B') {
       throw new ForbiddenException('Only B2B users can create teams');
@@ -843,15 +1116,24 @@ export class B2BService {
     return teamMembers.map((tm) => tm.team);
   }
 
-  async addTeamMember(teamId: string, currentUserId: string, addTeamMemberDto: AddTeamMemberDto): Promise<TeamMember> {
+  async addTeamMember(
+    teamId: string,
+    currentUserId: string,
+    addTeamMemberDto: AddTeamMemberDto,
+  ): Promise<TeamMember> {
     const currentUserMember = await this.teamMemberRepository.findOne({
       where: { teamId: teamId, userId: currentUserId, active: true },
     });
-    if (!currentUserMember || (currentUserMember.role !== 'ADMIN' && currentUserMember.role !== 'OWNER')) {
+    if (
+      !currentUserMember ||
+      (currentUserMember.role !== 'ADMIN' && currentUserMember.role !== 'OWNER')
+    ) {
       throw new ForbiddenException('Only team admins/owners can add members');
     }
 
-    const targetUser = await this.userRepository.findOne({ where: { id: addTeamMemberDto.userId } });
+    const targetUser = await this.userRepository.findOne({
+      where: { id: addTeamMemberDto.userId },
+    });
     if (!targetUser || targetUser.role !== 'B2B') {
       throw new BadRequestException('Target user must be a B2B user');
     }
@@ -877,7 +1159,11 @@ export class B2BService {
     return this.teamMemberRepository.save(teamMember);
   }
 
-  async removeTeamMember(teamId: string, currentUserId: string, targetUserId: string): Promise<void> {
+  async removeTeamMember(
+    teamId: string,
+    currentUserId: string,
+    targetUserId: string,
+  ): Promise<void> {
     const currentUserMember = await this.teamMemberRepository.findOne({
       where: { teamId: teamId, userId: currentUserId, active: true },
     });
@@ -904,7 +1190,10 @@ export class B2BService {
   // === LEGACY — BULK ORDERS ===================================
   // ============================================================
 
-  async createBulkOrder(userId: string, createBulkOrderDto: CreateBulkOrderDto): Promise<BulkOrder> {
+  async createBulkOrder(
+    userId: string,
+    createBulkOrderDto: CreateBulkOrderDto,
+  ): Promise<BulkOrder> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user || user.role !== 'B2B') {
       throw new ForbiddenException('Only B2B users can create bulk orders');
@@ -917,7 +1206,9 @@ export class B2BService {
       total: item.total ?? item.quantity * item.unitPrice,
     }));
 
-    const subtotal = createBulkOrderDto.subtotal ?? items.reduce((sum, item) => sum + Number(item.total), 0);
+    const subtotal =
+      createBulkOrderDto.subtotal ??
+      items.reduce((sum, item) => sum + Number(item.total), 0);
     const deliveryFee = createBulkOrderDto.deliveryFee ?? 0;
     const total = createBulkOrderDto.total ?? subtotal + deliveryFee;
 
@@ -978,7 +1269,9 @@ export class B2BService {
     }));
 
     return [...fromGrouped, ...fromBulk].sort(
-      (a, b) => new Date(b.dateLivraison ?? 0).getTime() - new Date(a.dateLivraison ?? 0).getTime(),
+      (a, b) =>
+        new Date(b.dateLivraison ?? 0).getTime() -
+        new Date(a.dateLivraison ?? 0).getTime(),
     );
   }
 
@@ -1004,8 +1297,14 @@ export class B2BService {
     }));
   }
 
-  async updateBulkOrderStatus(orderId: string, currentUserId: string, updateDto: UpdateBulkOrderStatusDto): Promise<BulkOrder> {
-    const order = await this.bulkOrderRepository.findOne({ where: { id: orderId } });
+  async updateBulkOrderStatus(
+    orderId: string,
+    currentUserId: string,
+    updateDto: UpdateBulkOrderStatusDto,
+  ): Promise<BulkOrder> {
+    const order = await this.bulkOrderRepository.findOne({
+      where: { id: orderId },
+    });
     if (!order) throw new NotFoundException('Bulk order not found');
 
     const validTransitions: Record<string, string[]> = {
@@ -1018,7 +1317,9 @@ export class B2BService {
 
     if (!updateDto.status) throw new BadRequestException('status is required');
     if (!validTransitions[order.status]?.includes(updateDto.status)) {
-      throw new BadRequestException(`Cannot transition from ${order.status} to ${updateDto.status}`);
+      throw new BadRequestException(
+        `Cannot transition from ${order.status} to ${updateDto.status}`,
+      );
     }
 
     order.status = updateDto.status;
@@ -1052,7 +1353,10 @@ export class B2BService {
 
     return invoices.map((invoice) => ({
       id: invoice.id,
-      month: invoice.issueDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+      month: invoice.issueDate.toLocaleDateString('fr-FR', {
+        month: 'long',
+        year: 'numeric',
+      }),
       amount: Number(invoice.totalAmount),
       status: invoice.status === 'PAID' ? 'PAYEE' : 'EN_ATTENTE',
       dueDate: invoice.dueDate.toISOString().slice(0, 10),
@@ -1078,17 +1382,16 @@ export class B2BService {
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const firstOfNext = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-    const [
-      bulkOrders,
-      groupedOrders,
-      collaborateurs,
-      factures,
-    ] = await Promise.all([
-      this.bulkOrderRepository.find({ where: { createdByUserId: userId }, order: { createdAt: 'DESC' } }),
-      compte ? this.getCommandesGroupees(userId) : Promise.resolve([]),
-      compte ? this.getCollaborateursB2B(userId) : Promise.resolve([]),
-      compte ? this.getFacturesMensuelles(userId) : Promise.resolve([]),
-    ]);
+    const [bulkOrders, groupedOrders, collaborateurs, factures] =
+      await Promise.all([
+        this.bulkOrderRepository.find({
+          where: { createdByUserId: userId },
+          order: { createdAt: 'DESC' },
+        }),
+        compte ? this.getCommandesGroupees(userId) : Promise.resolve([]),
+        compte ? this.getCollaborateursB2B(userId) : Promise.resolve([]),
+        compte ? this.getFacturesMensuelles(userId) : Promise.resolve([]),
+      ]);
 
     const totalBulk = bulkOrders.reduce((s, o) => s + Number(o.total), 0);
     const totalGrouped = groupedOrders
@@ -1096,7 +1399,9 @@ export class B2BService {
       .reduce((s, o) => s + o.totalEstime, 0);
 
     const monthlyExpenses = totalBulk + totalGrouped;
-    const unpaidInvoices = factures.filter((f) => f.statut === 'EN_ATTENTE' || f.statut === 'RETARDEE').length;
+    const unpaidInvoices = factures.filter(
+      (f) => f.statut === 'EN_ATTENTE' || f.statut === 'RETARDEE',
+    ).length;
 
     const recentOrders = await this.getOrdersByUser(userId);
 
@@ -1182,7 +1487,9 @@ export class B2BService {
     });
 
     if (targetUser && targetUser.role !== Role.B2B) {
-      throw new BadRequestException('Le collaborateur doit être un utilisateur B2B');
+      throw new BadRequestException(
+        'Le collaborateur doit être un utilisateur B2B',
+      );
     }
 
     let tempPassword: string | undefined;
@@ -1272,7 +1579,9 @@ export class B2BService {
       id: order.id,
       restaurantNom: 'Restaurant partenaire',
       dateLivraison: deliveryDate?.toISOString().slice(0, 10),
-      heureLivraison: deliveryDate ? deliveryDate.toISOString().slice(11, 16) : undefined,
+      heureLivraison: deliveryDate
+        ? deliveryDate.toISOString().slice(11, 16)
+        : undefined,
       status: this.toFrontendOrderStatus(order.status),
       total: Number(order.total),
       deliveryAddress: order.deliveryAddress ?? 'Adresse non renseignée',

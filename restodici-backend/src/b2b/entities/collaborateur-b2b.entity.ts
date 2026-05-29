@@ -31,6 +31,16 @@ export class CollaborateurB2B {
   @Column({ default: true })
   actif!: boolean;
 
+  // Invitation par email (RG-33)
+  @Column({ nullable: true, unique: true })
+  invitationToken?: string;
+
+  @Column({ nullable: true, type: 'timestamptz' })
+  invitationExpiry?: Date;
+
+  @Column({ default: false })
+  invitationAccepted!: boolean;
+
   @ManyToOne(() => CompteB2B, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'compteB2BId' })
   compteB2B!: CompteB2B;

@@ -104,17 +104,18 @@ export class B2BService {
   }
 
   async bulkOrder(reqUser: any, dto: any) {
-    // Mode dev (sans JWT) : permettre dto.compteB2BId
+    // Bulk order legacy: strict auth required.
+    // Le DTO ne peut plus fournir compteB2BId (prévention accès/contournement).
     // dto attendu (front) :
     // {
     //   restaurantId,
     //   items: [{ articleId, quantite, collaborateurId }],
     //   livraison: { date, heure, adresse }
     // }
-    const compteB2BId: string | undefined =
-      reqUser?.compteB2BId ?? dto?.compteB2BId;
-    if (!compteB2BId)
-      throw new BadRequestException('compteB2BId manquant (reqUser ou dto)');
+    const compteB2BId: string | undefined = reqUser?.compteB2BId;
+    if (!compteB2BId) {
+      throw new BadRequestException('compteB2BId manquant (reqUser)');
+    }
 
     const compteB2B = await this.compteB2BRepo.findOne({
       where: { id: compteB2BId, actif: true },

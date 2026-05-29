@@ -79,14 +79,19 @@ export class CommandesController {
     @Query('offset') offsetStr: string,
     @Req() req: any,
   ) {
-    const limit  = Math.min(Math.max(parseInt(limitStr  ?? '50', 10) || 50, 1), 200);
-    const offset = Math.max(parseInt(offsetStr ?? '0',  10) || 0,  0);
-    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const safeQueryId = restaurantId && UUID_RE.test(restaurantId) ? restaurantId : undefined;
+    const limit = Math.min(
+      Math.max(parseInt(limitStr ?? '50', 10) || 50, 1),
+      200,
+    );
+    const offset = Math.max(parseInt(offsetStr ?? '0', 10) || 0, 0);
+    const UUID_RE =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const safeQueryId =
+      restaurantId && UUID_RE.test(restaurantId) ? restaurantId : undefined;
 
     const targetRestaurantId =
       req.user.role === 'GERANT' || req.user.role === 'STAFF'
-        ? (req.user.restaurant?.id || safeQueryId)
+        ? req.user.restaurant?.id || safeQueryId
         : safeQueryId;
 
     if (!targetRestaurantId) return [];
@@ -192,7 +197,32 @@ export class CommandesController {
       req.user.role === 'GERANT' || req.user.role === 'STAFF'
         ? req.user.restaurant?.id
         : undefined;
-    return this.commandesService.updateStatut(id, statut, restaurantId);
+    const actor = {
+      id: req.user.id,
+      role: req.user.role,
+      nom: [req.user.prenom, req.user.nom].filter(Boolean).join(' ') || req.user.email,
+    };
+    return this.commandesService.updateStatut(id, statut, restaurantId, actor);
+  }
+
+  @Get(':id/history')
+  @UseGuards(AuthGuard('jwt'))
+  async getCommandeHistory(@Param('id') id: string, @Req() req: any) {
+    const userRole = req.user.role;
+    const clientId = userRole === 'CLIENT' || userRole === 'B2B' ? req.user.id : undefined;
+    const restaurantId =
+      userRole === 'GERANT' || userRole === 'STAFF' ? req.user.restaurant?.id : undefined;
+    return this.commandesService.getCommandeHistory(id, clientId, restaurantId);
+  }
+
+  @Get('activity/restaurant')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('GERANT', 'STAFF', 'ADMIN')
+  async getRestaurantActivity(@Req() req: any, @Query('limit') limitStr?: string) {
+    const restaurantId = req.user.restaurant?.id;
+    if (!restaurantId) return [];
+    const limit = Math.min(parseInt(limitStr ?? '50', 10) || 50, 200);
+    return this.commandesService.getRestaurantActivity(restaurantId, limit);
   }
 
   @Patch(':id/client-paiement')

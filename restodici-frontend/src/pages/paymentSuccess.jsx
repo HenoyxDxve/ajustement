@@ -12,8 +12,7 @@ function downloadAndOpenBlob(blob, fileName) {
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
-  window.open(url, '_blank', 'noopener,noreferrer');
-  window.setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+  window.setTimeout(() => window.URL.revokeObjectURL(url), 5000);
 }
 
 export default function PaymentSuccessPage() {

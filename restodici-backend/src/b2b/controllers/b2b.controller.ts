@@ -301,4 +301,25 @@ export class B2BController {
     const restaurantId = req.user.restaurant?.id ?? '';
     return this.b2bService.updateB2BOrderStatus(id, body.statut, restaurantId);
   }
+
+  // ============================================================
+  // === DÉTAIL COMMANDE GROUPÉE + AVIS =========================
+  // ============================================================
+
+  @Get('commandes-groupees/:id')
+  async getCommandeGroupeeDetail(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ) {
+    return this.b2bService.getCommandeGroupeeDetail(id, req.user.id);
+  }
+
+  @Post('commandes-groupees/:id/avis')
+  async submitAvis(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() body: { note: number; commentaire?: string },
+  ) {
+    return this.b2bService.submitAvis(id, req.user.id, body.note, body.commentaire);
+  }
 }

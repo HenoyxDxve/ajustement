@@ -83,12 +83,12 @@ export default function CartPage() {
       : 0;
   const total = subtotal + deliveryFee - promoDiscount;
 
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   const validateForm = () => {
     const nextErrors = {};
 
-    if (!restaurantId || !UUID_RE.test(restaurantId)) {
+    if (!restaurantId || !UUID_V4_RE.test(restaurantId)) {
       nextErrors.restaurant = 'Restaurant invalide. Veuillez retourner au menu et sélectionner un restaurant.';
     }
 

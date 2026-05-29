@@ -70,7 +70,7 @@ const MODE_LABELS = {
   livraison: 'Livraison à domicile',
 };
 
-const SIM_PHASES = [
+const SIM_PHASES_CLIENT = [
   { key: 'connecting', label: 'Connexion au service…', duration: 700 },
   { key: 'sending', label: 'Demande envoyée', duration: 1200 },
   { key: 'waiting', label: 'En attente d\'approbation…', duration: 1100 },
@@ -79,10 +79,17 @@ const SIM_PHASES = [
   { key: 'done', label: 'Commande confirmée !', duration: 500 },
 ];
 
+const SIM_PHASES_B2B = [
+  { key: 'checking', label: 'Vérification du compte entreprise…', duration: 600 },
+  { key: 'creating', label: 'Enregistrement de la commande…', duration: 900 },
+  { key: 'done', label: 'Commande enregistrée !', duration: 500 },
+];
+
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { clearCart } = useCart();
+  const isB2B = user?.role === 'B2B';
   const [selectedMethod, setSelectedMethod] = useState('orange_money');
   const [pendingOrder, setPendingOrder] = useState(null);
 
@@ -103,6 +110,7 @@ export default function CheckoutPage() {
   }, [navigate]);
 
   const method = PAYMENT_METHODS.find((m) => m.id === selectedMethod);
+  const SIM_PHASES = isB2B ? SIM_PHASES_B2B : SIM_PHASES_CLIENT;
 
   const clearTimers = () => {
     phaseTimers.current.forEach(clearTimeout);
@@ -110,9 +118,10 @@ export default function CheckoutPage() {
   };
 
   const runSimulation = async () => {
-    // Validate restaurantId before starting the animation — fail fast per spec US-06
-    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const safeRestaurantId = UUID_RE.test(pendingOrder?.restaurantId ?? '') ? pendingOrder.restaurantId : undefined;
+    // Validate restaurantId is a proper UUID v4 before starting — fail fast per spec US-06.
+    // Placeholder/legacy IDs (e.g. 11111111-...) no longer exist in DB after migration.
+    const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const safeRestaurantId = UUID_V4_RE.test(pendingOrder?.restaurantId ?? '') ? pendingOrder.restaurantId : undefined;
     if (!safeRestaurantId) {
       navigate('/menu');
       return;
@@ -124,8 +133,9 @@ export default function CheckoutPage() {
     setCreatedOrder(null);
 
     let delay = 0;
-    // Run phases 0-3 (visual animation)
-    for (let i = 0; i <= 3; i++) {
+    // Run visual phases before the create call (all phases except last 2 for client, 1 for B2B)
+    const visualPhaseCount = isB2B ? 1 : 4;
+    for (let i = 0; i < visualPhaseCount; i++) {
       const d = delay;
       const phase = i;
       phaseTimers.current.push(
@@ -134,10 +144,11 @@ export default function CheckoutPage() {
       delay += SIM_PHASES[i].duration;
     }
 
-    // Phase 4: create order in backend
+    // Create order phase (index 4 for client, 1 for B2B)
+    const createPhaseIndex = isB2B ? 1 : 4;
     phaseTimers.current.push(
       setTimeout(async () => {
-        setSimPhase(4);
+        setSimPhase(createPhaseIndex);
         try {
           const VALID_MODES = ['SUR_PLACE', 'EMPORTER', 'LIVRAISON'];
           const rawMode = (pendingOrder.orderMode ?? '').toUpperCase();
@@ -160,22 +171,24 @@ export default function CheckoutPage() {
           const res = await commandesService.create(payload);
           const order = res.data;
 
-          // Auto-register digital payment
-          try {
-            await commandesService.clientRegisterPayment(order.id, method.apiMode);
-          } catch {
-            // Non-blocking — staff can register manually if needed
+          // B2B: facturation mensuelle consolidée — pas de paiement immédiat
+          if (!isB2B) {
+            try {
+              await commandesService.clientRegisterPayment(order.id, method.apiMode);
+            } catch {
+              // Non-blocking — staff can register manually if needed
+            }
           }
 
           clearCart();
           localStorage.removeItem('pendingOrder');
 
           setCreatedOrder(order);
-          setSimPhase(5);
+          setSimPhase(isB2B ? 2 : 5);
 
-          // Auto-redirect after success display
+          // Auto-redirect: B2B → dashboard B2B, client → suivi
           phaseTimers.current.push(
-            setTimeout(() => navigate(`/suivi/${order.id}`), 1600)
+            setTimeout(() => navigate(isB2B ? '/b2b' : `/suivi/${order.id}`), 1600)
           );
         } catch (err) {
           // If the server responded with an error (4xx/5xx), surface the message —
@@ -184,6 +197,14 @@ export default function CheckoutPage() {
             const raw = err.response.data?.message || err.response.data?.error || err.response.data;
             const msg = Array.isArray(raw) ? raw.join(', ') : (typeof raw === 'string' ? raw : 'Erreur lors de la création de la commande');
             setSimError(msg);
+            setSimPhase(-1);
+            clearTimers();
+            return;
+          }
+
+          // B2B: ne pas créer de commande fictive — la traçabilité est critique
+          if (isB2B) {
+            setSimError('Connexion au serveur impossible. Réessayez dans quelques secondes.');
             setSimPhase(-1);
             clearTimers();
             return;
@@ -218,7 +239,7 @@ export default function CheckoutPage() {
           clearCart();
           localStorage.removeItem('pendingOrder');
           setCreatedOrder(mockOrder);
-          setSimPhase(5);
+          setSimPhase(5); // CLIENT only (B2B exits above on network error)
           phaseTimers.current.push(
             setTimeout(() => navigate('/suivi/' + mockId), 1600)
           );
@@ -250,7 +271,7 @@ export default function CheckoutPage() {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="font-bold text-[#0F172A] text-lg">Paiement</h1>
+          <h1 className="font-bold text-[#0F172A] text-lg">{isB2B ? 'Confirmer la commande' : 'Paiement'}</h1>
         </div>
       </header>
 
@@ -299,48 +320,68 @@ export default function CheckoutPage() {
           </div>
         </section>
 
-        {/* Payment method */}
-        <section className="bg-white rounded-2xl border border-[rgba(89,67,42,0.10)] p-5">
-          <h2 className="font-bold text-[#0F172A] mb-4">Méthode de paiement</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {PAYMENT_METHODS.map((m) => {
-              const active = selectedMethod === m.id;
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setSelectedMethod(m.id)}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    active ? `${m.borderActive} ${m.bgActive}` : 'border-[rgba(89,67,42,0.12)] hover:border-[rgba(89,67,42,0.25)]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-xl">{m.logo}</span>
-                    <div className={`ml-auto w-4 h-4 rounded-full border-2 transition ${
-                      active ? 'border-[#C05015] bg-[#C05015]' : 'border-[#64748B]/30'
-                    }`}>
-                      {active && <div className="w-1.5 h-1.5 bg-white rounded-full mx-auto mt-0.5" />}
+        {/* Payment method — hidden for B2B (facturation mensuelle) */}
+        {isB2B ? (
+          <section className="bg-[#FBE8DC] rounded-2xl border border-[rgba(192,80,21,0.20)] p-5">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl mt-0.5">📋</span>
+              <div>
+                <h2 className="font-bold text-[#C05015] mb-1">Facturation mensuelle B2B</h2>
+                <p className="text-sm text-[#64748B] leading-relaxed">
+                  Cette commande sera ajoutée à votre facture mensuelle consolidée.
+                  Vous recevrez en fin de mois une <strong>facture SYSCOHADA</strong> globale à régler
+                  directement avec votre comptabilité.
+                </p>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="bg-white rounded-2xl border border-[rgba(89,67,42,0.10)] p-5">
+            <h2 className="font-bold text-[#0F172A] mb-4">Méthode de paiement</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {PAYMENT_METHODS.map((m) => {
+                const active = selectedMethod === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setSelectedMethod(m.id)}
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      active ? `${m.borderActive} ${m.bgActive}` : 'border-[rgba(89,67,42,0.12)] hover:border-[rgba(89,67,42,0.25)]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-xl">{m.logo}</span>
+                      <div className={`ml-auto w-4 h-4 rounded-full border-2 transition ${
+                        active ? 'border-[#C05015] bg-[#C05015]' : 'border-[#64748B]/30'
+                      }`}>
+                        {active && <div className="w-1.5 h-1.5 bg-white rounded-full mx-auto mt-0.5" />}
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-xs font-semibold text-[#0F172A] leading-tight">{m.name}</p>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+                    <p className="text-xs font-semibold text-[#0F172A] leading-tight">{m.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Security note */}
-        <div className="flex items-start gap-3 bg-white rounded-xl px-4 py-3 text-xs text-[#64748B]">
-          <span className="text-base mt-0.5">🔒</span>
-          <p>Paiement sécurisé. Aucune donnée bancaire n'est stockée sur nos serveurs.</p>
-        </div>
+        {!isB2B && (
+          <div className="flex items-start gap-3 bg-white rounded-xl px-4 py-3 text-xs text-[#64748B]">
+            <span className="text-base mt-0.5">🔒</span>
+            <p>Paiement sécurisé. Aucune donnée bancaire n'est stockée sur nos serveurs.</p>
+          </div>
+        )}
 
-        {/* Pay button */}
+        {/* Confirm/Pay button */}
         <button
           onClick={runSimulation}
           className="w-full py-4 rounded-2xl font-extrabold text-white text-base bg-[#C05015] hover:bg-[#9A3E10] active:scale-[0.98] transition-all shadow-lg shadow-[#C05015]/25"
         >
-          Payer {formatFCFA(total)} FCFA · {method?.shortName}
+          {isB2B
+            ? `Confirmer la commande · ${formatFCFA(total)} FCFA`
+            : `Payer ${formatFCFA(total)} FCFA · ${method?.shortName}`}
         </button>
 
         <p className="text-center text-xs text-[#64748B]/70">

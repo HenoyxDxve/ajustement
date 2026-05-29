@@ -77,14 +77,19 @@ export const createCommandesSocket = (user: {
   return socket;
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isValidUUID = (v: unknown): v is string => typeof v === 'string' && UUID_RE.test(v.trim());
+
 export const commandesService = {
   create: (data: any) => {
     const payload = { ...data };
-    if (!payload.restaurantId) {
+    // Ensure restaurantId is always a valid UUID before sending — strip anything else.
+    if (!isValidUUID(payload.restaurantId)) {
+      delete payload.restaurantId;
       try {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
-        const rid = user?.restaurant?.id || localStorage.getItem("currentRestaurantId");
-        if (rid) payload.restaurantId = rid;
+        const rid = user?.restaurant?.id ?? localStorage.getItem("currentRestaurantId");
+        if (isValidUUID(rid)) payload.restaurantId = rid;
       } catch { /* ignore */ }
     }
     return API.post("/commandes", payload);
@@ -114,4 +119,7 @@ export const commandesService = {
   getKDS: () => API.get("/commandes/kds"),
   getReceiptPdf: (id: string) =>
     API.get(`/commandes/${id}/receipt/pdf`, { responseType: "arraybuffer" }),
+  getHistory: (id: string) => API.get(`/commandes/${id}/history`),
+  getRestaurantActivity: (limit = 50) =>
+    API.get('/commandes/activity/restaurant', { params: { limit } }),
 };

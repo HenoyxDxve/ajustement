@@ -81,8 +81,8 @@ export default function ClientLayout() {
               )}
               
               <div className="flex items-center gap-2">
-                <Link 
-                  to={user ? "/account" : "/login"}
+                <Link
+                  to={!user ? "/login" : user.role === 'B2B' ? "/b2b" : "/account"}
                   className="hidden items-center gap-2 rounded-full border border-[#E2E8F0] bg-[#FBE8DC] px-3 py-1.5 text-sm font-semibold text-[#C05015] transition hover:border-[#C05015] hover:bg-[#FBE8DC] sm:inline-flex"
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C05015] text-sm font-bold text-white">
@@ -144,12 +144,12 @@ export default function ClientLayout() {
                 Mes commandes
               </Link>
             )}
-            <Link 
-              to={user ? "/account" : "/login"}
+            <Link
+              to={!user ? "/login" : user.role === 'B2B' ? "/b2b" : "/account"}
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-[#0F172A] font-medium flex items-center gap-2"
             >
-              👤 Mon Profil
+              👤 {user?.role === 'B2B' ? 'Espace Entreprise' : 'Mon Profil'}
             </Link>
             {user && (
               <button onClick={() => { 

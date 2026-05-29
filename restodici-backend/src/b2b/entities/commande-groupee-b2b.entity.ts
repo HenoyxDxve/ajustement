@@ -52,6 +52,16 @@ export class CommandeGroupeeB2B {
   })
   lignes!: LigneCommandeGroupeeB2B[];
 
+  // Avis après livraison (RG-35)
+  @Column({ nullable: true, type: 'int' })
+  avisNote?: number;
+
+  @Column({ nullable: true, type: 'text' })
+  avisCommentaire?: string;
+
+  @Column({ nullable: true, type: 'timestamptz' })
+  avisAt?: Date;
+
   @CreateDateColumn()
   createdAt!: Date;
 

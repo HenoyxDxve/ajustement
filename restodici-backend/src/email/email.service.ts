@@ -153,6 +153,76 @@ export class EmailService {
     });
   }
 
+  async sendCollaborateurInvitation(
+    email: string,
+    nomCollaborateur: string,
+    nomInviteur: string,
+    entreprise: string,
+    token: string,
+    frontendUrl: string,
+  ): Promise<void> {
+    const acceptLink = `${frontendUrl}/b2b/invitation/${token}`;
+
+    const html = `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background:#f4f1ec;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ec;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+        <tr>
+          <td style="background:linear-gradient(135deg,#11100d,#2B1500);padding:36px 40px;text-align:center;">
+            <div style="display:inline-block;background:#E04E1A;width:44px;height:44px;border-radius:12px;text-align:center;line-height:44px;font-size:22px;font-weight:900;color:#fff;margin-bottom:12px;">R</div>
+            <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;letter-spacing:-0.3px;">Resto d'ici</h1>
+            <p style="color:rgba(255,255,255,0.5);margin:4px 0 0;font-size:13px;">Espace Entreprise</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:40px;">
+            <h2 style="color:#11100d;font-size:20px;margin:0 0 12px;font-weight:700;">Vous avez été invité(e) !</h2>
+            <p style="color:#64574A;font-size:15px;line-height:1.7;margin:0 0 8px;">
+              Bonjour <strong>${nomCollaborateur}</strong>,
+            </p>
+            <p style="color:#64574A;font-size:15px;line-height:1.7;margin:0 0 28px;">
+              <strong>${nomInviteur}</strong> vous invite à rejoindre l'espace entreprise de <strong>${entreprise}</strong> sur Resto d'ici.
+              Cliquez sur le bouton ci-dessous pour créer votre compte et accepter l'invitation.
+            </p>
+            <p style="text-align:center;margin:0 0 32px;">
+              <a href="${acceptLink}"
+                 style="display:inline-block;background:#E04E1A;color:#ffffff;font-size:15px;font-weight:700;
+                        text-decoration:none;padding:14px 36px;border-radius:10px;letter-spacing:0.2px;">
+                Accepter l'invitation
+              </a>
+            </p>
+            <p style="color:#999;font-size:13px;line-height:1.6;margin:0 0 8px;">
+              Ce lien est valable pendant <strong>7 jours</strong>.
+            </p>
+            <p style="color:#999;font-size:13px;line-height:1.6;margin:0;">
+              Si vous ne connaissez pas ${entreprise}, ignorez cet email.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#FAF6F0;padding:20px 40px;text-align:center;border-top:1px solid #f0e8df;">
+            <p style="color:#C58A55;font-size:12px;margin:0;">
+              © ${new Date().getFullYear()} Resto d'ici · Plateforme digitale restaurant
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    await this.sendMail({
+      to: email,
+      subject: `${nomInviteur} vous invite à rejoindre ${entreprise} sur Resto d'ici`,
+      html,
+    });
+  }
+
   async sendEmailVerification(
     email: string,
     token: string,

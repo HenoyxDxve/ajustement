@@ -24,7 +24,6 @@ import OrdersPage from './pages/Orders';
 import PaymentSuccessPage from './pages/PaymentSuccess';
 import OrderTrackingPage from './pages/order/OrderTracking';
 import ClientDashboard from './pages/client/clientDashboard';
-import MyOrdersPage from './pages/client/MyOrdersPage';
 
 // ===== DASHBOARDS — Imports directs sans extension .jsx =====
 import GerantDashboard from './pages/gerant/GerantDashboard';
@@ -37,6 +36,8 @@ import B2BOrders from './pages/b2b/B2BOrders';
 import B2BTeams from './pages/b2b/B2BTeams';
 import B2BInvoices from './pages/b2b/B2BInvoices';
 import B2BReports from './pages/b2b/B2BReports';
+import AcceptInvitation from './pages/b2b/AcceptInvitation';
+import B2BOrderTracking from './pages/b2b/B2BOrderTracking';
 
 // ===== UTILITAIRES — Imports directs sans extension .jsx =====
 const queryClient = new QueryClient();
@@ -57,20 +58,25 @@ function ProtectedStaffRoute({ children }) {
   return children;
 }
 
-// ─── Composant de protection pour le checkout — CLIENT + B2B autorisés ────
+// ─── Checkout/panier — CLIENT + B2B autorisés ────────────────────────────
 function ProtectedCheckoutRoute({ children }) {
   const { user, loading } = useAuth();
-
   if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
-  if (!user) {
-    return <Navigate to="/login" state={{ redirect: 'checkout' }} replace />;
-  }
-
-  // STAFF and GERANT have no reason to access the checkout or client pages
+  if (!user) return <Navigate to="/login" state={{ redirect: 'checkout' }} replace />;
   if (user.role === 'STAFF')  return <Navigate to="/staff" replace />;
   if (user.role === 'GERANT') return <Navigate to="/gerant" replace />;
+  // CLIENT and B2B can both use the cart/checkout/suivi flow
+  return children;
+}
 
-  // CLIENT and B2B can both use the cart/checkout flow
+// ─── Pages client uniquement — B2B redirigé vers son dashboard ───────────
+function ProtectedClientRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === 'STAFF')  return <Navigate to="/staff" replace />;
+  if (user.role === 'GERANT') return <Navigate to="/gerant" replace />;
+  if (user.role === 'B2B')    return <Navigate to="/b2b" replace />;
   return children;
 }
 
@@ -111,8 +117,8 @@ export default function App() {
               <Route path="/cart" element={<CartPage />} />
             </Route>
             
-            {/* === ROUTES REQUIÈRENT AUTHENTIFICATION === */}
-            <Route 
+            {/* === CHECKOUT / SUIVI — CLIENT + B2B autorisés === */}
+            <Route
               element={
                 <CartProvider>
                   <ProtectedCheckoutRoute>
@@ -124,18 +130,31 @@ export default function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/checkout/success/:id" element={<PaymentSuccessPage />} />
               <Route path="/suivi/:id" element={<OrderTrackingPage />} />
+            </Route>
+
+            {/* === ESPACE CLIENT — CLIENT uniquement (B2B → /b2b) === */}
+            <Route
+              element={
+                <CartProvider>
+                  <ProtectedClientRoute>
+                    <ClientLayout />
+                  </ProtectedClientRoute>
+                </CartProvider>
+              }
+            >
               <Route path="/orders" element={<OrdersPage />} />
-              <Route path="/mes-commandes" element={<MyOrdersPage />} />
-              <Route path="/client/orders" element={<ClientDashboard />} />
+              <Route path="/mes-commandes" element={<Navigate to="/account" replace />} />
+              <Route path="/client/orders" element={<Navigate to="/account" replace />} />
               <Route path="/account" element={<ClientDashboard />} />
             </Route>
             
-            {/* === ROUTES SANS LAYOUT (authentification) === */}
+            {/* === ROUTES SANS LAYOUT (authentification + invitation B2B) === */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/b2b/invitation/:token" element={<AcceptInvitation />} />
 
 
             {/* === DASHBOARD GÉRANT === */}
@@ -183,6 +202,7 @@ export default function App() {
               <Route path="teams" element={<B2BTeams />} />
               <Route path="reports" element={<B2BReports />} />
               <Route path="deliveries" element={<B2BOrders />} />
+              <Route path="suivi/:id" element={<B2BOrderTracking />} />
             </Route>
 
             {/* === REDIRECTION PAR DÉFAUT === */}

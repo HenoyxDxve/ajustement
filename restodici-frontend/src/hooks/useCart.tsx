@@ -39,9 +39,12 @@ interface CartContextType {
 }
 
 const CART_TTL_MS = 30 * 60 * 1000;
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Strict UUID v4: version bit (4) and variant bits (8/9/a/b) must be correct.
+// This rejects legacy placeholder IDs like 11111111-1111-1111-1111-111111111111
+// so stale carts are automatically cleared after DB migration.
+const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const validUUID = (v: unknown): string | null =>
-  typeof v === 'string' && UUID_RE.test(v) ? v : null;
+  typeof v === 'string' && UUID_V4_RE.test(v) ? v : null;
 
 function getCartKey(): string {
   try {

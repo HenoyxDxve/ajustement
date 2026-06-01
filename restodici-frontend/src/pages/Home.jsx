@@ -270,35 +270,49 @@ function Hero({ search, onSearch, menuRef }) {
           </Reveal>
         </div>
 
-        {/* Right: food photo */}
+        {/* Right: food photo — grand format */}
         <Reveal dir="right" delay={100}>
-          <div style={{ position:"relative",height:560 }}>
-            <div style={{ position:"absolute",inset:"10% -5%",borderRadius:180,background:`linear-gradient(135deg,${T.yellow}28,${T.accent}22)`,transform:"rotate(-6deg)",zIndex:0 }} />
-            <div style={{ position:"absolute",top:30,right:0,width:"92%",zIndex:2,borderRadius:24,overflow:"hidden",boxShadow:"0 32px 80px rgba(0,0,0,0.16)" }}>
-              <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=900&auto=format&fit=crop" alt="Plat africain" style={{ width:"100%",height:420,objectFit:"cover",display:"block" }} />
-              <div style={{ position:"absolute",inset:0,background:"linear-gradient(to bottom, transparent 50%, rgba(26,12,0,0.6))" }} />
-              <div style={{ position:"absolute",bottom:22,left:24 }}>
-                <p style={{ fontFamily:serif,fontSize:19,color:"#fff",fontWeight:700,fontStyle:"italic",margin:"0 0 4px" }}>Plats d'Abidjan</p>
-                <p style={{ fontFamily:sans,fontSize:12,color:"rgba(255,255,255,0.65)",margin:0 }}>Attiéké · Kedjenou · Garba · Aloko</p>
+          <div style={{ position:"relative",height:660 }}>
+            {/* Blob décoratif */}
+            <div style={{ position:"absolute",inset:"4% -10%",borderRadius:220,background:`linear-gradient(135deg,${T.yellow}30,${T.accent}24)`,transform:"rotate(-5deg)",zIndex:0 }} />
+            <div style={{ position:"absolute",inset:"20% -6%",borderRadius:200,background:`radial-gradient(circle,${T.accent}14 0%,transparent 70%)`,zIndex:0 }} />
+
+            {/* Photo principale — plein format */}
+            <div style={{ position:"absolute",top:20,left:0,right:0,bottom:0,zIndex:2,borderRadius:28,overflow:"hidden",boxShadow:"0 40px 100px rgba(0,0,0,0.22)" }}>
+              <img
+                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop"
+                alt="Plats d'Abidjan"
+                style={{ width:"100%",height:"100%",objectFit:"cover",display:"block" }}
+              />
+              <div style={{ position:"absolute",inset:0,background:"linear-gradient(to bottom, transparent 40%, rgba(26,12,0,0.72))" }} />
+              <div style={{ position:"absolute",bottom:26,left:28 }}>
+                <p style={{ fontFamily:serif,fontSize:22,color:"#fff",fontWeight:700,fontStyle:"italic",margin:"0 0 5px" }}>Plats d'Abidjan</p>
+                <p style={{ fontFamily:sans,fontSize:13,color:"rgba(255,255,255,0.7)",margin:0 }}>Attiéké · Kedjenou · Garba · Aloko</p>
               </div>
             </div>
-            <div style={{ position:"absolute",top:16,right:"4%",zIndex:10,width:80,height:80,borderRadius:"50%",background:`linear-gradient(135deg,${T.red},#FF6020)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 28px rgba(255,59,48,0.4)",animation:"kfbadge 4s ease-in-out infinite" }}>
-              <span style={{ fontFamily:sans,fontSize:20,fontWeight:900,color:"#fff",lineHeight:1 }}>50%</span>
-              <span style={{ fontFamily:sans,fontSize:10,color:"rgba(255,255,255,0.85)",fontWeight:600 }}>OFF</span>
+
+            {/* Badge 50% OFF */}
+            <div style={{ position:"absolute",top:8,right:"-4%",zIndex:10,width:90,height:90,borderRadius:"50%",background:`linear-gradient(135deg,${T.red},#FF6020)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",boxShadow:"0 10px 32px rgba(255,59,48,0.45)",animation:"kfbadge 4s ease-in-out infinite" }}>
+              <span style={{ fontFamily:sans,fontSize:22,fontWeight:900,color:"#fff",lineHeight:1 }}>50%</span>
+              <span style={{ fontFamily:sans,fontSize:10,color:"rgba(255,255,255,0.9)",fontWeight:700,letterSpacing:"0.06em" }}>OFF</span>
             </div>
-            <div style={{ position:"absolute",bottom:10,left:0,zIndex:10,background:T.card,borderRadius:16,padding:"16px 20px",boxShadow:"0 12px 40px rgba(0,0,0,0.14)",display:"flex",alignItems:"center",gap:14,animation:"kfbadge 5s ease-in-out infinite 1.5s",minWidth:200 }}>
-              <div style={{ width:50,height:50,borderRadius:12,overflow:"hidden",flexShrink:0 }}>
-                <img src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=100&auto=format&fit=crop" alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
+
+            {/* Carte commande */}
+            <div style={{ position:"absolute",bottom:0,left:"-10%",zIndex:10,background:T.card,borderRadius:18,padding:"18px 22px",boxShadow:"0 16px 48px rgba(0,0,0,0.16)",display:"flex",alignItems:"center",gap:16,animation:"kfbadge 5s ease-in-out infinite 1.5s",minWidth:220 }}>
+              <div style={{ width:54,height:54,borderRadius:13,overflow:"hidden",flexShrink:0 }}>
+                <img src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=120&auto=format&fit=crop" alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
               </div>
               <div>
-                <p style={{ fontFamily:sans,fontSize:13,fontWeight:700,color:T.dark,margin:"0 0 2px" }}>Ham Burger / Medium</p>
-                <p style={{ fontFamily:sans,fontSize:14,fontWeight:800,color:T.accent,margin:"0 0 3px" }}>7 800 FCFA</p>
+                <p style={{ fontFamily:sans,fontSize:13,fontWeight:700,color:T.dark,margin:"0 0 3px" }}>Attiéké Barracuda</p>
+                <p style={{ fontFamily:sans,fontSize:15,fontWeight:800,color:T.accent,margin:"0 0 4px" }}>4 200 FCFA</p>
                 <Stars n={5} />
               </div>
             </div>
-            <div style={{ position:"absolute",top:80,left:"-8%",zIndex:10,background:T.card,borderRadius:14,padding:"14px 18px",boxShadow:"0 8px 28px rgba(0,0,0,0.12)",animation:"kfbadge 6s ease-in-out infinite 0.8s" }}>
-              <div style={{ display:"flex",gap:3,marginBottom:5 }}><Stars n={5} /></div>
-              <p style={{ fontFamily:sans,fontSize:15,fontWeight:800,color:T.dark,margin:"0 0 1px" }}>4.9 / 5</p>
+
+            {/* Carte note */}
+            <div style={{ position:"absolute",top:90,left:"-12%",zIndex:10,background:T.card,borderRadius:16,padding:"16px 20px",boxShadow:"0 10px 32px rgba(0,0,0,0.13)",animation:"kfbadge 6s ease-in-out infinite 0.8s" }}>
+              <div style={{ display:"flex",gap:3,marginBottom:6 }}><Stars n={5} /></div>
+              <p style={{ fontFamily:sans,fontSize:16,fontWeight:800,color:T.dark,margin:"0 0 2px" }}>4.9 / 5</p>
               <p style={{ fontFamily:sans,fontSize:11,color:T.mutedL,margin:0 }}>2 400+ avis</p>
             </div>
           </div>
@@ -499,15 +513,15 @@ function MenuSection({ search, onSearch, sectionRef }) {
         {/* Loading: squelettes */}
         {loading && (
           <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:24 }}>
-            {Array.from({length:6}).map((_,i) => <SkeletonCard key={i} />)}
+            {Array.from({length:9}).map((_,i) => <SkeletonCard key={i} />)}
           </div>
         )}
 
         {/* Résultats */}
         {!loading && filtered.length > 0 && (
           <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:24 }}>
-            {filtered.slice(0, 6).map((item, i) => (
-              <Reveal key={item.id ?? i} delay={i * 60}>
+            {filtered.slice(0, 9).map((item, i) => (
+              <Reveal key={item.id ?? i} delay={i * 50}>
                 <MenuItem item={item} idx={i} />
               </Reveal>
             ))}

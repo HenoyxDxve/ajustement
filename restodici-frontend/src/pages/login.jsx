@@ -101,47 +101,50 @@ export default function Login() {
   };
 
   const inputCls = (hasError) =>
-    `w-full pl-10 pr-4 py-3.5 bg-[#FDDDD4] border-0 rounded-2xl text-[#1A1A1A] placeholder-[#9A7060]/70 text-sm focus:outline-none focus:ring-2 focus:ring-[#C05015]/40 transition-all${hasError ? ' ring-2 ring-red-400' : ''}`;
+    `w-full pl-10 pr-4 py-3.5 border-0 rounded-2xl text-[#1A0C00] placeholder-[#B09070]/70 text-sm focus:outline-none focus:ring-2 transition-all${hasError ? ' ring-2 ring-red-400' : ' focus:ring-[#FF8C00]/40'}`
+    + ' bg-[#FFF5E8]';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#C05015] p-4 lg:p-8">
+    <div className="min-h-screen flex items-center justify-center p-4 lg:p-8"
+      style={{ background: 'linear-gradient(135deg, #FF8C00 0%, #E07A00 60%, #FFB800 100%)' }}>
 
-      {/* ── Card ── */}
+      {/* Card */}
       <div className="w-full max-w-5xl bg-white rounded-3xl overflow-hidden shadow-2xl flex h-[660px]">
 
-        {/* ── Left : form panel ── */}
-        <div className="flex-1 flex flex-col justify-start px-10 py-10 lg:px-12 overflow-y-auto">
+        {/* Left : form */}
+        <div className="flex-1 flex flex-col justify-start px-10 py-10 lg:px-12 overflow-y-auto" style={{ background: '#FFFAF3' }}>
 
           {/* Logo */}
           <div className="flex items-center gap-2.5 mb-8">
-            <div className="w-10 h-10 bg-[#C05015] rounded-xl flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
+              style={{ background: 'linear-gradient(135deg,#FF8C00,#FFB800)' }}>
               <UtensilsCrossed className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="text-[#C05015] font-extrabold text-xl tracking-tight">Resto d'ici</span>
-              <p className="text-[#9A7060] text-[11px] leading-none mt-0.5">La table digitale de vos repas</p>
+              <span className="font-extrabold text-xl tracking-tight" style={{ color: '#FF8C00', fontFamily: "'Playfair Display', serif" }}>Resto d'ici</span>
+              <p className="text-[11px] leading-none mt-0.5" style={{ color: '#B09070' }}>La table digitale de vos repas</p>
             </div>
           </div>
 
-          {/* Registration success banner */}
           {registered && (
-            <div className="mb-5 flex items-start gap-3 bg-[#FBE8DC] border border-[#C05015]/20 text-[#7A2E0A] rounded-2xl px-4 py-3.5 text-sm">
-              <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#C05015]" />
+            <div className="mb-5 flex items-start gap-3 rounded-2xl px-4 py-3.5 text-sm"
+              style={{ background: '#FFF5E8', border: '1px solid rgba(255,140,0,0.2)', color: '#C06800' }}>
+              <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#FF8C00' }} />
               <span>Inscription réussie ! Vérifiez votre boîte mail avant de vous connecter.</span>
             </div>
           )}
 
-          <h1 className="text-3xl font-extrabold text-[#1A1A1A] mb-1">
+          <h1 className="text-3xl font-extrabold mb-1" style={{ color: '#1A0C00', fontFamily: "'Playfair Display', serif" }}>
             {twoFactorStep ? 'Vérification' : 'Connexion'}
           </h1>
-          <p className="text-[#9A7060] text-sm mb-8">
-            {twoFactorStep ? 'Entrez votre code d\'authentification' : 'Entrez vos identifiants pour continuer'}
+          <p className="text-sm mb-8" style={{ color: '#B09070' }}>
+            {twoFactorStep ? "Entrez votre code d'authentification" : 'Entrez vos identifiants pour continuer'}
           </p>
 
-          {/* ── 2FA step ── */}
+          {/* 2FA */}
           {twoFactorStep ? (
             <form onSubmit={handleTwoFactorSubmit} className="space-y-4">
-              <div className="rounded-2xl bg-[#FBE8DC] px-4 py-3 text-sm text-[#7A2E0A]">
+              <div className="rounded-2xl px-4 py-3 text-sm" style={{ background: '#FFF5E8', color: '#C06800' }}>
                 <p className="font-semibold">Authentification à deux facteurs</p>
                 <p className="mt-1 text-xs opacity-80">Entrez le code de votre application authenticator.</p>
               </div>
@@ -150,31 +153,32 @@ export default function Login() {
                 value={twoFactorCode}
                 onChange={(e) => setTwoFactorCode(e.target.value.replace(/\s/g, '').toUpperCase())}
                 placeholder="000000"
-                className="w-full px-4 py-3.5 bg-[#FDDDD4] border-0 rounded-2xl text-center text-2xl tracking-[0.4em] font-mono focus:outline-none focus:ring-2 focus:ring-[#C05015]/40"
+                className="w-full px-4 py-3.5 border-0 rounded-2xl text-center text-2xl tracking-[0.4em] font-mono focus:outline-none focus:ring-2"
+                style={{ background: '#FFF5E8', color: '#1A0C00', outline: 'none' }}
                 autoFocus
               />
               {errors.submit && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">{errors.submit}</div>
               )}
               <button type="submit" disabled={isSubmitting}
-                className="w-full py-3.5 rounded-2xl font-bold text-white bg-[#C05015] hover:bg-[#9A3E10] transition-colors disabled:opacity-70 text-sm shadow-sm">
+                className="w-full py-3.5 rounded-2xl font-bold text-white transition-colors disabled:opacity-70 text-sm shadow-sm"
+                style={{ background: 'linear-gradient(135deg,#FF8C00,#E07A00)' }}>
                 {isSubmitting ? 'Vérification...' : 'Valider le code'}
               </button>
               <button type="button" onClick={() => { setTwoFactorStep(false); setTwoFactorCode(''); setErrors({}); }}
-                className="w-full py-2 text-sm text-[#9A7060] hover:text-[#C05015]">
+                className="w-full py-2 text-sm" style={{ color: '#B09070' }}>
                 ← Retour à la connexion
               </button>
             </form>
           ) : (
             <>
-              {/* ── Main form ── */}
               <form onSubmit={handleSubmit} className="space-y-4">
 
                 {/* Email */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-[#1A1A1A]">Adresse email</label>
+                  <label className="text-sm font-semibold" style={{ color: '#1A0C00' }}>Adresse email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#C05015]/60" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(255,140,0,0.6)' }} />
                     <input
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -188,13 +192,13 @@ export default function Login() {
                 {/* Password */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold text-[#1A1A1A]">Mot de passe</label>
-                    <Link to="/forgot-password" className="text-xs text-[#C05015] hover:text-[#9A3E10] font-medium">
+                    <label className="text-sm font-semibold" style={{ color: '#1A0C00' }}>Mot de passe</label>
+                    <Link to="/forgot-password" className="text-xs font-medium hover:opacity-80" style={{ color: '#FF8C00' }}>
                       Mot de passe oublié ?
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#C05015]/60" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(255,140,0,0.6)' }} />
                     <input
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -202,21 +206,22 @@ export default function Login() {
                       className={`${inputCls(errors.password)} pr-10`}
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9A7060] hover:text-[#C05015] transition-colors" tabIndex={-1}>
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 hover:opacity-80 transition-opacity" tabIndex={-1}
+                      style={{ color: '#B09070' }}>
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
                 </div>
 
-                {/* Global error */}
                 {errors.submit && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">
                     {errors.submit}
                     {verifyEmailCta && (
                       <div className="mt-3">
                         <Link to="/verify-email"
-                          className="block w-full text-center py-2 px-4 rounded-xl font-bold bg-[#C05015] text-white hover:bg-[#9A3E10] transition-colors text-xs">
+                          className="block w-full text-center py-2 px-4 rounded-xl font-bold text-white text-xs transition-opacity hover:opacity-90"
+                          style={{ background: 'linear-gradient(135deg,#FF8C00,#E07A00)' }}>
                           Vérifier mon email
                         </Link>
                       </div>
@@ -225,7 +230,8 @@ export default function Login() {
                 )}
 
                 <button type="submit" disabled={isSubmitting}
-                  className="w-full py-3.5 px-4 rounded-2xl font-bold text-white bg-[#C05015] hover:bg-[#9A3E10] active:scale-[0.98] transition-all shadow-sm disabled:opacity-60 text-sm mt-2">
+                  className="w-full py-3.5 px-4 rounded-2xl font-bold text-white active:scale-[0.98] transition-all shadow-sm disabled:opacity-60 text-sm mt-2"
+                  style={{ background: 'linear-gradient(135deg,#FF8C00,#E07A00)' }}>
                   {isSubmitting ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -235,9 +241,9 @@ export default function Login() {
                 </button>
               </form>
 
-              <p className="mt-7 text-center text-sm text-[#9A7060]">
+              <p className="mt-7 text-center text-sm" style={{ color: '#B09070' }}>
                 Pas encore de compte ?{' '}
-                <Link to="/register" className="text-[#C05015] font-semibold hover:text-[#9A3E10]">
+                <Link to="/register" className="font-semibold hover:opacity-80" style={{ color: '#FF8C00' }}>
                   Créer un compte
                 </Link>
               </p>
@@ -245,19 +251,20 @@ export default function Login() {
           )}
         </div>
 
-        {/* ── Right : burger image panel ── */}
-        <div className="hidden lg:flex lg:w-[48%] xl:w-[50%] flex-shrink-0 relative overflow-hidden bg-[#FBE8DC] items-center justify-center">
+        {/* Right : image */}
+        <div className="hidden lg:flex lg:w-[48%] xl:w-[50%] flex-shrink-0 relative overflow-hidden items-center justify-center"
+          style={{ background: '#FFF5E8' }}>
           <img
-            src="/burger-hero.jpg"
-            alt="Burger Resto d'ici"
+            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=900&auto=format&fit=crop"
+            alt="Plats d'Abidjan"
             className="w-full h-full object-cover"
           />
-          {/* Soft bottom vignette */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#C05015]/40 via-transparent to-transparent pointer-events-none" />
-          {/* Brand badge */}
-          <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg">
-            <p className="text-[#C05015] font-extrabold text-sm">Resto d'ici</p>
-            <p className="text-[#9A7060] text-xs mt-0.5">La table digitale de vos repas</p>
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(to top, rgba(255,140,0,0.45) 0%, transparent 55%)' }} />
+          <div className="absolute bottom-6 left-6 rounded-2xl px-4 py-3 shadow-lg"
+            style={{ background: 'rgba(255,250,243,0.92)', backdropFilter: 'blur(12px)' }}>
+            <p className="font-extrabold text-sm" style={{ color: '#FF8C00', fontFamily: "'Playfair Display', serif" }}>Resto d'ici</p>
+            <p className="text-xs mt-0.5" style={{ color: '#B09070' }}>La table digitale de vos repas</p>
           </div>
         </div>
 

@@ -16,6 +16,7 @@ import { PromosModule } from '../promos/promos.module';
 import { User } from '../auth/entities/user.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { HorairesGuard } from './guards/horaires.guard';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { HorairesGuard } from './guards/horaires.guard';
     TresorerieModule,
     PromosModule,
     NotificationsModule,
+    StorageModule,
   ],
   controllers: [CommandesController],
   providers: [CommandesService, CommandesGateway, HorairesGuard],

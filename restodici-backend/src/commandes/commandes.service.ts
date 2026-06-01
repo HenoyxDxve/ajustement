@@ -279,6 +279,10 @@ export class CommandesService {
     return commande;
   }
 
+  async updateS3Key(id: string, s3Key: string): Promise<void> {
+    await this.commandeRepo.update(id, { recuPdfS3Key: s3Key } as any);
+  }
+
   async updateStatut(
     id: string,
     newStatut: StatutCommande,

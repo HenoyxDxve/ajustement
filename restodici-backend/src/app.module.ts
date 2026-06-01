@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { BullModule } from '@nestjs/bullmq';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -21,11 +22,19 @@ import { PromosModule } from './promos/promos.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaiementsModule } from './paiements/paiements.module';
 import { FournisseursModule } from './fournisseurs/fournisseurs.module';
+import { ReceiptQueueModule } from './receipt-queue/receipt-queue.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        password: process.env.REDIS_PASSWORD || undefined,
+      },
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
@@ -61,6 +70,7 @@ import { FournisseursModule } from './fournisseurs/fournisseurs.module';
     NotificationsModule,
     PaiementsModule,
     FournisseursModule,
+    ReceiptQueueModule,
   ],
   controllers: [AppController],
   providers: [

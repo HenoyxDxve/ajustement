@@ -1,8 +1,10 @@
 import { Controller, Post, Body, Headers, Logger, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SkipThrottle } from '@nestjs/throttler';
 import { PaiementsService } from './paiements.service';
 import * as crypto from 'crypto';
 
+@SkipThrottle()
 @Controller('paiements')
 export class PaiementsController {
   private readonly logger = new Logger(PaiementsController.name);

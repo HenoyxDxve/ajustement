@@ -21,6 +21,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { TresorerieService } from '../tresorerie/tresorerie.service';
+import { StorageService } from '../storage/storage.service';
 import { HorairesGuard } from './guards/horaires.guard';
 
 @Controller('commandes')
@@ -28,6 +29,7 @@ export class CommandesController {
   constructor(
     private readonly commandesService: CommandesService,
     private readonly tresorerieService: TresorerieService,
+    private readonly storageService: StorageService,
   ) {}
 
   @Post()
@@ -141,29 +143,48 @@ export class CommandesController {
       );
     }
 
-    const pdfBuffer = await this.tresorerieService.generateReceiptPdf({
-      commandeId: commande.id,
-      numero: commande.numero,
-      restaurantNom: commande.restaurant.nom,
-      restaurantAdresse: commande.restaurant.adresse,
-      restaurantTelephone: commande.restaurant.telephone,
-      restaurantEmail: commande.restaurant.email,
-      restaurantNif: (commande.restaurant as any).nif,
-      restaurantRccm: (commande.restaurant as any).rccm,
-      clientNom:
-        [commande.client?.prenom, commande.client?.nom]
-          .filter(Boolean)
-          .join(' ') || 'Client',
-      lignes: (commande.lignes ?? []).map((l) => ({
-        nom: l.article?.nom ?? 'Article',
-        quantite: l.quantite,
-        prixUnitaire: Number(l.prixUnitaire),
-      })),
-      montantTotal: Number(commande.montantTotal),
-      modePaiement: commande.modePaiement,
-      modeLivraison: commande.modeLivraison,
-      payeAt: commande.payeAt,
-    });
+    let pdfBuffer: Buffer | null = null;
+
+    // Servir depuis S3 si le PDF a déjà été persisté
+    if ((commande as any).recuPdfS3Key) {
+      pdfBuffer = await this.storageService.downloadPdf((commande as any).recuPdfS3Key);
+    }
+
+    // Génération à la volée si absent de S3 (ou S3 non configuré)
+    if (!pdfBuffer) {
+      pdfBuffer = await this.tresorerieService.generateReceiptPdf({
+        commandeId: commande.id,
+        numero: commande.numero,
+        restaurantNom: commande.restaurant.nom,
+        restaurantAdresse: commande.restaurant.adresse,
+        restaurantTelephone: commande.restaurant.telephone,
+        restaurantEmail: commande.restaurant.email,
+        restaurantNif: (commande.restaurant as any).nif,
+        restaurantRccm: (commande.restaurant as any).rccm,
+        clientNom:
+          [commande.client?.prenom, commande.client?.nom]
+            .filter(Boolean)
+            .join(' ') || 'Client',
+        lignes: (commande.lignes ?? []).map((l) => ({
+          nom: l.article?.nom ?? 'Article',
+          quantite: l.quantite,
+          prixUnitaire: Number(l.prixUnitaire),
+        })),
+        montantTotal: Number(commande.montantTotal),
+        modePaiement: commande.modePaiement,
+        modeLivraison: commande.modeLivraison,
+        payeAt: commande.payeAt,
+      });
+
+      // Persister en S3 pour les prochaines requêtes
+      if (!(commande as any).recuPdfS3Key && this.storageService.configured) {
+        const s3Key = `receipts/${commande.id}/recu-${commande.numero}.pdf`;
+        const uploaded = await this.storageService.uploadPdf(s3Key, pdfBuffer);
+        if (uploaded) {
+          await this.commandesService.updateS3Key(commande.id, s3Key);
+        }
+      }
+    }
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(

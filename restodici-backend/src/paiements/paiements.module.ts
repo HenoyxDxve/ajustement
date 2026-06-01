@@ -5,11 +5,15 @@ import { PaiementsService } from './paiements.service';
 import { Commande } from '../commandes/entities/commande.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { CommandesModule } from '../commandes/commandes.module';
-import { EmailModule } from '../email/email.module';
-import { TresorerieModule } from '../tresorerie/tresorerie.module';
+import { ReceiptQueueModule } from '../receipt-queue/receipt-queue.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Commande]), NotificationsModule, CommandesModule, EmailModule, TresorerieModule],
+  imports: [
+    TypeOrmModule.forFeature([Commande]),
+    NotificationsModule,
+    CommandesModule,
+    ReceiptQueueModule,
+  ],
   controllers: [PaiementsController],
   providers: [PaiementsService],
   exports: [PaiementsService],

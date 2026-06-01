@@ -19,27 +19,32 @@ async function bootstrap() {
     }),
   );
 
-  // CORS pour le frontend React - supporte tous les ports de développement courants
+  // CORS — origines autorisées (dev hardcodé + production via FRONTEND_URL)
+  const corsOrigins: string[] = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://localhost:3000',
+    'http://localhost:62758',
+    'http://localhost:64096',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:5175',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:62758',
+    'http://127.0.0.1:64096',
+    'http://192.168.1.5:5173',
+    'http://192.168.1.5:5174',
+    'http://192.168.1.5:3000',
+    'http://192.168.1.5:62758',
+    'http://192.168.1.5:64096',
+  ];
+  const frontendUrl = process.env.FRONTEND_URL;
+  if (frontendUrl && !corsOrigins.includes(frontendUrl)) {
+    corsOrigins.push(frontendUrl);
+  }
   app.enableCors({
-    origin: [
-      'http://localhost:5173', // Vite dev server default
-      'http://localhost:5174', // Vite dev server alternative
-      'http://localhost:5175', // Vite dev server possible increment
-      'http://localhost:3000', // Create React App
-      'http://localhost:62758', // Current serve port
-      'http://localhost:64096', // Dynamic serve port
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:5174',
-      'http://127.0.0.1:5175',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:62758',
-      'http://127.0.0.1:64096',
-      'http://192.168.1.5:5173', // Network access
-      'http://192.168.1.5:5174',
-      'http://192.168.1.5:3000',
-      'http://192.168.1.5:62758',
-      'http://192.168.1.5:64096',
-    ],
+    origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],

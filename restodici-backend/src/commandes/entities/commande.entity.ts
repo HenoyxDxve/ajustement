@@ -87,6 +87,15 @@ export class Commande {
   @Column({ type: 'text', nullable: true })
   motifRemboursement?: string;
 
+  @Column({ nullable: true, type: 'text' })
+  recuPdfS3Key?: string;
+
+  @Column({ default: false })
+  recuEmailSent!: boolean;
+
+  @Column({ default: false })
+  recuSmsSent!: boolean;
+
   @ManyToOne(() => User)
   @JoinColumn({ name: 'clientId' })
   client!: User;

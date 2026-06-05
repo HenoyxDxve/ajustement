@@ -108,12 +108,17 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (userData) => {
     try {
       const data = await authService.register(userData);
-      const { user: newUser } = data;
+      const { user: newUser, access_token, token } = data;
       if (!newUser) {
         return { success: false, error: "Réponse invalide du serveur" };
       }
-      // Ne pas auto-connecter après inscription : l'email doit être vérifié d'abord
-      return { success: true, user: newUser };
+      const jwtToken = access_token ?? token;
+      if (jwtToken) {
+        localStorage.setItem("token", jwtToken);
+        localStorage.setItem("user", JSON.stringify(newUser));
+        setUser({ ...newUser, token: jwtToken });
+      }
+      return { success: true, user: newUser, token: jwtToken };
     } catch (error) {
       console.error("Register error:", error);
       return {

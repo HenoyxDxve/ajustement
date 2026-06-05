@@ -156,6 +156,10 @@ export const commandesService = {
   // GET /commandes/:id/history — audit timeline for one order
   getCommandeHistory: (id) => api.get(`/commandes/${id}/history`),
 
+  // PATCH /commandes/:id/paiement — enregistrer un paiement
+  registerPayment: (id, data) =>
+    api.patch(`/commandes/${id}/paiement`, data),
+
   // GET /commandes/activity/restaurant — recent status changes for gérant/staff
   getRestaurantActivity: (limit = 50) =>
     api.get('/commandes/activity/restaurant', { params: { limit } }),
@@ -175,6 +179,9 @@ export const stocksAPI = {
 
   // GET /stocks — inventaire complet
   getAll: (params) => api.get("/stocks", { params }),
+
+  // GET /stocks/rapport-ecarts — stock théorique pour rapport inventaire
+  getRapportEcarts: (restaurantId) => api.get("/stocks/rapport-ecarts", { params: { restaurantId } }),
 };
 
 export const b2bAPI = {
@@ -215,6 +222,8 @@ export const b2bAPI = {
   // Factures mensuelles (new)
   getFacturesMensuelles: () => api.get("/b2b/factures-mensuelles"),
   payerFacture: (id) => api.post(`/b2b/factures-mensuelles/${id}/payer`),
+  initierPaiement: (id) => api.post(`/b2b/factures-mensuelles/${id}/initier-paiement`),
+  seedFactureTest: () => api.post("/b2b/factures-mensuelles/test-seed"),
 
   // Legacy invoices
   getInvoices: () => api.get("/b2b/invoices"),
@@ -317,6 +326,10 @@ export const adminAPI = {
   // Métriques système
   getSystemMetrics:   ()           => api.get('/admin/system-metrics'),
 
+  // Commissions plateforme
+  getCommissions:            ()           => api.get('/admin/commissions'),
+  updateTauxCommission:      (id, taux)   => api.patch(`/admin/restaurants/${id}/commission`, { taux }),
+
   // Backup DB
   getBackups:         ()           => api.get('/admin/backup/list'),
   runBackup:          ()           => api.post('/admin/backup/run'),
@@ -353,6 +366,10 @@ export const promosAPI = {
   // POST /promos/validate — valider un code au checkout (client)
   validate: (code, restaurantId, montantCommande) =>
     api.post('/promos/validate', { code, restaurantId, montantCommande }),
+
+  // GET /menu/promos-actives — offres limitées actives d'un restaurant (public)
+  getActives: (restaurantId) =>
+    api.get('/menu/promos-actives', { params: { restaurantId } }),
 };
 
 export const staffAPI = {

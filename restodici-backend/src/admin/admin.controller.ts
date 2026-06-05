@@ -303,4 +303,17 @@ export class AdminController {
       timestamp: new Date().toISOString(),
     };
   }
+
+  @Get('commissions')
+  getCommissions() {
+    return this.adminService.getCommissions();
+  }
+
+  @Patch('restaurants/:id/commission')
+  updateTauxCommission(
+    @Param('id') id: string,
+    @Body('taux') taux: number,
+  ) {
+    return this.adminService.updateTauxCommission(id, Number(taux));
+  }
 }

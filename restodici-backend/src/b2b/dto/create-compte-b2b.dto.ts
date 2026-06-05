@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateCompteB2BDto {
   @IsString()
@@ -17,4 +17,8 @@ export class CreateCompteB2BDto {
 
   @IsString()
   telephoneProfessionnel!: string;
+
+  @IsOptional()
+  @IsString()
+  adresseSiege?: string;
 }

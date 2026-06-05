@@ -7,6 +7,7 @@ import { Commande } from './entities/commande.entity';
 import { LigneCommande } from './entities/ligne-commande.entity';
 import { AvisCommande } from './entities/avis-commande.entity';
 import { CommandeStatusHistory } from './entities/commande-status-history.entity';
+import { CommissionPlateforme } from './entities/commission-plateforme.entity';
 import { Article } from '../menu/entities/article.entity';
 import { Restaurant } from '../restaurants/entities/restaurant.entity';
 import { AuthModule } from '../auth/auth.module';
@@ -25,6 +26,7 @@ import { StorageModule } from '../storage/storage.module';
       LigneCommande,
       AvisCommande,
       CommandeStatusHistory,
+      CommissionPlateforme,
       Article,
       Restaurant,
       User,

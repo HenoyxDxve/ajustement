@@ -117,8 +117,11 @@ export default function BulkOrder() {
 
   // ── B2B-specific state ────────────────────────────────────────────────────
   const [collaborateurs, setCollaborateurs] = useState([]);
-  const [panier, setPanier] = useState({}); // { articleId → { article, quantite } }
-  const [assignments, setAssignments] = useState({}); // { articleId → collaborateurId }
+  // panier: { articleId → { article, members: { [collabId|'libre']: qty } } }
+  const [panier, setPanier] = useState({});
+  // pickerArticle: article currently open in the member-assignment popover
+  const [pickerArticle, setPickerArticle] = useState(null);
+  const [pickerMembers, setPickerMembers] = useState({}); // { [collabId|'libre']: qty }
 
   // ── Delivery state ────────────────────────────────────────────────────────
   const { minDate, minTime } = getMinDatetime();
@@ -188,30 +191,87 @@ export default function BulkOrder() {
   }, [selectedRestaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Panier helpers ────────────────────────────────────────────────────────
-  const addToCart = useCallback((article) => {
-    if (article.disponible === false) return;
-    setPanier(prev => ({
-      ...prev,
-      [article.id]: { article, quantite: (prev[article.id]?.quantite || 0) + 1 },
-    }));
-  }, []);
+  const getArticleQty = (articleId) => {
+    const entry = panier[articleId];
+    if (!entry) return 0;
+    return Object.values(entry.members).reduce((s, q) => s + q, 0);
+  };
 
-  const removeFromCart = useCallback((articleId) => {
-    setPanier(prev => {
-      const ex = prev[articleId];
-      if (!ex || ex.quantite <= 1) { const { [articleId]: _, ...rest } = prev; return rest; }
-      return { ...prev, [articleId]: { ...ex, quantite: ex.quantite - 1 } };
-    });
-  }, []);
+  const openPicker = (article) => {
+    if (article.disponible === false) return;
+    setPickerArticle(article);
+    setPickerMembers(panier[article.id]?.members || {});
+  };
+
+  const applyPicker = () => {
+    if (!pickerArticle) return;
+    const totalQty = Object.values(pickerMembers).reduce((s, q) => s + q, 0);
+    if (totalQty === 0) {
+      // Remove article from cart if all zeroed out
+      setPanier(prev => { const { [pickerArticle.id]: _, ...rest } = prev; return rest; });
+    } else {
+      setPanier(prev => ({
+        ...prev,
+        [pickerArticle.id]: { article: pickerArticle, members: { ...pickerMembers } },
+      }));
+    }
+    setPickerArticle(null);
+    setPickerMembers({});
+  };
 
   const deleteFromCart = (articleId) => {
     setPanier(prev => { const { [articleId]: _, ...rest } = prev; return rest; });
   };
 
+  // Monthly spend already consumed per collaborator (from their data)
+  const getMemberSpent = (collabId) => {
+    const c = collaborateurs.find(x => x.id === collabId);
+    return Number(c?.depenseActuelle || c?.depenses || 0);
+  };
+  const getMemberBudget = (collabId) => {
+    const c = collaborateurs.find(x => x.id === collabId);
+    return Number(c?.limiteBudget || c?.budgetMax || 0);
+  };
+
+  // Budget already committed in cart (excluding pickerMembers for live preview)
+  const getCartSpend = (collabId) => {
+    return Object.values(panier).reduce((total, entry) => {
+      if (!entry.members[collabId]) return total;
+      return total + entry.members[collabId] * Number(entry.article.prix || 0);
+    }, 0);
+  };
+
+  // Lines to submit: one ligne per (article, member) pair
+  const buildLignes = () => {
+    const lines = [];
+    Object.values(panier).forEach(({ article, members }) => {
+      Object.entries(members).forEach(([collabId, qty]) => {
+        if (qty <= 0) return;
+        lines.push({
+          articleId: article.id,
+          nomArticle: article.nom,
+          quantite: qty,
+          prixUnitaire: Number(article.prix || 0),
+          collaborateurId: collabId === 'libre' ? undefined : collabId,
+        });
+      });
+    });
+    return lines;
+  };
+
   // ── Derived ───────────────────────────────────────────────────────────────
   const panierItems = Object.values(panier);
-  const totalCouverts = panierItems.reduce((s, i) => s + i.quantite, 0);
-  const totalEstime = panierItems.reduce((s, i) => s + i.quantite * Number(i.article.prix || 0), 0);
+  const totalCouverts = panierItems.reduce((s, i) =>
+    s + Object.values(i.members).reduce((ms, q) => ms + q, 0), 0);
+  const totalEstime = panierItems.reduce((s, i) =>
+    s + Object.values(i.members).reduce((ms, q) => ms + q, 0) * Number(i.article.prix || 0), 0);
+
+  // Per-member totals for recap
+  const memberTotals = collaborateurs.reduce((acc, c) => {
+    const cartSpend = getCartSpend(c.id);
+    if (cartSpend > 0) acc[c.id] = cartSpend;
+    return acc;
+  }, {});
 
   const filteredProducts = useMemo(() => {
     let list = [...menuData];
@@ -260,12 +320,7 @@ export default function BulkOrder() {
         heureLivraison: livraison.heureLivraison,
         lieuLivraison: livraison.lieuLivraison,
         adresseLivraison: livraison.adresseLivraison || livraison.lieuLivraison,
-        lignes: panierItems.map(item => ({
-          articleId: item.article.id,
-          quantite: item.quantite,
-          prixUnitaire: Number(item.article.prix || 0),
-          collaborateurId: assignments[item.article.id] || undefined,
-        })),
+        lignes: buildLignes(),
       });
       const orderId = result?.data?.id || result?.id;
       setSuccess('Commande enregistrée ! Le restaurant a été notifié.');
@@ -308,7 +363,16 @@ export default function BulkOrder() {
     );
   }
 
+  const prix = Number(pickerArticle?.prix || 0);
+  const totalPickerQty = Object.values(pickerMembers).reduce((s, q) => s + q, 0);
+  const activeCollabs = collaborateurs.filter(c => c.actif !== false);
+  const pickerRows = pickerArticle ? [
+    ...activeCollabs,
+    { id: 'libre', nom: 'Sans attribution', limiteBudget: 0, depenseActuelle: 0 },
+  ] : [];
+
   return (
+    <>
     <div className="min-h-screen" style={{ background: SF }}>
 
       {/* ── Top nav ──────────────────────────────────────────────────────── */}
@@ -543,9 +607,17 @@ export default function BulkOrder() {
 
                             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                               {filteredProducts.map(product => {
-                                const qty = panier[product.id]?.quantite || 0;
+                                const qty = getArticleQty(product.id);
                                 const allergens = getAllergenIcons(product);
                                 const isPromo = parseFloat(product.prix) < 2000;
+                                const assignedNames = qty > 0 && panier[product.id]
+                                  ? Object.entries(panier[product.id].members)
+                                      .filter(([, q]) => q > 0)
+                                      .map(([cid, q]) => {
+                                        const c = collaborateurs.find(x => x.id === cid);
+                                        return `${c ? c.nom.split(' ')[0] : 'Libre'} ×${q}`;
+                                      }).join(', ')
+                                  : '';
                                 return (
                                   <div key={product.id}
                                     className={`group overflow-hidden rounded-[28px] border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-orange-200 ${!product.disponible ? 'opacity-60' : ''} ${qty > 0 ? 'ring-2 ring-orange-400/30 border-orange-300' : ''}`}
@@ -592,31 +664,32 @@ export default function BulkOrder() {
                                         <div className="flex gap-1">{allergens.map((ic, i) => <span key={i} className="text-sm">{ic}</span>)}</div>
                                       )}
 
-                                      {/* Price + inline qty */}
+                                      {/* Assigned members summary */}
+                                      {assignedNames && (
+                                        <p className="text-[11px] font-medium rounded-lg px-2 py-1.5" style={{ background: AL, color: A }}>
+                                          👥 {assignedNames}
+                                        </p>
+                                      )}
+
+                                      {/* Price */}
                                       <div className="flex items-center justify-between gap-2">
                                         <span className={`text-lg font-extrabold ${isPromo ? 'text-emerald-600' : 'text-orange-500'}`}>
                                           {formatFCFA(parseFloat(product.prix) || 0)}
                                         </span>
-                                        <div className="flex items-center overflow-hidden rounded-xl border border-gray-100 bg-white text-sm">
-                                          <button type="button" onClick={() => removeFromCart(product.id)}
-                                            disabled={!product.disponible || qty === 0}
-                                            className="px-3 py-1.5 font-bold text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition disabled:opacity-30">
-                                            −
+                                        {qty > 0 && (
+                                          <button type="button" onClick={() => deleteFromCart(product.id)}
+                                            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg text-red-500 bg-red-50 hover:bg-red-100 transition">
+                                            Retirer
                                           </button>
-                                          <span className="min-w-[32px] px-2 py-1.5 text-center font-bold text-slate-900">{qty}</span>
-                                          <button type="button" onClick={() => addToCart(product)}
-                                            disabled={!product.disponible}
-                                            className="px-3 py-1.5 font-bold text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition disabled:opacity-30">
-                                            +
-                                          </button>
-                                        </div>
+                                        )}
                                       </div>
 
-                                      {/* Add button */}
-                                      <button type="button" onClick={() => addToCart(product)}
+                                      {/* Main CTA — opens member picker */}
+                                      <button type="button" onClick={() => openPicker(product)}
                                         disabled={!product.disponible}
-                                        className={`w-full rounded-2xl py-2.5 text-sm font-bold transition-all ${product.disponible ? 'bg-gradient-to-r from-orange-500 to-[#C05015] text-white shadow-sm hover:shadow-lg' : 'cursor-not-allowed bg-[#FBE8DC] text-[#9A7060]'}`}>
-                                        {product.disponible ? (qty > 0 ? `+ Ajouter un autre (${qty} au panier)` : '+ Ajouter à la commande') : 'Indisponible'}
+                                        className={`w-full rounded-2xl py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2 ${product.disponible ? 'bg-gradient-to-r from-orange-500 to-[#C05015] text-white shadow-sm hover:shadow-lg' : 'cursor-not-allowed bg-[#FBE8DC] text-[#9A7060]'}`}>
+                                        <Users className="w-3.5 h-3.5" />
+                                        {!product.disponible ? 'Indisponible' : qty > 0 ? `Modifier l'affectation (${qty})` : 'Choisir qui veut ce plat'}
                                       </button>
                                     </div>
                                   </div>
@@ -734,32 +807,59 @@ export default function BulkOrder() {
                 <p className="text-[11px] text-[#9CA3AF] mt-2 text-center">Cliquez ou déplacez le repère pour ajuster le point de livraison</p>
               </div>
 
-              {/* Assign collaborateurs per article */}
-              {collaborateurs.filter(c => c.actif !== false).length > 0 && (
+              {/* Budget summary per member */}
+              {Object.keys(memberTotals).length > 0 && (
                 <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
                   <h3 className="font-bold text-[#111827] mb-1 flex items-center gap-2">
-                    <Users className="w-4 h-4" style={{ color: A }} /> Assigner les repas (optionnel)
+                    <Users className="w-4 h-4" style={{ color: A }} /> Impact budgétaire par membre
                   </h3>
-                  <p className="text-xs text-[#9CA3AF] mb-4">Associez chaque plat à un collaborateur pour le suivi budgétaire.</p>
+                  <p className="text-xs text-[#9CA3AF] mb-4">
+                    Ces montants seront déduits du budget mensuel de chaque collaborateur.
+                  </p>
                   <div className="space-y-3">
-                    {panierItems.map(item => (
-                      <div key={item.article.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: SF }}>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-[#111827] truncate">{item.article.nom}</p>
-                          <p className="text-xs text-[#9CA3AF]">×{item.quantite} — {(item.quantite * Number(item.article.prix || 0)).toLocaleString('fr-FR')} FCFA</p>
+                    {Object.entries(memberTotals).map(([collabId, cartSpend]) => {
+                      const collab   = collaborateurs.find(c => c.id === collabId);
+                      if (!collab) return null;
+                      const spent    = getMemberSpent(collabId);
+                      const budget   = getMemberBudget(collabId);
+                      const newTotal = spent + cartSpend;
+                      const pct      = budget > 0 ? Math.min(100, Math.round((newTotal / budget) * 100)) : 0;
+                      const isOver   = budget > 0 && newTotal > budget;
+                      return (
+                        <div key={collabId} className="p-3 rounded-xl" style={{ background: SF }}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                                style={{ background: AL, color: A }}>
+                                {(collab.nom || '?').charAt(0).toUpperCase()}
+                              </div>
+                              <p className="text-sm font-semibold text-[#111827]">{collab.nom}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs font-bold" style={{ color: isOver ? '#DC2626' : A }}>
+                                +{cartSpend.toLocaleString('fr-FR')} FCFA
+                              </p>
+                              {budget > 0 && (
+                                <p className="text-[10px] text-[#9CA3AF]">
+                                  {newTotal.toLocaleString('fr-FR')} / {budget.toLocaleString('fr-FR')}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {budget > 0 && (
+                            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#E5E7EB' }}>
+                              <div className="h-full rounded-full transition-all"
+                                style={{ width: `${pct}%`, background: isOver ? '#DC2626' : pct > 80 ? '#F59E0B' : '#16A34A' }} />
+                            </div>
+                          )}
+                          {isOver && (
+                            <p className="text-[10px] font-bold text-red-500 mt-1">
+                              ⚠ Dépasse le budget de {(newTotal - budget).toLocaleString('fr-FR')} FCFA
+                            </p>
+                          )}
                         </div>
-                        <select
-                          value={assignments[item.article.id] || ''}
-                          onChange={e => setAssignments(p => ({ ...p, [item.article.id]: e.target.value || undefined }))}
-                          className="rounded-xl px-3 py-2 text-xs font-medium outline-none shrink-0"
-                          style={{ background: '#fff', border: `1px solid ${BD}` }}>
-                          <option value="">— Aucun</option>
-                          {collaborateurs.filter(c => c.actif !== false).map(c => (
-                            <option key={c.id} value={c.id}>{c.nom}</option>
-                          ))}
-                        </select>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -834,24 +934,27 @@ export default function BulkOrder() {
                 <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
                   <h3 className="font-bold text-[#111827] mb-4">Récapitulatif de la commande</h3>
 
-                  {/* Items */}
+                  {/* Items — regroupés par membre */}
                   <div className="space-y-2 mb-4">
-                    {panierItems.map(item => (
-                      <div key={item.article.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: SF }}>
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: A }}>{item.quantite}</div>
+                    {buildLignes().map((ligne, i) => {
+                      const collab = ligne.collaborateurId
+                        ? collaborateurs.find(c => c.id === ligne.collaborateurId)
+                        : null;
+                      return (
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: SF }}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: A }}>{ligne.quantite}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-[#111827] truncate">{item.article.nom}</p>
-                          {assignments[item.article.id] && (
-                            <p className="text-[11px] text-[#9CA3AF]">
-                              → {collaborateurs.find(c => c.id === assignments[item.article.id])?.nom || 'Collaborateur'}
-                            </p>
-                          )}
+                          <p className="text-sm font-semibold text-[#111827] truncate">{ligne.nomArticle}</p>
+                          <p className="text-[11px] text-[#9CA3AF]">
+                            {collab ? `→ ${collab.nom}` : '→ Sans attribution'}
+                          </p>
                         </div>
                         <p className="text-sm font-bold shrink-0" style={{ color: A }}>
-                          {(item.quantite * Number(item.article.prix || 0)).toLocaleString('fr-FR')} FCFA
+                          {(ligne.quantite * ligne.prixUnitaire).toLocaleString('fr-FR')} FCFA
                         </p>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
 
                   {/* Totals */}
@@ -922,5 +1025,97 @@ export default function BulkOrder() {
         )}
       </div>
     </div>
+
+    {/* ── Member assignment popover ────────────────────────────────────── */}
+    {pickerArticle && (
+      <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+        onClick={e => e.target === e.currentTarget && setPickerArticle(null)}>
+        <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl">
+
+          {/* Header */}
+          <div className="px-5 py-4 flex items-start justify-between gap-3"
+            style={{ background: AL, borderBottom: `1px solid ${BD}` }}>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-[#111827] truncate">{pickerArticle.nom}</p>
+              <p className="text-xs mt-0.5" style={{ color: A }}>
+                {formatFCFA(prix)} / portion · Qui veut ce plat ?
+              </p>
+            </div>
+            <button onClick={() => setPickerArticle(null)}
+              className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(0,0,0,0.08)' }}>
+              <X className="w-3.5 h-3.5 text-gray-600" />
+            </button>
+          </div>
+
+          {/* Member list */}
+          <div className="divide-y max-h-80 overflow-y-auto" style={{ borderColor: BD }}>
+            {pickerRows.map(member => {
+              const qty         = pickerMembers[member.id] || 0;
+              const isLibre     = member.id === 'libre';
+              const budget      = getMemberBudget(member.id);
+              const spent       = getMemberSpent(member.id);
+              const cartAlready = getCartSpend(member.id);
+              const preview     = spent + cartAlready + qty * prix;
+              const solde       = !isLibre && budget > 0 ? budget - preview : null;
+              const isOver      = solde !== null && solde < 0;
+              return (
+                <div key={member.id} className="flex items-center gap-3 px-5 py-3.5">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0"
+                    style={{ background: isLibre ? '#F3F4F6' : AL, color: isLibre ? '#6B7280' : A }}>
+                    {isLibre ? '—' : member.nom.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#111827] truncate">{member.nom}</p>
+                    {!isLibre && budget > 0 && (
+                      <p className="text-[10px]" style={{ color: isOver ? '#DC2626' : '#6B7280' }}>
+                        {isOver
+                          ? `⚠ Dépasse de ${formatFCFA(Math.abs(solde))}`
+                          : `Solde après : ${formatFCFA(Math.max(0, solde))}`}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => setPickerMembers(p => {
+                        const next = Math.max(0, (p[member.id] || 0) - 1);
+                        if (next === 0) { const { [member.id]: _, ...rest } = p; return rest; }
+                        return { ...p, [member.id]: next };
+                      })}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-lg font-bold transition"
+                      style={{ background: qty > 0 ? '#FBE8DC' : '#F3F4F6', color: qty > 0 ? A : '#9CA3AF' }}>
+                      −
+                    </button>
+                    <span className="w-6 text-center text-sm font-bold text-[#111827]">{qty}</span>
+                    <button
+                      onClick={() => {
+                        if (isOver) return;
+                        setPickerMembers(p => ({ ...p, [member.id]: (p[member.id] || 0) + 1 }));
+                      }}
+                      disabled={isOver}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-lg font-bold transition disabled:opacity-30"
+                      style={{ background: isOver ? '#F3F4F6' : AL, color: isOver ? '#9CA3AF' : A }}>
+                      +
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="px-5 py-4" style={{ borderTop: `1px solid ${BD}` }}>
+            <button onClick={applyPicker}
+              className="w-full py-3 rounded-2xl text-sm font-bold text-white transition hover:opacity-90"
+              style={{ background: totalPickerQty > 0 ? `linear-gradient(135deg, #F97316, ${A})` : '#D1D5DB' }}>
+              {totalPickerQty > 0
+                ? `Valider — ${totalPickerQty} portion${totalPickerQty > 1 ? 's' : ''} · ${formatFCFA(totalPickerQty * prix)}`
+                : 'Retirer ce plat du panier'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

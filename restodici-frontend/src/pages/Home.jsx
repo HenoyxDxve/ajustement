@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { UtensilsCrossed, ArrowRight, Check, Star, Search, ShoppingBag, Truck, Clock, Heart } from "lucide-react";
+import { UtensilsCrossed, ArrowRight, Check, Star, Search, ShoppingBag, Truck, Clock, Heart, Mail } from "lucide-react";
 import { menuAPI } from "../services/api";
 
 /* ─── Palette ─── */
@@ -55,6 +55,7 @@ const FOOD_IMGS = [
 ];
 
 function getItemImg(item, idx) {
+  if (item?.photoUrl) return item.photoUrl;
   if (item?.imageUrl) return item.imageUrl;
   return `https://images.unsplash.com/${FOOD_IMGS[idx % FOOD_IMGS.length]}?q=80&w=500&auto=format&fit=crop`;
 }
@@ -191,129 +192,122 @@ function Nav() {
 }
 
 /* ─── Hero ─── */
-function Hero({ search, onSearch, menuRef }) {
+function Hero({ search, onSearch, menuRef, restaurantCount = 0 }) {
   const handleSubmit = () => {
-    if (menuRef?.current) {
-      menuRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    if (menuRef?.current) menuRef.current.scrollIntoView({ behavior:"smooth", block:"start" });
   };
   return (
-    <section style={{ background:T.bg,minHeight:"100vh",position:"relative",overflow:"hidden",display:"flex",flexDirection:"column" }}>
-      <KS h={3} />
-      <Brush color={T.accent} opacity={0.13} style={{ width:700,top:-60,right:-80 }} />
-      <Brush color={T.yellow} opacity={0.12} style={{ width:500,bottom:80,left:-100,transform:"rotate(15deg)" }} />
-      <div style={{ position:"absolute",right:-120,top:"5%",width:680,height:680,borderRadius:"50%",background:`radial-gradient(circle,${T.accent}22 0%,transparent 68%)`,pointerEvents:"none" }} />
-      <div style={{ position:"absolute",left:-80,bottom:"10%",width:420,height:420,borderRadius:"50%",background:`radial-gradient(circle,${T.yellow}18 0%,transparent 70%)`,pointerEvents:"none" }} />
+    <section style={{ position:"relative", minHeight:"100vh", display:"flex", flexDirection:"column", justifyContent:"flex-end", overflow:"hidden" }}>
+      {/* Image de fond */}
+      <img
+        src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=85&w=1800&auto=format&fit=crop"
+        alt="Plats d'Abidjan"
+        style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 40%", display:"block" }}
+      />
+      {/* Gradient overlay — bas sombre pour lisibilité du texte */}
+      <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(10,5,0,0.28) 0%, rgba(10,5,0,0.55) 45%, rgba(10,5,0,0.88) 100%)" }} />
 
-      <div style={{ position:"relative",zIndex:2,flex:1,maxWidth:1280,margin:"0 auto",padding:"148px 48px 80px",width:"100%",display:"grid",gridTemplateColumns:"1fr 0.9fr",gap:60,alignItems:"center" }}>
-        <div>
-          <Reveal delay={60}>
-            <h1 style={{ fontFamily:serif,fontWeight:900,fontSize:"clamp(52px,8vw,104px)",color:T.dark,lineHeight:0.93,letterSpacing:"-0.03em",margin:"0 0 30px" }}>
-              Mangez<br/>
-              <em style={{ color:T.accent,fontStyle:"italic" }}>local,</em><br/>
-              vivez mieux.
-            </h1>
-          </Reveal>
-          <Reveal delay={130}>
-            <p style={{ fontFamily:sans,fontSize:18,color:T.muted,lineHeight:1.78,maxWidth:480,margin:"0 0 44px",fontWeight:300 }}>
-              Les saveurs authentiques d'Abidjan à portée de doigt. Commandez depuis votre table ou faites-vous livrer. Paiement Mobile Money en 3 clics.
-            </p>
-          </Reveal>
+      {/* Contenu centré */}
+      <div style={{ position:"relative", zIndex:2, maxWidth:860, margin:"0 auto", padding:"0 24px 80px", width:"100%", textAlign:"center" }}>
+        <Reveal delay={40}>
+          <p style={{ fontFamily:sans, fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", color:"rgba(255,255,255,0.65)", margin:"0 0 18px" }}>
+            Abidjan · Côte d'Ivoire
+          </p>
+        </Reveal>
+        <Reveal delay={90}>
+          <h1 style={{ fontFamily:serif, fontWeight:900, fontSize:"clamp(42px,7vw,90px)", color:"#fff", lineHeight:1.0, letterSpacing:"-0.03em", margin:"0 0 20px", textShadow:"0 4px 24px rgba(0,0,0,0.4)" }}>
+            Savourez le meilleur<br/>
+            <em style={{ color:T.yellow, fontStyle:"italic" }}>d'ici,</em> livré chez vous.
+          </h1>
+        </Reveal>
+        <Reveal delay={150}>
+          <p style={{ fontFamily:sans, fontSize:"clamp(15px,2vw,18px)", color:"rgba(255,255,255,0.72)", lineHeight:1.7, maxWidth:560, margin:"0 auto 40px", fontWeight:300 }}>
+            Livraison ultra-rapide pour vos envies du quotidien et solutions sur-mesure pour vos repas d'entreprise.
+          </p>
+        </Reveal>
 
-          {/* Search bar — contrôlé */}
-          <Reveal delay={180}>
-            <div style={{ display:"flex",gap:0,marginBottom:44,maxWidth:480,borderRadius:14,overflow:"hidden",boxShadow:`0 6px 30px rgba(0,0,0,0.1)`,border:`1px solid ${T.line}` }}>
-              <div style={{ display:"flex",alignItems:"center",gap:10,background:T.card,padding:"0 20px",flex:1 }}>
-                <Search size={18} color={T.mutedL} />
-                <input
-                  value={search}
-                  onChange={e => onSearch(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                  placeholder="Rechercher un plat…"
-                  style={{ border:"none",outline:"none",fontFamily:sans,fontSize:15,color:T.text,background:"transparent",width:"100%",padding:"17px 0" }}
-                />
-                {search && (
-                  <button onClick={() => onSearch("")} style={{ background:"none",border:"none",cursor:"pointer",color:T.mutedL,fontSize:18,lineHeight:1,padding:"0 4px" }}>×</button>
-                )}
-              </div>
-              <button onClick={handleSubmit} style={{ background:`linear-gradient(135deg,${T.accent},${T.accentD})`,color:"#fff",fontFamily:sans,fontSize:14,fontWeight:700,border:"none",cursor:"pointer",padding:"0 28px",whiteSpace:"nowrap" }}>Rechercher</button>
-            </div>
-          </Reveal>
-
-          <Reveal delay={220}>
-            <div style={{ display:"flex",gap:12,flexWrap:"wrap",marginBottom:56 }}>
-              <a href="/menu" className="rd-btn-cta" style={{ padding:"16px 40px",background:`linear-gradient(135deg,${T.accent},${T.accentD})`,color:"#fff",fontFamily:sans,fontSize:15,fontWeight:700,textDecoration:"none",borderRadius:50,boxShadow:`0 10px 36px ${T.accent}50`,transition:"all .24s",display:"inline-flex",alignItems:"center",gap:9 }}>
-                Commander <ArrowRight size={16} />
-              </a>
-              <a href="/register?type=b2b" className="rd-btn-outline" style={{ padding:"16px 40px",border:`2px solid ${T.accent}`,color:T.accent,background:"transparent",fontFamily:sans,fontSize:15,fontWeight:700,textDecoration:"none",borderRadius:50,transition:"all .24s" }}>
-                Espace Entreprise
-              </a>
-            </div>
-          </Reveal>
-
-          <Reveal delay={270}>
-            <div style={{ display:"flex",gap:0,paddingTop:28,borderTop:`1px solid ${T.line}` }}>
-              {[
-                { n:"12 000+", l:"Clients actifs" },
-                { n:"98%",     l:"Livraisons réussies" },
-                { n:"< 3 min", l:"Commande rapide" },
-              ].map(({n,l},i)=>(
-                <div key={l} style={{ flex:1,paddingRight:i<2?24:0,paddingLeft:i>0?24:0,borderRight:i<2?`1px solid ${T.line}`:"none" }}>
-                  <p style={{ fontFamily:serif,fontSize:"clamp(22px,2.2vw,30px)",color:T.dark,fontWeight:900,margin:"0 0 4px",lineHeight:1 }}>{n}</p>
-                  <p style={{ fontFamily:sans,fontSize:11,color:T.accent,margin:0,letterSpacing:"0.09em",textTransform:"uppercase",fontWeight:700 }}>{l}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-
-        {/* Right: food photo — grand format */}
-        <Reveal dir="right" delay={100}>
-          <div style={{ position:"relative",height:660 }}>
-            {/* Blob décoratif */}
-            <div style={{ position:"absolute",inset:"4% -10%",borderRadius:220,background:`linear-gradient(135deg,${T.yellow}30,${T.accent}24)`,transform:"rotate(-5deg)",zIndex:0 }} />
-            <div style={{ position:"absolute",inset:"20% -6%",borderRadius:200,background:`radial-gradient(circle,${T.accent}14 0%,transparent 70%)`,zIndex:0 }} />
-
-            {/* Photo principale — plein format */}
-            <div style={{ position:"absolute",top:20,left:0,right:0,bottom:0,zIndex:2,borderRadius:28,overflow:"hidden",boxShadow:"0 40px 100px rgba(0,0,0,0.22)" }}>
-              <img
-                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop"
-                alt="Plats d'Abidjan"
-                style={{ width:"100%",height:"100%",objectFit:"cover",display:"block" }}
+        {/* Barre de recherche */}
+        <Reveal delay={200}>
+          <div style={{ display:"flex", gap:0, maxWidth:580, margin:"0 auto 28px", borderRadius:50, overflow:"hidden", boxShadow:"0 12px 48px rgba(0,0,0,0.35)", background:"#fff" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"0 22px", flex:1 }}>
+              <Search size={18} color={T.mutedL} />
+              <input
+                value={search}
+                onChange={e => onSearch(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSubmit()}
+                placeholder="Rechercher un plat ou un restaurant…"
+                style={{ border:"none", outline:"none", fontFamily:sans, fontSize:15, color:T.text, background:"transparent", width:"100%", padding:"17px 0" }}
               />
-              <div style={{ position:"absolute",inset:0,background:"linear-gradient(to bottom, transparent 40%, rgba(26,12,0,0.72))" }} />
-              <div style={{ position:"absolute",bottom:26,left:28 }}>
-                <p style={{ fontFamily:serif,fontSize:22,color:"#fff",fontWeight:700,fontStyle:"italic",margin:"0 0 5px" }}>Plats d'Abidjan</p>
-                <p style={{ fontFamily:sans,fontSize:13,color:"rgba(255,255,255,0.7)",margin:0 }}>Attiéké · Kedjenou · Garba · Aloko</p>
-              </div>
+              {search && <button onClick={() => onSearch("")} style={{ background:"none", border:"none", cursor:"pointer", color:T.mutedL, fontSize:18, lineHeight:1 }}>×</button>}
             </div>
-
-            {/* Badge 50% OFF */}
-            <div style={{ position:"absolute",top:8,right:"-4%",zIndex:10,width:90,height:90,borderRadius:"50%",background:`linear-gradient(135deg,${T.red},#FF6020)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",boxShadow:"0 10px 32px rgba(255,59,48,0.45)",animation:"kfbadge 4s ease-in-out infinite" }}>
-              <span style={{ fontFamily:sans,fontSize:22,fontWeight:900,color:"#fff",lineHeight:1 }}>50%</span>
-              <span style={{ fontFamily:sans,fontSize:10,color:"rgba(255,255,255,0.9)",fontWeight:700,letterSpacing:"0.06em" }}>OFF</span>
-            </div>
-
-            {/* Carte commande */}
-            <div style={{ position:"absolute",bottom:0,left:"-10%",zIndex:10,background:T.card,borderRadius:18,padding:"18px 22px",boxShadow:"0 16px 48px rgba(0,0,0,0.16)",display:"flex",alignItems:"center",gap:16,animation:"kfbadge 5s ease-in-out infinite 1.5s",minWidth:220 }}>
-              <div style={{ width:54,height:54,borderRadius:13,overflow:"hidden",flexShrink:0 }}>
-                <img src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=120&auto=format&fit=crop" alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
-              </div>
-              <div>
-                <p style={{ fontFamily:sans,fontSize:13,fontWeight:700,color:T.dark,margin:"0 0 3px" }}>Attiéké Barracuda</p>
-                <p style={{ fontFamily:sans,fontSize:15,fontWeight:800,color:T.accent,margin:"0 0 4px" }}>4 200 FCFA</p>
-                <Stars n={5} />
-              </div>
-            </div>
-
-            {/* Carte note */}
-            <div style={{ position:"absolute",top:90,left:"-12%",zIndex:10,background:T.card,borderRadius:16,padding:"16px 20px",boxShadow:"0 10px 32px rgba(0,0,0,0.13)",animation:"kfbadge 6s ease-in-out infinite 0.8s" }}>
-              <div style={{ display:"flex",gap:3,marginBottom:6 }}><Stars n={5} /></div>
-              <p style={{ fontFamily:sans,fontSize:16,fontWeight:800,color:T.dark,margin:"0 0 2px" }}>4.9 / 5</p>
-              <p style={{ fontFamily:sans,fontSize:11,color:T.mutedL,margin:0 }}>2 400+ avis</p>
-            </div>
+            <button onClick={handleSubmit} style={{ background:`linear-gradient(135deg,${T.accent},${T.accentD})`, color:"#fff", fontFamily:sans, fontSize:14, fontWeight:700, border:"none", cursor:"pointer", padding:"0 32px", borderRadius:"0 50px 50px 0", whiteSpace:"nowrap" }}>
+              Rechercher
+            </button>
           </div>
         </Reveal>
+
+        {/* Boutons CTA */}
+        <Reveal delay={250}>
+          <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
+            <a href="/menu" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"13px 32px", background:`linear-gradient(135deg,${T.accent},${T.accentD})`, color:"#fff", fontFamily:sans, fontSize:14, fontWeight:700, textDecoration:"none", borderRadius:50, boxShadow:`0 8px 28px ${T.accent}55`, transition:"all .2s" }}>
+              Commander maintenant <ArrowRight size={15} />
+            </a>
+            <a href="/register?type=b2b" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"13px 32px", background:"rgba(255,255,255,0.15)", color:"#fff", fontFamily:sans, fontSize:14, fontWeight:600, textDecoration:"none", borderRadius:50, backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.3)", transition:"all .2s" }}>
+              Business Portal
+            </a>
+          </div>
+        </Reveal>
+      </div>
+
+      {/* Stats flottantes bas */}
+      <div style={{ position:"relative", zIndex:2, background:"rgba(255,255,255,0.96)", backdropFilter:"blur(12px)", borderTop:"1px solid rgba(255,255,255,0.3)" }}>
+        <div style={{ maxWidth:860, margin:"0 auto", padding:"18px 24px", display:"flex", justifyContent:"center", gap:0 }}>
+          {[
+            { n: restaurantCount > 0 ? String(restaurantCount) : '…', l: 'Restaurants partenaires' },
+            { n:"98%",     l:"Livraisons réussies" },
+            { n:"30 min",  l:"Délai moyen" },
+            { n:"3 clics", l:"Pour commander" },
+          ].map(({n,l},i,arr) => (
+            <div key={l} style={{ flex:1, textAlign:"center", paddingLeft:i>0?16:0, paddingRight:i<arr.length-1?16:0, borderRight:i<arr.length-1?`1px solid ${T.line}`:"none" }}>
+              <p style={{ fontFamily:serif, fontSize:"clamp(18px,2vw,24px)", color:T.dark, fontWeight:900, margin:"0 0 2px", lineHeight:1 }}>{n}</p>
+              <p style={{ fontFamily:sans, fontSize:10, color:T.mutedL, margin:0, textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600 }}>{l}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Envie de quoi ? ─── */
+function CategoryStrip({ onSearch }) {
+  const cats = [
+    { label:"Pizza",     icon:"🍕", q:"pizza"    },
+    { label:"Grillades", icon:"🥩", q:"grillade" },
+    { label:"Local",     icon:"🍛", q:"attiéké"  },
+    { label:"Salades",   icon:"🥗", q:"salade"   },
+    { label:"Desserts",  icon:"🍰", q:"dessert"  },
+    { label:"Boissons",  icon:"🥤", q:"boisson"  },
+    { label:"Garba",     icon:"🐟", q:"garba"    },
+    { label:"Poulet",    icon:"🍗", q:"poulet"   },
+  ];
+  return (
+    <section style={{ background:"#fff", padding:"32px 0 28px", borderBottom:`1px solid ${T.line}` }}>
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px" }}>
+        <p style={{ fontFamily:serif, fontSize:20, fontWeight:900, color:T.dark, margin:"0 0 20px" }}>Envie de quoi ?</p>
+        <div style={{ display:"flex", gap:22, overflowX:"auto", paddingBottom:4 }}>
+          {cats.map(c => (
+            <button key={c.label} onClick={() => onSearch(c.q)}
+              style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", flexShrink:0, padding:0 }}>
+              <div style={{ width:68, height:68, borderRadius:"50%", background:T.bgAlt, border:`2px solid ${T.line}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, transition:"all .18s" }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor=T.accent;e.currentTarget.style.background=`${T.accent}10`;}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor=T.line;e.currentTarget.style.background=T.bgAlt;}}>
+                {c.icon}
+              </div>
+              <span style={{ fontFamily:sans, fontSize:12, fontWeight:600, color:T.muted }}>{c.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -338,38 +332,62 @@ function Marquee() {
 
 /* ─── How it works ─── */
 function HowItWorks() {
-  const steps=[
-    { icon:<ShoppingBag size={30} color={T.accent}/>, title:"Choisissez vos plats", body:"Parcourez le menu, personnalisez chaque plat et composez votre panier en quelques secondes.", col:T.accent },
-    { icon:<Truck size={30} color={T.yellow}/>, title:"Livraison express", body:"Notre réseau de livreurs prend en charge votre commande. Suivi en temps réel sur votre écran.", col:T.yellow },
-    { icon:<Clock size={30} color={T.accent}/>, title:"Profitez de votre repas", body:"Votre commande arrive chaude à l'heure prévue. Payez à la livraison ou en Mobile Money.", col:T.accent },
+  const cards = [
+    {
+      icon: <Truck size={26} color={T.accent} />,
+      iconBg: `${T.accent}14`,
+      title: "Livraison Rapide",
+      body: "Des repas chauds livrés directement à votre porte ou bureau en moins de 30 minutes. Ne faites plus attendre votre faim.",
+      bg: "#fff",
+      titleColor: T.dark,
+      bodyColor: T.muted,
+      border: `1px solid ${T.line}`,
+      cta: null,
+    },
+    {
+      icon: <ShoppingBag size={26} color="#fff" />,
+      iconBg: "rgba(255,255,255,0.2)",
+      title: "Solutions Entreprise",
+      body: "Commandes groupées, facturation mensuelle simplifiée et reçus conformes SYSCOHADA pour votre comptabilité.",
+      bg: T.accent,
+      titleColor: "#fff",
+      bodyColor: "rgba(255,255,255,0.78)",
+      border: "none",
+      cta: { label:"En savoir plus →", href:"/register?type=b2b" },
+    },
+    {
+      icon: <Heart size={26} color={T.accent} />,
+      iconBg: `${T.accent}14`,
+      title: "Paiement Mobile",
+      body: "Réglez vos commandes en toute simplicité et sécurité avec Orange Money, MTN Mobile Money ou Wave.",
+      bg: "#fff",
+      titleColor: T.dark,
+      bodyColor: T.muted,
+      border: `1px solid ${T.line}`,
+      cta: null,
+    },
   ];
   return (
-    <section id="processus" style={{ background:T.bgAlt,padding:"120px 0",position:"relative",overflow:"hidden" }}>
-      <Brush color={T.yellow} opacity={0.1} style={{ width:400,top:-20,right:100 }} />
-      <Brush color={T.accent} opacity={0.08} style={{ width:350,bottom:-30,left:50,transform:"scaleX(-1)" }} />
-      <div style={{ maxWidth:1280,margin:"0 auto",padding:"0 48px" }}>
-        <Reveal>
-          <div style={{ textAlign:"center",marginBottom:80 }}>
-            <Chip color={T.accent}>Comment ça marche</Chip>
-            <h2 style={{ fontFamily:serif,fontSize:"clamp(34px,4vw,56px)",color:T.dark,fontWeight:900,lineHeight:1.06,margin:0,letterSpacing:"-0.025em" }}>
-              Commander en <em style={{ color:T.accent }}>3 étapes.</em>
-            </h2>
-          </div>
-        </Reveal>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:40,position:"relative" }}>
-          <div style={{ position:"absolute",top:68,left:"17%",right:"17%",height:2,background:`linear-gradient(to right,${T.accent}40,${T.yellow}40,${T.accent}40)`,zIndex:0,borderTop:"2px dashed" }} />
-          {steps.map((s,i)=>(
-            <Reveal key={i} delay={i*100}>
-              <div style={{ textAlign:"center",position:"relative",zIndex:1,background:T.card,borderRadius:20,padding:"48px 32px",boxShadow:T.shadowS,border:`1px solid ${T.line}`,transition:"all .3s" }}>
-                <div style={{ width:80,height:80,borderRadius:"50%",background:`${s.col}14`,border:`2px solid ${s.col}30`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px",boxShadow:`0 0 0 10px ${s.col}08` }}>
-                  {s.icon}
-                </div>
-                <h3 style={{ fontFamily:serif,fontSize:22,color:T.dark,fontWeight:700,margin:"0 0 12px" }}>{s.title}</h3>
-                <p style={{ fontFamily:sans,fontSize:15,color:T.muted,lineHeight:1.72,margin:0,fontWeight:300 }}>{s.body}</p>
+    <section style={{ background:T.bgAlt, padding:"64px 0" }}>
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px", display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
+        {cards.map((c,i) => (
+          <Reveal key={i} delay={i*80}>
+            <div style={{ background:c.bg, borderRadius:18, padding:"36px 32px", border:c.border, boxShadow:c.bg==="#fff"?"0 1px 4px rgba(0,0,0,0.06)":"0 12px 40px rgba(249,115,22,0.22)", height:"100%", display:"flex", flexDirection:"column", gap:16 }}>
+              <div style={{ width:52, height:52, borderRadius:14, background:c.iconBg, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                {c.icon}
               </div>
-            </Reveal>
-          ))}
-        </div>
+              <div style={{ flex:1 }}>
+                <h3 style={{ fontFamily:serif, fontSize:20, fontWeight:800, color:c.titleColor, margin:"0 0 10px" }}>{c.title}</h3>
+                <p style={{ fontFamily:sans, fontSize:14, color:c.bodyColor, lineHeight:1.7, margin:0, fontWeight:300 }}>{c.body}</p>
+              </div>
+              {c.cta && (
+                <a href={c.cta.href} style={{ fontFamily:sans, fontSize:13, fontWeight:700, color:"#fff", textDecoration:"none", alignSelf:"flex-start" }}>
+                  {c.cta.label}
+                </a>
+              )}
+            </div>
+          </Reveal>
+        ))}
       </div>
     </section>
   );
@@ -521,26 +539,6 @@ function MenuSection({ search, onSearch, sectionRef }) {
   return (
     <section id="fonctionnalites" ref={sectionRef} style={{ background:T.bg,padding:"80px 0 120px" }}>
       <div style={{ maxWidth:1280,margin:"0 auto",padding:"0 48px" }}>
-
-        {/* ── Bannière promo ── */}
-        <Reveal>
-          <div style={{ borderRadius:22,overflow:"hidden",position:"relative",height:220,marginBottom:60,cursor:"pointer" }}>
-            <img
-              src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=1200&auto=format&fit=crop"
-              alt="Offre"
-              style={{ width:"100%",height:"100%",objectFit:"cover",display:"block" }}
-            />
-            <div style={{ position:"absolute",inset:0,background:"linear-gradient(to right,rgba(26,12,0,0.88) 0%,rgba(26,12,0,0.5) 50%,transparent 75%)" }} />
-            <div style={{ position:"absolute",top:0,bottom:0,left:28,display:"flex",flexDirection:"column",justifyContent:"center" }}>
-              <span style={{ display:"inline-block",background:T.red,color:"#fff",fontFamily:sans,fontSize:10,fontWeight:700,letterSpacing:"0.14em",padding:"4px 12px",borderRadius:6,marginBottom:10,alignSelf:"flex-start" }}>OFFRE LIMITÉE</span>
-              <h3 style={{ fontFamily:serif,fontSize:"clamp(24px,3.5vw,38px)",color:"#fff",fontWeight:900,margin:"0 0 8px",lineHeight:1.1 }}>Livraison Offerte ce Weekend</h3>
-              <p style={{ fontFamily:sans,fontSize:14,color:"rgba(255,255,255,0.72)",margin:"0 0 18px",maxWidth:360 }}>Sur toutes les commandes supérieures à 3 000 FCFA.</p>
-              <a href="/menu" style={{ display:"inline-flex",alignItems:"center",gap:7,background:`linear-gradient(135deg,${T.accent},${T.accentD})`,color:"#fff",fontFamily:sans,fontSize:13,fontWeight:700,textDecoration:"none",borderRadius:50,padding:"10px 22px",alignSelf:"flex-start",boxShadow:`0 6px 20px ${T.accent}55` }}>
-                Commander <ArrowRight size={13} />
-              </a>
-            </div>
-          </div>
-        </Reveal>
 
         {/* ── Cuisines & Catégories ── */}
         {!loading && categories.length > 0 && (
@@ -846,46 +844,186 @@ function CTA() {
 
 /* ─── Footer ─── */
 function Footer() {
-  const cols=[
-    { t:"Plateforme",    ls:[["Menu","/menu"],["Connexion","/login"],["Inscription","/register"],["Espace B2B","/register?type=b2b"]] },
-    { t:"Restaurateurs", ls:[["Interface Gérant","#"],["Gestion Stocks","#"],["Trésorerie & PDF","#"],["KDS Cuisine","#"]] },
-    { t:"Contact",       ls:[["Abidjan, Cocody","#"],["+225 07 00 00 00","#"],["contact@restodici.ci","#"],["Support 24/7","#"]] },
+  const COLS = [
+    {
+      title: "Produit",
+      links: [
+        ["Explorer le menu",      "/menu"],
+        ["Commander en ligne",    "/menu"],
+        ["Suivi de commande",     "/login"],
+        ["QR Code table",         "#"],
+        ["Livraison à domicile",  "#"],
+      ],
+    },
+    {
+      title: "Entreprises",
+      links: [
+        ["Espace B2B",               "/register?type=b2b"],
+        ["Commandes groupées",        "/b2b"],
+        ["Facturation SYSCOHADA",     "/b2b/invoices"],
+        ["Budgets collaborateurs",    "/b2b/teams"],
+        ["Rapports & analytics",      "/b2b/reports"],
+      ],
+    },
+    {
+      title: "Restaurateurs",
+      links: [
+        ["Interface Gérant",      "#"],
+        ["Gestion des stocks",    "#"],
+        ["KDS Cuisine",           "#"],
+        ["Trésorerie & rapports", "#"],
+        ["Devenir partenaire",    "#"],
+      ],
+    },
+    {
+      title: "Support",
+      links: [
+        ["Centre d'aide",         "#"],
+        ["Nous contacter",        "#"],
+        ["Statut des services",   "#"],
+        ["Mentions légales",      "#"],
+        ["Confidentialité",       "#"],
+      ],
+    },
   ];
+
+  const SOCIALS = [
+    { label: "Instagram", href: "#", path: "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" },
+    { label: "Twitter/X", href: "#", path: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" },
+    { label: "Facebook", href: "#", path: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" },
+    { label: "WhatsApp", href: "#", path: "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" },
+  ];
+
+  const PAYMENTS = [
+    { label: "Orange Money", color: "#FF6600" },
+    { label: "Wave",         color: "#1DC9E8" },
+    { label: "MTN MoMo",     color: "#FFCC02" },
+  ];
+
   return (
-    <footer style={{ background:T.dark,borderTop:`1px solid rgba(255,255,255,0.06)` }}>
-      <KS h={3} />
-      <div style={{ maxWidth:1280,margin:"0 auto",padding:"72px 48px 40px" }}>
-        <div style={{ display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:52,marginBottom:56 }}>
+    <footer style={{ background: "#0A0F1E", borderTop: `3px solid transparent`, backgroundImage: `linear-gradient(#0A0F1E,#0A0F1E) padding-box, linear-gradient(90deg,${T.accent},${T.yellow},${T.accent}) border-box` }}>
+
+      {/* ── Corps principal ── */}
+      <div style={{ maxWidth:1280, margin:"0 auto", padding:"72px 48px 0" }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr 1fr 1fr 1fr", gap:48, paddingBottom:56, borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+
+          {/* Colonne marque */}
           <div>
-            <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:18 }}>
-              <div style={{ width:40,height:40,borderRadius:12,background:`linear-gradient(135deg,${T.accent},${T.yellow})`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 6px 18px ${T.accent}40` }}>
-                <UtensilsCrossed style={{ width:20,height:20,color:"#fff" }} />
+            {/* Logo */}
+            <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:16 }}>
+              <div style={{ width:42,height:42,borderRadius:13,background:`linear-gradient(135deg,${T.accent},${T.yellow})`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 8px 24px ${T.accent}40` }}>
+                <UtensilsCrossed style={{ width:21,height:21,color:"#fff" }} />
               </div>
-              <span style={{ fontFamily:serif,fontWeight:700,color:T.accent,fontSize:20 }}>Resto d'ici</span>
+              <div>
+                <p style={{ fontFamily:serif,fontWeight:900,color:"#fff",fontSize:20,margin:0,lineHeight:1 }}>Resto d'ici</p>
+                <p style={{ fontFamily:sans,fontSize:10,color:"rgba(255,255,255,0.35)",margin:0,letterSpacing:"0.08em",textTransform:"uppercase" }}>Abidjan · Côte d'Ivoire</p>
+              </div>
             </div>
-            <p style={{ fontFamily:sans,fontSize:14,color:"rgba(255,255,255,0.35)",lineHeight:1.85,maxWidth:260,fontWeight:300,margin:"0 0 20px" }}>La plateforme qui modernise la restauration en Afrique de l'Ouest.</p>
-            <div style={{ display:"flex",gap:7,flexWrap:"wrap" }}>
-              {[["🟠","Orange Money"],["🟡","MTN MoMo"],["🔵","Wave"]].map(([e,n])=>(
-                <div key={n} style={{ display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.05)",borderRadius:6,padding:"5px 9px",border:"1px solid rgba(255,255,255,0.08)" }}>
-                  <span style={{ fontSize:12 }}>{e}</span>
-                  <span style={{ fontFamily:sans,fontSize:11,color:"rgba(255,255,255,0.4)" }}>{n}</span>
-                </div>
+
+            <p style={{ fontFamily:sans,fontSize:13.5,color:"rgba(255,255,255,0.38)",lineHeight:1.9,maxWidth:240,fontWeight:300,margin:"0 0 24px" }}>
+              La plateforme qui modernise la restauration en Afrique de l'Ouest — de la commande à la facturation SYSCOHADA.
+            </p>
+
+            {/* Réseaux sociaux */}
+            <div style={{ display:"flex",gap:8,marginBottom:28 }}>
+              {SOCIALS.map(({ label, href, path }) => (
+                <a key={label} href={href} aria-label={label}
+                  style={{ width:34,height:34,borderRadius:9,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.09)",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .2s",textDecoration:"none" }}
+                  onMouseEnter={e=>{e.currentTarget.style.background=`${T.accent}22`;e.currentTarget.style.borderColor=`${T.accent}55`;}}
+                  onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.06)";e.currentTarget.style.borderColor="rgba(255,255,255,0.09)";}}>
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="rgba(255,255,255,0.5)">
+                    <path d={path} />
+                  </svg>
+                </a>
               ))}
+            </div>
+
+            {/* Moyens de paiement */}
+            <div>
+              <p style={{ fontFamily:sans,fontSize:10,color:"rgba(255,255,255,0.25)",letterSpacing:"0.1em",textTransform:"uppercase",margin:"0 0 10px" }}>Paiements acceptés</p>
+              <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
+                {PAYMENTS.map(({ label, color }) => (
+                  <div key={label} style={{ display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.05)",borderRadius:7,padding:"5px 10px",border:"1px solid rgba(255,255,255,0.08)" }}>
+                    <div style={{ width:8,height:8,borderRadius:"50%",background:color,boxShadow:`0 0 6px ${color}` }} />
+                    <span style={{ fontFamily:sans,fontSize:11,color:"rgba(255,255,255,0.45)",fontWeight:500 }}>{label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-          {cols.map(c=>(
-            <div key={c.t}>
-              <p style={{ fontFamily:sans,fontSize:11,color:T.yellow,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:18,fontWeight:700 }}>{c.t}</p>
-              {c.ls.map(([l,h])=>(
-                <a key={l} href={h} className="rd-foot-link" style={{ display:"block",fontFamily:sans,fontSize:14,color:"rgba(255,255,255,0.35)",textDecoration:"none",margin:"0 0 11px",fontWeight:300,transition:"color .2s" }}>{l}</a>
-              ))}
+
+          {/* Colonnes liens */}
+          {COLS.map(col => (
+            <div key={col.title}>
+              <p style={{ fontFamily:sans,fontSize:11,color:"rgba(255,255,255,0.25)",letterSpacing:"0.13em",textTransform:"uppercase",marginBottom:20,fontWeight:700 }}>{col.title}</p>
+              <ul style={{ listStyle:"none",padding:0,margin:0 }}>
+                {col.links.map(([label, href]) => (
+                  <li key={label} style={{ marginBottom:12 }}>
+                    <a href={href} style={{ fontFamily:sans,fontSize:13.5,color:"rgba(255,255,255,0.45)",textDecoration:"none",fontWeight:400,display:"inline-flex",alignItems:"center",gap:4,transition:"color .18s" }}
+                      onMouseEnter={e=>{e.currentTarget.style.color="#fff";}}
+                      onMouseLeave={e=>{e.currentTarget.style.color="rgba(255,255,255,0.45)";}}>
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
-        <div style={{ borderTop:"1px solid rgba(255,255,255,0.07)",paddingTop:24,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12 }}>
-          <div style={{ display:"flex",gap:3 }}>{KENTE.map((c,i)=><div key={i} style={{ width:24,height:3,background:c }} />)}</div>
-          <p style={{ fontFamily:sans,fontSize:12,color:"rgba(255,255,255,0.22)",margin:0 }}>© 2026 Resto d'ici — Tous droits réservés.</p>
-          <p style={{ fontFamily:sans,fontSize:12,color:"rgba(255,255,255,0.22)",margin:0 }}>Développé par <span style={{ color:T.yellow,opacity:0.6 }}>Sankofa-Lab × Novasend</span></p>
+
+        {/* ── Newsletter band ── */}
+        <div style={{ padding:"32px 0",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:20 }}>
+          <div>
+            <p style={{ fontFamily:serif,fontSize:18,color:"#fff",fontWeight:700,margin:"0 0 4px" }}>Restez informé</p>
+            <p style={{ fontFamily:sans,fontSize:13,color:"rgba(255,255,255,0.35)",margin:0 }}>Offres exclusives, nouveaux restaurants, actualités Resto d'ici.</p>
+          </div>
+          <div style={{ display:"flex",gap:0,borderRadius:11,overflow:"hidden",border:"1px solid rgba(255,255,255,0.12)",flexShrink:0 }}>
+            <div style={{ display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,0.05)",padding:"0 16px" }}>
+              <Mail size={14} color="rgba(255,255,255,0.3)" />
+              <input placeholder="votre@email.ci"
+                style={{ border:"none",outline:"none",background:"transparent",fontFamily:sans,fontSize:13,color:"#fff",width:200,padding:"12px 0" }}
+              />
+            </div>
+            <button style={{ background:`linear-gradient(135deg,${T.accent},${T.accentD})`,color:"#fff",fontFamily:sans,fontSize:13,fontWeight:700,border:"none",cursor:"pointer",padding:"0 22px",whiteSpace:"nowrap" }}>
+              S'inscrire
+            </button>
+          </div>
+        </div>
+
+        {/* ── Barre de bas ── */}
+        <div style={{ padding:"22px 0 28px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:16 }}>
+
+          {/* Kente strip + copyright */}
+          <div style={{ display:"flex",alignItems:"center",gap:14 }}>
+            <div style={{ display:"flex",gap:2 }}>
+              {KENTE.map((c,i) => <div key={i} style={{ width:18,height:3,borderRadius:2,background:c }} />)}
+            </div>
+            <p style={{ fontFamily:sans,fontSize:12,color:"rgba(255,255,255,0.22)",margin:0 }}>
+              © 2026 Resto d'ici. Tous droits réservés.
+            </p>
+          </div>
+
+          {/* Liens légaux */}
+          <div style={{ display:"flex",gap:20,flexWrap:"wrap" }}>
+            {["CGU","Confidentialité","Cookies","Accessibilité"].map(l => (
+              <a key={l} href="#" style={{ fontFamily:sans,fontSize:12,color:"rgba(255,255,255,0.25)",textDecoration:"none",transition:"color .18s" }}
+                onMouseEnter={e=>e.currentTarget.style.color="rgba(255,255,255,0.6)"}
+                onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.25)"}>
+                {l}
+              </a>
+            ))}
+          </div>
+
+          {/* Status + crédit */}
+          <div style={{ display:"flex",alignItems:"center",gap:16 }}>
+            <div style={{ display:"flex",alignItems:"center",gap:6,background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:20,padding:"4px 11px" }}>
+              <div style={{ width:6,height:6,borderRadius:"50%",background:"#10B981",boxShadow:"0 0 6px #10B981" }} />
+              <span style={{ fontFamily:sans,fontSize:11,color:"rgba(16,185,129,0.85)",fontWeight:600 }}>Systèmes opérationnels</span>
+            </div>
+            <p style={{ fontFamily:sans,fontSize:12,color:"rgba(255,255,255,0.18)",margin:0 }}>
+              par <span style={{ color:"rgba(255,255,255,0.35)" }}>Sankofa-Lab</span>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
@@ -895,14 +1033,19 @@ function Footer() {
 /* ─── Page ─── */
 export default function Home() {
   const [search, setSearch] = useState("");
+  const [restaurantCount, setRestaurantCount] = useState(0);
   const menuRef = useRef(null);
+  useEffect(() => {
+    menuAPI.getRestaurants().then(res => setRestaurantCount((res.data || []).length)).catch(() => {});
+  }, []);
   return (
     <div style={{ background:T.bg,minHeight:"100vh",overflowX:"hidden" }}>
       <FontLoader />
       <Nav />
-      <Hero search={search} onSearch={setSearch} menuRef={menuRef} />
-      <Marquee />
+      <Hero search={search} onSearch={setSearch} menuRef={menuRef} restaurantCount={restaurantCount} />
+      <CategoryStrip onSearch={setSearch} />
       <HowItWorks />
+      <Marquee />
       <MenuSection search={search} onSearch={setSearch} sectionRef={menuRef} />
       <Banners />
       <Stats />

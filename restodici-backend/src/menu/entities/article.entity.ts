@@ -60,6 +60,9 @@ export class Article {
   @Column({ type: 'simple-array', nullable: true }) // Stocke les tableaux en DB
   allergenes!: string[];
 
+  @Column({ type: 'jsonb', nullable: true, default: '[]' })
+  variants!: Array<{ label: string; prixSupplement: number }>;
+
   @Column({ default: 0 })
   stock!: number;
 

@@ -1,5 +1,6 @@
 // src/pages/gerant/GerantDashboard.jsx
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import QRCode from "qrcode";
 import { useLocation, useNavigate } from "react-router-dom";
 import Chart from "chart.js/auto";
 import {
@@ -55,6 +56,8 @@ import {
   ToggleRight,
   History,
   LocateFixed,
+  QrCode,
+  Printer,
 } from "lucide-react";
 import NotificationBell from "../../components/notifications/NotificationBell";
 import {
@@ -281,12 +284,17 @@ function MenuTab({ restaurantId, token }) {
     stock: "",
     disponible: true,
     photoUrl: "",
+    estMenuDuJour: false,
+    activationDate: "",
+    expirationDate: "",
+    variants: [],
   });
   const [newCategory, setNewCategory] = useState({ nom: "", icone: "" });
   const [formErrors, setFormErrors] = useState({});
   const [categoryErrors, setCategoryErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadingEdit, setUploadingEdit] = useState(false);
 
   // Load categories and articles
   useEffect(() => {
@@ -396,6 +404,10 @@ function MenuTab({ restaurantId, token }) {
         stock: "",
         disponible: true,
         photoUrl: "",
+        estMenuDuJour: false,
+        activationDate: "",
+        expirationDate: "",
+        variants: [],
       });
       // Refresh data
       const artRes = await menuAPI.getAll({ restaurantId, cible: "TOUS" });
@@ -430,6 +442,22 @@ function MenuTab({ restaurantId, token }) {
     }
   };
 
+  const handleEditFileUpload = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Image uniquement (jpg, png, webp)'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert("Taille max : 5 Mo"); return; }
+    setUploadingEdit(true);
+    try {
+      const res = await uploadsAPI.uploadImage(file);
+      setEditArticle(p => ({ ...p, photoUrl: res.data.url }));
+    } catch {
+      const localUrl = URL.createObjectURL(file);
+      setEditArticle(p => ({ ...p, photoUrl: localUrl }));
+    } finally {
+      setUploadingEdit(false);
+    }
+  };
+
   const handleUpdateArticle = async () => {
     if (!editArticle) return;
     try {
@@ -443,6 +471,10 @@ function MenuTab({ restaurantId, token }) {
         photoUrl: editArticle.photoUrl,
         prixPromo: editArticle.prixPromo ? parseFloat(editArticle.prixPromo) : null,
         promoActif: !!editArticle.promoActif,
+        estMenuDuJour: !!editArticle.estMenuDuJour,
+        activationDate: editArticle.activationDate || undefined,
+        expirationDate: editArticle.expirationDate || undefined,
+        variants: editArticle.variants || [],
       });
       const artRes = await menuAPI.getAll({ restaurantId, cible: "TOUS" });
       setArticles(artRes.data || []);
@@ -695,6 +727,55 @@ function MenuTab({ restaurantId, token }) {
               placeholder="Description du plat..."
             />
           </div>
+          {/* Variantes (tailles / suppléments) */}
+          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 space-y-3">
+            <p className="text-sm font-bold text-blue-900">🔀 Variantes (S/M/L, suppléments…)</p>
+            {(newArticle.variants || []).map((v, idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                <input type="text" placeholder="Label (ex: Grande)" value={v.label}
+                  onChange={e => setNewArticle(p => { const vs=[...p.variants]; vs[idx]={...vs[idx],label:e.target.value}; return {...p,variants:vs}; })}
+                  className="flex-1 bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50" />
+                <input type="number" placeholder="Supplément F CFA" min="0" value={v.prixSupplement}
+                  onChange={e => setNewArticle(p => { const vs=[...p.variants]; vs[idx]={...vs[idx],prixSupplement:e.target.value}; return {...p,variants:vs}; })}
+                  className="w-36 bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50" />
+                <button type="button" onClick={() => setNewArticle(p => ({ ...p, variants: p.variants.filter((_,i)=>i!==idx) }))}
+                  className="text-red-400 hover:text-red-600 text-lg font-bold px-1">×</button>
+              </div>
+            ))}
+            <button type="button" onClick={() => setNewArticle(p => ({ ...p, variants: [...(p.variants||[]), { label:'', prixSupplement:0 }] }))}
+              className="text-xs font-semibold text-blue-700 hover:text-blue-900 border border-blue-300 rounded-xl px-3 py-1.5 hover:bg-blue-100 transition">
+              + Ajouter une variante
+            </button>
+          </div>
+          {/* Menu du jour */}
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="new-menu-jour" checked={!!newArticle.estMenuDuJour}
+                onChange={e => setNewArticle(p => ({ ...p, estMenuDuJour: e.target.checked }))}
+                className="accent-[#C05015] h-4 w-4" />
+              <label htmlFor="new-menu-jour" className="text-sm font-bold text-amber-900 cursor-pointer">
+                📅 Menu du jour (activation/désactivation automatique)
+              </label>
+            </div>
+            {newArticle.estMenuDuJour && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-amber-900">Activation (date & heure)</label>
+                  <input type="datetime-local" value={newArticle.activationDate}
+                    onChange={e => setNewArticle(p => ({ ...p, activationDate: e.target.value }))}
+                    className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-amber-900">Expiration (date & heure)</label>
+                  <input type="datetime-local" value={newArticle.expirationDate}
+                    onChange={e => setNewArticle(p => ({ ...p, expirationDate: e.target.value }))}
+                    className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400" />
+                  <p className="mt-1 text-[10px] text-amber-700">Désactivé automatiquement à cette heure</p>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-wrap gap-3 pt-2">
             <button
               onClick={handleAddArticle}
@@ -756,6 +837,16 @@ function MenuTab({ restaurantId, token }) {
                       >
                         {a.disponible ? "Disponible" : "Masqué"}
                       </span>
+                      {a.estMenuDuJour && (
+                        <span className="rounded-full bg-amber-100 border border-amber-300 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                          📅 Menu du jour{a.expirationDate ? ` · expire ${new Date(a.expirationDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}` : ''}
+                        </span>
+                      )}
+                      {Array.isArray(a.variants) && a.variants.length > 0 && (
+                        <span className="rounded-full bg-blue-100 border border-blue-300 px-2.5 py-1 text-xs font-semibold text-blue-800">
+                          🔀 {a.variants.length} variante{a.variants.length > 1 ? 's' : ''}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-[#78716C]">Stock: {a.stock ?? 0}</p>
                   </div>
@@ -783,7 +874,7 @@ function MenuTab({ restaurantId, token }) {
                   </button>
                   {/* Edit */}
                   <button
-                    onClick={() => setEditArticle({ ...a, prix: String(a.prix), stock: String(a.stock ?? 0), categorieId: a.categorie?.id || a.categorieId || '' })}
+                    onClick={() => setEditArticle({ ...a, prix: String(a.prix), stock: String(a.stock ?? 0), categorieId: a.categorie?.id || a.categorieId || '', variants: Array.isArray(a.variants) ? a.variants : [] })}
                     className="p-1.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                     title="Modifier"
                   >
@@ -816,13 +907,12 @@ function MenuTab({ restaurantId, token }) {
               <h3 className="text-white font-extrabold">Modifier l'article</h3>
               <button onClick={() => setEditArticle(null)} className="text-white/70 hover:text-white"><X className="w-4 h-4" /></button>
             </div>
-            <div className="p-5 space-y-3.5 max-h-[70vh] overflow-y-auto">
+            <div className="p-5 space-y-3.5 max-h-[75vh] overflow-y-auto">
               {[
                 { k: 'nom',         label: 'Nom *',          type: 'text' },
                 { k: 'prix',        label: 'Prix (F CFA) *', type: 'number' },
                 { k: 'stock',       label: 'Stock',          type: 'number' },
                 { k: 'description', label: 'Description',    type: 'text' },
-                { k: 'photoUrl',    label: 'URL photo',      type: 'text' },
               ].map(f => (
                 <div key={f.k} className="space-y-1">
                   <label className="text-xs font-semibold text-[#1A1A1A]">{f.label}</label>
@@ -830,6 +920,28 @@ function MenuTab({ restaurantId, token }) {
                     className="w-full bg-[#FDDDD4] border-0 rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#C05015]/40" />
                 </div>
               ))}
+              {/* Photo article */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#1A1A1A]">Photo de l'article</label>
+                <div className="flex gap-3 items-start">
+                  <div className="flex-1 space-y-2">
+                    <input type="text" value={editArticle.photoUrl || ''} onChange={e => setEditArticle(p => ({ ...p, photoUrl: e.target.value }))}
+                      placeholder="URL de la photo" className="w-full bg-[#FDDDD4] border-0 rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#C05015]/40" />
+                    <label className={`flex items-center gap-2 cursor-pointer text-xs font-semibold px-3 py-2 rounded-xl border border-dashed border-[#C05015]/40 text-[#C05015] hover:bg-[#FBE8DC] transition ${uploadingEdit ? 'opacity-60 pointer-events-none' : ''}`}>
+                      {uploadingEdit ? 'Upload en cours…' : '📷 Télécharger une photo'}
+                      <input type="file" accept="image/*" className="hidden" disabled={uploadingEdit}
+                        onChange={e => handleEditFileUpload(e.target.files[0])} />
+                    </label>
+                  </div>
+                  {editArticle.photoUrl ? (
+                    <div className="w-20 h-20 rounded-xl overflow-hidden border border-[#E2E8F0] shadow-sm flex-shrink-0">
+                      <img src={editArticle.photoUrl} alt="Aperçu" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-xl bg-[#FBE8DC] flex items-center justify-center text-2xl flex-shrink-0">🍽️</div>
+                  )}
+                </div>
+              </div>
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-[#1A1A1A]">Catégorie</label>
                 <select value={editArticle.categorieId || ''} onChange={e => setEditArticle(p => ({ ...p, categorieId: e.target.value }))}
@@ -852,6 +964,48 @@ function MenuTab({ restaurantId, token }) {
                     onChange={e => setEditArticle(p => ({ ...p, promoActif: e.target.checked }))} />
                   <label htmlFor="edit-promo-actif" className="text-sm font-semibold text-[#C05015]">Activer le prix promo</label>
                 </div>
+              </div>
+              {/* Variantes */}
+              <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 space-y-3">
+                <p className="text-xs font-bold text-blue-900">🔀 Variantes (tailles / suppléments)</p>
+                {(editArticle.variants || []).map((v, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input type="text" placeholder="Label" value={v.label || ''}
+                      onChange={e => setEditArticle(p => { const vs=[...( p.variants||[])]; vs[idx]={...vs[idx],label:e.target.value}; return {...p,variants:vs}; })}
+                      className="flex-1 bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50" />
+                    <input type="number" placeholder="Supplément" min="0" value={v.prixSupplement || 0}
+                      onChange={e => setEditArticle(p => { const vs=[...(p.variants||[])]; vs[idx]={...vs[idx],prixSupplement:e.target.value}; return {...p,variants:vs}; })}
+                      className="w-32 bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50" />
+                    <button type="button" onClick={() => setEditArticle(p => ({ ...p, variants: (p.variants||[]).filter((_,i)=>i!==idx) }))}
+                      className="text-red-400 hover:text-red-600 text-lg font-bold px-1">×</button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setEditArticle(p => ({ ...p, variants: [...(p.variants||[]), { label:'', prixSupplement:0 }] }))}
+                  className="text-xs font-semibold text-blue-700 border border-blue-300 rounded-xl px-3 py-1.5 hover:bg-blue-100 transition">
+                  + Ajouter une variante
+                </button>
+              </div>
+              {/* Menu du jour */}
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="edit-menu-jour" checked={!!editArticle.estMenuDuJour}
+                    onChange={e => setEditArticle(p => ({ ...p, estMenuDuJour: e.target.checked }))} />
+                  <label htmlFor="edit-menu-jour" className="text-sm font-semibold text-amber-800">📅 Menu du jour (activation/désactivation automatique)</label>
+                </div>
+                {editArticle.estMenuDuJour && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-amber-700">Activation (date & heure)</label>
+                      <input type="datetime-local" value={editArticle.activationDate || ''} onChange={e => setEditArticle(p => ({ ...p, activationDate: e.target.value }))}
+                        className="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-amber-400/50" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-amber-700">Expiration (date & heure)</label>
+                      <input type="datetime-local" value={editArticle.expirationDate || ''} onChange={e => setEditArticle(p => ({ ...p, expirationDate: e.target.value }))}
+                        className="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-amber-400/50" />
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="edit-dispo" checked={!!editArticle.disponible} onChange={e => setEditArticle(p => ({ ...p, disponible: e.target.checked }))} />
@@ -1209,9 +1363,93 @@ function StocksTab({ restaurantId }) {
   const [adjustmentForm, setAdjustmentForm] = useState({ articleId: '', quantity: '', motif: '' });
   const [entreeForm, setEntreeForm] = useState({ articleId: '', quantity: '', fournisseurId: '', motif: '' });
   const [fournisseurs, setFournisseurs] = useState([]);
-  const [stockTab, setStockTab] = useState('entree'); // 'entree' | 'ajustement'
+  const [stockTab, setStockTab] = useState('entree'); // 'entree' | 'ajustement' | 'rapport' | 'bon'
+  const [rapportItems, setRapportItems] = useState([]); // [{id, nom, categorie, stockTheorique, stockReel}]
+  const [rapportLoading, setRapportLoading] = useState(false);
+  const [bonForm, setBonForm] = useState({ fournisseurId: '', dateLivraison: '', lignes: [{ article: '', quantite: '', prixUnit: '' }] });
+  const [restaurantInfo, setRestaurantInfo] = useState(null);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+
+  const loadRapportEcarts = async () => {
+    if (!restaurantId) return;
+    setRapportLoading(true);
+    try {
+      const res = await stocksAPI.getRapportEcarts(restaurantId);
+      setRapportItems((res.data || []).map(a => ({ ...a, stockReel: '' })));
+    } catch { showToast('Erreur chargement rapport'); }
+    finally { setRapportLoading(false); }
+  };
+
+  const loadRestaurantInfo = async () => {
+    if (restaurantInfo) return;
+    try { const r = await restaurantAPI.getMine(); setRestaurantInfo(r.data); } catch { /* ignore */ }
+  };
+
+  const generateBonCommande = () => {
+    const fournisseur = fournisseurs.find(f => f.id === bonForm.fournisseurId);
+    if (!fournisseur || bonForm.lignes.every(l => !l.article)) {
+      showToast('Sélectionnez un fournisseur et au moins un article');
+      return;
+    }
+    const lignes = bonForm.lignes.filter(l => l.article && l.quantite);
+    const total = lignes.reduce((s, l) => s + (Number(l.prixUnit) || 0) * Number(l.quantite), 0);
+    const date = new Date().toLocaleDateString('fr-FR');
+    const num = `BC-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Bon de commande ${num}</title>
+<style>
+  body{font-family:Georgia,serif;color:#1A0C00;padding:40px;max-width:700px;margin:auto}
+  h1{font-size:22px;margin:0}
+  .meta{display:flex;justify-content:space-between;margin:24px 0;padding:16px;background:#FBE8DC;border-radius:8px}
+  .block{margin-bottom:20px}
+  .block h3{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#9A7060;margin:0 0 6px}
+  table{width:100%;border-collapse:collapse;margin-top:16px}
+  th{background:#1A0C00;color:#fff;padding:8px 12px;text-align:left;font-size:12px}
+  td{padding:8px 12px;border-bottom:1px solid #E2D8CC;font-size:13px}
+  tr:last-child td{border-bottom:none}
+  .total{text-align:right;font-size:16px;font-weight:bold;margin-top:16px;color:#C05015}
+  .sig{display:flex;gap:40px;margin-top:48px}
+  .sig div{flex:1;border-top:1px solid #1A0C00;padding-top:8px;font-size:11px;color:#9A7060}
+  @media print{body{padding:20px}}
+</style></head><body>
+<h1>Bon de Commande</h1>
+<div class="meta">
+  <div><strong>${restaurantInfo?.nom || 'Restaurant'}</strong><br/>${restaurantInfo?.adresse || ''}</div>
+  <div style="text-align:right"><strong>N° ${num}</strong><br/>Date : ${date}<br/>Livraison souhaitée : ${bonForm.dateLivraison ? new Date(bonForm.dateLivraison).toLocaleDateString('fr-FR') : '—'}</div>
+</div>
+<div class="block"><h3>Fournisseur</h3><strong>${fournisseur.nom}</strong><br/>${fournisseur.contact || ''}${fournisseur.telephone ? ' · ' + fournisseur.telephone : ''}${fournisseur.email ? '<br/>' + fournisseur.email : ''}</div>
+<table>
+  <thead><tr><th>Article</th><th>Quantité</th><th>Prix unitaire (F CFA)</th><th>Total (F CFA)</th></tr></thead>
+  <tbody>${lignes.map(l => `<tr><td>${l.article}</td><td>${l.quantite}</td><td>${l.prixUnit ? Number(l.prixUnit).toLocaleString('fr-FR') : '—'}</td><td>${l.prixUnit ? (Number(l.prixUnit)*Number(l.quantite)).toLocaleString('fr-FR') : '—'}</td></tr>`).join('')}</tbody>
+</table>
+${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR')} F CFA</div>` : ''}
+<div class="sig"><div>Responsable achat<br/><br/></div><div>Fournisseur (signature & cachet)<br/><br/></div></div>
+</body></html>`;
+    const w = window.open('', '_blank', 'width=800,height=700');
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 500);
+  };
+
+  const exportRapportCSV = () => {
+    const date = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+    const rows = [
+      ['Article', 'Catégorie', 'Stock Théorique', 'Stock Réel', 'Écart', 'Statut'],
+      ...rapportItems.map(r => {
+        const reel = r.stockReel !== '' ? Number(r.stockReel) : null;
+        const ecart = reel !== null ? reel - r.stockTheorique : '';
+        const statut = reel === null ? 'Non compté' : ecart === 0 ? 'OK' : ecart > 0 ? 'Excédent' : 'Manquant';
+        return [r.nom, r.categorie, r.stockTheorique, reel ?? '', ecart, statut];
+      }),
+    ];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `inventaire-ecarts-${date}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const loadStocks = useCallback(async () => {
     if (!restaurantId) return;
@@ -1405,6 +1643,18 @@ function StocksTab({ restaurantId }) {
           >
             <RefreshCcw className="w-4 h-4" /> Ajustement manuel
           </button>
+          <button
+            onClick={() => { setStockTab('rapport'); loadRapportEcarts(); }}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${stockTab === 'rapport' ? 'bg-emerald-50 text-emerald-700 border-b-2 border-emerald-500' : 'text-[#64748B] hover:bg-[#F8FAFC]'}`}
+          >
+            <FileText className="w-4 h-4" /> Rapport d'écarts
+          </button>
+          <button
+            onClick={() => { setStockTab('bon'); loadRestaurantInfo(); }}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${stockTab === 'bon' ? 'bg-violet-50 text-violet-700 border-b-2 border-violet-500' : 'text-[#64748B] hover:bg-[#F8FAFC]'}`}
+          >
+            <Printer className="w-4 h-4" /> Bon de commande
+          </button>
         </div>
 
         <div className="p-5">
@@ -1462,7 +1712,7 @@ function StocksTab({ restaurantId }) {
                 {saving ? 'Enregistrement...' : 'Enregistrer la réception'}
               </button>
             </>
-          ) : (
+          ) : stockTab === 'ajustement' ? (
             <>
               <p className="text-xs text-slate-500 mb-4">
                 Correction manuelle de stock (casse, inventaire, erreur) — sans lien fournisseur
@@ -1498,7 +1748,108 @@ function StocksTab({ restaurantId }) {
                 {saving ? 'Enregistrement...' : 'Ajuster'}
               </button>
             </>
-          )}
+          ) : stockTab === 'rapport' ? (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-bold text-emerald-800">Rapport d'écarts inventaire</p>
+                  <p className="text-xs text-[#9A7060] mt-0.5">Saisissez le stock réel compté — l'écart est calculé automatiquement</p>
+                </div>
+                <button onClick={exportRapportCSV} disabled={rapportItems.length === 0}
+                  className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition">
+                  <FileText className="w-3.5 h-3.5" /> Export CSV (Excel)
+                </button>
+              </div>
+              {rapportLoading ? (
+                <div className="flex justify-center py-8"><div className="h-8 w-8 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" /></div>
+              ) : rapportItems.length === 0 ? (
+                <p className="text-center text-sm text-[#9A7060] py-8">Aucun article trouvé</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#E2E8F0] text-xs font-semibold text-[#64748B] uppercase tracking-wide">
+                        <th className="text-left pb-2 pr-4">Article</th>
+                        <th className="text-left pb-2 pr-4">Catégorie</th>
+                        <th className="text-right pb-2 pr-4">Théorique</th>
+                        <th className="text-right pb-2 pr-4">Réel (comptage)</th>
+                        <th className="text-right pb-2">Écart</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F4F6F8]">
+                      {rapportItems.map((r, idx) => {
+                        const reel = r.stockReel !== '' ? Number(r.stockReel) : null;
+                        const ecart = reel !== null ? reel - r.stockTheorique : null;
+                        return (
+                          <tr key={r.id} className="hover:bg-[#F8FAFC]">
+                            <td className="py-2.5 pr-4 font-medium text-[#0F172A]">{r.nom}</td>
+                            <td className="py-2.5 pr-4 text-[#64748B]">{r.categorie}</td>
+                            <td className="py-2.5 pr-4 text-right font-semibold text-[#0F172A]">{r.stockTheorique}</td>
+                            <td className="py-2.5 pr-4 text-right">
+                              <input type="number" min="0" value={r.stockReel}
+                                onChange={e => setRapportItems(prev => prev.map((x, i) => i === idx ? { ...x, stockReel: e.target.value } : x))}
+                                placeholder="—"
+                                className="w-20 rounded-lg border border-[#E2E8F0] px-2 py-1 text-right text-sm outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400" />
+                            </td>
+                            <td className={`py-2.5 text-right font-bold ${ecart === null ? 'text-[#9A7060]' : ecart === 0 ? 'text-emerald-600' : ecart > 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                              {ecart === null ? '—' : ecart > 0 ? `+${ecart}` : ecart}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          ) : stockTab === 'bon' ? (
+            <>
+              <p className="text-xs text-[#9A7060] mb-4">Générez un bon de commande PDF à envoyer à votre fournisseur</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-[#475569]">Fournisseur <span className="text-red-500">*</span></label>
+                  <select value={bonForm.fournisseurId} onChange={e => setBonForm(p => ({ ...p, fournisseurId: e.target.value }))}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-400 transition">
+                    <option value="">Sélectionner…</option>
+                    {fournisseurs.map(f => <option key={f.id} value={f.id}>{f.nom}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-[#475569]">Date de livraison souhaitée</label>
+                  <input type="date" value={bonForm.dateLivraison} onChange={e => setBonForm(p => ({ ...p, dateLivraison: e.target.value }))}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-1 transition" />
+                </div>
+              </div>
+
+              <p className="text-xs font-semibold text-[#475569] mb-2">Lignes de commande</p>
+              <div className="space-y-2 mb-3">
+                {bonForm.lignes.map((l, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input type="text" placeholder="Article / désignation" value={l.article}
+                      onChange={e => setBonForm(p => { const ls=[...p.lignes]; ls[idx]={...ls[idx],article:e.target.value}; return {...p,lignes:ls}; })}
+                      className="flex-1 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-1 transition" />
+                    <input type="number" min="1" placeholder="Qté" value={l.quantite}
+                      onChange={e => setBonForm(p => { const ls=[...p.lignes]; ls[idx]={...ls[idx],quantite:e.target.value}; return {...p,lignes:ls}; })}
+                      className="w-20 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-1 transition" />
+                    <input type="number" min="0" placeholder="Prix unit." value={l.prixUnit}
+                      onChange={e => setBonForm(p => { const ls=[...p.lignes]; ls[idx]={...ls[idx],prixUnit:e.target.value}; return {...p,lignes:ls}; })}
+                      className="w-28 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-1 transition" />
+                    <button type="button" onClick={() => setBonForm(p => ({ ...p, lignes: p.lignes.filter((_,i)=>i!==idx) }))}
+                      className="text-red-400 hover:text-red-600 text-lg font-bold px-1">×</button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setBonForm(p => ({ ...p, lignes: [...p.lignes, { article:'', quantite:'', prixUnit:'' }] }))}
+                  className="text-xs font-semibold text-violet-700 border border-violet-300 rounded-xl px-3 py-1.5 hover:bg-violet-50 transition">
+                  + Ajouter une ligne
+                </button>
+              </div>
+
+              <button onClick={generateBonCommande}
+                className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700">
+                <Printer className="w-4 h-4" /> Générer le PDF
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
     </div>
@@ -2022,10 +2373,10 @@ function PromosTab({ restaurantId }) {
 
   const isExpired = (p) => p.expiresAt && new Date(p.expiresAt) < now;
   const statusOf = (p) => {
-    if (!p.actif) return { label: 'Inactif', color: '#9CA3AF', bg: '#F1F5F9' };
-    if (isExpired(p)) return { label: 'Expiré', color: '#DC2626', bg: '#FEF2F2' };
-    if (p.maxUses != null && p.usedCount >= p.maxUses) return { label: 'Épuisé', color: '#F97316', bg: '#FFF7ED' };
-    return { label: 'Actif', color: '#059669', bg: '#F0FDF4' };
+    if (!p.actif) return { label: 'Inactif', color: '#9CA3AF', bg: '#F1F5F9', banner: false };
+    if (isExpired(p)) return { label: 'Expiré', color: '#DC2626', bg: '#FEF2F2', banner: false };
+    if (p.maxUses != null && p.usedCount >= p.maxUses) return { label: 'Épuisé', color: '#F97316', bg: '#FFF7ED', banner: false };
+    return { label: 'Actif ⚡', color: '#059669', bg: '#F0FDF4', banner: true };
   };
 
   return (
@@ -2133,7 +2484,12 @@ function PromosTab({ restaurantId }) {
                       </td>
                       {/* Statut */}
                       <td className="px-4 py-3">
-                        <span className="rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: st.bg, color: st.color }}>{st.label}</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: st.bg, color: st.color }}>{st.label}</span>
+                          {st.banner && (
+                            <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-[#0F172A] text-[#E07A2D]">Visible dans menu</span>
+                          )}
+                        </div>
                       </td>
                       {/* Actions */}
                       <td className="px-4 py-3">
@@ -2226,13 +2582,39 @@ function PromosTab({ restaurantId }) {
                 </div>
               </div>
 
-              {/* Description */}
+              {/* Titre du bandeau — visible par les clients */}
               <div>
-                <label className="text-xs font-bold text-[#475569] uppercase tracking-wide">Description (visible par vous)</label>
+                <label className="text-xs font-bold text-[#475569] uppercase tracking-wide">
+                  ⚡ Titre du bandeau (visible par vos clients)
+                </label>
                 <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                  placeholder="Ex: Code de bienvenue nouveaux clients"
+                  placeholder="Ex: Livraison offerte ce weekend, -20% sur tous les plats…"
                   className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] outline-none transition" />
+                <p className="mt-1 text-[10px] text-[#9CA3AF]">Ce texte s'affiche comme titre du bandeau ⚡ Offre Limitée dans votre menu client</p>
               </div>
+
+              {/* Aperçu bandeau */}
+              {(form.description || form.code || form.valeur) && (
+                <div className="rounded-xl overflow-hidden border border-[#E2E8F0]">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] px-3 py-2 bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                    Aperçu bandeau client
+                  </p>
+                  <div className="p-3 bg-[#0F172A] flex gap-3 items-center">
+                    <div className="flex-1 min-w-0">
+                      <span className="inline-block bg-red-500 text-white text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded mb-1.5">⚡ OFFRE LIMITÉE</span>
+                      <p className="text-white font-bold text-sm leading-tight truncate">
+                        {form.description || (form.type === 'PERCENT' ? `${form.valeur || 'X'}% de réduction` : `${Number(form.valeur || 0).toLocaleString('fr-FR')} FCFA de remise`)}
+                      </p>
+                      {form.minMontant > 0 && <p className="text-white/50 text-[10px] mt-0.5">Dès {Number(form.minMontant).toLocaleString('fr-FR')} FCFA d'achat</p>}
+                    </div>
+                    <div className="bg-[#C05015]/20 border border-[#C05015]/30 rounded-lg px-3 py-2 text-center flex-shrink-0">
+                      <p className="text-[#E07A2D] font-black text-base leading-none">
+                        {form.type === 'PERCENT' ? `-${form.valeur || 'X'}%` : `-${Number(form.valeur || 0).toLocaleString('fr-FR')}`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Min montant + max uses */}
               <div className="grid grid-cols-2 gap-3">
@@ -2301,6 +2683,7 @@ function SettingsTab({ restaurantId, user }) {
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [staffForm, setStaffForm] = useState({
     email: "",
     nom: "",
@@ -2322,6 +2705,63 @@ function SettingsTab({ restaurantId, user }) {
   const [qrData, setQrData] = useState(null);
   const [backupCodes, setBackupCodes] = useState(null);
   const [twoFactorCode, setTwoFactorCode] = useState("");
+
+  /* ── QR Codes tables ── */
+  const [nbTables, setNbTables] = useState(10);
+  const [tableQrCodes, setTableQrCodes] = useState([]);
+  const [tableQrLoading, setTableQrLoading] = useState(false);
+
+  const handleGenerateTableQR = async () => {
+    setTableQrLoading(true);
+    try {
+      const origin = window.location.origin;
+      const codes = await Promise.all(
+        Array.from({ length: nbTables }, (_, i) => i + 1).map(async (n) => {
+          const url = `${origin}/menu?restaurant=${restaurantId}&table=${n}`;
+          const dataUrl = await QRCode.toDataURL(url, {
+            width: 220, margin: 1,
+            color: { dark: '#1A0C00', light: '#FFF9F3' },
+          });
+          return { table: n, dataUrl, url };
+        })
+      );
+      setTableQrCodes(codes);
+    } catch (e) {
+      console.error('QR gen error', e);
+    } finally {
+      setTableQrLoading(false);
+    }
+  };
+
+  const handlePrintTableQR = () => {
+    const rows = tableQrCodes.map(({ table, dataUrl }) =>
+      `<div style="display:inline-flex;flex-direction:column;align-items:center;margin:16px;page-break-inside:avoid;border:1px solid #eee;border-radius:12px;padding:16px;background:#fffaf3">
+        <img src="${dataUrl}" style="width:180px;height:180px"/>
+        <p style="font-family:sans-serif;font-weight:900;font-size:18px;margin:10px 0 2px;color:#1a0c00">Table ${table}</p>
+        <p style="font-family:sans-serif;font-size:11px;color:#b09070;margin:0">Scannez pour commander</p>
+      </div>`
+    ).join('');
+    const w = window.open('', '_blank');
+    w.document.write(`<html><head><title>QR Codes Tables</title><style>@media print{body{margin:0}}body{text-align:center;padding:24px;background:#fff}</style></head><body>${rows}</body></html>`);
+    w.document.close();
+    setTimeout(() => w.print(), 400);
+  };
+
+  const handleLogoUpload = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Image uniquement (jpg, png, webp)'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert("Taille max : 5 Mo"); return; }
+    setUploadingLogo(true);
+    try {
+      const res = await uploadsAPI.uploadImage(file);
+      setSettings(p => ({ ...p, logo: res.data.url }));
+    } catch {
+      const localUrl = URL.createObjectURL(file);
+      setSettings(p => ({ ...p, logo: localUrl }));
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const handleChangePwd = async () => {
     setSecError(""); setSecSuccess("");
@@ -2609,482 +3049,429 @@ function SettingsTab({ restaurantId, user }) {
     );
   }
 
+  const inputCls = "w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#C05015]/20 focus:border-[#C05015]/60";
+  const inputStyle = { borderColor: 'rgba(192,80,21,0.2)', background: '#FDF8F3' };
+
+  const SEC_NAV = [
+    { id: 'sec-profil',    label: 'Profil',      emoji: '🏠' },
+    { id: 'sec-horaires',  label: 'Horaires',    emoji: '🕐' },
+    { id: 'sec-livraison', label: 'Livraison',   emoji: '📍' },
+    { id: 'sec-apparence', label: 'Apparence',   emoji: '🎨' },
+    { id: 'sec-staff',     label: 'Staff',       emoji: '👥' },
+    { id: 'sec-securite',  label: 'Sécurité',    emoji: '🔒' },
+    { id: 'sec-qr',        label: 'QR Tables',   emoji: '📱' },
+  ];
+
   return (
-    <div className="space-y-6">
-      <section className="rounded-[28px] border border-[#E2E8F0] bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#FBE8DC] px-3 py-1 text-xs font-medium text-[#C05015]">
-              <Settings className="h-3.5 w-3.5" />
-              Paramètres & configuration
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-[#1C1917]">Centre de configuration</h3>
-              <p className="mt-1 text-sm text-[#78716C]">
-                Profil restaurant, horaires, apparence, zones de livraison et comptes staff.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="rounded-full bg-[#FBE8DC] px-3 py-1.5 text-[#1A1A1A]">
-                {settings.zonesLivraison.length} zone(s)
-              </span>
-              <span className="rounded-full bg-[#FBE8DC] px-3 py-1.5 text-[#1A1A1A]">
-                {staffAccounts.length} staff
-              </span>
-              <span className="rounded-full bg-[#FBE8DC] px-3 py-1.5 text-[#1A1A1A]">
-                {settings.horaires.ouverture} - {settings.horaires.fermeture}
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-col items-start gap-2 xl:items-end">
-            <button
-              onClick={handleSaveSettings}
-              disabled={savingSettings}
-              className="rounded-2xl bg-[#C05015] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#9A3E10] disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {savingSettings ? "Sauvegarde..." : "Sauvegarder les paramètres"}
-            </button>
-            {settingsSaved && (
-              <p className="text-sm font-medium text-[#1A1A1A]">
-                Paramètres sauvegardés avec succès.
-              </p>
-            )}
+    <div className="max-w-7xl">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Configuration</p>
+          <h2 className="mt-1 text-2xl font-bold text-[#0F172A]">Paramètres du restaurant</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {[
+              `${settings.zonesLivraison.length} zone(s) de livraison`,
+              `${staffAccounts.length} compte(s) staff`,
+              `${settings.horaires.ouverture}–${settings.horaires.fermeture}`,
+            ].map(t => (
+              <span key={t} className="rounded-full px-3 py-1 text-xs font-medium text-[#0F172A]" style={{ background: '#FBE8DC' }}>{t}</span>
+            ))}
           </div>
         </div>
-      </section>
+        <div className="flex items-center gap-3 shrink-0">
+          {settingsSaved && (
+            <span className="flex items-center gap-1.5 text-sm font-semibold text-green-600">
+              <CheckCircle className="h-4 w-4" /> Sauvegardé
+            </span>
+          )}
+          <button
+            onClick={handleSaveSettings}
+            disabled={savingSettings}
+            className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-sm transition disabled:opacity-60"
+            style={{ background: '#C05015' }}
+          >
+            <Settings className="h-4 w-4" />
+            {savingSettings ? 'Enregistrement…' : 'Sauvegarder'}
+          </button>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-6">
-        <div className="space-y-6">
-          <div className="rounded-[26px] border border-[#FFD8CC] bg-white p-6 shadow-sm">
-            <h4 className="text-lg font-bold text-[#0F172A]">Profil du restaurant</h4>
-            <p className="mt-1 text-sm text-[#7A6A58]">
-              Ces informations alimentent la première carte du dashboard et la fiche publique du restaurant.
+      <div className="flex gap-6 items-start">
+
+        {/* ── Sidebar navigation minimale ── */}
+        <aside className="hidden xl:block shrink-0" style={{ width: 176, position: 'sticky', top: 80 }}>
+          <nav style={{ background: '#fff', border: '1px solid rgba(192,80,21,0.14)', borderRadius: 18, padding: '8px 0', boxShadow: '0 1px 6px rgba(15,23,42,0.07)' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#9A8070', padding: '6px 16px 10px', borderBottom: '1px solid rgba(192,80,21,0.08)', marginBottom: 4 }}>
+              Navigation
             </p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-[#0F172A]">Nom du restaurant</label>
-                <input
-                  type="text"
-                  value={settings.nom}
-                  onChange={(e) => setSettings((prev) => ({ ...prev, nom: e.target.value }))}
-                  className="w-full rounded-2xl border border-[#FFD8CC] bg-[#FBE8DC] px-4 py-3 outline-none transition focus:border-[#E8906A]"
+            {SEC_NAV.map(({ id, label, emoji }) => (
+              <button key={id} type="button"
+                onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '9px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#64748B', textAlign: 'left', transition: 'all 0.1s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#FBE8DC'; e.currentTarget.style.color = '#C05015'; e.currentTarget.style.fontWeight = '700'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748B'; e.currentTarget.style.fontWeight = '500'; }}>
+                <span style={{ fontSize: 15 }}>{emoji}</span>
+                {label}
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        {/* ── Contenu principal ── */}
+        <div className="flex-1 min-w-0 space-y-6">
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        {/* ── Colonne gauche (2/3) ── */}
+        <div className="xl:col-span-2 space-y-6">
+
+          {/* Profil */}
+          <div id="sec-profil" className="rounded-2xl border bg-white p-6 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
+            <div className="mb-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Identité</p>
+              <h3 className="mt-1 text-base font-bold text-[#0F172A]">Profil du restaurant</h3>
+              <p className="mt-0.5 text-xs text-[#64748B]">Ces informations apparaissent sur la fiche publique et le tableau de bord.</p>
+            </div>
+
+            {/* Logo */}
+            <div className="flex items-start gap-4 mb-6 p-4 rounded-xl" style={{ background: '#FDF8F3', border: '1px solid rgba(192,80,21,0.1)' }}>
+              <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border" style={{ borderColor: 'rgba(192,80,21,0.18)' }}>
+                {settings.logo
+                  ? <img src={settings.logo} alt="Logo" className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-3xl" style={{ background: '#FBE8DC' }}>🍽️</div>
+                }
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#0F172A] mb-0.5">Logo du restaurant</p>
+                <p className="text-xs text-[#9CA3AF] mb-3">JPG, PNG, WebP — max 5 Mo</p>
+                <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer border transition ${uploadingLogo ? 'opacity-50 pointer-events-none' : 'hover:bg-[#FBE8DC]'}`}
+                  style={{ borderColor: 'rgba(192,80,21,0.3)', color: '#C05015', background: '#fff' }}>
+                  📷 {uploadingLogo ? 'Téléchargement…' : 'Choisir un fichier'}
+                  <input type="file" accept="image/*" className="hidden" disabled={uploadingLogo}
+                    onChange={e => handleLogoUpload(e.target.files[0])} />
+                </label>
+                <input type="text" value={settings.logo}
+                  onChange={e => setSettings(p => ({ ...p, logo: e.target.value }))}
+                  placeholder="ou collez une URL directement"
+                  className="mt-2 w-full rounded-lg border px-3 py-1.5 text-xs outline-none"
+                  style={{ borderColor: 'rgba(192,80,21,0.15)', background: '#fff' }}
                 />
               </div>
+            </div>
+
+            {/* Champs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-[#0F172A]">Téléphone</label>
-                <input
-                  type="tel"
-                  value={settings.telephone}
-                  onChange={(e) => setSettings((prev) => ({ ...prev, telephone: e.target.value }))}
-                  className="w-full rounded-2xl border border-[#FFD8CC] bg-[#FBE8DC] px-4 py-3 outline-none transition focus:border-[#E8906A]"
-                />
+                <label className="mb-1.5 block text-xs font-semibold text-[#374151]">Nom du restaurant</label>
+                <input type="text" value={settings.nom}
+                  onChange={e => setSettings(p => ({ ...p, nom: e.target.value }))}
+                  className={inputCls} style={inputStyle} placeholder="Ex: Le Bistrot d'Abidjan" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-[#0F172A]">Email</label>
-                <input
-                  type="email"
-                  value={settings.email}
-                  onChange={(e) => setSettings((prev) => ({ ...prev, email: e.target.value }))}
-                  className="w-full rounded-2xl border border-[#FFD8CC] bg-[#FBE8DC] px-4 py-3 outline-none transition focus:border-[#E8906A]"
-                />
+                <label className="mb-1.5 block text-xs font-semibold text-[#374151]">Téléphone</label>
+                <input type="tel" value={settings.telephone}
+                  onChange={e => setSettings(p => ({ ...p, telephone: e.target.value }))}
+                  className={inputCls} style={inputStyle} placeholder="+225 07 00 00 00" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-[#0F172A]">Logo / photo</label>
-                <input
-                  type="text"
-                  value={settings.logo}
-                  onChange={(e) => setSettings((prev) => ({ ...prev, logo: e.target.value }))}
-                  placeholder="URL du logo"
-                  className="w-full rounded-2xl border border-[#FFD8CC] bg-[#FBE8DC] px-4 py-3 outline-none transition focus:border-[#E8906A]"
-                />
+                <label className="mb-1.5 block text-xs font-semibold text-[#374151]">Email</label>
+                <input type="email" value={settings.email}
+                  onChange={e => setSettings(p => ({ ...p, email: e.target.value }))}
+                  className={inputCls} style={inputStyle} placeholder="contact@restaurant.ci" />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-[#374151]">Adresse</label>
+                <input type="text" value={settings.adresse}
+                  onChange={e => setSettings(p => ({ ...p, adresse: e.target.value }))}
+                  className={inputCls} style={inputStyle} placeholder="Cocody, Abidjan" />
               </div>
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-[#0F172A]">Adresse</label>
-                <input
-                  type="text"
-                  value={settings.adresse}
-                  onChange={(e) => setSettings((prev) => ({ ...prev, adresse: e.target.value }))}
-                  className="w-full rounded-2xl border border-[#FFD8CC] bg-[#FBE8DC] px-4 py-3 outline-none transition focus:border-[#E8906A]"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-[#0F172A]">Description</label>
-                <textarea
-                  value={settings.description}
-                  onChange={(e) => setSettings((prev) => ({ ...prev, description: e.target.value }))}
-                  rows={4}
-                  className="w-full rounded-2xl border border-[#FFD8CC] bg-[#FBE8DC] px-4 py-3 outline-none transition focus:border-[#E8906A]"
+                <label className="mb-1.5 block text-xs font-semibold text-[#374151]">Description</label>
+                <textarea value={settings.description}
+                  onChange={e => setSettings(p => ({ ...p, description: e.target.value }))}
+                  rows={3} placeholder="Décrivez l'ambiance et la spécialité de votre restaurant…"
+                  className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition resize-none focus:ring-2 focus:ring-[#C05015]/20 focus:border-[#C05015]/60"
+                  style={inputStyle}
                 />
               </div>
             </div>
           </div>
 
-          <div className="rounded-[26px] border border-[#E2E8F0] bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
+          {/* Horaires */}
+          <div id="sec-horaires" className="rounded-2xl border bg-white p-6 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
+            <div className="mb-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Disponibilité</p>
+              <h3 className="mt-1 text-base font-bold text-[#0F172A]">Horaires d'ouverture</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <h4 className="text-lg font-bold text-[#1C1917]">Apparence</h4>
-                <p className="mt-1 text-sm text-[#78716C]">
-                  Le mode sombre s'applique à tout le circuit gérant/admin.
-                </p>
+                <label className="mb-1.5 block text-xs font-semibold text-[#374151]">Ouverture</label>
+                <input type="time" value={settings.horaires.ouverture}
+                  onChange={e => setSettings(p => ({ ...p, horaires: { ...p.horaires, ouverture: e.target.value } }))}
+                  className={inputCls} style={inputStyle} />
               </div>
-              <button
-                onClick={toggleDarkMode}
-                className={`relative h-8 w-14 rounded-full transition-all ${
-                  settings.darkMode ? "bg-[#0F172A]" : "bg-[#D1CBC5]"
-                }`}
-              >
-                <span
-                  className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow transition-transform ${
-                    settings.darkMode ? "translate-x-6" : ""
-                  }`}
-                />
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-[#374151]">Fermeture</label>
+                <input type="time" value={settings.horaires.fermeture}
+                  onChange={e => setSettings(p => ({ ...p, horaires: { ...p.horaires, fermeture: e.target.value } }))}
+                  className={inputCls} style={inputStyle} />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-3 p-3 rounded-xl" style={{ background: '#FDF8F3' }}>
+              <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
+              <p className="text-xs text-[#64748B]">
+                Ouvert de <strong className="text-[#0F172A]">{settings.horaires.ouverture}</strong> à <strong className="text-[#0F172A]">{settings.horaires.fermeture}</strong>
+              </p>
+            </div>
+          </div>
+
+          {/* Zones de livraison */}
+          <div id="sec-livraison" className="rounded-2xl border bg-white p-6 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
+            <div className="mb-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Logistique</p>
+              <h3 className="mt-1 text-base font-bold text-[#0F172A]">Zones de livraison</h3>
+              <p className="mt-0.5 text-xs text-[#64748B]">Cliquez sur la carte pour définir précisément la position.</p>
+            </div>
+            <div className="flex gap-2 mb-4">
+              <input type="text" value={settings.newZone.nom}
+                onChange={e => setSettings(p => ({ ...p, newZone: { ...p.newZone, nom: e.target.value } }))}
+                placeholder="Nom de la zone (ex: Cocody, Plateau…)"
+                className="flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none"
+                style={inputStyle}
+              />
+              <button onClick={handleAddZone}
+                className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold text-white transition"
+                style={{ background: '#C05015' }}>
+                <Plus className="h-4 w-4" /> Ajouter
               </button>
             </div>
-            <div className="mt-4 rounded-[22px] border border-[#E2E8F0] bg-white p-4">
-              <p className="text-sm font-medium text-[#0F172A]">Thème actuel</p>
-              <p className="mt-1 text-sm text-[#7A6A58]">
-                {settings.darkMode ? "Mode sombre activé" : "Mode clair activé"}
-              </p>
+            {settings.zonesLivraison.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {settings.zonesLivraison.map((zone, i) => (
+                  <div key={i} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium"
+                    style={{ borderColor: 'rgba(192,80,21,0.2)', background: '#FDF8F3', color: '#0F172A' }}>
+                    <MapPin className="h-3 w-3" style={{ color: '#C05015' }} />
+                    {zone.nom}
+                    <button onClick={() => handleRemoveZone(zone)} className="ml-0.5 text-[#9CA3AF] hover:text-red-500 transition font-bold">×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="rounded-xl overflow-hidden border" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
+              <DeliveryZonesMap
+                restaurantPosition={{ lat: settings.latitude, lng: settings.longitude }}
+                selectedPosition={{ lat: settings.newZone.lat, lng: settings.newZone.lng }}
+                zones={settings.zonesLivraison}
+                onPick={handleMapPick}
+              />
             </div>
-          </div>
-
-          <div className="rounded-[26px] border border-[rgba(224,78,26,0.15)] bg-white p-6 shadow-sm">
-            <h4 className="text-lg font-bold text-[#0F172A]">Horaires d'ouverture</h4>
-            <p className="mt-1 text-sm text-[#7A6A58]">
-              Les horaires utilisés proviennent désormais du profil restaurant et peuvent être modifiés ici.
-            </p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-[#0F172A]">Ouverture</label>
-                <input
-                  type="time"
-                  value={settings.horaires.ouverture}
-                  onChange={(e) =>
-                    setSettings((prev) => ({
-                      ...prev,
-                      horaires: { ...prev.horaires, ouverture: e.target.value },
-                    }))
-                  }
-                  className="w-full rounded-2xl border border-[rgba(224,78,26,0.15)] bg-[#FBE8DC] px-4 py-3 outline-none transition focus:border-[#C05015]/50"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-[#0F172A]">Fermeture</label>
-                <input
-                  type="time"
-                  value={settings.horaires.fermeture}
-                  onChange={(e) =>
-                    setSettings((prev) => ({
-                      ...prev,
-                      horaires: { ...prev.horaires, fermeture: e.target.value },
-                    }))
-                  }
-                  className="w-full rounded-2xl border border-[rgba(224,78,26,0.15)] bg-[#FBE8DC] px-4 py-3 outline-none transition focus:border-[#C05015]/50"
-                />
-              </div>
+            <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-[#9CA3AF]">
+              <span>Restaurant : {Number(settings.latitude).toFixed(4)}, {Number(settings.longitude).toFixed(4)}</span>
+              <span>·</span>
+              <span>Zone : {Number(settings.newZone.lat).toFixed(4)}, {Number(settings.newZone.lng).toFixed(4)}</span>
             </div>
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="rounded-[26px] border border-amber-200 bg-white p-6 shadow-sm">
-            <h4 className="text-lg font-bold text-[#0F172A]">Zones de livraison</h4>
-            <p className="mt-1 text-sm text-[#7A6A58]">
-              Ajoutez vos zones manuellement ou cliquez dans la carte simplifiée pour positionner la zone.
-            </p>
-            <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        {/* ── Colonne droite (1/3) ── */}
+        <div className="space-y-5">
+
+          {/* Apparence */}
+          <div id="sec-apparence" className="rounded-2xl border bg-white p-5 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <input
-                    type="text"
-                    value={settings.newZone.nom}
-                    onChange={(e) =>
-                      setSettings((prev) => ({
-                        ...prev,
-                        newZone: { ...prev.newZone, nom: e.target.value },
-                      }))
-                    }
-                    placeholder="Nom de la zone"
-                    className="rounded-2xl border border-amber-200 bg-amber-50/30 px-4 py-3 outline-none transition focus:border-amber-400 md:col-span-3"
-                  />
-                  <input
-                    type="number"
-                    step="0.000001"
-                    value={settings.newZone.lat}
-                    onChange={(e) =>
-                      setSettings((prev) => ({
-                        ...prev,
-                        newZone: { ...prev.newZone, lat: e.target.value },
-                      }))
-                    }
-                    className="rounded-2xl border border-amber-200 bg-amber-50/30 px-4 py-3 outline-none transition focus:border-amber-400"
-                  />
-                  <input
-                    type="number"
-                    step="0.000001"
-                    value={settings.newZone.lng}
-                    onChange={(e) =>
-                      setSettings((prev) => ({
-                        ...prev,
-                        newZone: { ...prev.newZone, lng: e.target.value },
-                      }))
-                    }
-                    className="rounded-2xl border border-amber-200 bg-amber-50/30 px-4 py-3 outline-none transition focus:border-amber-400"
-                  />
-                  <button
-                    onClick={handleAddZone}
-                    className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3 font-semibold text-white shadow-sm transition hover:from-amber-600 hover:to-orange-600"
-                  >
-                    Ajouter
-                  </button>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {settings.zonesLivraison.map((zone, index) => (
-                    <div
-                      key={`${zone.nom}-${index}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-[#7A4B12]"
-                    >
-                      <span>{zone.nom}</span>
-                      {zone.lat && zone.lng && (
-                        <span className="text-xs text-[#A16207]">
-                          {Number(zone.lat).toFixed(3)}, {Number(zone.lng).toFixed(3)}
-                        </span>
-                      )}
-                      <button
-                        onClick={() => handleRemoveZone(zone)}
-                        className="font-semibold text-[#7A4B12] transition hover:text-[#B45309]"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#C05015' }}>Interface</p>
+                <h4 className="mt-0.5 text-sm font-bold text-[#0F172A]">Mode sombre</h4>
+                <p className="text-[11px] text-[#9CA3AF] mt-0.5">{settings.darkMode ? 'Activé' : 'Désactivé'}</p>
               </div>
-              <div>
-                <div className="rounded-[24px] border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-4">
-                  <p className="text-sm font-semibold text-[#0F172A]">Carte OpenStreetMap</p>
-                  <p className="mt-1 text-xs text-[#7A6A58]">
-                    Cliquez directement sur la carte pour récupérer une vraie latitude et longitude.
-                  </p>
-                  <DeliveryZonesMap
-                    restaurantPosition={{ lat: settings.latitude, lng: settings.longitude }}
-                    selectedPosition={{ lat: settings.newZone.lat, lng: settings.newZone.lng }}
-                    zones={settings.zonesLivraison}
-                    onPick={handleMapPick}
-                  />
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#7A6A58]">
-                    <span className="rounded-full bg-white px-3 py-1.5 shadow-sm">
-                      Position restaurant: {Number(settings.latitude).toFixed(4)}, {Number(settings.longitude).toFixed(4)}
-                    </span>
-                    <span className="rounded-full bg-white px-3 py-1.5 shadow-sm">
-                      Zone en cours: {Number(settings.newZone.lat).toFixed(4)}, {Number(settings.newZone.lng).toFixed(4)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <button onClick={toggleDarkMode}
+                className="relative h-7 w-12 rounded-full flex-shrink-0 transition-colors"
+                style={{ background: settings.darkMode ? '#C05015' : '#E5E7EB' }}>
+                <span className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${settings.darkMode ? 'translate-x-5' : ''}`} />
+              </button>
             </div>
           </div>
 
-          <div className="rounded-[26px] border border-[#E2E8F0] bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h4 className="text-lg font-bold text-[#1C1917]">Gestion des comptes staff</h4>
-                <p className="mt-1 text-sm text-[#78716C]">
-                  RBAC strict : un seul rôle actif par utilisateur (RG-31).
-                </p>
-              </div>
-              <span className="rounded-full bg-[#FBE8DC] px-3 py-1.5 text-xs font-medium text-[#1A1A1A]">
-                {staffAccounts.length} compte(s)
-              </span>
+          {/* Comptes staff */}
+          <div id="sec-staff" className="rounded-2xl border bg-white p-5 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
+            <div className="mb-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Équipe</p>
+              <h3 className="mt-1 text-sm font-bold text-[#0F172A]">Comptes staff</h3>
             </div>
 
-            <div className="mt-4 rounded-[24px] border border-[#E2E8F0] bg-white p-5">
-              <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#1A1A1A]">
-                <UserPlus className="h-4 w-4" />
-                Créer un nouveau compte staff
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Formulaire création */}
+            <div className="rounded-xl p-4 space-y-3 mb-4" style={{ background: '#FDF8F3', border: '1px solid rgba(192,80,21,0.1)' }}>
+              <p className="text-xs font-bold text-[#0F172A] flex items-center gap-2">
+                <UserPlus className="h-3.5 w-3.5" style={{ color: '#C05015' }} /> Nouveau compte
+              </p>
+              <div className="space-y-2">
+                {[
+                  { label: 'Email *', key: 'email', type: 'email', ph: 'staff@resto.com' },
+                  { label: 'Nom complet *', key: 'nom', type: 'text', ph: 'Konan Aya' },
+                  { label: 'Téléphone', key: 'telephone', type: 'tel', ph: '+225 07 00 00 00' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label className="block text-[10px] font-semibold text-[#64748B] mb-0.5">{f.label}</label>
+                    <input type={f.type} value={staffForm[f.key]}
+                      onChange={e => setStaffForm(p => ({ ...p, [f.key]: e.target.value }))}
+                      placeholder={f.ph}
+                      className="w-full rounded-lg border px-3 py-2 text-xs outline-none transition focus:ring-1 focus:ring-[#C05015]/30"
+                      style={{ borderColor: 'rgba(192,80,21,0.2)', background: '#fff' }}
+                    />
+                  </div>
+                ))}
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-[#0F172A]">Email *</label>
-                  <input
-                    type="email"
-                    value={staffForm.email}
-                    onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
-                    className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015]"
-                    placeholder="staff@restaurant.com"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-[#0F172A]">Téléphone</label>
-                  <input
-                    type="tel"
-                    value={staffForm.telephone}
-                    onChange={(e) => setStaffForm({ ...staffForm, telephone: e.target.value })}
-                    className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015]"
-                    placeholder="+225 XX XX XX XX"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium text-[#0F172A]">Nom complet *</label>
-                  <input
-                    type="text"
-                    value={staffForm.nom}
-                    onChange={(e) => setStaffForm({ ...staffForm, nom: e.target.value })}
-                    className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015]"
-                    placeholder="Ex: Konan Aya"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium text-[#0F172A]">Mot de passe (optionnel)</label>
-                  <input
-                    type="password"
-                    value={staffForm.password}
-                    onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
-                    className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015]"
-                    placeholder="Laisser vide pour générer un mot de passe"
+                  <label className="block text-[10px] font-semibold text-[#64748B] mb-0.5">Mot de passe (optionnel)</label>
+                  <input type="password" value={staffForm.password}
+                    onChange={e => setStaffForm(p => ({ ...p, password: e.target.value }))}
+                    placeholder="Vide = généré auto"
+                    className="w-full rounded-lg border px-3 py-2 text-xs outline-none"
+                    style={{ borderColor: 'rgba(192,80,21,0.2)', background: '#fff' }}
                   />
                 </div>
               </div>
-              <button
-                onClick={handleCreateStaff}
-                className="mt-4 rounded-2xl bg-[#C05015] px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-[#9A3E10]"
-              >
-                Créer le compte staff
+              <button onClick={handleCreateStaff}
+                className="w-full rounded-xl py-2.5 text-xs font-bold text-white transition"
+                style={{ background: '#C05015' }}>
+                Créer le compte
               </button>
               {staffCreationNotice && (
-                <div className="mt-4 rounded-2xl border border-[#E2E8F0] bg-white p-4 text-sm text-[#1A1A1A] shadow-sm">
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-xs text-green-800">
                   {staffCreationNotice}
                 </div>
               )}
             </div>
 
-            <div className="mt-5">
-              <h5 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#78716C]">
-                Comptes existants
-              </h5>
-              {loadingStaff ? (
-                <div className="flex items-center justify-center py-6">
-                  <div className="h-7 w-7 rounded-full border-4 border-[#C05015] border-t-transparent animate-spin" />
-                </div>
-              ) : staffAccounts.length > 0 ? (
-                <div className="mt-4 space-y-3">
-                  {staffAccounts.map((staff) => (
-                    <div
-                      key={staff.id}
-                      className="flex flex-col gap-3 rounded-[22px] border border-[#E2E8F0] bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between"
-                    >
-                      <div>
-                        <p className="font-semibold text-[#1C1917]">{staff.nom}</p>
-                        <p className="text-sm text-[#78716C]">{staff.email}</p>
-                        <p className="text-xs text-[#A8A29E]">{staff.telephone || "Pas de téléphone"}</p>
+            {/* Liste staff */}
+            {loadingStaff ? (
+              <div className="flex justify-center py-5">
+                <div className="h-6 w-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#C05015', borderTopColor: 'transparent' }} />
+              </div>
+            ) : staffAccounts.length === 0 ? (
+              <div className="text-center py-6">
+                <Users className="mx-auto h-8 w-8 mb-2 text-[#D1D5DB]" />
+                <p className="text-xs text-[#9CA3AF]">Aucun compte staff créé</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9CA3AF] mb-2">
+                  Membres actifs ({staffAccounts.length})
+                </p>
+                {staffAccounts.map(staff => {
+                  const ini = (staff.nom || 'S').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                  return (
+                    <div key={staff.id} className="flex items-center gap-3 p-3 rounded-xl border"
+                      style={{ borderColor: 'rgba(192,80,21,0.1)', background: '#FDF8F3' }}>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                        style={{ background: '#FBE8DC', color: '#C05015' }}>
+                        {ini}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={`rounded-full px-3 py-1.5 text-xs font-medium ${
-                            staff.actif ? "bg-[#FBE8DC] text-[#1A1A1A]" : "bg-red-50 text-red-700"
-                          }`}
-                        >
-                          {staff.actif ? "Actif" : "Inactif"}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-[#0F172A] truncate">{staff.nom}</p>
+                        <p className="text-[10px] text-[#9CA3AF] truncate">{staff.email}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${staff.actif ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                          {staff.actif ? 'Actif' : 'Inactif'}
                         </span>
-                        <button
-                          onClick={() => handleToggleStaff(staff.id, staff.actif)}
-                          className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition ${
-                            staff.actif
-                              ? "bg-red-600 hover:bg-red-700"
-                              : "bg-[#C05015] hover:bg-[#9A3E10]"
-                          }`}
-                        >
-                          {staff.actif ? "Désactiver" : "Activer"}
+                        <button onClick={() => handleToggleStaff(staff.id, staff.actif)}
+                          className={`rounded-lg px-2.5 py-1 text-[10px] font-bold text-white transition ${staff.actif ? 'bg-red-500 hover:bg-red-600' : 'bg-[#C05015] hover:bg-[#9A3E10]'}`}>
+                          {staff.actif ? 'Désactiver' : 'Activer'}
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-4 text-center text-sm text-[#78716C]">Aucun compte staff créé</p>
-              )}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* ── Sécurité gérant ── */}
-          <div className="rounded-[26px] border border-[rgba(0,0,0,0.07)] bg-white p-6 shadow-sm space-y-4">
+          {/* Sécurité */}
+          <div id="sec-securite" className="rounded-2xl border bg-white p-5 space-y-4 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
             <div>
-              <h4 className="text-sm font-semibold uppercase tracking-[0.15em] text-[#F97316] mb-1">Sécurité</h4>
-              <h3 className="text-lg font-bold text-[#0F172A] mb-1">Authentification & Protection</h3>
-              <p className="text-sm text-[#64748B]">Gérez votre mot de passe et l'authentification à deux facteurs.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Sécurité</p>
+              <h3 className="mt-1 text-sm font-bold text-[#0F172A]">Authentification & Protection</h3>
             </div>
 
-            {secSuccess && <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{secSuccess}</div>}
-            {secError   && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{secError}</div>}
+            {secSuccess && <div className="rounded-xl border border-green-200 bg-green-50 px-3 py-2.5 text-xs text-green-700">{secSuccess}</div>}
+            {secError   && <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700">{secError}</div>}
 
-            {/* Email status */}
-            <div className="flex items-center justify-between rounded-2xl border border-[rgba(0,0,0,0.07)] bg-[#FAFBFC] p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50">
-                  <Mail className="h-4 w-4 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-[#0F172A]">Vérification email</p>
-                  <p className="text-xs text-[#64748B]">{user?.email}</p>
-                </div>
+            {/* Email */}
+            <div className="flex items-center gap-3 p-3 rounded-xl border"
+              style={{ borderColor: 'rgba(192,80,21,0.1)', background: '#FDF8F3' }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-green-50 shrink-0">
+                <Mail className="h-3.5 w-3.5 text-green-600" />
               </div>
-              <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">✓ Vérifié</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-[#0F172A]">Email vérifié</p>
+                <p className="text-[10px] text-[#9CA3AF] truncate">{user?.email}</p>
+              </div>
+              <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700 shrink-0">✓ OK</span>
             </div>
 
-            {/* Password change */}
-            <div className="rounded-2xl border border-[rgba(0,0,0,0.07)] bg-[#FAFBFC] p-4">
-              <div className="flex items-center justify-between">
+            {/* Mot de passe */}
+            <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'rgba(192,80,21,0.1)' }}>
+              <div className="flex items-center justify-between gap-3 p-3" style={{ background: '#FDF8F3' }}>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FBE8DC]">
-                    <Lock className="h-4 w-4 text-[#C05015]" />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#FBE8DC' }}>
+                    <Lock className="h-3.5 w-3.5" style={{ color: '#C05015' }} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#0F172A]">Mot de passe</p>
-                    <p className="text-xs text-[#64748B]">Changez régulièrement pour plus de sécurité</p>
+                    <p className="text-xs font-semibold text-[#0F172A]">Mot de passe</p>
+                    <p className="text-[10px] text-[#9CA3AF]">Modifier régulièrement</p>
                   </div>
                 </div>
                 <button
-                  onClick={() => { setShowPasswordForm(!showPasswordForm); setSecError(""); setSecSuccess(""); }}
-                  className="rounded-xl bg-[#C05015] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#9A3E10]"
-                >
+                  onClick={() => { setShowPasswordForm(!showPasswordForm); setSecError(''); setSecSuccess(''); }}
+                  className="rounded-lg px-3 py-1.5 text-[10px] font-bold text-white transition"
+                  style={{ background: '#C05015' }}>
                   Modifier
                 </button>
               </div>
               {showPasswordForm && (
-                <div className="mt-4 space-y-3">
+                <div className="p-3 border-t space-y-2.5" style={{ borderColor: 'rgba(192,80,21,0.1)' }}>
                   {[
-                    { key: "current", label: "Mot de passe actuel" },
-                    { key: "next",    label: "Nouveau mot de passe" },
-                    { key: "confirm", label: "Confirmer" },
-                  ].map(({ key, label }) => (
+                    { key: 'current', ph: 'Mot de passe actuel' },
+                    { key: 'next',    ph: 'Nouveau (6 caractères min.)' },
+                    { key: 'confirm', ph: 'Confirmer le nouveau' },
+                  ].map(({ key, ph }) => (
                     <div key={key} className="relative">
                       <input
-                        type={showSecPwd[key] ? "text" : "password"}
-                        placeholder={label}
-                        value={secPwd[key]}
+                        type={showSecPwd[key] ? 'text' : 'password'}
+                        placeholder={ph} value={secPwd[key]}
                         onChange={e => setSecPwd(p => ({ ...p, [key]: e.target.value }))}
-                        className="w-full rounded-xl border border-[rgba(89,67,42,0.18)] bg-white px-4 py-3 pr-11 text-sm text-[#0F172A] outline-none transition focus:border-[#C05015] focus:ring-2 focus:ring-[#C05015]/15"
+                        className="w-full rounded-lg border px-3 py-2 pr-9 text-xs outline-none transition focus:ring-1 focus:ring-[#C05015]/30"
+                        style={{ borderColor: 'rgba(192,80,21,0.2)', background: '#fff' }}
                       />
-                      <button type="button" onClick={() => setShowSecPwd(s => ({ ...s, [key]: !s[key] }))}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B]">
-                        {showSecPwd[key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <button type="button"
+                        onClick={() => setShowSecPwd(s => ({ ...s, [key]: !s[key] }))}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF]">
+                        {showSecPwd[key] ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                       </button>
                     </div>
                   ))}
                   {secPwd.next.length > 0 && (
                     <div className="flex gap-1">
                       {[1,2,3,4].map(i => (
-                        <div key={i} className="h-1 flex-1 rounded-full" style={{ background: i <= Math.min(Math.floor(secPwd.next.length / 3), 4) ? (secPwd.next.length < 6 ? '#EF4444' : secPwd.next.length < 9 ? '#F97316' : '#9A3E10') : 'rgba(89,67,42,0.1)' }} />
+                        <div key={i} className="h-1 flex-1 rounded-full" style={{
+                          background: i <= Math.min(Math.floor(secPwd.next.length / 3), 4)
+                            ? (secPwd.next.length < 6 ? '#EF4444' : secPwd.next.length < 9 ? '#F97316' : '#16A34A')
+                            : '#E5E7EB'
+                        }} />
                       ))}
                     </div>
                   )}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 pt-1">
                     <button onClick={handleChangePwd} disabled={secSaving}
-                      className="flex-1 rounded-xl bg-[#C05015] py-2.5 text-sm font-semibold text-white transition hover:bg-[#9A3E10] disabled:opacity-50">
-                      {secSaving ? "En cours…" : "Enregistrer"}
+                      className="flex-1 rounded-lg py-2 text-xs font-bold text-white disabled:opacity-50"
+                      style={{ background: '#C05015' }}>
+                      {secSaving ? 'Enregistrement…' : 'Confirmer'}
                     </button>
                     <button onClick={() => setShowPasswordForm(false)}
-                      className="rounded-xl border border-[rgba(0,0,0,0.07)] px-4 py-2.5 text-sm font-medium text-[#64748B]">
+                      className="rounded-lg border px-3 py-2 text-xs text-[#64748B]"
+                      style={{ borderColor: 'rgba(192,80,21,0.2)' }}>
                       Annuler
                     </button>
                   </div>
@@ -3093,97 +3480,163 @@ function SettingsTab({ restaurantId, user }) {
             </div>
 
             {/* 2FA */}
-            <div className="rounded-2xl border border-[rgba(0,0,0,0.07)] bg-[#FAFBFC] p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'rgba(192,80,21,0.1)' }}>
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3" style={{ background: '#FDF8F3' }}>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FBE8DC]">
-                    <Shield className="h-4 w-4 text-[#C05015]" />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#FBE8DC' }}>
+                    <Shield className="h-3.5 w-3.5" style={{ color: '#C05015' }} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#0F172A]">Double authentification (2FA)</p>
-                    <p className="text-xs text-[#64748B]">Protégez votre compte avec une application TOTP</p>
+                    <p className="text-xs font-semibold text-[#0F172A]">Double authentification</p>
+                    <p className="text-[10px] text-[#9CA3AF]">TOTP — Google Auth / Authy</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {twoFactorEnabled && <span className="rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-medium text-green-700">Actif</span>}
+                <div className="flex items-center gap-1.5">
+                  {twoFactorEnabled && (
+                    <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700">Actif</span>
+                  )}
                   <button
                     onClick={twoFactorEnabled ? handleDisable2FA : handleSetup2FA}
                     disabled={secSaving}
-                    className={`rounded-xl px-4 py-2 text-xs font-semibold text-white transition disabled:opacity-50 ${twoFactorEnabled ? "bg-red-500 hover:bg-red-600" : "bg-[#C05015] hover:bg-[#9A3E10]"}`}
-                  >
-                    {twoFactorEnabled ? "Désactiver" : "Configurer"}
+                    className={`rounded-lg px-3 py-1.5 text-[10px] font-bold text-white transition disabled:opacity-50 ${twoFactorEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-[#C05015] hover:bg-[#9A3E10]'}`}>
+                    {twoFactorEnabled ? 'Désactiver' : 'Configurer'}
                   </button>
                 </div>
               </div>
 
               {show2FA && qrData && (
-                <div className="mt-4 space-y-3">
-                  <p className="text-sm text-[#64748B]">
-                    Scannez le QR code avec <strong>Google Authenticator</strong> ou <strong>Authy</strong>, puis entrez le code à 6 chiffres.
+                <div className="p-3 border-t space-y-3" style={{ borderColor: 'rgba(192,80,21,0.1)' }}>
+                  <p className="text-[11px] text-[#64748B]">
+                    Scannez avec <strong>Google Authenticator</strong> ou <strong>Authy</strong>, puis saisissez le code à 6 chiffres.
                   </p>
                   {qrData.qrCodeDataUrl ? (
-                    <div className="flex flex-col items-center gap-3 rounded-xl border border-[rgba(0,0,0,0.07)] bg-white p-4">
-                      <img src={qrData.qrCodeDataUrl} alt="QR Code 2FA" className="h-40 w-40 rounded-lg" />
+                    <div className="flex flex-col items-center gap-2 rounded-xl border p-3" style={{ borderColor: 'rgba(192,80,21,0.1)', background: '#fff' }}>
+                      <img src={qrData.qrCodeDataUrl} alt="QR 2FA" className="h-36 w-36 rounded-lg" />
                       <div className="text-center">
-                        <p className="text-[10px] text-[#64748B] mb-1">Clé manuelle :</p>
-                        <code className="rounded bg-white px-2 py-1 font-mono text-xs select-all">{qrData.secret}</code>
+                        <p className="text-[10px] text-[#9CA3AF] mb-1">Clé manuelle :</p>
+                        <code className="text-[10px] text-[#64748B] select-all break-all">{qrData.secret}</code>
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-xl border border-dashed border-[rgba(89,67,42,0.15)] bg-white py-6 text-center">
-                      <p className="break-all px-4 font-mono text-xs text-[#64748B]">{qrData.otpAuthUrl}</p>
+                    <div className="rounded-xl border border-dashed p-3 text-center" style={{ borderColor: 'rgba(192,80,21,0.2)' }}>
+                      <p className="text-[10px] text-[#64748B] break-all">{qrData.otpAuthUrl}</p>
                     </div>
                   )}
-                  <input
-                    type="text" maxLength={6}
-                    placeholder="Code à 6 chiffres"
+                  <input type="text" maxLength={6} placeholder="Code à 6 chiffres"
                     value={twoFactorCode}
-                    onChange={e => setTwoFactorCode(e.target.value.replace(/\D/g, ""))}
-                    className="w-full rounded-xl border border-[rgba(89,67,42,0.18)] bg-white px-4 py-3 text-center font-mono text-lg tracking-[0.3em] outline-none focus:border-[#C05015]"
+                    onChange={e => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                    className="w-full rounded-xl border px-4 py-2.5 text-center font-mono text-base tracking-[0.4em] outline-none"
+                    style={{ borderColor: 'rgba(192,80,21,0.2)', background: '#FDF8F3' }}
                   />
                   <div className="flex gap-2">
                     <button onClick={handleEnable2FA} disabled={secSaving}
-                      className="flex-1 rounded-xl bg-[#C05015] py-2.5 text-sm font-semibold text-white hover:bg-[#9A3E10] disabled:opacity-50">
-                      {secSaving ? "Activation…" : "Activer la 2FA"}
+                      className="flex-1 rounded-xl py-2.5 text-xs font-bold text-white disabled:opacity-50"
+                      style={{ background: '#C05015' }}>
+                      {secSaving ? 'Activation…' : 'Activer la 2FA'}
                     </button>
                     <button onClick={() => setShow2FA(false)}
-                      className="rounded-xl border border-[rgba(0,0,0,0.07)] px-4 py-2.5 text-sm text-[#64748B]">
+                      className="rounded-xl border px-4 py-2.5 text-xs text-[#64748B]"
+                      style={{ borderColor: 'rgba(192,80,21,0.2)' }}>
                       Annuler
                     </button>
                   </div>
                 </div>
               )}
+            </div>
 
-              {backupCodes && (
-                <div className="mt-4 space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-amber-900">Codes de secours — notez-les maintenant !</p>
-                      <p className="mt-0.5 text-xs text-amber-700">Ces codes s'affichent une seule fois. Utilisez-les en cas de perte de téléphone.</p>
+            {/* ── QR Codes Tables ── */}
+            <div id="sec-qr" className="rounded-2xl border bg-white p-5 space-y-4 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <QrCode className="h-4 w-4" style={{ color: '#C05015' }} />
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Commande en salle</p>
+                </div>
+                <h3 className="text-base font-bold text-[#0F172A]">QR Codes par table</h3>
+                <p className="text-xs text-[#64748B] mt-0.5">Le client scanne le QR de sa table et commande directement sans app.</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-semibold text-[#374151] whitespace-nowrap">Nombre de tables</label>
+                  <input
+                    type="number" min={1} max={50}
+                    value={nbTables}
+                    onChange={e => setNbTables(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                    className="w-16 rounded-xl border px-2 py-1.5 text-sm text-center outline-none"
+                    style={{ borderColor: 'rgba(192,80,21,0.3)', background: '#FDF8F3' }}
+                  />
+                </div>
+                <button
+                  onClick={handleGenerateTableQR}
+                  disabled={tableQrLoading}
+                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold text-white disabled:opacity-60 transition"
+                  style={{ background: '#C05015' }}
+                >
+                  <QrCode className="h-3.5 w-3.5" />
+                  {tableQrLoading ? 'Génération…' : 'Générer les QR codes'}
+                </button>
+                {tableQrCodes.length > 0 && (
+                  <button
+                    onClick={handlePrintTableQR}
+                    className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition hover:bg-orange-50"
+                    style={{ borderColor: 'rgba(192,80,21,0.35)', color: '#C05015' }}
+                  >
+                    <Printer className="h-3.5 w-3.5" /> Imprimer tout
+                  </button>
+                )}
+              </div>
+              {tableQrCodes.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 pt-2">
+                  {tableQrCodes.map(({ table, dataUrl }) => (
+                    <div key={table} className="flex flex-col items-center gap-1.5 rounded-xl border p-2.5" style={{ borderColor: 'rgba(192,80,21,0.15)', background: '#FDF8F3' }}>
+                      <img src={dataUrl} alt={`Table ${table}`} className="w-full aspect-square rounded-lg" />
+                      <p className="text-xs font-bold text-[#0F172A]">Table {table}</p>
+                      <a
+                        href={dataUrl}
+                        download={`qr-table-${table}.png`}
+                        className="text-[10px] font-semibold rounded-lg px-2 py-0.5 hover:bg-orange-100 transition"
+                        style={{ color: '#C05015' }}
+                      >
+                        Télécharger
+                      </a>
                     </div>
-                    <button onClick={() => setBackupCodes(null)} className="text-amber-600 hover:text-amber-900">
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {backupCodes.map((code, i) => (
-                      <code key={i} className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-center font-mono text-sm text-amber-900 select-all">{code}</code>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => navigator.clipboard.writeText(backupCodes.join("\n"))}
-                      className="flex-1 rounded-xl border border-amber-300 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-100">
-                      Copier
-                    </button>
-                    <button onClick={() => { const b=new Blob([`Codes de secours 2FA\n\n${backupCodes.join("\n")}`],{type:"text/plain"}); const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download="codes-secours-2fa.txt"; a.click(); URL.revokeObjectURL(u); }}
-                      className="flex-1 rounded-xl bg-amber-600 py-2 text-xs font-semibold text-white hover:bg-amber-700">
-                      Télécharger
-                    </button>
-                  </div>
+                  ))}
                 </div>
               )}
             </div>
+
+            {backupCodes && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-amber-900">⚠ Codes de secours — notez-les maintenant !</p>
+                    <p className="mt-0.5 text-[10px] text-amber-700">Affichés une seule fois. À conserver en lieu sûr.</p>
+                  </div>
+                  <button onClick={() => setBackupCodes(null)} className="text-amber-600 hover:text-amber-900">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {backupCodes.map((code, i) => (
+                    <code key={i} className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-center font-mono text-xs text-amber-900 select-all">{code}</code>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => navigator.clipboard.writeText(backupCodes.join('\n'))}
+                    className="flex-1 rounded-xl border border-amber-300 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-100">
+                    Copier
+                  </button>
+                  <button onClick={() => { const b=new Blob([`Codes de secours 2FA\n\n${backupCodes.join('\n')}`],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='codes-secours-2fa.txt'; a.click(); URL.revokeObjectURL(u); }}
+                    className="flex-1 rounded-xl bg-amber-600 py-2 text-xs font-semibold text-white hover:bg-amber-700">
+                    Télécharger
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+
+        </div>
+      </div>{/* /grid */}
+
         </div>
       </div>
     </div>

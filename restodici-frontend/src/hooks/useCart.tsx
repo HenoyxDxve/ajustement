@@ -8,6 +8,8 @@ export interface CartItem {
   photoUrl?: string;
   quantite: number;
   instructions?: string;
+  variantLabel?: string;
+  variantSupplement?: number;
   categorie?: { nom: string; icone?: string };
 }
 
@@ -88,6 +90,8 @@ function normalizeSavedItems(rawItems: unknown): CartItem[] {
         photoUrl: current.photoUrl,
         quantite: Math.max(1, Number(current.quantite || 1)),
         instructions: current.instructions,
+        variantLabel: current.variantLabel,
+        variantSupplement: current.variantSupplement != null ? Number(current.variantSupplement) : undefined,
         categorie: current.categorie,
       };
     })
@@ -177,10 +181,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     setItems((prev) => {
-      const existing = prev.find((i) => i.articleId === item.articleId);
+      const existing = prev.find(
+        (i) => i.articleId === item.articleId && (i.variantLabel || '') === ((item as CartItem).variantLabel || ''),
+      );
       if (existing) {
         return prev.map((i) =>
-          i.articleId === item.articleId
+          i.lineId === existing.lineId
             ? { ...i, quantite: i.quantite + Math.max(1, quantite) }
             : i,
         );

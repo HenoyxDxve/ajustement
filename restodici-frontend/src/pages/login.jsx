@@ -10,264 +10,250 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const { login, syncUser } = useAuth();
 
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [errors, setErrors] = useState({});
-  const verifyEmailCta = errors.verifyEmailCta === true;
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [twoFactorStep, setTwoFactorStep] = useState(false);
-  const [tempToken, setTempToken] = useState('');
-  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [formData, setFormData]   = useState({ email: '', password: '' });
+  const [errors, setErrors]       = useState({});
+  const [isSubmitting, setSubmit] = useState(false);
+  const [showPassword, setShowPw] = useState(false);
+  const [twoFactorStep, set2FA]   = useState(false);
+  const [tempToken, setTemp]      = useState('');
+  const [twoFactorCode, set2FACode] = useState('');
 
   const redirectParam = searchParams.get('redirect') || location.state?.redirect || '/';
-  const registered = searchParams.get('registered') === '1';
+  const registered    = searchParams.get('registered') === '1';
+  const verifyEmailCta = errors.verifyEmailCta === true;
 
-  const validateForm = () => {
-    const newErrors = {};
-    const trimmedEmail = formData.email.trim();
-    const trimmedPassword = formData.password.trim();
-    if (!trimmedEmail) newErrors.email = 'Email requis';
-    else if (!/\S+@\S+\.\S+/.test(trimmedEmail)) newErrors.email = 'Email invalide';
-    if (!trimmedPassword) newErrors.password = 'Mot de passe requis';
-    else if (trimmedPassword.length < 6) newErrors.password = 'Minimum 6 caractères';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const validate = () => {
+    const e = {};
+    const email = formData.email.trim();
+    const pwd   = formData.password.trim();
+    if (!email) e.email = 'Email requis';
+    else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Email invalide';
+    if (!pwd) e.password = 'Mot de passe requis';
+    else if (pwd.length < 6) e.password = 'Minimum 6 caractères';
+    setErrors(e);
+    return !Object.keys(e).length;
   };
 
-  const redirectAfterLogin = (userData) => {
-    const userRole = userData.role?.toUpperCase();
+  const redirectAfterLogin = (user) => {
+    const role = user.role?.toUpperCase();
     if (redirectParam === 'checkout') navigate('/checkout');
-    else if (userRole === 'ADMIN')  navigate('/admin');
-    else if (userRole === 'GERANT') navigate('/gerant');
-    else if (userRole === 'B2B')    navigate('/b2b/dashboard');
-    else if (userRole === 'STAFF')  navigate('/staff');
+    else if (role === 'ADMIN')  navigate('/admin');
+    else if (role === 'GERANT') navigate('/gerant');
+    else if (role === 'B2B')    navigate('/b2b/dashboard');
+    else if (role === 'STAFF')  navigate('/staff');
     else navigate('/menu');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-    setIsSubmitting(true);
+    if (!validate()) return;
+    setSubmit(true);
     try {
       const result = await login(formData.email.trim(), formData.password.trim());
       if (!result.success) {
         if (result.requiresTwoFactor && result.tempToken) {
-          setTempToken(result.tempToken);
-          setTwoFactorStep(true);
-          setIsSubmitting(false);
-          return;
+          setTemp(result.tempToken); set2FA(true); setSubmit(false); return;
         }
-        setErrors({ submit: result.error || 'Erreur lors de la connexion' });
+        setErrors({ submit: result.error || 'Identifiants incorrects' });
         return;
       }
       redirectAfterLogin(result.user);
-    } catch (error) {
-      let errorMessage = 'Erreur lors de la connexion';
-      const backendMessage = error.response?.data?.message;
-      if (backendMessage) {
-        errorMessage = (backendMessage.includes('email must be an email') || backendMessage.includes('password must be longer'))
-          ? 'Veuillez vérifier votre email et mot de passe'
-          : backendMessage;
-      }
-      if (typeof backendMessage === 'string' && backendMessage.toLowerCase().includes('email non vérifié')) {
-        setErrors({ submit: backendMessage, verifyEmailCta: true });
+    } catch (err) {
+      const msg = err.response?.data?.message;
+      if (typeof msg === 'string' && msg.toLowerCase().includes('email non vérifié')) {
+        setErrors({ submit: msg, verifyEmailCta: true });
       } else {
-        setErrors({ submit: errorMessage });
+        setErrors({ submit: msg || 'Erreur lors de la connexion' });
       }
     } finally {
-      setIsSubmitting(false);
+      setSubmit(false);
     }
   };
 
-  const handleTwoFactorSubmit = async (e) => {
+  const handle2FA = async (e) => {
     e.preventDefault();
     if (!twoFactorCode || twoFactorCode.length < 6) { setErrors({ submit: 'Code à 6 chiffres requis' }); return; }
-    setIsSubmitting(true);
+    setSubmit(true);
     try {
       const { authAPI } = await import('../services/api');
       const res = await authAPI.verify2FALogin(tempToken, twoFactorCode);
       const userData = res.data?.user;
       if (!userData) throw new Error('Réponse invalide');
-      const jwtToken = res.data.accessToken || res.data.access_token || res.data.token;
-      localStorage.setItem('token', jwtToken);
-      syncUser({ ...userData, token: jwtToken });
+      const token = res.data.accessToken || res.data.access_token || res.data.token;
+      localStorage.setItem('token', token);
+      syncUser({ ...userData, token });
       redirectAfterLogin(userData);
     } catch (err) {
       setErrors({ submit: err.response?.data?.message || 'Code invalide' });
     } finally {
-      setIsSubmitting(false);
+      setSubmit(false);
     }
   };
 
-  const inputCls = (hasError) =>
-    `w-full pl-10 pr-4 py-3.5 border-0 rounded-2xl text-[#1A0C00] placeholder-[#B09070]/70 text-sm focus:outline-none focus:ring-2 transition-all${hasError ? ' ring-2 ring-red-400' : ' focus:ring-[#FF8C00]/40'}`
-    + ' bg-[#FFF5E8]';
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 lg:p-8"
-      style={{ background: 'linear-gradient(135deg, #FF8C00 0%, #E07A00 60%, #FFB800 100%)' }}>
+    <div className="min-h-screen flex" style={{ background: '#F8FAFC' }}>
 
-      {/* Card */}
-      <div className="w-full max-w-5xl bg-white rounded-3xl overflow-hidden shadow-2xl flex h-[660px]">
-
-        {/* Left : form */}
-        <div className="flex-1 flex flex-col justify-start px-10 py-10 lg:px-12 overflow-y-auto" style={{ background: '#FFFAF3' }}>
+      {/* ── Left: form ── */}
+      <div className="flex-1 flex flex-col justify-center px-8 py-12 sm:px-12 lg:px-16 xl:px-24">
+        <div className="w-full max-w-sm mx-auto">
 
           {/* Logo */}
-          <div className="flex items-center gap-2.5 mb-8">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
-              style={{ background: 'linear-gradient(135deg,#FF8C00,#FFB800)' }}>
-              <UtensilsCrossed className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-2.5 mb-10">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: '#FF8C00' }}>
+              <UtensilsCrossed className="w-4.5 h-4.5 text-white" style={{ width: 18, height: 18 }} />
             </div>
-            <div>
-              <span className="font-extrabold text-xl tracking-tight" style={{ color: '#FF8C00', fontFamily: "'Playfair Display', serif" }}>Resto d'ici</span>
-              <p className="text-[11px] leading-none mt-0.5" style={{ color: '#B09070' }}>La table digitale de vos repas</p>
-            </div>
+            <span className="font-bold text-lg" style={{ color: '#0F172A' }}>Resto d'ici</span>
+          </div>
+
+          {/* Heading */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold" style={{ color: '#0F172A' }}>
+              {twoFactorStep ? 'Vérification' : 'Connexion'}
+            </h1>
+            <p className="mt-1 text-sm" style={{ color: '#64748B' }}>
+              {twoFactorStep ? "Entrez le code de votre application" : 'Bon retour sur votre espace'}
+            </p>
           </div>
 
           {registered && (
-            <div className="mb-5 flex items-start gap-3 rounded-2xl px-4 py-3.5 text-sm"
-              style={{ background: '#FFF5E8', border: '1px solid rgba(255,140,0,0.2)', color: '#C06800' }}>
-              <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#FF8C00' }} />
-              <span>Inscription réussie ! Vérifiez votre boîte mail avant de vous connecter.</span>
+            <div className="mb-6 flex items-start gap-2.5 rounded-xl px-4 py-3 text-sm"
+              style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#15803D' }}>
+              <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              Inscription réussie ! Connectez-vous maintenant.
             </div>
           )}
 
-          <h1 className="text-3xl font-extrabold mb-1" style={{ color: '#1A0C00', fontFamily: "'Playfair Display', serif" }}>
-            {twoFactorStep ? 'Vérification' : 'Connexion'}
-          </h1>
-          <p className="text-sm mb-8" style={{ color: '#B09070' }}>
-            {twoFactorStep ? "Entrez votre code d'authentification" : 'Entrez vos identifiants pour continuer'}
-          </p>
-
-          {/* 2FA */}
+          {/* 2FA form */}
           {twoFactorStep ? (
-            <form onSubmit={handleTwoFactorSubmit} className="space-y-4">
-              <div className="rounded-2xl px-4 py-3 text-sm" style={{ background: '#FFF5E8', color: '#C06800' }}>
-                <p className="font-semibold">Authentification à deux facteurs</p>
-                <p className="mt-1 text-xs opacity-80">Entrez le code de votre application authenticator.</p>
-              </div>
+            <form onSubmit={handle2FA} className="space-y-4">
+              <p className="text-sm" style={{ color: '#64748B' }}>
+                Entrez le code à 6 chiffres généré par votre application d'authentification.
+              </p>
               <input
                 type="text" inputMode="numeric" maxLength={8}
                 value={twoFactorCode}
-                onChange={(e) => setTwoFactorCode(e.target.value.replace(/\s/g, '').toUpperCase())}
+                onChange={e => set2FACode(e.target.value.replace(/\s/g, ''))}
                 placeholder="000000"
-                className="w-full px-4 py-3.5 border-0 rounded-2xl text-center text-2xl tracking-[0.4em] font-mono focus:outline-none focus:ring-2"
-                style={{ background: '#FFF5E8', color: '#1A0C00', outline: 'none' }}
+                className="w-full px-4 py-3 rounded-xl text-center text-2xl tracking-[0.4em] font-mono outline-none"
+                style={{ background: '#F1F5F9', border: '1.5px solid #E2E8F0', color: '#0F172A' }}
                 autoFocus
               />
               {errors.submit && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">{errors.submit}</div>
+                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{errors.submit}</p>
               )}
               <button type="submit" disabled={isSubmitting}
-                className="w-full py-3.5 rounded-2xl font-bold text-white transition-colors disabled:opacity-70 text-sm shadow-sm"
-                style={{ background: 'linear-gradient(135deg,#FF8C00,#E07A00)' }}>
-                {isSubmitting ? 'Vérification...' : 'Valider le code'}
+                className="w-full py-3 rounded-xl font-semibold text-white text-sm transition disabled:opacity-60"
+                style={{ background: '#FF8C00' }}>
+                {isSubmitting ? 'Vérification…' : 'Valider'}
               </button>
-              <button type="button" onClick={() => { setTwoFactorStep(false); setTwoFactorCode(''); setErrors({}); }}
-                className="w-full py-2 text-sm" style={{ color: '#B09070' }}>
-                ← Retour à la connexion
+              <button type="button" onClick={() => { set2FA(false); set2FACode(''); setErrors({}); }}
+                className="w-full py-2 text-sm" style={{ color: '#94A3B8' }}>
+                ← Retour
               </button>
             </form>
           ) : (
-            <>
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
 
-                {/* Email */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold" style={{ color: '#1A0C00' }}>Adresse email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(255,140,0,0.6)' }} />
-                    <input
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      type="email" placeholder="votre@email.com"
-                      className={inputCls(errors.email)}
-                    />
-                  </div>
-                  {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#475569' }}>Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#94A3B8' }} />
+                  <input
+                    type="email" value={formData.email} autoComplete="email"
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="vous@exemple.com"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition"
+                    style={{
+                      background: '#F8FAFC',
+                      border: `1.5px solid ${errors.email ? '#FCA5A5' : '#E2E8F0'}`,
+                      color: '#0F172A',
+                    }}
+                  />
                 </div>
+                {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+              </div>
 
-                {/* Password */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold" style={{ color: '#1A0C00' }}>Mot de passe</label>
-                    <Link to="/forgot-password" className="text-xs font-medium hover:opacity-80" style={{ color: '#FF8C00' }}>
-                      Mot de passe oublié ?
+              {/* Password */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold" style={{ color: '#475569' }}>Mot de passe</label>
+                  <Link to="/forgot-password" className="text-xs font-medium hover:underline" style={{ color: '#FF8C00' }}>
+                    Oublié ?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#94A3B8' }} />
+                  <input
+                    type={showPassword ? 'text' : 'password'} value={formData.password} autoComplete="current-password"
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none transition"
+                    style={{
+                      background: '#F8FAFC',
+                      border: `1.5px solid ${errors.password ? '#FCA5A5' : '#E2E8F0'}`,
+                      color: '#0F172A',
+                    }}
+                  />
+                  <button type="button" tabIndex={-1} onClick={() => setShowPw(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 hover:opacity-70 transition"
+                    style={{ color: '#94A3B8' }}>
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+              </div>
+
+              {errors.submit && (
+                <div className="rounded-xl px-4 py-3 text-sm text-red-700"
+                  style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                  {errors.submit}
+                  {verifyEmailCta && (
+                    <Link to="/verify-email"
+                      className="block mt-2 text-center py-1.5 px-4 rounded-lg font-semibold text-white text-xs"
+                      style={{ background: '#EF4444' }}>
+                      Vérifier mon email
                     </Link>
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(255,140,0,0.6)' }} />
-                    <input
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      type={showPassword ? 'text' : 'password'} placeholder="••••••••"
-                      className={`${inputCls(errors.password)} pr-10`}
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 hover:opacity-80 transition-opacity" tabIndex={-1}
-                      style={{ color: '#B09070' }}>
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
+                  )}
                 </div>
+              )}
 
-                {errors.submit && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">
-                    {errors.submit}
-                    {verifyEmailCta && (
-                      <div className="mt-3">
-                        <Link to="/verify-email"
-                          className="block w-full text-center py-2 px-4 rounded-xl font-bold text-white text-xs transition-opacity hover:opacity-90"
-                          style={{ background: 'linear-gradient(135deg,#FF8C00,#E07A00)' }}>
-                          Vérifier mon email
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )}
+              <button type="submit" disabled={isSubmitting}
+                className="w-full py-3 rounded-xl font-semibold text-white text-sm transition disabled:opacity-60 active:scale-[0.99]"
+                style={{ background: '#FF8C00' }}>
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Connexion…
+                  </span>
+                ) : 'Se connecter'}
+              </button>
 
-                <button type="submit" disabled={isSubmitting}
-                  className="w-full py-3.5 px-4 rounded-2xl font-bold text-white active:scale-[0.98] transition-all shadow-sm disabled:opacity-60 text-sm mt-2"
-                  style={{ background: 'linear-gradient(135deg,#FF8C00,#E07A00)' }}>
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Connexion…
-                    </span>
-                  ) : 'Se connecter'}
-                </button>
-              </form>
-
-              <p className="mt-7 text-center text-sm" style={{ color: '#B09070' }}>
+              <p className="text-center text-sm pt-1" style={{ color: '#94A3B8' }}>
                 Pas encore de compte ?{' '}
-                <Link to="/register" className="font-semibold hover:opacity-80" style={{ color: '#FF8C00' }}>
-                  Créer un compte
+                <Link to="/register" className="font-semibold hover:underline" style={{ color: '#FF8C00' }}>
+                  S'inscrire
                 </Link>
               </p>
-            </>
+            </form>
           )}
         </div>
+      </div>
 
-        {/* Right : image */}
-        <div className="hidden lg:flex lg:w-[48%] xl:w-[50%] flex-shrink-0 relative overflow-hidden items-center justify-center"
-          style={{ background: '#FFF5E8' }}>
-          <img
-            src="/burger-hero.jpg"
-            alt="Burger Resto d'ici"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: 'linear-gradient(to top, rgba(255,140,0,0.45) 0%, transparent 55%)' }} />
-          <div className="absolute bottom-6 left-6 rounded-2xl px-4 py-3 shadow-lg"
-            style={{ background: 'rgba(255,250,243,0.92)', backdropFilter: 'blur(12px)' }}>
-            <p className="font-extrabold text-sm" style={{ color: '#FF8C00', fontFamily: "'Playfair Display', serif" }}>Resto d'ici</p>
-            <p className="text-xs mt-0.5" style={{ color: '#B09070' }}>La table digitale de vos repas</p>
-          </div>
+      {/* ── Right: image ── */}
+      <div className="hidden lg:block relative w-[44%] shrink-0">
+        <img
+          src="/burger-hero.jpg"
+          alt="Plat Resto d'ici"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.10) 50%, transparent 100%)' }} />
+        <div className="absolute bottom-10 left-8 right-8">
+          <p className="text-white font-bold text-xl">La table digitale</p>
+          <p className="text-white/70 text-sm mt-1">Commandes, budgets et équipes en un seul endroit.</p>
         </div>
-
       </div>
     </div>
   );

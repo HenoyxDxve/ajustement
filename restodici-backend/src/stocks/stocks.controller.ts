@@ -39,6 +39,15 @@ export class StocksController {
     return this.stocksService.getAlerts(restaurantId);
   }
 
+  // GET /stocks/rapport-ecarts — Stock théorique pour rapport d'inventaire physique
+  @Get('rapport-ecarts')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('GERANT', 'ADMIN', 'STAFF')
+  getRapportEcarts(@Req() req, @Query('restaurantId') restaurantId?: string) {
+    const targetRestaurantId = req.user?.restaurant?.id || restaurantId;
+    return this.stocksService.getRapportEcarts(targetRestaurantId);
+  }
+
   // PATCH /stocks/:id/adjust — Ajustement manuel (correction, casse, etc.)
   @Patch(':id/adjust')
   @UseGuards(AuthGuard('jwt'), RolesGuard)

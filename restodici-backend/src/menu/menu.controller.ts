@@ -19,10 +19,14 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { PromosService } from '../promos/promos.service';
 
 @Controller('menu')
 export class MenuController {
-  constructor(private readonly menuService: MenuService) {}
+  constructor(
+    private readonly menuService: MenuService,
+    private readonly promosService: PromosService,
+  ) {}
 
   // GET /menu — Récupération menu avec filtres (US-01, US-03)
   @Get()
@@ -39,6 +43,12 @@ export class MenuController {
   @Get('restaurants')
   getRestaurants() {
     return this.menuService.getRestaurants();
+  }
+
+  // GET /menu/promos-actives?restaurantId=xxx — Offres limitées actives (public)
+  @Get('promos-actives')
+  getPromosActives(@Query('restaurantId') restaurantId: string) {
+    return this.promosService.getActives(restaurantId ?? '');
   }
 
   // GET /menu/categories — Liste catégories

@@ -10,10 +10,11 @@ import { SystemConfig } from '../common/entities/system-config.entity';
 import { Integration } from '../common/entities/integration.entity';
 import { AuthModule } from '../auth/auth.module';
 import { BackupService } from './backup.service';
+import { CommissionPlateforme } from '../commandes/entities/commission-plateforme.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Restaurant, AuditLog, CompteB2B, SystemConfig, Integration]),
+    TypeOrmModule.forFeature([User, Restaurant, AuditLog, CompteB2B, SystemConfig, Integration, CommissionPlateforme]),
     AuthModule,
   ],
   controllers: [AdminController],

@@ -71,4 +71,8 @@ export class CreateArticleDto {
   @IsOptional()
   @IsBoolean()
   estMenuDuJour?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  variants?: Array<{ label: string; prixSupplement: number }>;
 }

@@ -15,7 +15,6 @@ export class CreateCollaborateurB2BDto {
   @Type(() => Number)
   limiteBudget?: number;
 
-  // Frontend sends budgetMensuel — accept as alias for limiteBudget
   @IsOptional()
   @IsNumber()
   @Min(0)

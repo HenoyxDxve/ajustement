@@ -30,6 +30,7 @@ import { CreateCompteB2BDto } from '../dto/create-compte-b2b.dto';
 import { CreateCollaborateurB2BDto } from '../dto/create-collaborateur-b2b.dto';
 import { CreateCommandeGroupeeDto } from '../dto/create-commande-groupee.dto';
 import * as bcrypt from 'bcrypt';
+import axios from 'axios';
 import { CommandesGateway } from '../../commandes/commandes.gateway';
 
 const MOIS_FR = [
@@ -114,6 +115,7 @@ export class B2BService {
       numeroContribuable: dto.numeroContribuable.trim().toUpperCase(),
       emailProfessionnel: dto.emailProfessionnel.trim().toLowerCase(),
       telephoneProfessionnel: dto.telephoneProfessionnel.trim(),
+      adresseSiege: dto.adresseSiege?.trim() || undefined,
       statutValidation: 'EN_ATTENTE',
       actif: false,
     });
@@ -150,6 +152,9 @@ export class B2BService {
       }),
       ...(dto.emailProfessionnel && {
         emailProfessionnel: dto.emailProfessionnel.trim().toLowerCase(),
+      }),
+      ...(dto.adresseSiege !== undefined && {
+        adresseSiege: dto.adresseSiege?.trim() || null,
       }),
     });
 
@@ -188,7 +193,7 @@ export class B2BService {
       throw new BadRequestException("Créez d'abord votre compte entreprise");
     }
 
-    // Accept budgetMensuel as alias for limiteBudget (frontend naming convention)
+    // Accept budgetMensuel as alias for limiteBudget.
     const limiteBudget = dto.limiteBudget ?? dto.budgetMensuel ?? 50000;
 
     const email = dto.email.trim().toLowerCase();
@@ -313,14 +318,11 @@ export class B2BService {
   ): Promise<void> {
     const compte = await this.getCompteB2B(userId);
     if (!compte) throw new NotFoundException('Compte entreprise introuvable');
-
     const collab = await this.collaborateurRepository.findOne({
       where: { id: collaborateurId, compteB2BId: compte.id },
     });
     if (!collab) throw new NotFoundException('Collaborateur introuvable');
-
-    collab.actif = false;
-    await this.collaborateurRepository.save(collab);
+    await this.collaborateurRepository.remove(collab);
   }
 
   private async sendInvitationEmail(
@@ -525,6 +527,85 @@ export class B2BService {
     };
   }
 
+  private async getOverdueInvoiceCount(compteId: string): Promise<number> {
+    return this.factureRepository.count({
+      where: { compteB2B: { id: compteId }, statut: 'RETARDEE' },
+    });
+  }
+
+  private async getPendingInvoiceEcheance(
+    compteId: string,
+  ): Promise<string | null> {
+    const facture = await this.factureRepository.findOne({
+      where: {
+        compteB2B: { id: compteId },
+        statut: In(['EN_ATTENTE', 'RETARDEE']),
+      },
+      order: { createdAt: 'DESC' },
+    });
+    return facture?.echeance ?? null;
+  }
+
+  private async ensureNoBlockedInvoices(compteId: string): Promise<void> {
+    const overdueCount = await this.getOverdueInvoiceCount(compteId);
+    if (overdueCount > 0) {
+      throw new BadRequestException(
+        'Commande impossible : une facture mensuelle impayée bloque votre compte. Merci de régulariser votre situation.',
+      );
+    }
+  }
+
+  private async setDatePrelevementIfMissing(compte: CompteB2B): Promise<void> {
+    if (compte.datePrelevement) return;
+    const now = new Date();
+    compte.datePrelevement = now.toISOString().slice(0, 10);
+    compte.jourPrelevement = now.getDate();
+    await this.compteB2BRepository.save(compte);
+  }
+
+  private formatCompteForResponse(
+    compte: CompteB2B,
+    nextPrelevementDate?: string,
+    blocked = false,
+    prochainFacture?: string,
+  ): Record<string, any> {
+    return {
+      exists: true,
+      id: compte.id,
+      raisonSociale: compte.raisonSociale,
+      numeroRCCM: compte.numeroRCCM,
+      numeroContribuable: compte.numeroContribuable,
+      emailProfessionnel: compte.emailProfessionnel,
+      telephoneProfessionnel: compte.telephoneProfessionnel,
+      adresseSiege: compte.adresseSiege,
+      statutValidation: compte.statutValidation,
+      actif: compte.actif,
+      datePrelevement: compte.datePrelevement,
+      jourPrelevement: compte.jourPrelevement,
+      nextPrelevementDate,
+      prochainFacture,
+      blocked,
+    };
+  }
+
+  async getCompteWithStatus(userId: string): Promise<Record<string, any>> {
+    const compte = await this.getCompteB2B(userId);
+    if (!compte) {
+      return { exists: false };
+    }
+
+    const nextPrelevementDate =
+      (await this.getPendingInvoiceEcheance(compte.id)) || compte.datePrelevement || undefined;
+    const blocked = (await this.getOverdueInvoiceCount(compte.id)) > 0;
+
+    // Last day of current month — date at which next invoice will be generated
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const prochainFacture = lastDay.toISOString().slice(0, 10);
+
+    return this.formatCompteForResponse(compte, nextPrelevementDate, blocked, prochainFacture);
+  }
+
   // ============================================================
   // === COMMANDES GROUPÉES (Grouped orders) ====================
   // ============================================================
@@ -539,6 +620,9 @@ export class B2BService {
         'Compte entreprise requis pour passer une commande groupée',
       );
     }
+
+    await this.ensureNoBlockedInvoices(compte.id);
+    await this.setDatePrelevementIfMissing(compte);
 
     // Validate minimum 4h advance notice
     const deliveryDateTime = new Date(
@@ -628,6 +712,40 @@ export class B2BService {
         return this.ligneCommandeRepository.save(ligne);
       }),
     );
+
+    // Budget alerts: notify collaborateurs who reach 80% or 100% of monthly limit
+    for (const ligne of dto.lignes) {
+      if (!ligne.collaborateurId) continue;
+      const collab = await this.collaborateurRepository.findOne({
+        where: { id: ligne.collaborateurId, compteB2BId: compte.id },
+      });
+      if (!collab?.email || !collab.limiteBudget) continue;
+      const depenseApres = await this.getDepenseMensuelleCollaborateur(
+        collab.id,
+        firstOfMonth,
+        firstOfNext,
+      );
+      const limite = Number(collab.limiteBudget);
+      if (limite <= 0) continue;
+      const pct = (depenseApres / limite) * 100;
+      try {
+        if (pct >= 100) {
+          await this.emailService.sendMail({
+            to: collab.email,
+            subject: 'RESTODICI — Budget mensuel atteint',
+            html: `<p>Bonjour ${collab.nom},</p><p>Votre budget mensuel de <strong>${limite.toLocaleString('fr-FR')} FCFA</strong> est entièrement consommé (${Math.round(depenseApres).toLocaleString('fr-FR')} FCFA dépensés ce mois).</p><p>Contactez votre gestionnaire de compte pour ajuster votre limite.</p>`,
+          });
+        } else if (pct >= 80) {
+          await this.emailService.sendMail({
+            to: collab.email,
+            subject: 'RESTODICI — 80 % de votre budget mensuel utilisé',
+            html: `<p>Bonjour ${collab.nom},</p><p>Vous avez consommé <strong>${Math.round(pct)} %</strong> de votre budget mensuel (${Math.round(depenseApres).toLocaleString('fr-FR')} / ${limite.toLocaleString('fr-FR')} FCFA).</p><p>Il vous reste <strong>${Math.round(limite - depenseApres).toLocaleString('fr-FR')} FCFA</strong> pour ce mois.</p>`,
+          });
+        }
+      } catch {
+        // Ne pas bloquer la commande si l'email échoue
+      }
+    }
 
     await this.logAudit('CREATION_COMMANDE_GROUPEE', compte.id, userId, {
       numero,
@@ -1626,5 +1744,87 @@ export class B2BService {
       CANCELLED: 'ANNULEE',
     };
     return statusMap[status] ?? status;
+  }
+
+  async initierPaiementFacture(factureId: string, userId: string): Promise<{ paymentUrl: string; transactionId: string }> {
+    const compte = await this.getCompteB2B(userId);
+    if (!compte) throw new NotFoundException('Compte entreprise introuvable');
+
+    const facture = await this.factureRepository.findOne({
+      where: { id: factureId, compteB2B: { id: compte.id } },
+    });
+    if (!facture) throw new NotFoundException('Facture introuvable');
+    if (facture.statut === 'PAYEE') throw new BadRequestException('Facture déjà payée');
+
+    const apiKey = this.configService.get<string>('NOVASEND_API_KEY');
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    const backendUrl  = this.configService.get<string>('BACKEND_URL')  || 'http://localhost:3000';
+
+    if (!apiKey) {
+      // Fallback simulation: mark as paid directly if no API key configured
+      facture.statut = 'PAYEE';
+      await this.factureRepository.save(facture);
+      return { paymentUrl: `${frontendUrl}/b2b?payment=success&factureId=${factureId}`, transactionId: `SIM-${factureId.slice(0,8)}` };
+    }
+
+    const payload = {
+      amount: Math.round(Number(facture.montantTTC || 0)),
+      currency: 'XOF',
+      description: `Facture ${facture.numeroFacture || factureId.slice(0, 8)} — RESTODICI B2B`,
+      reference: `b2b-facture-${factureId}`,
+      metadata: { factureId, compteId: compte.id, userId },
+      callback_url: `${backendUrl}/paiements/webhook/novasend`,
+      return_url: `${frontendUrl}/b2b?payment=success&factureId=${factureId}`,
+      cancel_url: `${frontendUrl}/b2b?payment=cancelled&factureId=${factureId}`,
+    };
+
+    const response = await axios.post('https://api.novasend.ci/v1/payments', payload, {
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      timeout: 10000,
+    });
+
+    const { payment_url, transaction_id } = response.data;
+    return { paymentUrl: payment_url, transactionId: transaction_id };
+  }
+
+  // ── Dev/test helper ──────────────────────────────────────────────────────────
+  async createFactureTest(userId: string): Promise<FactureMensuelleB2B> {
+    const compte = await this.getCompteB2B(userId);
+    if (!compte) throw new NotFoundException('Compte entreprise introuvable');
+
+    const now       = new Date();
+    const moisNoms  = ['JANVIER','FEVRIER','MARS','AVRIL','MAI','JUIN',
+                       'JUILLET','AOUT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DECEMBRE'];
+    const mois      = moisNoms[now.getMonth()];
+    const annee     = now.getFullYear();
+
+    // Remove any existing test facture for this month so it can be recreated
+    const existing = await this.factureRepository.findOne({
+      where: { compteB2B: { id: compte.id }, mois, annee },
+    });
+    if (existing) await this.factureRepository.remove(existing);
+
+    const montantHT  = 42_373;          // ~50 000 FCFA TTC
+    const tva        = Math.round(montantHT * 0.18);
+    const montantTTC = montantHT + tva;
+    const seq        = String(Math.floor(Math.random() * 9000) + 1000);
+    const numeroFacture = `RDI-B2B-${annee}${String(now.getMonth() + 1).padStart(2,'0')}-TEST${seq}`;
+    const echeance   = new Date(annee, now.getMonth() + 1, 15).toISOString().slice(0,10);
+
+    const facture = this.factureRepository.create({
+      compteB2B:     compte,
+      annee,
+      mois,
+      statut:        'EN_ATTENTE',
+      montantHT,
+      tva,
+      montantTTC,
+      numeroFacture,
+      nifClient:     compte.numeroContribuable,
+      rccmClient:    compte.numeroRCCM,
+      echeance,
+    });
+
+    return this.factureRepository.save(facture);
   }
 }

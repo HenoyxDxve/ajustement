@@ -13,6 +13,7 @@ import { AuditLog } from '../common/entities/audit-log.entity';
 import { CompteB2B } from '../b2b/entities/compte-b2b.entity';
 import { SystemConfig } from '../common/entities/system-config.entity';
 import { Integration, IntegrationType } from '../common/entities/integration.entity';
+import { CommissionPlateforme } from '../commandes/entities/commission-plateforme.entity';
 
 /* ── Clés de config avec leurs métadonnées ── */
 const CONFIG_DEFAULTS: Array<{
@@ -52,6 +53,7 @@ export class AdminService {
     @InjectRepository(CompteB2B) private b2bRepo: Repository<CompteB2B>,
     @InjectRepository(SystemConfig) private configRepo: Repository<SystemConfig>,
     @InjectRepository(Integration) private integrationRepo: Repository<Integration>,
+    @InjectRepository(CommissionPlateforme) private commissionRepo: Repository<CommissionPlateforme>,
   ) {}
 
   async getStats() {
@@ -550,5 +552,53 @@ export class AdminService {
     } catch (err: any) {
       return { ok: false, message: `Connexion échouée : ${err.message}` };
     }
+  }
+
+  async getCommissions() {
+    const all = await this.commissionRepo.find({ relations: ['restaurant'] });
+
+    const totalCommissions = all.reduce((s, c) => s + Number(c.montantCommission), 0);
+    const totalCommandes   = all.length;
+
+    const now = new Date();
+    const debutMois = new Date(now.getFullYear(), now.getMonth(), 1);
+    const moisEnCours = all.filter(c => new Date(c.createdAt) >= debutMois);
+    const commissionsMois = moisEnCours.reduce((s, c) => s + Number(c.montantCommission), 0);
+
+    const parRestaurant = new Map<string, { restaurantId: string; nom: string; totalCommandes: number; totalCommissions: number; tauxCommission: number }>();
+    for (const c of all) {
+      const id = c.restaurantId;
+      if (!parRestaurant.has(id)) {
+        parRestaurant.set(id, {
+          restaurantId: id,
+          nom: c.restaurant?.nom ?? id,
+          totalCommandes: 0,
+          totalCommissions: 0,
+          tauxCommission: Number(c.tauxCommission),
+        });
+      }
+      const entry = parRestaurant.get(id)!;
+      entry.totalCommandes += 1;
+      entry.totalCommissions += Number(c.montantCommission);
+    }
+
+    return {
+      totalCommissions: Math.round(totalCommissions),
+      totalCommandes,
+      commissionsMois: Math.round(commissionsMois),
+      parRestaurant: [...parRestaurant.values()].map(r => ({
+        ...r,
+        totalCommissions: Math.round(r.totalCommissions),
+      })),
+    };
+  }
+
+  async updateTauxCommission(restaurantId: string, taux: number) {
+    const restaurant = await this.restaurantRepo.findOne({ where: { id: restaurantId } });
+    if (!restaurant) throw new NotFoundException('Restaurant introuvable');
+    if (taux < 0 || taux > 50) throw new BadRequestException('Taux invalide (0-50%)');
+    restaurant.tauxCommission = taux;
+    await this.restaurantRepo.save(restaurant);
+    return { restaurantId, tauxCommission: taux };
   }
 }

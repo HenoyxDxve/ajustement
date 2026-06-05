@@ -41,11 +41,11 @@ const MODES = [
   { id: 'LIVRAISON', label: 'Livraison',  icon: MapPin },
 ];
 
-export default function CartDrawer({ isOpen, onClose }) {
+export default function CartDrawer({ isOpen, onClose, tableNumber }) {
   const { items, total, updateQuantity, removeItem, restaurantId, restaurantName } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode]       = useState('SUR_PLACE');
+  const [mode, setMode]       = useState(tableNumber ? 'SUR_PLACE' : 'SUR_PLACE');
   const [address, setAddress] = useState('');
 
   const totalItems = items.reduce((s, i) => s + i.quantite, 0);
@@ -60,6 +60,7 @@ export default function CartDrawer({ isOpen, onClose }) {
       restaurantName: restaurantName || 'Restaurant',
       orderMode: mode.toLowerCase(),
       deliveryAddress: mode === 'LIVRAISON' ? address : null,
+      tableNumber: mode === 'SUR_PLACE' && tableNumber ? tableNumber : undefined,
       total: total(),
       items: items.map(item => ({
         articleId: item.articleId,
@@ -145,6 +146,9 @@ export default function CartDrawer({ isOpen, onClose }) {
                       <X style={{ width: 13, height: 13 }} />
                     </button>
                   </div>
+                  {item.variantLabel && (
+                    <p style={{ fontSize: 11, fontWeight: 600, color: '#C05015', margin: '0 0 2px' }}>{item.variantLabel}</p>
+                  )}
                   {item.instructions && (
                     <p style={{ fontSize: 11, color: '#9E8B7A', fontStyle: 'italic', margin: '0 0 8px' }}>{item.instructions}</p>
                   )}

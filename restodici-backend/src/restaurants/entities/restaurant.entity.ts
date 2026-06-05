@@ -61,6 +61,9 @@ export class Restaurant {
   @Column({ default: true })
   actif!: boolean;
 
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 8 })
+  tauxCommission!: number;
+
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
   noteMoyenne!: number;
 

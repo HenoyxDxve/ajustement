@@ -54,6 +54,9 @@ export class Commande {
   @Column({ nullable: true })
   adresseLivraison!: string;
 
+  @Column({ nullable: true, type: 'varchar', length: 20 })
+  tableNumber?: string;
+
   @Column('decimal', { precision: 10, scale: 2 })
   montantTotal!: number;
 

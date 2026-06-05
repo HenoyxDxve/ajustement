@@ -183,10 +183,15 @@ export default function CheckoutPage() {
               modeLivraison === 'LIVRAISON'
                 ? pendingOrder.deliveryAddress
                 : undefined,
+            ...(modeLivraison === 'SUR_PLACE' && pendingOrder.tableNumber
+              ? { tableNumber: String(pendingOrder.tableNumber) }
+              : {}),
             lignes: pendingOrder.items.map((item) => ({
               articleId: item.articleId,
               quantite: item.quantite ?? item.quantity ?? 1,
               ...(item.instructions ? { instructions: item.instructions } : {}),
+              ...(item.variantLabel ? { variantLabel: item.variantLabel } : {}),
+              ...(item.variantSupplement ? { variantSupplement: Number(item.variantSupplement) } : {}),
             })),
             ...(promoResult ? { codePromo: promoResult.promo.code } : {}),
           };
@@ -311,6 +316,7 @@ export default function CheckoutPage() {
               <p className="font-semibold text-[#0F172A] text-sm">{pendingOrder.restaurantName}</p>
               <p className="text-xs text-[#64748B]">
                 {MODE_LABELS[pendingOrder.orderMode] || pendingOrder.orderMode}
+                {pendingOrder.tableNumber && ` · Table ${pendingOrder.tableNumber}`}
                 {pendingOrder.deliveryAddress && ` · ${pendingOrder.deliveryAddress}`}
               </p>
             </div>
@@ -326,6 +332,9 @@ export default function CheckoutPage() {
                     </span>
                     <span className="text-[#0F172A] font-medium">{item.nom || 'Article'}</span>
                   </span>
+                  {item.variantLabel && (
+                    <p className="text-xs text-[#C05015] mt-0.5 ml-6 font-semibold">{item.variantLabel}</p>
+                  )}
                   {item.instructions && (
                     <p className="text-xs text-[#64748B] mt-0.5 ml-6 italic">{item.instructions}</p>
                   )}

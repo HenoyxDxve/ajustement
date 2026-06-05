@@ -9,15 +9,16 @@ import { Categorie } from './entities/categorie.entity';
 import { Restaurant } from '../restaurants/entities/restaurant.entity'; // ✅ Import
 import { AuditLog } from '../common/entities/audit-log.entity';
 import { AuditService } from '../common/audit.service';
+import { PromosModule } from '../promos/promos.module';
 
 @Module({
   imports: [
-    CacheModule.register(), // Register CacheModule
-    // Enregistrer TOUTES les entités utilisées par ce module
+    CacheModule.register(),
     TypeOrmModule.forFeature([Article, Categorie, Restaurant, AuditLog]),
+    PromosModule,
   ],
   controllers: [MenuController],
   providers: [MenuService, AuditService],
-  exports: [MenuService], // Pour l'utiliser dans d'autres modules si besoin
+  exports: [MenuService],
 })
 export class MenuModule {}

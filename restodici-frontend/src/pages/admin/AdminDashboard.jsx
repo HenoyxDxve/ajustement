@@ -11,6 +11,7 @@ import {
   Zap, MessageSquare, Bell, Lock, Globe, Database,
   FileText, Calendar, ChevronRight, ExternalLink, Info,
   CreditCard, Smartphone, Mail, BarChart2, Webhook, Truck, Pencil, Trash2,
+  Percent, TrendingUp as TrendUp,
 } from 'lucide-react';
 
 /* ── Design tokens ─────────────────────────────────── */
@@ -646,7 +647,19 @@ function RestaurantsTab() {
                   <td style={{ padding: '10px 14px', fontSize: 12, color: '#475569', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.adresse}</td>
                   <td style={{ padding: '10px 14px', fontSize: 12, color: '#475569' }}>{r.telephone}</td>
                   <td style={{ padding: '10px 14px', fontSize: 12, color: '#475569' }}>{r.users?.length ?? 0}</td>
-                  <td style={{ padding: '10px 14px', fontSize: 12, color: '#475569' }}>{Number(r.noteMoyenne || 0).toFixed(1)} ★</td>
+                  <td style={{ padding: '10px 14px', fontSize: 12, color: '#475569' }}>
+                    <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                        <span style={{ fontWeight:700, color: Number(r.noteMoyenne||0) >= 4 ? '#16A34A' : Number(r.noteMoyenne||0) >= 3 ? '#D97706' : '#DC2626' }}>
+                          {Number(r.noteMoyenne || 0).toFixed(1)}
+                        </span>
+                        <span style={{ color:'#F59E0B', fontSize:13, letterSpacing:1 }}>
+                          {'★'.repeat(Math.round(r.noteMoyenne || 0))}{'☆'.repeat(Math.max(0, 5 - Math.round(r.noteMoyenne || 0)))}
+                        </span>
+                      </div>
+                      <span style={{ fontSize:10, color:'#94A3B8' }}>{r.nbAvis || 0} avis</span>
+                    </div>
+                  </td>
                   <td style={{ padding: '10px 14px' }}><span style={{ background: r.actif ? '#DCFCE7' : '#FEE2E2', color: r.actif ? '#166534' : '#991B1B', borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>{r.actif ? 'Actif' : 'Inactif'}</span></td>
                   <td style={{ padding: '10px 14px' }}>
                     <button onClick={() => toggle(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: r.actif ? '#DC2626' : '#16A34A' }}>
@@ -1835,6 +1848,134 @@ function FournisseursTab() {
   );
 }
 
+/* ══════════════════ COMMISSIONS TAB ══════════════════ */
+function CommissionsTab() {
+  const [data, setData]       = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null);
+  const [newTaux, setNewTaux] = useState('');
+  const [saving, setSaving]   = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try { const r = await adminAPI.getCommissions(); setData(r.data); }
+    catch { /* ignore */ }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleSaveTaux = async (id) => {
+    setSaving(true);
+    try {
+      await adminAPI.updateTauxCommission(id, parseFloat(newTaux));
+      setEditing(null);
+      await load();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  if (loading) return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:200 }}>
+      <RefreshCw style={{ width:22, height:22, color: ACCENT, animation:'spin 1s linear infinite' }} />
+    </div>
+  );
+
+  const kpis = [
+    { label:'Total commissions perçues', value: `${(data?.totalCommissions ?? 0).toLocaleString('fr-FR')} FCFA`, icon: CreditCard, color:'#10B981', bg:'#ECFDF5' },
+    { label:'Commissions ce mois',       value: `${(data?.commissionsMois ?? 0).toLocaleString('fr-FR')} FCFA`, icon: TrendingUp, color:'#F97316', bg:'#FFF7ED' },
+    { label:'Commandes facturées',        value: data?.totalCommandes ?? 0,                                        icon: BarChart2,  color:'#4F46E5', bg:'#EEF2FF' },
+  ];
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+
+      {/* KPIs */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
+        {kpis.map(({ label, value, icon: Icon, color, bg }) => (
+          <div key={label} style={{ background:'#fff', borderRadius:14, padding:'20px 22px', border:'1px solid #E8EDF5', display:'flex', alignItems:'center', gap:14 }}>
+            <div style={{ width:44, height:44, borderRadius:12, background:bg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <Icon style={{ width:20, height:20, color }} />
+            </div>
+            <div>
+              <p style={{ fontSize:20, fontWeight:800, color:'#0F172A', margin:0 }}>{value}</p>
+              <p style={{ fontSize:11, color:'#64748B', margin:0, marginTop:2 }}>{label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tableau par restaurant */}
+      <div style={{ background:'#fff', borderRadius:14, border:'1px solid #E8EDF5', overflow:'hidden' }}>
+        <div style={{ padding:'16px 20px', borderBottom:'1px solid #E8EDF5', display:'flex', alignItems:'center', gap:8 }}>
+          <Percent style={{ width:16, height:16, color: ACCENT }} />
+          <p style={{ fontSize:14, fontWeight:700, color:'#0F172A', margin:0 }}>Commissions par restaurant</p>
+          <span style={{ fontSize:11, color:'#94A3B8', marginLeft:'auto' }}>Taux modifiable — s'applique aux prochaines commandes</span>
+        </div>
+        <table style={{ width:'100%', borderCollapse:'collapse' }}>
+          <thead>
+            <tr style={{ background:'#F8FAFC' }}>
+              {['Restaurant','Commandes','Total perçu','Taux (%)','Action'].map(h => (
+                <th key={h} style={{ padding:'10px 16px', textAlign:'left', fontSize:11, fontWeight:700, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {(data?.parRestaurant ?? []).map((r, i, arr) => (
+              <tr key={r.restaurantId} style={{ borderBottom: i < arr.length-1 ? '1px solid #F1F5F9' : 'none' }}>
+                <td style={{ padding:'12px 16px', fontSize:13, fontWeight:600, color:'#0F172A' }}>{r.nom}</td>
+                <td style={{ padding:'12px 16px', fontSize:13, color:'#334155' }}>{r.totalCommandes}</td>
+                <td style={{ padding:'12px 16px', fontSize:13, fontWeight:700, color:'#10B981' }}>{r.totalCommissions.toLocaleString('fr-FR')} FCFA</td>
+                <td style={{ padding:'12px 16px' }}>
+                  {editing === r.restaurantId ? (
+                    <input
+                      type="number" value={newTaux} min={0} max={50} step={0.5}
+                      onChange={e => setNewTaux(e.target.value)}
+                      style={{ width:70, padding:'4px 8px', border:`1px solid ${ACCENT}`, borderRadius:7, fontSize:13, outline:'none' }}
+                    />
+                  ) : (
+                    <span style={{ display:'inline-flex', alignItems:'center', gap:4, background:'#EEF2FF', color: ACCENT, borderRadius:20, padding:'3px 10px', fontSize:12, fontWeight:700 }}>
+                      {r.tauxCommission}%
+                    </span>
+                  )}
+                </td>
+                <td style={{ padding:'12px 16px' }}>
+                  {editing === r.restaurantId ? (
+                    <div style={{ display:'flex', gap:6 }}>
+                      <button onClick={() => handleSaveTaux(r.restaurantId)} disabled={saving}
+                        style={{ padding:'5px 12px', background: ACCENT, color:'#fff', border:'none', borderRadius:7, fontSize:12, fontWeight:600, cursor:'pointer', opacity: saving ? 0.6 : 1 }}>
+                        {saving ? '…' : 'Sauver'}
+                      </button>
+                      <button onClick={() => setEditing(null)}
+                        style={{ padding:'5px 10px', background:'#F1F5F9', color:'#64748B', border:'none', borderRadius:7, fontSize:12, cursor:'pointer' }}>
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={() => { setEditing(r.restaurantId); setNewTaux(String(r.tauxCommission)); }}
+                      style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', background:'#F8FAFC', border:'1px solid #E2E8F0', borderRadius:7, fontSize:12, color:'#334155', cursor:'pointer', fontWeight:500 }}>
+                      <Pencil style={{ width:12, height:12 }} /> Modifier
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {(data?.parRestaurant ?? []).length === 0 && (
+              <tr><td colSpan={5} style={{ padding:'40px 16px', textAlign:'center', color:'#94A3B8', fontSize:13 }}>
+                Aucune commission enregistrée — les commandes livrées génèrent automatiquement les commissions.
+              </td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <p style={{ fontSize:11, color:'#94A3B8', textAlign:'center', margin:0 }}>
+        Commission prélevée automatiquement à chaque commande marquée <strong>LIVREE</strong> · Taux par défaut 8%
+      </p>
+    </div>
+  );
+}
+
 /* ══════════════════ TABS ══════════════════ */
 const TABS = [
   { id: 'overview',      label: "Vue d'ensemble", icon: LayoutDashboard },
@@ -1843,6 +1984,7 @@ const TABS = [
   { id: 'fournisseurs',  label: 'Fournisseurs',   icon: Truck },
   { id: 'metriques',     label: 'Métriques',      icon: Activity },
   { id: 'audit',         label: 'Audit',          icon: ScrollText },
+  { id: 'commissions',   label: 'Commissions',    icon: Percent },
   { id: 'exports',       label: 'Exports',        icon: Download },
   { id: 'config',        label: 'Configuration',  icon: Settings },
 ];
@@ -1905,6 +2047,7 @@ export default function AdminDashboard() {
       {tab === 'fournisseurs' && <FournisseursTab />}
       {tab === 'metriques'    && <MetriquesTab />}
       {tab === 'audit'        && <AuditTab />}
+      {tab === 'commissions'  && <CommissionsTab />}
       {tab === 'exports'      && <ExportsTab />}
       {tab === 'config'       && <ConfigTab />}
     </div>

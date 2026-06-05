@@ -34,7 +34,7 @@ export class CommandesController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'), RolesGuard, HorairesGuard)
-  @Roles('CLIENT', 'B2B')
+  @Roles('CLIENT', 'B2B', 'STAFF', 'GERANT')
   async create(
     @Body() dto: CreateCommandeDto,
     @Req() req: any,
@@ -42,8 +42,9 @@ export class CommandesController {
   ) {
     const clientId = req.user.id;
 
+    // STAFF/GERANT create commandes on behalf of the restaurant — use their attached restaurant
     const targetRestaurantId =
-      restaurantId || req.user.restaurant?.id || dto.restaurantId;
+      req.user.restaurant?.id || restaurantId || dto.restaurantId;
 
     if (!targetRestaurantId) {
       throw new BadRequestException(
@@ -161,6 +162,7 @@ export class CommandesController {
         restaurantEmail: commande.restaurant.email,
         restaurantNif: (commande.restaurant as any).nif,
         restaurantRccm: (commande.restaurant as any).rccm,
+        restaurantLogo: (commande.restaurant as any).logo || undefined,
         clientNom:
           [commande.client?.prenom, commande.client?.nom]
             .filter(Boolean)

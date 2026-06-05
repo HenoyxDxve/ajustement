@@ -24,13 +24,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Throttle({ default: { limit: process.env.NODE_ENV === 'production' ? 10 : 1000, ttl: 60000 } })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
   @Post('login')
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle({ default: { limit: process.env.NODE_ENV === 'production' ? 5 : 1000, ttl: 60000 } })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
@@ -64,7 +64,7 @@ export class AuthController {
   // Password reset routes
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Throttle({ default: { limit: process.env.NODE_ENV === 'production' ? 3 : 1000, ttl: 60000 } })
   async forgotPassword(@Body('email') email: string) {
     return this.authService.requestPasswordReset(email);
   }
@@ -131,7 +131,7 @@ export class AuthController {
 
   @Post('2fa/verify-login')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle({ default: { limit: process.env.NODE_ENV === 'production' ? 5 : 1000, ttl: 60000 } })
   async verifyTwoFactorLogin(
     @Body('tempToken') tempToken: string,
     @Body('code') code: string,

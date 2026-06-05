@@ -32,6 +32,15 @@ export class CreateLigneDto {
   @IsOptional()
   @IsString()
   instructions?: string;
+
+  @IsOptional()
+  @IsString()
+  variantLabel?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  variantSupplement?: number;
 }
 
 export class CreateCommandeDto {
@@ -62,4 +71,8 @@ export class CreateCommandeDto {
   @IsOptional()
   @IsString()
   codePromo?: string;
+
+  @IsOptional()
+  @IsString()
+  tableNumber?: string;
 }

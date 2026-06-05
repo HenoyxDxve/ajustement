@@ -31,6 +31,9 @@ import GerantDashboard from './pages/gerant/GerantDashboard';
 import KDSPage from './pages/gerant/KDSPage';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import KDSStaff from './pages/staff/KDSStaff';
+import CaissePage from './pages/staff/CaissePage';
+import ServeurPage from './pages/staff/ServeurPage';
+import ArticlesStaff from './pages/staff/ArticlesStaff';
 import B2BDashboard from './pages/b2b/B2BDashboard';
 import BulkOrder from './pages/b2b/BulkOrder';
 import B2BOrders from './pages/b2b/B2BOrders';
@@ -40,6 +43,8 @@ import B2BReports from './pages/b2b/B2BReports';
 import AcceptInvitation from './pages/b2b/AcceptInvitation';
 import B2BOrderTracking from './pages/b2b/B2BOrderTracking';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import GerantOnboardingWizard from './pages/gerant/GerantOnboardingWizard';
+import B2BOnboardingPage from './pages/b2b/B2BOnboardingPage';
 
 // ===== UTILITAIRES — Imports directs sans extension .jsx =====
 const queryClient = new QueryClient();
@@ -168,6 +173,14 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/b2b/invitation/:token" element={<AcceptInvitation />} />
 
+            {/* === ONBOARDING WIZARDS (post-inscription) === */}
+            <Route path="/onboarding/gerant" element={
+              <ProtectedGerantRoute><GerantOnboardingWizard /></ProtectedGerantRoute>
+            } />
+            <Route path="/onboarding/b2b" element={
+              <ProtectedBusinessRoute><B2BOnboardingPage /></ProtectedBusinessRoute>
+            } />
+
 
             {/* === DASHBOARD GÉRANT === */}
             <Route 
@@ -191,8 +204,12 @@ export default function App() {
                 </ProtectedStaffRoute>
               }
             >
-              <Route index element={<StaffDashboard />} />
+              <Route index element={<Navigate to="kds" replace />} />
+              <Route path="dashboard" element={<StaffDashboard />} />
               <Route path="kds" element={<KDSStaff />} />
+              <Route path="caisse" element={<CaissePage />} />
+              <Route path="salle" element={<ServeurPage />} />
+              <Route path="articles" element={<ArticlesStaff />} />
             </Route>
 
             {/* === DASHBOARD ENTREPRISE (B2B) — layout sombre collapsible === */}

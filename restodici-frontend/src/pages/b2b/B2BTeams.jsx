@@ -1,663 +1,293 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Users, Trash2, AlertCircle, CheckCircle, Building2, ArrowRight, Mail, Lock, Shield, User, Phone, Save } from 'lucide-react';
-import { authAPI, b2bAPI } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { Link } from 'react-router-dom';
+import { Users, Plus, Trash2, X, Send, CheckCircle, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
+import { b2bAPI } from '../../services/api';
+import { formatFCFA } from '../../utils/formatters';
 
-const BG = '#FDFCFB';
-const SURFACE = '#FDF5EF';
-const ACCENT = '#C05015';
-const CREAM = '#0F172A';
-const MUTED = '#64748B';
-const GOLD = '#F97316';
-const BORDER = 'rgba(89,67,42,0.10)';
+// ── Design tokens ──────────────────────────────────────────────────────────────
+const BG     = '#F8FAFC';
+const CARD   = '#FFFFFF';
+const NAVY   = '#0F172A';
+const TEXT   = '#0F172A';
+const MUTED  = '#64748B';
+const FAINT  = '#94A3B8';
+const BORDER = '#E2E8F0';
+const ORANGE = '#FF8C00';    // CTA — inviter, enregistrer
+const ORANGE_L = '#FFF3E0';
+const ORANGE_D = '#E07800';
+const GREEN  = '#16A34A';    // succès, invitation envoyée
+const GREEN_L= '#DCFCE7';
+const GREEN_D= '#15803D';
+const RED    = '#DC2626';    // supprimer (action risquée)
+const RED_L  = '#FEF2F2';
+const SH     = '0 1px 3px rgba(15,23,42,0.07),0 1px 2px rgba(15,23,42,0.04)';
+const SH2    = '0 4px 16px rgba(15,23,42,0.10),0 2px 4px rgba(15,23,42,0.06)';
+const SH3    = '0 20px 40px rgba(15,23,42,0.15),0 4px 8px rgba(15,23,42,0.06)';
 
-function BudgetBar({ spent, limit }) {
-  const pct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
-  const color = pct >= 100 ? '#C05015' : pct >= 80 ? '#D97706' : '#9A3E10';
+function Avatar({ name = '', size = 36 }) {
+  const ini = name.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
+  const hue = ((name.charCodeAt(0) || 0) * 37) % 360;
   return (
-    <div className="mt-2">
-      <div className="flex justify-between text-xs mb-1" style={{ color: MUTED }}>
-        <span>{spent.toLocaleString()} FCFA dépensés</span>
-        <span>{Math.round(pct)}%</span>
+    <div className="rounded-full flex items-center justify-center font-bold shrink-0 select-none"
+      style={{ width: size, height: size, fontSize: size * 0.38,
+        background: `hsl(${hue},65%,88%)`, color: `hsl(${hue},65%,32%)` }}>
+      {ini}
+    </div>
+  );
+}
+
+function BudgetBar({ spent, budget }) {
+  const pct = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+  const bar = pct > 85 ? RED : pct > 65 ? ORANGE : GREEN;
+  return (
+    <div>
+      <div className="flex justify-between text-[10px] mb-1" style={{ color: FAINT }}>
+        <span>{formatFCFA(spent)} dépensé</span>
+        <span style={{ color: pct > 85 ? RED : pct > 65 ? ORANGE : MUTED, fontWeight: 600 }}>{pct}%</span>
       </div>
-      <div className="h-1.5 rounded-full bg-[#F2EBE1] overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: BORDER }}>
+        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: bar }} />
       </div>
-      <div className="text-xs mt-1" style={{ color: MUTED }}>
-        Limite: {limit.toLocaleString()} FCFA
+    </div>
+  );
+}
+
+function InviteModal({ onClose, onDone }) {
+  const [form, setForm] = useState({ nom: '', email: '', poste: '', budgetMensuel: '' });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
+  const [sent, setSent] = useState(false);
+  const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="rounded-2xl w-full max-w-sm overflow-hidden" style={{ background: CARD, boxShadow: SH3 }}>
+
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: ORANGE_L }}>
+              <Users className="w-4 h-4" style={{ color: ORANGE }} />
+            </div>
+            <p className="text-sm font-bold" style={{ color: TEXT }}>Inviter un collaborateur</p>
+          </div>
+          <button onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-70 transition"
+            style={{ background: BG }}>
+            <X className="w-3.5 h-3.5" style={{ color: MUTED }} />
+          </button>
+        </div>
+
+        {sent ? (
+          <div className="p-8 text-center">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ background: GREEN_L }}>
+              <CheckCircle className="w-7 h-7" style={{ color: GREEN }} />
+            </div>
+            <p className="text-base font-bold mb-1" style={{ color: TEXT }}>Invitation envoyée !</p>
+            <p className="text-xs mb-5" style={{ color: MUTED }}>
+              Email envoyé à <strong style={{ color: TEXT }}>{form.email}</strong>
+            </p>
+            <button onClick={() => { onDone(); onClose(); }}
+              className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+              style={{ background: GREEN }}>
+              Fermer
+            </button>
+          </div>
+        ) : (
+          <div className="p-5 space-y-3">
+            {[
+              { k: 'nom',           label: 'Nom complet *',          type: 'text',   ph: 'Jean Konan' },
+              { k: 'email',         label: 'Email professionnel *',  type: 'email',  ph: 'jean@entreprise.ci' },
+              { k: 'poste',         label: 'Poste',                  type: 'text',   ph: 'Directeur commercial' },
+              { k: 'budgetMensuel', label: 'Budget mensuel (FCFA)',   type: 'number', ph: '50 000' },
+            ].map(f => (
+              <div key={f.k}>
+                <label className="block text-[11px] font-bold mb-1.5" style={{ color: MUTED }}>{f.label}</label>
+                <input type={f.type} value={form[f.k]} placeholder={f.ph} onChange={set(f.k)}
+                  className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition"
+                  style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }} />
+              </div>
+            ))}
+            {err && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: RED_L }}>
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" style={{ color: RED }} />
+                <p className="text-xs font-medium" style={{ color: RED }}>{err}</p>
+              </div>
+            )}
+            <p className="text-[11px]" style={{ color: FAINT }}>Un lien d'activation sera envoyé par email.</p>
+            {/* Envoyer invitation — orange */}
+            <button
+              onClick={async () => {
+                if (!form.nom || !form.email) { setErr('Nom et email requis'); return; }
+                setSaving(true); setErr('');
+                try {
+                  await b2bAPI.createCollaborateur({
+                    nom: form.nom, email: form.email, poste: form.poste,
+                    budgetMensuel: form.budgetMensuel ? parseFloat(form.budgetMensuel) : undefined,
+                  });
+                  setSent(true);
+                } catch (e) { setErr(e.response?.data?.message || 'Erreur'); }
+                finally { setSaving(false); }
+              }}
+              disabled={saving}
+              className="w-full py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition hover:opacity-90"
+              style={{ background: saving ? MUTED : ORANGE, cursor: saving ? 'wait' : 'pointer' }}>
+              {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              {saving ? 'Envoi en cours…' : "Envoyer l'invitation"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 export default function B2BTeams() {
-  const { user, syncUser } = useAuth();
-  const [compte, setCompte] = useState(null);
-  const [collaborateurs, setCollaborateurs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nom: '', email: '', limiteBudget: '' });
-  const [compteForm, setCompteForm] = useState({
-    raisonSociale: '', numeroRCCM: '', numeroContribuable: '',
-    emailProfessionnel: '', telephoneProfessionnel: '',
-  });
-  const [creatingCompte, setCreatingCompte] = useState(false);
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [show2FA, setShow2FA] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
-  // Profile editing
-  const [profileForm, setProfileForm] = useState({ nom: '', prenom: '', email: '', telephone: '' });
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [profileError, setProfileError] = useState('');
-  const [profileSuccess, setProfileSuccess] = useState('');
+  const [collabs, setCollabs]       = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [showInvite, setShowInvite] = useState(false);
+  const [deleting, setDeleting]     = useState('');
 
-  // Init profile form from current user
-  useEffect(() => {
-    if (user) {
-      setProfileForm({
-        nom: user.nom ?? '',
-        prenom: user.prenom ?? '',
-        email: user.email ?? '',
-        telephone: user.telephone ?? '',
-      });
-    }
-  }, [user]);
-
-  useEffect(() => { void load(); }, []);
-
-  const load = async () => {
+  const load = () => {
     setLoading(true);
-    try {
-      const [compteRes, collabRes] = await Promise.allSettled([
-        b2bAPI.getCompte(),
-        b2bAPI.getCollaborateurs(),
-      ]);
-      const c = compteRes.status === 'fulfilled' ? compteRes.value.data : null;
-      setCompte(c?.id ? c : null);
-      setCollaborateurs(collabRes.status === 'fulfilled' ? (collabRes.value.data || []) : []);
-    } catch {
-      setError('Erreur de chargement');
-    } finally {
-      setLoading(false);
-    }
+    b2bAPI.getCollaborateurs()
+      .then(r => setCollabs(r.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   };
 
-  const handleCreateCompte = async (e) => {
-    e.preventDefault();
-    if (!compteForm.raisonSociale || !compteForm.numeroRCCM || !compteForm.numeroContribuable) {
-      setError('Raison sociale, RCCM et NIF sont requis');
-      return;
-    }
-    setCreatingCompte(true);
-    setError('');
-    try {
-      await b2bAPI.createCompte(compteForm);
-      setSuccess('Compte entreprise créé — en attente de validation');
-      await load();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la création du compte');
-    } finally {
-      setCreatingCompte(false);
-    }
+  useEffect(() => { load(); }, []);
+
+  const handleDelete = async (id, nom) => {
+    if (!confirm(`Supprimer ${nom || 'ce collaborateur'} ? Cette action est irréversible.`)) return;
+    setDeleting(id);
+    try { await b2bAPI.deleteCollaborateur(id); load(); } catch { /* ignore */ }
+    finally { setDeleting(''); }
   };
 
-  const handleAddCollaborateur = async (e) => {
-    e.preventDefault();
-    if (!form.nom.trim() || !form.email.trim()) {
-      setError('Nom et email requis');
-      return;
-    }
-    const budget = parseInt(form.limiteBudget);
-    if (isNaN(budget) || budget < 10000) {
-      setError('Limite de budget minimum: 10 000 FCFA');
-      return;
-    }
-    setSubmitting(true);
-    setError('');
-    try {
-      const res = await b2bAPI.createCollaborateur({ ...form, limiteBudget: budget });
-      const data = res.data;
-      if (data?.tempPassword) {
-        setSuccess(`Collaborateur ajouté — mot de passe temporaire: ${data.tempPassword}`);
-      } else {
-        setSuccess('Collaborateur ajouté avec succès');
-      }
-      setForm({ nom: '', email: '', limiteBudget: '' });
-      setShowForm(false);
-      await load();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de l\'ajout');
-    } finally {
-      setSubmitting(false);
-      setTimeout(() => setSuccess(''), 8000);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Désactiver ce collaborateur ?')) return;
-    try {
-      await b2bAPI.deleteCollaborateur(id);
-      setCollaborateurs(prev => prev.filter(c => c.id !== id));
-    } catch {
-      setError('Erreur lors de la désactivation');
-    }
-  };
-
-  const handlePasswordChange = async () => {
-    setPasswordError('');
-    setPasswordSuccess('');
-    if (!currentPassword) { setPasswordError('Mot de passe actuel requis'); return; }
-    if (newPassword.length < 6) { setPasswordError('Minimum 6 caractères'); return; }
-    if (newPassword !== confirmPassword) { setPasswordError('Les mots de passe ne correspondent pas'); return; }
-    try {
-      await authAPI.changePassword({ currentPassword, newPassword });
-      setPasswordSuccess('Mot de passe modifié avec succès');
-      setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
-      setTimeout(() => { setShowPasswordForm(false); setPasswordSuccess(''); }, 2000);
-    } catch (err) {
-      setPasswordError(err.response?.data?.message || 'Erreur lors du changement de mot de passe');
-    }
-  };
-
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
-    setProfileError('');
-    setProfileSuccess('');
-    if (!profileForm.nom.trim() || !profileForm.email.trim()) {
-      setProfileError('Nom et email requis');
-      return;
-    }
-    setSavingProfile(true);
-    try {
-      const res = await authAPI.updateProfile(profileForm);
-      syncUser(res.data);
-      setProfileSuccess('Profil mis à jour avec succès');
-      setTimeout(() => setProfileSuccess(''), 3000);
-    } catch (err) {
-      setProfileError(err.response?.data?.message || 'Erreur lors de la mise à jour du profil');
-    } finally {
-      setSavingProfile(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
-        <div className="h-8 w-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: ACCENT, borderTopColor: 'transparent' }} />
-      </div>
-    );
-  }
+  const totalBudget = collabs.reduce((s, c) => s + Number(c.limiteBudget || 0), 0);
+  const totalSpent  = collabs.reduce((s, c) => s + Number(c.depenseActuelle || 0), 0);
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 bg-[#FDF5EF]">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen" style={{ background: BG }}>
 
-        {/* Header */}
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: GOLD }}>
-            Espace Entreprise
-          </p>
-          <h1 className="mt-1 text-2xl font-bold" style={{ color: CREAM }}>Gestion des collaborateurs</h1>
-          <p className="mt-1 text-sm" style={{ color: MUTED }}>Gérez les budgets individuels et les accès de vos équipes</p>
+      {/* Header dark */}
+      <div className="sticky top-0 z-10" style={{ background: NAVY, boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+          <Link to="/b2b" className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-70 transition"
+            style={{ color: 'rgba(255,255,255,0.55)' }}>
+            <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
+          </Link>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
+          <p className="text-[13px] font-semibold text-white">Équipe</p>
+          <div className="flex-1" />
+          {/* Inviter — orange (CTA principal) */}
+          <button onClick={() => setShowInvite(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-bold text-white transition hover:opacity-90"
+            style={{
+              background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_D})`,
+              boxShadow: `0 2px 8px ${ORANGE}50`,
+            }}>
+            <Plus className="w-3.5 h-3.5" /> Inviter un collaborateur
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+
+        {/* KPI summary */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: 'Membres actifs',  value: collabs.length,          bg: '#4F46E5' },
+            { label: 'Budget total',    value: formatFCFA(totalBudget),  bg: ORANGE    },
+            { label: 'Dépenses mois',   value: formatFCFA(totalSpent),   bg: GREEN     },
+          ].map(s => (
+            <div key={s.label} className="rounded-2xl p-4 text-center text-white"
+              style={{ background: s.bg, boxShadow: `0 4px 14px ${s.bg}40` }}>
+              <p className="text-xl font-bold truncate">{s.value}</p>
+              <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.72)' }}>{s.label}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Alerts */}
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 font-medium">
-            {success}
-          </div>
-        )}
-
-        {/* ── Mon profil ── */}
-        <section className="rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
-          <div className="mb-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: GOLD }}>Mon compte</p>
-            <h2 className="mt-1 font-bold" style={{ color: CREAM }}>Informations personnelles</h2>
-          </div>
-
-          {profileError && <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{profileError}</div>}
-          {profileSuccess && <div className="mb-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{profileSuccess}</div>}
-
-          <form onSubmit={handleProfileUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Nom</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: MUTED }} />
-                <input
-                  type="text" value={profileForm.nom}
-                  onChange={e => setProfileForm(p => ({ ...p, nom: e.target.value }))}
-                  placeholder="Votre nom"
-                  className="w-full rounded-xl border pl-9 pr-3 py-2.5 text-sm outline-none focus:ring-1"
-                  style={{ borderColor: BORDER }}
-                />
-              </div>
+        {/* Collaborateurs list */}
+        <div className="rounded-2xl overflow-hidden" style={{ background: CARD, boxShadow: SH2 }}>
+          {loading ? (
+            <div className="p-4 space-y-2">
+              {[1,2,3].map(i => <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: BG }} />)}
             </div>
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Prénom</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: MUTED }} />
-                <input
-                  type="text" value={profileForm.prenom}
-                  onChange={e => setProfileForm(p => ({ ...p, prenom: e.target.value }))}
-                  placeholder="Votre prénom"
-                  className="w-full rounded-xl border pl-9 pr-3 py-2.5 text-sm outline-none focus:ring-1"
-                  style={{ borderColor: BORDER }}
-                />
+          ) : collabs.length === 0 ? (
+            <div className="py-20 text-center">
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                style={{ background: ORANGE_L }}>
+                <Users className="w-7 h-7" style={{ color: ORANGE }} />
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: MUTED }} />
-                <input
-                  type="email" value={profileForm.email}
-                  onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))}
-                  placeholder="votre@email.com"
-                  className="w-full rounded-xl border pl-9 pr-3 py-2.5 text-sm outline-none focus:ring-1"
-                  style={{ borderColor: BORDER }}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Téléphone</label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: MUTED }} />
-                <input
-                  type="tel" value={profileForm.telephone}
-                  onChange={e => setProfileForm(p => ({ ...p, telephone: e.target.value }))}
-                  placeholder="+225 07 00 00 00"
-                  className="w-full rounded-xl border pl-9 pr-3 py-2.5 text-sm outline-none focus:ring-1"
-                  style={{ borderColor: BORDER }}
-                />
-              </div>
-            </div>
-            <div className="md:col-span-2">
-              <button
-                type="submit" disabled={savingProfile}
-                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50"
-                style={{ background: ACCENT }}
-              >
-                <Save className="h-4 w-4" />
-                {savingProfile ? 'Enregistrement...' : 'Enregistrer le profil'}
-              </button>
-            </div>
-          </form>
-        </section>
-
-        {/* Company account section */}
-        {!compte ? (
-          <div className="rounded-2xl border p-6 bg-white" style={{ borderColor: BORDER }}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: '#FFF4EE' }}>
-                <Building2 className="h-5 w-5" style={{ color: ACCENT }} />
-              </div>
-              <div>
-                <h2 className="font-bold" style={{ color: CREAM }}>Créer votre compte entreprise</h2>
-                <p className="text-xs" style={{ color: MUTED }}>Requis avant d'ajouter des collaborateurs</p>
-              </div>
-            </div>
-            <form onSubmit={handleCreateCompte} className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Raison sociale *</label>
-                  <input
-                    type="text" required
-                    value={compteForm.raisonSociale}
-                    onChange={e => setCompteForm(p => ({ ...p, raisonSociale: e.target.value }))}
-                    placeholder="TechCI SARL"
-                    className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-1"
-                    style={{ borderColor: BORDER, focusRingColor: ACCENT }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Numéro RCCM *</label>
-                  <input
-                    type="text" required
-                    value={compteForm.numeroRCCM}
-                    onChange={e => setCompteForm(p => ({ ...p, numeroRCCM: e.target.value }))}
-                    placeholder="CI-ABJ-2024-B-12345"
-                    className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                    style={{ borderColor: BORDER }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>NIF (contribuable) *</label>
-                  <input
-                    type="text" required
-                    value={compteForm.numeroContribuable}
-                    onChange={e => setCompteForm(p => ({ ...p, numeroContribuable: e.target.value }))}
-                    placeholder="0012345A"
-                    className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                    style={{ borderColor: BORDER }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Email professionnel</label>
-                  <input
-                    type="email"
-                    value={compteForm.emailProfessionnel}
-                    onChange={e => setCompteForm(p => ({ ...p, emailProfessionnel: e.target.value }))}
-                    placeholder="direction@techci.ci"
-                    className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                    style={{ borderColor: BORDER }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Téléphone</label>
-                  <input
-                    type="tel"
-                    value={compteForm.telephoneProfessionnel}
-                    onChange={e => setCompteForm(p => ({ ...p, telephoneProfessionnel: e.target.value }))}
-                    placeholder="+225 07 00 00 00"
-                    className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                    style={{ borderColor: BORDER }}
-                  />
-                </div>
-              </div>
-              <button
-                type="submit" disabled={creatingCompte}
-                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50"
-                style={{ background: ACCENT }}
-              >
-                <ArrowRight className="h-4 w-4" />
-                {creatingCompte ? 'Création...' : 'Créer le compte entreprise'}
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div className="rounded-2xl border p-4 bg-white flex items-center justify-between" style={{ borderColor: BORDER }}>
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: '#FDF5EF' }}>
-                <Building2 className="h-4 w-4" style={{ color: GOLD }} />
-              </div>
-              <div>
-                <p className="font-semibold text-sm" style={{ color: CREAM }}>{compte.raisonSociale}</p>
-                <p className="text-xs" style={{ color: MUTED }}>RCCM · {compte.numeroRCCM ?? '—'}</p>
-              </div>
-            </div>
-            <span className={`rounded-full px-3 py-1 text-xs font-medium ${compte.actif ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-              {compte.actif ? 'Actif' : compte.statutValidation === 'EN_ATTENTE' ? 'En validation' : compte.statutValidation}
-            </span>
-          </div>
-        )}
-
-        {/* Collaborator form */}
-        {compte && (
-          <div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="flex w-full items-center justify-between p-5 text-left"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: '#FFF4EE' }}>
-                  <UserPlus className="h-4 w-4" style={{ color: ACCENT }} />
-                </div>
-                <span className="font-semibold text-sm" style={{ color: CREAM }}>Ajouter un collaborateur</span>
-              </div>
-              <span className="text-xs" style={{ color: MUTED }}>{showForm ? 'Fermer' : 'Ouvrir'}</span>
-            </button>
-
-            {showForm && (
-              <div className="border-t px-5 pb-5 space-y-3" style={{ borderColor: BORDER }}>
-                <form onSubmit={handleAddCollaborateur} className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
-                  <div>
-                    <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Nom complet *</label>
-                    <input
-                      type="text" required
-                      value={form.nom}
-                      onChange={e => setForm(p => ({ ...p, nom: e.target.value }))}
-                      placeholder="Jean Kouassi"
-                      className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                      style={{ borderColor: BORDER }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Email professionnel *</label>
-                    <input
-                      type="email" required
-                      value={form.email}
-                      onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                      placeholder="j.kouassi@techci.ci"
-                      className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                      style={{ borderColor: BORDER }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1" style={{ color: CREAM }}>Limite mensuelle (FCFA) *</label>
-                    <input
-                      type="number" required min="10000"
-                      value={form.limiteBudget}
-                      onChange={e => setForm(p => ({ ...p, limiteBudget: e.target.value }))}
-                      placeholder="50000"
-                      className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                      style={{ borderColor: BORDER }}
-                    />
-                  </div>
-                  <div className="md:col-span-3">
-                    <button
-                      type="submit" disabled={submitting}
-                      className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50"
-                      style={{ background: ACCENT }}
-                    >
-                      {submitting ? 'Ajout...' : 'Ajouter le collaborateur'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Collaborators list */}
-        <section className="rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold" style={{ color: CREAM }}>
-              <Users className="inline h-4 w-4 mr-2" style={{ color: GOLD }} />
-              Collaborateurs ({collaborateurs.length})
-            </h2>
-          </div>
-
-          {collaborateurs.length === 0 ? (
-            <div className="py-12 text-center">
-              <Users className="mx-auto h-10 w-10 mb-3" style={{ color: BORDER }} />
-              <p className="text-sm" style={{ color: MUTED }}>
-                {compte ? 'Aucun collaborateur — ajoutez le premier' : 'Créez d\'abord votre compte entreprise'}
+              <p className="text-sm font-bold mb-1" style={{ color: TEXT }}>Aucun collaborateur</p>
+              <p className="text-xs mb-5" style={{ color: FAINT }}>
+                Invitez votre équipe pour gérer les déjeuners ensemble
               </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {collaborateurs.map(collab => {
-                const pct = collab.limiteBudget > 0
-                  ? Math.min(100, (collab.depenseActuelle / collab.limiteBudget) * 100)
-                  : 0;
-                const statusColor = pct >= 100 ? 'text-red-600 bg-red-50'
-                  : pct >= 80 ? 'text-amber-700 bg-amber-50'
-                  : 'text-green-700 bg-green-50';
-                const StatusIcon = pct >= 80 ? AlertCircle : CheckCircle;
-
-                return (
-                  <div key={collab.id} className="rounded-xl border p-4" style={{ borderColor: BORDER, background: '#FDFCFB' }}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <div className={`h-2 w-2 rounded-full shrink-0 ${collab.actif ? 'bg-green-500' : 'bg-red-400'}`} />
-                          <span className="font-semibold text-sm truncate" style={{ color: CREAM }}>{collab.nom}</span>
-                        </div>
-                        <p className="text-xs mt-0.5" style={{ color: MUTED }}>{collab.email}</p>
-                        <BudgetBar spent={collab.depenseActuelle ?? 0} limit={collab.limiteBudget ?? 0} />
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium flex items-center gap-1 ${statusColor}`}>
-                          <StatusIcon className="h-3 w-3" />
-                          {pct >= 100 ? 'Épuisé' : pct >= 80 ? 'Limite proche' : 'Actif'}
-                        </span>
-                        <button
-                          onClick={() => handleDelete(collab.id)}
-                          className="p-1.5 rounded-lg transition hover:bg-red-50"
-                          title="Désactiver"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-400" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex gap-4 text-xs" style={{ color: MUTED }}>
-                      <span>Solde: <strong style={{ color: CREAM }}>{(collab.soldeDisponible ?? 0).toLocaleString()} FCFA</strong></span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* ── Security section ── */}
-        <section className="rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
-          <div className="mb-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: GOLD }}>Sécurité du compte</p>
-            <h2 className="mt-1 font-bold" style={{ color: CREAM }}>Authentification & Protection</h2>
-          </div>
-          {/* Rows for security items */}
-          <div className="space-y-3">
-            {/* Email verification */}
-            <div className="flex items-center justify-between rounded-xl border p-4" style={{ borderColor: BORDER, background: '#FDFCFB' }}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: '#FBE8DC' }}>
-                  <Mail className="h-4 w-4 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: CREAM }}>Vérification email</p>
-                  <p className="text-xs" style={{ color: MUTED }}>Email vérifié et actif</p>
-                </div>
-              </div>
-              <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">Actif</span>
-            </div>
-            {/* Change password */}
-            <div className="flex items-center justify-between rounded-xl border p-4" style={{ borderColor: BORDER, background: '#FDFCFB' }}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: '#FDF5EF' }}>
-                  <Lock className="h-4 w-4" style={{ color: GOLD }} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: CREAM }}>Mot de passe</p>
-                  <p className="text-xs" style={{ color: MUTED }}>Changez régulièrement pour plus de sécurité</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowPasswordForm(!showPasswordForm)}
-                className="rounded-xl px-4 py-2 text-xs font-semibold text-white transition"
-                style={{ background: ACCENT }}
-              >
-                Modifier
+              <button onClick={() => setShowInvite(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
+                style={{ background: ORANGE }}>
+                <Plus className="w-4 h-4" /> Inviter
               </button>
             </div>
-            {/* 2FA */}
-            <div className="flex items-center justify-between rounded-xl border p-4" style={{ borderColor: BORDER, background: '#FDFCFB' }}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: '#FDF5EF' }}>
-                  <Shield className="h-4 w-4" style={{ color: ACCENT }} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: CREAM }}>Double authentification (2FA)</p>
-                  <p className="text-xs" style={{ color: MUTED }}>Sécurisez votre compte avec une application TOTP</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShow2FA(!show2FA)}
-                className="rounded-xl border px-4 py-2 text-xs font-semibold transition"
-                style={{ borderColor: BORDER, color: CREAM }}
-              >
-                Configurer
-              </button>
-            </div>
-          </div>
-
-          {/* Password change form */}
-          {showPasswordForm && (
-            <div className="mt-4 rounded-xl border p-4 space-y-3" style={{ borderColor: BORDER, background: '#FDFCFB' }}>
-              <p className="text-sm font-semibold" style={{ color: CREAM }}>Changer le mot de passe</p>
-              <input
-                type="password"
-                placeholder="Mot de passe actuel"
-                value={currentPassword}
-                onChange={e => setCurrentPassword(e.target.value)}
-                className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                style={{ borderColor: BORDER }}
-              />
-              <input
-                type="password"
-                placeholder="Nouveau mot de passe (min. 6 caractères)"
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                style={{ borderColor: BORDER }}
-              />
-              <input
-                type="password"
-                placeholder="Confirmer le nouveau mot de passe"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
-                style={{ borderColor: BORDER }}
-              />
-              {passwordError && <p className="text-xs text-red-600">{passwordError}</p>}
-              {passwordSuccess && <p className="text-xs text-green-600">{passwordSuccess}</p>}
-              <div className="flex gap-2">
-                <button onClick={handlePasswordChange} className="rounded-xl px-4 py-2 text-xs font-semibold text-white" style={{ background: ACCENT }}>
-                  Enregistrer
-                </button>
-                <button onClick={() => setShowPasswordForm(false)} className="rounded-xl border px-4 py-2 text-xs font-semibold" style={{ borderColor: BORDER, color: MUTED }}>
-                  Annuler
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 2FA setup */}
-          {show2FA && (
-            <div className="mt-4 rounded-xl border p-4 space-y-3" style={{ borderColor: BORDER, background: '#FDFCFB' }}>
-              <p className="text-sm font-semibold" style={{ color: CREAM }}>Configurer l'authentification à 2 facteurs</p>
-              <p className="text-xs" style={{ color: MUTED }}>
-                Installez Google Authenticator ou Authy sur votre téléphone et scannez le QR code ci-dessous.
-              </p>
-              <div className="flex items-center justify-center py-6 rounded-xl border border-dashed" style={{ borderColor: BORDER }}>
-                <div className="text-center">
-                  <div className="w-32 h-32 bg-[#F5F0E8] rounded-xl mx-auto flex items-center justify-center">
-                    <Shield className="h-12 w-12" style={{ color: GOLD, opacity: 0.4 }} />
+          ) : collabs.map((c, idx, arr) => {
+            const budget = Number(c.limiteBudget || c.budgetMax || 0);
+            const spent  = Number(c.depenseActuelle || c.depenses || 0);
+            const pct    = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+            return (
+              <div key={c.id} className="flex items-center gap-4 px-5 py-4 transition"
+                style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${BORDER}` : 'none' }}
+                onMouseEnter={e => e.currentTarget.style.background = BG}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <Avatar name={c.nom || ''} size={44} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <p className="text-[13px] font-bold" style={{ color: TEXT }}>
+                      {c.nom || 'Collaborateur'}
+                    </p>
+                    {c.poste && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                        style={{ background: BG, color: MUTED }}>{c.poste}</span>
+                    )}
+                    {pct >= 100 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                        style={{ background: RED_L, color: RED }}>Budget dépassé</span>
+                    )}
                   </div>
-                  <p className="mt-3 text-xs" style={{ color: MUTED }}>QR Code disponible après activation</p>
+                  <p className="text-[11px] mb-2.5" style={{ color: FAINT }}>{c.email}</p>
+                  <BudgetBar spent={spent} budget={budget} />
                 </div>
-              </div>
-              <input
-                type="text"
-                placeholder="Code à 6 chiffres de votre application"
-                maxLength={6}
-                className="w-full rounded-xl border px-3 py-2.5 text-sm text-center tracking-[0.3em] outline-none"
-                style={{ borderColor: BORDER }}
-              />
-              <div className="flex gap-2">
-                <button className="rounded-xl px-4 py-2 text-xs font-semibold text-white" style={{ background: ACCENT }}>
-                  Activer la 2FA
+                <div className="text-right shrink-0 hidden sm:block ml-4">
+                  <p className="text-[11px]" style={{ color: FAINT }}>Budget mensuel</p>
+                  <p className="text-[13px] font-bold" style={{ color: TEXT }}>{formatFCFA(budget)}</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: pct >= 100 ? RED : GREEN }}>
+                    Solde : {formatFCFA(Math.max(0, budget - spent))}
+                  </p>
+                </div>
+                {/* Supprimer — rouge (action risquée / irréversible) */}
+                <button onClick={() => handleDelete(c.id, c.nom)}
+                  disabled={deleting === c.id}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center border transition hover:opacity-80 disabled:opacity-40"
+                  style={{ borderColor: '#FECACA', background: RED_L, color: RED }}
+                  title="Supprimer ce collaborateur">
+                  {deleting === c.id
+                    ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    : <Trash2 className="w-3.5 h-3.5" />}
                 </button>
-                <button onClick={() => setShow2FA(false)} className="rounded-xl border px-4 py-2 text-xs font-semibold" style={{ borderColor: BORDER, color: MUTED }}>
-                  Annuler
-                </button>
               </div>
-            </div>
-          )}
-        </section>
+            );
+          })}
+        </div>
+
+        <p className="text-center text-[11px]" style={{ color: FAINT }}>
+          Les collaborateurs reçoivent un email d'invitation avec un lien d'activation
+        </p>
       </div>
+
+      {showInvite && <InviteModal onClose={() => setShowInvite(false)} onDone={load} />}
     </div>
   );
 }

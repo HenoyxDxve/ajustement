@@ -15,6 +15,7 @@ import {
 import { LigneCommande } from './entities/ligne-commande.entity';
 import { AvisCommande } from './entities/avis-commande.entity';
 import { CommandeStatusHistory } from './entities/commande-status-history.entity';
+import { CommissionPlateforme } from './entities/commission-plateforme.entity';
 import { Article } from '../menu/entities/article.entity';
 import { Restaurant } from '../restaurants/entities/restaurant.entity';
 import { CreateCommandeDto } from './dto/create-commande.dto';
@@ -43,6 +44,8 @@ export class CommandesService {
     private historyRepo: Repository<CommandeStatusHistory>,
     @InjectRepository(Restaurant)
     private restaurantRepo: Repository<Restaurant>,
+    @InjectRepository(CommissionPlateforme)
+    private commissionRepo: Repository<CommissionPlateforme>,
     private dataSource: DataSource,
     private commandesGateway: CommandesGateway,
     private tresorerieService: TresorerieService,
@@ -111,10 +114,12 @@ export class CommandesService {
           );
         }
 
-        const prixEffectif =
+        const prixBase =
           article.promoActif && article.prixPromo != null && Number(article.prixPromo) > 0
             ? Number(article.prixPromo)
             : Number(article.prix);
+        const supplement = Number(ligneDto.variantSupplement || 0);
+        const prixEffectif = prixBase + supplement;
         montantTotal += prixEffectif * ligneDto.quantite;
         ligneEntities.push(
           this.ligneRepo.create({
@@ -122,6 +127,8 @@ export class CommandesService {
             quantite: ligneDto.quantite,
             prixUnitaire: prixEffectif,
             instructions: ligneDto.instructions || undefined,
+            variantLabel: ligneDto.variantLabel || undefined,
+            variantSupplement: supplement > 0 ? supplement : undefined,
           }),
         );
       }
@@ -145,6 +152,10 @@ export class CommandesService {
         adresseLivraison:
           dto.modeLivraison === ModeLivraison.LIVRAISON
             ? dto.adresseLivraison
+            : undefined,
+        tableNumber:
+          dto.modeLivraison === ModeLivraison.SUR_PLACE
+            ? dto.tableNumber
             : undefined,
         montantTotal,
         montantRemise: montantRemise > 0 ? montantRemise : undefined,
@@ -400,8 +411,21 @@ export class CommandesService {
       statut: saved.statut,
     });
 
-    if (newStatut === StatutCommande.LIVREE && commande.client?.telephone) {
-      await this.smsService.sendStatusUpdate(commande.client.telephone, commande.numero, 'LIVREE');
+    if (newStatut === StatutCommande.LIVREE) {
+      if (commande.client?.telephone) {
+        await this.smsService.sendStatusUpdate(commande.client.telephone, commande.numero, 'LIVREE');
+      }
+      const taux = Number(commande.restaurant.tauxCommission ?? 8);
+      const montant = Number(commande.montantTotal);
+      await this.commissionRepo.save(
+        this.commissionRepo.create({
+          commandeId: saved.id,
+          restaurantId: commande.restaurant.id,
+          montantCommande: montant,
+          tauxCommission: taux,
+          montantCommission: parseFloat(((montant * taux) / 100).toFixed(2)),
+        }),
+      );
     }
 
     return saved;

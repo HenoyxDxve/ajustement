@@ -17,6 +17,9 @@ export class HorairesGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
+    // Staff and gerant always bypass hours check — they operate inside the restaurant
+    const role = req.user?.role;
+    if (role === 'STAFF' || role === 'GERANT') return true;
     const restaurantId = req.body?.restaurantId;
     if (!restaurantId) return true; // laisse les autres guards gérer
 

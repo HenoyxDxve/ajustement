@@ -41,6 +41,15 @@ export class CompteB2B {
   actif!: boolean;
 
   @Column({ nullable: true })
+  adresseSiege?: string;
+
+  @Column({ type: 'date', nullable: true })
+  datePrelevement?: string;
+
+  @Column({ type: 'int', nullable: true })
+  jourPrelevement?: number;
+
+  @Column({ nullable: true })
   validePar!: string;
 
   @Column({ nullable: true })

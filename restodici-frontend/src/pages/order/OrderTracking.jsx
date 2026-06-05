@@ -75,6 +75,7 @@ export default function OrderTrackingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [justUpdated, setJustUpdated] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   // Delivery confirmation state
   const [receptionStatus, setReceptionStatus] = useState(null); // null | 'OUI' | 'NON'
@@ -152,6 +153,19 @@ export default function OrderTrackingPage() {
       socket?.disconnect();
     };
   }, [id]);
+
+  const handleCancel = async () => {
+    if (!window.confirm('Confirmer l\'annulation de cette commande ?')) return;
+    setCancelling(true);
+    try {
+      await commandesService.updateStatut(id, 'ANNULEE');
+      setOrder((prev) => ({ ...prev, statut: 'ANNULEE' }));
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Impossible d\'annuler la commande.');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const handleReception = (status) => {
     setReceptionStatus(status);
@@ -267,6 +281,24 @@ export default function OrderTrackingPage() {
               </p>
               <p className="text-xs text-[#64748B] animate-pulse mt-0.5">Mise à jour en temps réel…</p>
             </div>
+          </div>
+        )}
+
+        {/* Cancel button — visible within 5 min of placing order */}
+        {['RECUE', 'CONFIRMEE'].includes(order.statut) &&
+          (Date.now() - new Date(order.createdAt).getTime()) < 5 * 60 * 1000 && (
+          <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-red-700">Annuler la commande</p>
+              <p className="text-xs text-red-500 mt-0.5">Possible uniquement dans les 5 premières minutes</p>
+            </div>
+            <button
+              onClick={handleCancel}
+              disabled={cancelling}
+              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition disabled:opacity-60 shrink-0"
+            >
+              {cancelling ? 'Annulation…' : 'Annuler'}
+            </button>
           </div>
         )}
 

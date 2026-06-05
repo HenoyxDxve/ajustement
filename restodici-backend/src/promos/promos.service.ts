@@ -115,6 +115,20 @@ export class PromosService {
     }
   }
 
+  async getActives(restaurantId: string): Promise<PromoCode[]> {
+    if (!restaurantId) return [];
+    const now = new Date();
+    const promos = await this.promoRepo.find({
+      where: { restaurantId, actif: true },
+      order: { createdAt: 'DESC' },
+    });
+    return promos.filter(p => {
+      if (p.expiresAt && new Date(p.expiresAt) < now) return false;
+      if (p.maxUses != null && p.usedCount >= p.maxUses) return false;
+      return true;
+    });
+  }
+
   async apply(promoId: string): Promise<void> {
     await this.promoRepo.increment({ id: promoId }, 'usedCount', 1);
   }

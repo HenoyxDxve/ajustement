@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { Commande } from '../commandes/entities/commande.entity';
+import { FactureMensuelleB2B } from '../b2b/entities/facture-mensuelle-b2b.entity';
 import { CommandesGateway } from '../commandes/commandes.gateway';
 import { SmsService } from '../notifications/sms.service';
 import { FcmService } from '../notifications/fcm.service';
@@ -15,6 +16,7 @@ export class PaiementsService {
 
   constructor(
     @InjectRepository(Commande) private commandeRepo: Repository<Commande>,
+    @InjectRepository(FactureMensuelleB2B) private factureRepo: Repository<FactureMensuelleB2B>,
     @InjectQueue(RECEIPT_QUEUE) private receiptQueue: Queue,
     private commandesGateway: CommandesGateway,
     private smsService: SmsService,
@@ -25,6 +27,26 @@ export class PaiementsService {
     const { reference, status, metadata } = body;
     if (status !== 'SUCCESSFUL' && status !== 'success') return;
 
+    // ── Facture mensuelle B2B ──────────────────────────────────────────────────
+    const isB2BFacture = String(reference).startsWith('b2b-facture-');
+    if (isB2BFacture || metadata?.factureId) {
+      const factureId: string = metadata?.factureId || String(reference).replace('b2b-facture-', '');
+      const facture = await this.factureRepo.findOne({ where: { id: factureId } });
+      if (!facture) {
+        this.logger.warn(`FactureMensuelleB2B ${factureId} introuvable`);
+        return;
+      }
+      if (facture.statut === 'PAYEE') {
+        this.logger.log(`Facture B2B ${factureId} déjà payée`);
+        return;
+      }
+      facture.statut = 'PAYEE';
+      await this.factureRepo.save(facture);
+      this.logger.log(`Facture B2B ${factureId} marquée PAYEE via webhook Novasend`);
+      return;
+    }
+
+    // ── Commande standard ─────────────────────────────────────────────────────
     const commandeId = metadata?.commandeId || reference;
     if (!commandeId) return;
 

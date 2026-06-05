@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import axios from 'axios';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PDFDocument = require('pdfkit');
 
@@ -6,6 +7,15 @@ const TVA_RATE = 0.18;
 
 function formatFcfa(amount: number): string {
   return new Intl.NumberFormat('fr-FR').format(Math.round(amount)) + ' FCFA';
+}
+
+async function fetchImageBuffer(url: string): Promise<Buffer | null> {
+  try {
+    const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 5000 });
+    return Buffer.from(response.data);
+  } catch {
+    return null;
+  }
 }
 
 @Injectable()
@@ -21,6 +31,7 @@ export class TresorerieService {
     restaurantEmail?: string;
     restaurantNif?: string;
     restaurantRccm?: string;
+    restaurantLogo?: string;
     clientNom?: string;
     lignes: Array<{ nom: string; quantite: number; prixUnitaire: number }>;
     montantTotal: number;
@@ -28,6 +39,8 @@ export class TresorerieService {
     modeLivraison?: string;
     payeAt?: Date | string | null;
   }): Promise<Buffer> {
+    const logoBuffer = data.restaurantLogo ? await fetchImageBuffer(data.restaurantLogo) : null;
+
     const doc = new PDFDocument({ size: 'A4', margin: 0 });
     const chunks: Buffer[] = [];
     doc.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -40,29 +53,38 @@ export class TresorerieService {
       const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 
       // ── HEADER BAND ──────────────────────────────────────────────────────────
-      // Dark gradient-like background (pdfkit linear gradient)
       const headerHeight = 120;
       const grad = doc.linearGradient(0, 0, PAGE_WIDTH, 0);
       grad.stop(0, '#11100d');
       grad.stop(1, '#2B1500');
       doc.rect(0, 0, PAGE_WIDTH, headerHeight).fill(grad);
 
-      // "R" pill logo
+      const logoSize = 48;
       const logoX = MARGIN;
-      const logoY = (headerHeight - 36) / 2;
-      doc.roundedRect(logoX, logoY, 36, 36, 8).fill('#FFFFFF');
+      const logoY = (headerHeight - logoSize) / 2;
+
+      if (logoBuffer) {
+        // Real restaurant logo: draw inside a rounded white container
+        doc.save();
+        doc.roundedRect(logoX - 2, logoY - 2, logoSize + 4, logoSize + 4, 10).fill('rgba(255,255,255,0.12)');
+        doc.image(logoBuffer, logoX, logoY, { width: logoSize, height: logoSize, cover: [logoSize, logoSize] });
+        doc.restore();
+      } else {
+        // Fallback: letter pill
+        doc.roundedRect(logoX, logoY + 6, 36, 36, 8).fill('#FFFFFF');
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(18)
+          .fillColor('#11100d')
+          .text((data.restaurantNom || 'R')[0].toUpperCase(), logoX, logoY + 14, { width: 36, align: 'center' });
+      }
+
+      // Restaurant name next to logo
       doc
         .font('Helvetica-Bold')
-        .fontSize(18)
-        .fillColor('#11100d')
-        .text('R', logoX, logoY + 8, { width: 36, align: 'center' });
-
-      // "Resto d'ici" next to logo
-      doc
-        .font('Helvetica')
         .fontSize(14)
         .fillColor('#FFFFFF')
-        .text("Resto d'ici", logoX + 44, logoY + 10);
+        .text(data.restaurantNom, logoX + logoSize + 10, logoY + (logoBuffer ? 6 : 12), { width: 200 });
 
       // "REÇU DE PAIEMENT" right-aligned
       doc
@@ -183,11 +205,16 @@ export class TresorerieService {
         .stroke();
 
       // ── TABLE ─────────────────────────────────────────────────────────────────
+      // Column layout — total = CONTENT_WIDTH (495px):
+      //   Désignation: 215  |  Qté: 40  |  P.U. HT: 120  |  Total HT: 120
       const tableY = dividerY + 10;
-      const colX = [MARGIN, MARGIN + 295, MARGIN + 360, MARGIN + 447];
-      const colW = [295, 65, 87, 88];
-      const rowH = 26;
-      const cellROW = 23;
+      const colW  = [215, 40, 120, 120];   // must sum to 495 = CONTENT_WIDTH
+      const colX  = colW.reduce<number[]>((acc, w, i) => {
+        acc.push(i === 0 ? MARGIN : acc[i - 1] + colW[i - 1]);
+        return acc;
+      }, []);
+      const rowH    = 28;
+      const cellROW = 26;
 
       // Header background with left orange accent bar
       doc.rect(MARGIN, tableY, CONTENT_WIDTH, rowH).fill('#11100d');
@@ -203,11 +230,12 @@ export class TresorerieService {
       headers.forEach((h, i) => {
         doc
           .font('Helvetica-Bold')
-          .fontSize(8)
+          .fontSize(8.5)
           .fillColor('#FFFFFF')
-          .text(h, colX[i] + 6, tableY + 8, {
-            width: colW[i] - 10,
+          .text(h, colX[i] + 8, tableY + 9, {
+            width: colW[i] - 14,
             align: headerAligns[i],
+            lineBreak: false,
           });
       });
 
@@ -253,9 +281,10 @@ export class TresorerieService {
             .font('Helvetica')
             .fontSize(9)
             .fillColor('#11100d')
-            .text(cell, colX[i] + 6, rowY + 7, {
-              width: colW[i] - 10,
+            .text(cell, colX[i] + 8, rowY + 8, {
+              width: colW[i] - 14,
               align: cellAligns[i],
+              lineBreak: false,
             });
         });
 
@@ -285,41 +314,47 @@ export class TresorerieService {
       const totalsY = tableEndY + 18;
       const totalHT = data.montantTotal / (1 + TVA_RATE);
       const tva = data.montantTotal - totalHT;
-      const totalsBlockX = PAGE_WIDTH - MARGIN - 220;
-      const totalsBlockW = 220;
+      // Block wide enough for long FCFA amounts (e.g. "1 250 000 FCFA")
+      const totalsBlockW = 255;
+      const totalsBlockX = PAGE_WIDTH - MARGIN - totalsBlockW;
+      const totalsLabelW = 110;
+      const totalsValueW = totalsBlockW - totalsLabelW - 16;
+      const totalsRowH    = 26;
 
       const totalsRows: [string, string, boolean][] = [
         ['Sous-total HT', formatFcfa(totalHT), false],
-        ['TVA (18%)', formatFcfa(tva), false],
-        ['TOTAL TTC', formatFcfa(data.montantTotal), true],
+        ['TVA (18%)',      formatFcfa(tva),     false],
+        ['TOTAL TTC',     formatFcfa(data.montantTotal), true],
       ];
 
       totalsRows.forEach(([label, value, isBold], i) => {
-        const ty = totalsY + i * 24;
+        const ty = totalsY + i * totalsRowH;
         if (isBold) {
-          doc.rect(totalsBlockX, ty, totalsBlockW, 24).fill('#FFF4EE');
-          doc.rect(totalsBlockX, ty, 3, 24).fill('#E04E1A');
+          doc.rect(totalsBlockX, ty, totalsBlockW, totalsRowH).fill('#FFF4EE');
+          doc.rect(totalsBlockX, ty, 3, totalsRowH).fill('#E04E1A');
         }
         doc
           .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
           .fontSize(isBold ? 11 : 9.5)
           .fillColor(isBold ? '#E04E1A' : '#64574A')
-          .text(label, totalsBlockX + 8, ty + (isBold ? 6 : 7), {
-            width: 100,
+          .text(label, totalsBlockX + 8, ty + (isBold ? 7 : 8), {
+            width: totalsLabelW,
             align: 'left',
+            lineBreak: false,
           });
         doc
           .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
           .fontSize(isBold ? 11 : 9.5)
           .fillColor(isBold ? '#E04E1A' : '#11100d')
-          .text(value, totalsBlockX + 110, ty + (isBold ? 6 : 7), {
-            width: totalsBlockW - 118,
+          .text(value, totalsBlockX + totalsLabelW + 8, ty + (isBold ? 7 : 8), {
+            width: totalsValueW,
             align: 'right',
+            lineBreak: false,
           });
         if (!isBold) {
           doc
-            .moveTo(totalsBlockX, ty + 24)
-            .lineTo(totalsBlockX + totalsBlockW, ty + 24)
+            .moveTo(totalsBlockX, ty + totalsRowH)
+            .lineTo(totalsBlockX + totalsBlockW, ty + totalsRowH)
             .strokeColor('#E8E0D6')
             .lineWidth(0.4)
             .stroke();
@@ -343,18 +378,18 @@ export class TresorerieService {
         .strokeColor('#E04E1A')
         .lineWidth(0.6)
         .stroke();
-      // "R" monogram
+      // Restaurant initial monogram
       doc
         .font('Helvetica-Bold')
         .fontSize(16)
         .fillColor('#E04E1A')
-        .text('R', stampCX - 57, stampCY - 9, { width: 20, align: 'center' });
+        .text((data.restaurantNom || 'R')[0].toUpperCase(), stampCX - 57, stampCY - 9, { width: 20, align: 'center' });
       // Text lines
       doc
         .font('Helvetica-Bold')
-        .fontSize(7.5)
+        .fontSize(7)
         .fillColor('#E04E1A')
-        .text("RESTO D'ICI", stampCX - 34, stampCY - 16, {
+        .text(data.restaurantNom.toUpperCase().slice(0, 18), stampCX - 34, stampCY - 16, {
           width: 90,
           align: 'center',
         });
@@ -409,22 +444,27 @@ export class TresorerieService {
       doc.rect(0, footerY, PAGE_WIDTH, 2).fill('#E04E1A');
       doc.rect(0, footerY + 2, PAGE_WIDTH, footerH - 2).fill('#11100d');
 
-      // "R" logo in footer
-      doc
-        .roundedRect(MARGIN, footerY + 14, 28, 28, 6)
-        .fill('rgba(255,255,255,0.15)');
-      doc
-        .font('Helvetica-Bold')
-        .fontSize(14)
-        .fillColor('#FFFFFF')
-        .text('R', MARGIN, footerY + 20, { width: 28, align: 'center' });
+      // Logo in footer
+      if (logoBuffer) {
+        doc.save();
+        doc.roundedRect(MARGIN - 1, footerY + 13, 30, 30, 5).fill('rgba(255,255,255,0.1)');
+        doc.image(logoBuffer, MARGIN, footerY + 14, { width: 28, height: 28, cover: [28, 28] });
+        doc.restore();
+      } else {
+        doc.roundedRect(MARGIN, footerY + 14, 28, 28, 6).fill('rgba(255,255,255,0.15)');
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(14)
+          .fillColor('#FFFFFF')
+          .text((data.restaurantNom || 'R')[0].toUpperCase(), MARGIN, footerY + 20, { width: 28, align: 'center' });
+      }
 
       doc
         .font('Helvetica-Bold')
         .fontSize(10)
         .fillColor('#FFFFFF')
         .text(
-          "Merci pour votre confiance — Resto d'ici",
+          `Merci pour votre confiance — ${data.restaurantNom}`,
           MARGIN + 36,
           footerY + 14,
           {
@@ -449,7 +489,7 @@ export class TresorerieService {
         .fontSize(7)
         .fillColor('rgba(255,255,255,0.4)')
         .text(
-          `restodici.ci · Document N° ${data.numero}`,
+          `${data.restaurantEmail || 'restodici.ci'} · Document N° ${data.numero}`,
           MARGIN + 36,
           footerY + 44,
           { width: CONTENT_WIDTH - 36, align: 'left' },

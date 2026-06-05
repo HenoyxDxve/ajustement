@@ -19,8 +19,12 @@ const customizationOptions = {
 const quickInstructionTags = ['Sans oignon', 'Sans piment', 'Cuisson spéciale'];
 
 export default function ProductCustomizationModal({ product, onClose, onAdd }) {
+  const productVariants = Array.isArray(product.variants) ? product.variants : [];
+  const hasVariants = productVariants.length > 0;
+
   const [quantity, setQuantity] = useState(1);
   const [instructions, setInstructions] = useState('');
+  const [selectedVariant, setSelectedVariant] = useState(hasVariants ? null : null);
   const [selectedSupplements, setSelectedSupplements] = useState([]);
   const [customOptions, setCustomOptions] = useState({});
 
@@ -33,15 +37,16 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
     ? Number(product.prixPromo)
     : parseFloat(product.prix) || 0;
 
+  const variantSupplement = selectedVariant ? Number(selectedVariant.prixSupplement || 0) : 0;
+
   const totalPrice = useMemo(() => {
-    const basePrice = effectiveUnitPrice * quantity;
-    const supplementsTotal = selectedSupplementItems.reduce(
+    const basePrice = (effectiveUnitPrice + variantSupplement) * quantity;
+    const supplementsTotal = hasVariants ? 0 : selectedSupplementItems.reduce(
       (sum, supplement) => sum + supplement.price * quantity,
       0,
     );
-
     return basePrice + supplementsTotal;
-  }, [effectiveUnitPrice, quantity, selectedSupplementItems]);
+  }, [effectiveUnitPrice, variantSupplement, quantity, selectedSupplementItems, hasVariants]);
 
   const handleQuantityChange = (nextQuantity) => {
     if (nextQuantity >= 1 && nextQuantity <= 20) {
@@ -67,10 +72,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
   const handleAppendInstruction = (tag) => {
     setInstructions((current) => {
       const normalized = current.trim();
-      if (!normalized) {
-        return tag;
-      }
-
+      if (!normalized) return tag;
       return normalized.toLowerCase().includes(tag.toLowerCase())
         ? normalized
         : `${normalized}\n${tag}`;
@@ -79,7 +81,8 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
 
   const handleAdd = () => {
     const details = [
-      ...selectedSupplementItems.map((item) => `Supplément: ${item.name}`),
+      selectedVariant && `Variante: ${selectedVariant.label}`,
+      ...(!hasVariants ? selectedSupplementItems.map((item) => `Supplément: ${item.name}`) : []),
       customOptions.cuisson && `Cuisson: ${customOptions.cuisson}`,
       customOptions.epice && `Épices: ${customOptions.epice}`,
       customOptions.accompagnement && `Accompagnement: ${customOptions.accompagnement}`,
@@ -89,14 +92,10 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
       .join('\n');
 
     onAdd(
-      {
-        ...product,
-        supplements: selectedSupplementItems,
-        customOptions,
-        totalPrice,
-      },
+      { ...product, customOptions, totalPrice },
       quantity,
       details,
+      selectedVariant ? { label: selectedVariant.label, prixSupplement: Number(selectedVariant.prixSupplement || 0) } : null,
     );
     onClose();
   };
@@ -199,6 +198,34 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
           </div>
 
           <div className="space-y-5 p-5 sm:p-6">
+            {hasVariants && (
+              <SectionCard title="Taille / Variante">
+                <div className="space-y-2">
+                  {productVariants.map((v) => {
+                    const active = selectedVariant?.label === v.label;
+                    return (
+                      <button
+                        key={v.label}
+                        type="button"
+                        onClick={() => setSelectedVariant(active ? null : v)}
+                        className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+                          active
+                            ? 'border-[#C05015] bg-[#FBE8DC] shadow-sm'
+                            : 'border-[#E2E8F0] bg-white hover:border-[#F1C5AF] hover:bg-[#FFFAF6]'
+                        }`}
+                      >
+                        <p className="font-semibold text-[#0F172A]">{v.label}</p>
+                        {Number(v.prixSupplement) > 0 && (
+                          <span className="text-sm font-bold text-[#C05015]">+ {formatFCFA(Number(v.prixSupplement))}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </SectionCard>
+            )}
+
+            {!hasVariants && (
             <SectionCard title="Suppléments">
               <div className="space-y-3">
                 {supplements.map((supplement) => {
@@ -224,6 +251,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
                 })}
               </div>
             </SectionCard>
+            )}
 
             <SectionCard title="Préférences de préparation">
               <div className="space-y-4">

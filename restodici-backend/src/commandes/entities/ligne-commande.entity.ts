@@ -22,6 +22,12 @@ export class LigneCommande {
   @Column({ nullable: true })
   instructions!: string; // Personnalisation (RG-05 / EN-1917)
 
+  @Column({ nullable: true, type: 'varchar', length: 100 })
+  variantLabel?: string;
+
+  @Column({ nullable: true, type: 'decimal', precision: 10, scale: 2 })
+  variantSupplement?: number;
+
   @ManyToOne(() => Commande, (commande) => commande.lignes, {
     onDelete: 'CASCADE',
   })

@@ -47,8 +47,7 @@ export class B2BController {
 
   @Get('compte')
   async getCompte(@Req() req: RequestWithUser) {
-    const compte = await this.b2bService.getCompteB2B(req.user.id);
-    return compte ?? { exists: false };
+    return this.b2bService.getCompteWithStatus(req.user.id);
   }
 
   @Patch('compte')
@@ -137,6 +136,16 @@ export class B2BController {
   @Post('factures-mensuelles/:id/payer')
   async payerFacture(@Req() req: RequestWithUser, @Param('id') id: string) {
     return this.b2bService.payFacture(id, req.user.id);
+  }
+
+  @Post('factures-mensuelles/:id/initier-paiement')
+  async initierPaiementFacture(@Req() req: RequestWithUser, @Param('id') id: string) {
+    return this.b2bService.initierPaiementFacture(id, req.user.id);
+  }
+
+  @Post('factures-mensuelles/test-seed')
+  async seedFactureTest(@Req() req: RequestWithUser) {
+    return this.b2bService.createFactureTest(req.user.id);
   }
 
   // ============================================================

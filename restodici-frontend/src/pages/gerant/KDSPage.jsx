@@ -206,6 +206,11 @@ export default function KDSPage() {
           <h2 className="text-2xl font-bold text-[#1C1917]">KDS Staff & Salle</h2>
           <p className="text-sm text-[#78716C] mt-0.5">Suivi opérationnel en temps réel</p>
         </div>
+        <div className="flex flex-col gap-4">
+        <div className="rounded-2xl border border-[#F5DEB3] bg-[#FFFBEB] p-4">
+          <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#B45309]">Processus essentiel</p>
+          <p className="mt-2 text-sm text-[#92400E] font-semibold">Le KDS est le point central de réception et de préparation — chaque commande doit être traitée ici avant d’être finalisée.</p>
+        </div>
         <div className="flex items-center gap-3">
           {lastRealtimeEvent && (
             <span className="text-xs px-3 py-2 rounded-full bg-[#FBE8DC] text-[#9A3E10]">
@@ -220,6 +225,7 @@ export default function KDSPage() {
             Actualiser
           </button>
         </div>
+      </div>
       </div>
 
       {error && (

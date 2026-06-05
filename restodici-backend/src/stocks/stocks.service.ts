@@ -67,6 +67,28 @@ export class StocksService {
     }));
   }
 
+  // GET /stocks/rapport-ecarts — Stock théorique par article (pour saisie inventaire physique)
+  async getRapportEcarts(restaurantId?: string) {
+    const query = this.articleRepo
+      .createQueryBuilder('article')
+      .leftJoinAndSelect('article.categorie', 'categorie')
+      .orderBy('article.nom', 'ASC');
+
+    if (restaurantId) {
+      query.where('article.restaurantId = :restaurantId', { restaurantId });
+    }
+
+    const articles = await query.getMany();
+    return articles.map((a) => ({
+      id: a.id,
+      nom: a.nom,
+      categorie: a.categorie?.nom || 'Sans catégorie',
+      stockTheorique: a.stock || 0,
+      seuil: a.seuilMin ?? 5,
+      disponible: a.disponible,
+    }));
+  }
+
   // PATCH /stocks/:id/adjust — Ajustement manuel du stock
   async adjustStock(
     id: string,

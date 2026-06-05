@@ -4,7 +4,7 @@ import {
   ShoppingCart, ChevronRight, Store, AlertCircle, MapPin, ArrowRight,
 } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
-import { menuAPI } from '../services/api';
+import { menuAPI, promosAPI } from '../services/api';
 import ProductCustomizationModal from '../components/menu/ProductCustomizationModal';
 import CartDrawer from '../components/cart/CartDrawer';
 import { formatFCFA } from '../utils/formatters';
@@ -67,68 +67,177 @@ function Shimmer({ w = '100%', h = 20, r = 8 }) {
 /* ─── Restaurant Card — Vibrant Provisions style ─── */
 function RestaurantCard({ restaurant, idx, onSelect }) {
   const [fav, setFav] = useState(false);
-  const img = restaurant.logo || fallbackImg(idx);
-  const tag1 = restaurant.typeRestaurant || restaurant.type || 'Restaurant';
-  const tag2 = restaurant.cuisine || restaurant.specialite || null;
-  const TIMES = ['15–25 min','20–30 min','25–35 min','30–40 min','35–45 min'];
-  const time = TIMES[idx % TIMES.length];
+  const [hov, setHov] = useState(false);
+  const img    = restaurant.logo || restaurant.coverImage || restaurant.photoUrl || fallbackImg(idx);
+  const tag1   = restaurant.typeRestaurant || restaurant.type || 'Restaurant';
+  const tag2   = restaurant.cuisine || restaurant.specialite || null;
+  const TIMES  = ['15–25 min','20–30 min','25–35 min','30–40 min','35–45 min'];
+  const time   = TIMES[idx % TIMES.length];
   const isFree = [0,3,6].includes(idx % 9);
   const feeAmt = (idx % 3 + 1) * 500;
+  const rating = restaurant.noteMoyenne ? Number(restaurant.noteMoyenne).toFixed(1) : '4.8';
+  const nbAvis = restaurant.nbAvis || Math.floor(20 + idx * 7);
+  const addr   = restaurant.adresse || restaurant.ville || 'Abidjan';
+  const BADGES = ['⭐ Populaire','🔥 Tendance','✨ Nouveau','🎯 Incontournable'];
+  const badge  = idx < 4 ? BADGES[idx] : null;
 
   return (
-    <div className="menu-card" onClick={() => onSelect(restaurant.id)}
-      style={{ background:T.card, borderRadius:18, overflow:'hidden', boxShadow:T.shadowS, border:`1px solid ${T.line}`, transition:'all .35s', cursor:'pointer' }}>
+    <div
+      onClick={() => onSelect(restaurant.id)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: T.card, borderRadius: 22, overflow: 'hidden',
+        boxShadow: hov ? '0 22px 60px rgba(255,140,0,0.22)' : T.shadowS,
+        border: `1px solid ${hov ? T.accent+'55' : T.line}`,
+        cursor: 'pointer',
+        transform: hov ? 'translateY(-6px)' : 'none',
+        transition: 'all .32s cubic-bezier(.22,1,.36,1)',
+        display: 'flex', flexDirection: 'column',
+      }}>
 
-      {/* Photo */}
-      <div style={{ position:'relative', height:210, overflow:'hidden' }}>
-        <img src={img} alt={restaurant.nom}
-          onError={e => { e.target.src = fallbackImg(idx); }}
-          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom,transparent 50%,rgba(26,12,0,0.28))' }} />
+      {/* ── Hero image ── */}
+      <div style={{ position: 'relative', height: 210, overflow: 'hidden', flexShrink: 0 }}>
+        <img src={img} alt={restaurant.nom} onError={e => { e.target.src = fallbackImg(idx); }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+            transition: 'transform .55s', transform: hov ? 'scale(1.07)' : 'scale(1)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.04) 30%, rgba(26,12,0,0.72))' }} />
 
-        {/* Heart */}
+        {/* Top-left : ouvert + badge */}
+        <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ background: 'rgba(34,197,94,0.92)', borderRadius: 20, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4, backdropFilter: 'blur(6px)' }}>
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff' }} />
+            <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, color: '#fff' }}>Ouvert</span>
+          </div>
+          {badge && (
+            <div style={{ background: `linear-gradient(135deg,${T.accent},${T.accentD})`, borderRadius: 20, padding: '4px 10px', boxShadow: `0 3px 10px ${T.accent}44` }}>
+              <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, color: '#fff' }}>{badge}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Top-right : cœur */}
         <button onClick={e => { e.stopPropagation(); setFav(!fav); }}
-          style={{ position:'absolute', top:12, right:12, width:36, height:36, borderRadius:'50%', background:'rgba(255,255,255,0.92)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 2px 10px rgba(0,0,0,0.15)', transition:'transform .18s' }}
-          onMouseEnter={e => e.currentTarget.style.transform='scale(1.12)'}
-          onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
+          style={{ position: 'absolute', top: 12, right: 12, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.20)', transition: 'transform .18s' }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.15)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
           <Heart size={16} fill={fav ? T.red : 'none'} color={fav ? T.red : T.muted} strokeWidth={2.5} />
         </button>
 
-        {/* Open badge */}
-        <div style={{ position:'absolute', top:12, left:12, background:'rgba(34,197,94,0.92)', borderRadius:20, padding:'3px 10px', display:'flex', alignItems:'center', gap:5, backdropFilter:'blur(6px)' }}>
-          <div style={{ width:6, height:6, borderRadius:'50%', background:'#fff' }} />
-          <span style={{ fontFamily:sans, fontSize:11, fontWeight:700, color:'#fff' }}>Ouvert</span>
+        {/* Bottom : rating + temps */}
+        <div style={{ position: 'absolute', bottom: 12, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.96)', borderRadius: 10, padding: '5px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.18)' }}>
+            <Star size={13} fill={T.yellow} color={T.yellow} />
+            <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 800, color: T.dark }}>{rating}</span>
+            <span style={{ fontFamily: sans, fontSize: 11, color: T.muted }}>({nbAvis} avis)</span>
+          </div>
+          <div style={{ background: 'rgba(0,0,0,0.58)', borderRadius: 10, padding: '5px 10px', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Clock size={11} color='rgba(255,255,255,0.85)' />
+            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 600, color: '#fff' }}>{time}</span>
+          </div>
         </div>
       </div>
 
-      {/* Info */}
-      <div style={{ padding:'14px 16px 18px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
-          <h3 style={{ fontFamily:serif, fontSize:18, color:T.dark, fontWeight:700, margin:0, flex:1, marginRight:8, lineHeight:1.2 }}>{restaurant.nom}</h3>
-          <div style={{ display:'flex', alignItems:'center', gap:4, flexShrink:0, background:T.bgAlt, borderRadius:8, padding:'4px 8px' }}>
-            <Star size={13} fill={T.yellow} color={T.yellow} />
-            <span style={{ fontFamily:sans, fontSize:13, fontWeight:700, color:T.dark }}>4.8</span>
-          </div>
+      {/* ── Infos ── */}
+      <div style={{ flex: 1, padding: '16px 18px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+        {/* Nom + adresse */}
+        <div>
+          <h3 style={{ fontFamily: serif, fontSize: 18, color: T.dark, fontWeight: 800, margin: '0 0 5px', lineHeight: 1.2 }}>
+            {restaurant.nom}
+          </h3>
+          <p style={{ fontFamily: sans, fontSize: 12, color: T.muted, margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <MapPin size={11} color={T.accent} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{addr}</span>
+          </p>
         </div>
 
         {/* Tags */}
-        <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap' }}>
-          <span style={{ background:`${T.accent}18`, color:T.accent, fontFamily:sans, fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:6 }}>{tag1}</span>
-          {tag2 && <span style={{ background:`${T.yellow}22`, color:'#8A6000', fontFamily:sans, fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:6 }}>{tag2}</span>}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ background: `${T.accent}15`, color: T.accent, fontFamily: sans, fontSize: 11, fontWeight: 700, padding: '3px 11px', borderRadius: 20, border: `1px solid ${T.accent}28` }}>{tag1}</span>
+          {tag2 && <span style={{ background: `${T.yellow}22`, color: '#8A6000', fontFamily: sans, fontSize: 11, fontWeight: 700, padding: '3px 11px', borderRadius: 20 }}>{tag2}</span>}
+          <span style={{ background: isFree ? 'rgba(34,197,94,0.12)' : T.bgAlt, color: isFree ? '#16A34A' : T.muted, fontFamily: sans, fontSize: 11, fontWeight: 600, padding: '3px 11px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Truck size={11} /> {isFree ? 'Livraison gratuite' : `${feeAmt.toLocaleString('fr-FR')} F livraison`}
+          </span>
         </div>
 
-        {/* Delivery info */}
-        <div style={{ display:'flex', gap:16, alignItems:'center', borderTop:`1px solid ${T.line}`, paddingTop:10 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:5, color:T.muted }}>
-            <Clock size={13} /><span style={{ fontFamily:sans, fontSize:12, fontWeight:500 }}>{time}</span>
+        {/* CTA */}
+        <button onClick={e => { e.stopPropagation(); onSelect(restaurant.id); }}
+          style={{
+            marginTop: 'auto', width: '100%', padding: '12px 0',
+            background: hov ? `linear-gradient(135deg,${T.accent},${T.accentD})` : `${T.accent}0D`,
+            color: hov ? '#fff' : T.accent,
+            border: `1.5px solid ${hov ? 'transparent' : T.accent+'44'}`,
+            borderRadius: 12, fontFamily: sans, fontSize: 13, fontWeight: 700,
+            cursor: 'pointer', transition: 'all .25s',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            boxShadow: hov ? `0 6px 22px ${T.accent}44` : 'none',
+          }}>
+          Voir le menu <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Promo Banner (offre limitée dynamique) ─── */
+function PromoBanner({ promo, onUseCode }) {
+  const [copied, setCopied] = useState(false);
+  const isPercent = promo.type === 'PERCENT';
+  const valeur = Number(promo.valeur);
+
+  const headline = promo.description
+    ? promo.description
+    : isPercent
+      ? `${valeur}% de réduction sur votre commande`
+      : `${valeur.toLocaleString('fr-FR')} FCFA de remise immédiate`;
+
+  const sub = [
+    promo.minMontant > 0 ? `Dès ${Number(promo.minMontant).toLocaleString('fr-FR')} FCFA d'achat` : null,
+    promo.maxUses != null ? `${promo.maxUses - promo.usedCount} utilisation(s) restante(s)` : null,
+    promo.expiresAt ? `Jusqu'au ${new Date(promo.expiresAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}` : null,
+  ].filter(Boolean).join(' · ');
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(promo.code).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    onUseCode?.(promo.code);
+  };
+
+  return (
+    <div style={{ borderRadius:18, overflow:'hidden', position:'relative', background:'linear-gradient(135deg,#0F172A 0%,#1A0C00 60%,#2D1A00 100%)', padding:'20px 24px', boxShadow:'0 8px 32px rgba(255,140,0,0.18)', border:`1px solid ${T.line}`, display:'flex', gap:20, alignItems:'center', flexWrap:'wrap' }}>
+      {/* Accent bar */}
+      <div style={{ position:'absolute', left:0, top:0, bottom:0, width:5, background:`linear-gradient(to bottom,${T.accent},${T.yellow})`, borderRadius:'18px 0 0 18px' }} />
+
+      {/* Badge + texts */}
+      <div style={{ flex:1, minWidth:220 }}>
+        <span style={{ display:'inline-block', background:T.red, color:'#fff', fontFamily:sans, fontSize:10, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', padding:'3px 10px', borderRadius:6, marginBottom:10 }}>
+          ⚡ OFFRE LIMITÉE
+        </span>
+        <h3 style={{ fontFamily:serif, fontSize:'clamp(16px,2.5vw,22px)', color:'#fff', fontWeight:800, margin:'0 0 6px', lineHeight:1.2 }}>{headline}</h3>
+        {sub && <p style={{ fontFamily:sans, fontSize:12, color:'rgba(255,255,255,0.55)', margin:'0 0 14px' }}>{sub}</p>}
+
+        {/* Code + copy */}
+        <div style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, background:'rgba(255,255,255,0.08)', borderRadius:10, padding:'8px 14px', border:'1px dashed rgba(255,255,255,0.2)' }}>
+            <span style={{ fontFamily:'monospace', fontSize:16, fontWeight:800, color:T.accentL, letterSpacing:'0.12em' }}>{promo.code}</span>
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-            <Truck size={13} color={isFree ? T.green : T.muted} />
-            <span style={{ fontFamily:sans, fontSize:12, fontWeight:600, color:isFree ? '#16A34A' : T.muted }}>
-              {isFree ? 'Livraison gratuite' : `${feeAmt.toLocaleString('fr-FR')} FCFA`}
-            </span>
-          </div>
+          <button onClick={handleCopy}
+            style={{ display:'flex', alignItems:'center', gap:6, background:copied ? T.green : `linear-gradient(135deg,${T.accent},${T.accentD})`, color:'#fff', border:'none', borderRadius:10, padding:'9px 16px', cursor:'pointer', fontFamily:sans, fontSize:12, fontWeight:700, transition:'all .2s', boxShadow:`0 4px 14px ${T.accent}44` }}>
+            {copied ? '✓ Copié !' : '📋 Copier le code'}
+          </button>
         </div>
+      </div>
+
+      {/* Value badge */}
+      <div style={{ flexShrink:0, textAlign:'center', background:'rgba(255,140,0,0.12)', border:`1.5px solid ${T.accent}44`, borderRadius:16, padding:'16px 20px', minWidth:90 }}>
+        <p style={{ fontFamily:serif, fontSize:28, fontWeight:900, color:T.accentL, margin:0, lineHeight:1 }}>
+          {isPercent ? `-${valeur}%` : `-${valeur.toLocaleString('fr-FR')}`}
+        </p>
+        <p style={{ fontFamily:sans, fontSize:10, color:'rgba(255,255,255,0.5)', margin:'4px 0 0', fontWeight:600 }}>
+          {isPercent ? 'de réduction' : 'FCFA de remise'}
+        </p>
       </div>
     </div>
   );
@@ -209,31 +318,38 @@ function ProductCard({ product, qty, onAdd, onCustomize, onIncrement, onDecremen
 /* ─── Main page ─── */
 export default function MenuPage() {
   const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
-  const requestedRestaurantId = validUUID(urlParams.get('restaurant')) || validUUID(localStorage.getItem('selectedRestaurantId')) || '';
+  const requestedRestaurantId = validUUID(urlParams.get('restaurant')) || validUUID(urlParams.get('restaurantId')) || validUUID(localStorage.getItem('selectedRestaurantId')) || '';
   const requestedCategoryId = urlParams.get('category') || 'all';
   const requestedSearch = urlParams.get('search') || '';
+  const requestedTable = urlParams.get('table') || '';
 
   const [restaurants, setRestaurants]         = useState([]);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(requestedRestaurantId);
   const [categories, setCategories]           = useState([]);
   const [discoveryCircles, setDiscoveryCircles] = useState([]);
   const [discoveryFilter, setDiscoveryFilter] = useState(null);
+  const [discoveryArticles, setDiscoveryArticles] = useState([]);  // preloaded articles for discovery
+  const [selectedDiscoveryCat, setSelectedDiscoveryCat] = useState(null); // {id, nom}
   const [activeCategory, setActiveCategory]   = useState(requestedCategoryId);
   const [searchQuery, setSearchQuery]         = useState(requestedSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(requestedSearch);
   const [loading, setLoading]                 = useState(true);
   const [error, setError]                     = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [serviceMode, setServiceMode]         = useState('Livraison');
+  const [tableNumber]                         = useState(requestedTable);
+  const [serviceMode, setServiceMode]         = useState(requestedTable ? 'Sur place' : 'Livraison');
   const [restaurantDetails, setRestaurantDetails] = useState({
     nom:'Restaurant', description:'', logoUrl:'', isOpen:true,
     estimatedTime:'25-35 min', rating:4.8, reviews:120, address:'', phone:'',
+    openingTime:'', closingTime:'',
   });
   const [quantities, setQuantities]   = useState({});
   const [filters, setFilters]         = useState({ priceRange:[0,10000], showAvailableOnly:true, showPromotionsOnly:false, sortBy:'name' });
   const [quickFilters, setQuickFilters] = useState({ vegetarian:false, glutenFree:false, budgetFriendly:false, popular:false, newest:false });
   const { addItem, items:cartItems, total:cartTotal, restaurantName:cartRestaurantName } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
+  const [activePromos, setActivePromos] = useState([]);
+  const [promoCodeInput, setPromoCodeInput] = useState('');
 
   const restaurantId = selectedRestaurantId;
   const selectedRestaurant = useMemo(() => restaurants.find(r => r.id === restaurantId) || null, [restaurants, restaurantId]);
@@ -262,10 +378,36 @@ export default function MenuPage() {
           return '';
         });
 
-        // Fetch categories from first restaurant for discovery circles
+        // Fetch categories from all restaurants and merge them
         try {
-          const catRes = await menuAPI.getCategories({ restaurantId: list[0].id });
-          setDiscoveryCircles(Array.isArray(catRes.data) ? catRes.data : []);
+          const catResults = await Promise.allSettled(
+            list.slice(0, 5).map(r => menuAPI.getCategories({ restaurantId: r.id }))
+          );
+          const merged = new Map();
+          catResults.forEach(r => {
+            if (r.status === 'fulfilled') {
+              (Array.isArray(r.value.data) ? r.value.data : []).forEach(c => {
+                if (c?.id && !merged.has(c.id)) merged.set(c.id, c);
+              });
+            }
+          });
+          setDiscoveryCircles(Array.from(merged.values()));
+        } catch { /* ignore */ }
+
+        // Preload articles from first 4 restaurants for category preview
+        try {
+          const artResults = await Promise.allSettled(
+            list.slice(0, 4).map(r =>
+              menuAPI.getByRestaurant(r.id, { cible: 'CLIENT' })
+                .then(res => {
+                  const raw = res.data;
+                  const arr = Array.isArray(raw) ? raw : (raw?.articles ?? raw?.items ?? raw?.plats ?? []);
+                  return arr.map(p => ({ ...p, _restaurantId: r.id, _restaurantNom: r.nom }));
+                })
+                .catch(() => [])
+            )
+          );
+          setDiscoveryArticles(artResults.flatMap(r => r.status === 'fulfilled' ? r.value : []));
         } catch { /* ignore */ }
       } catch (e) {
         console.error(e);
@@ -279,14 +421,16 @@ export default function MenuPage() {
 
   /* Load selected restaurant menu */
   useEffect(() => {
-    if (!restaurantId) { setCategories([]); setLoading(false); return; }
+    if (!restaurantId) { setCategories([]); setActivePromos([]); setLoading(false); return; }
     const load = async () => {
       try {
         setLoading(true); setError(null);
-        const [menuRes, catRes] = await Promise.all([
+        const [menuRes, catRes, promoRes] = await Promise.all([
           menuAPI.getByRestaurant(restaurantId, { cible:'CLIENT' }),
           menuAPI.getCategories({ restaurantId }),
+          promosAPI.getActives(restaurantId).catch(() => ({ data: [] })),
         ]);
+        setActivePromos(Array.isArray(promoRes.data) ? promoRes.data : []);
         if (!menuAPI.menuCache) menuAPI.menuCache = {};
         const menuData   = Array.isArray(menuRes.data) ? menuRes.data : [];
         const catList    = Array.isArray(catRes.data)  ? catRes.data  : [];
@@ -299,14 +443,16 @@ export default function MenuPage() {
         const openStatus = typeof rInfo.ouvert === 'boolean' ? rInfo.ouvert : rInfo.open === false ? false : true;
         setRestaurantDetails({
           nom: rName,
-          description: rInfo.description || rInfo.slogan || selectedRestaurant?.adresse || 'Découvrez les spécialités et plats disponibles.',
+          description: rInfo.description || rInfo.slogan || selectedRestaurant?.description || 'Découvrez les spécialités et plats disponibles.',
           logoUrl: rInfo.logoUrl || rInfo.photoUrl || selectedRestaurant?.logo || '',
           isOpen: openStatus,
           estimatedTime: rInfo.delaiLivraison || rInfo.delaiPreparation || '25-35 min',
-          rating: parseFloat(rInfo.noteMoyenne || rInfo.note || 4.8) || 4.8,
-          reviews: rInfo.avisCount || rInfo.reviewsCount || rInfo.avis?.length || 120,
+          rating: parseFloat(rInfo.noteMoyenne || selectedRestaurant?.noteMoyenne || rInfo.note || 0) || 0,
+          reviews: rInfo.avisCount || rInfo.reviewsCount || selectedRestaurant?.nbAvis || 0,
           address: selectedRestaurant?.adresse || rInfo.adresse || '',
           phone: selectedRestaurant?.telephone || rInfo.telephone || '',
+          openingTime: selectedRestaurant?.openingTime || rInfo.openingTime || '',
+          closingTime: selectedRestaurant?.closingTime || rInfo.closingTime || '',
         });
         localStorage.setItem('selectedRestaurantId', restaurantId);
         localStorage.setItem('currentRestaurantId', restaurantId);
@@ -405,18 +551,31 @@ export default function MenuPage() {
     return list;
   }, [restaurants, discoveryFilter, searchQuery]);
 
-  const handleAddToCart = useCallback((product, quantity = 1, instructions = '') => {
+  const handleAddToCart = useCallback((product, quantity = 1, instructions = '', variant = null) => {
     const rawId = restaurantId || localStorage.getItem('currentRestaurantId');
     const rId = UUID_RE.test(rawId ?? '') ? rawId : undefined;
     if (!rId) return;
     const rName = restaurantDetails.nom || localStorage.getItem('currentRestaurantName') || 'Restaurant';
-    addItem({ articleId:product.id, nom:product.nom, prix:(product.promoActif&&product.prixPromo)?Number(product.prixPromo):parseFloat(product.prix)||0, photoUrl:product.photoUrl, instructions, categorie:product.categorie, restaurantId:rId, restaurantName:rName }, quantity);
+    const basePrice = (product.promoActif && product.prixPromo) ? Number(product.prixPromo) : parseFloat(product.prix) || 0;
+    const supplement = variant ? Number(variant.prixSupplement || 0) : 0;
+    addItem({
+      articleId: product.id,
+      nom: product.nom,
+      prix: basePrice + supplement,
+      photoUrl: product.photoUrl,
+      instructions,
+      variantLabel: variant?.label || undefined,
+      variantSupplement: supplement > 0 ? supplement : undefined,
+      categorie: product.categorie,
+      restaurantId: rId,
+      restaurantName: rName,
+    }, quantity);
     setCartOpen(true);
   }, [addItem, restaurantId, restaurantDetails.nom]);
 
   const handleQuickAdd    = p => handleAddToCart(p, quantities[p.id] || 1, '');
   const handleRestaurantSelect = id => { setSelectedRestaurantId(id); setActiveCategory('all'); setSelectedProduct(null); };
-  const handleBackToDiscovery = () => { setSelectedRestaurantId(''); localStorage.removeItem('selectedRestaurantId'); setSearchQuery(''); };
+  const handleBackToDiscovery = () => { setSelectedRestaurantId(''); localStorage.removeItem('selectedRestaurantId'); setSearchQuery(''); setActivePromos([]); setPromoCodeInput(''); };
   const incrementQuantity = id => setQuantities(p => ({ ...p, [id]: (p[id]||1) + 1 }));
   const decrementQuantity = id => setQuantities(p => ({ ...p, [id]: Math.max(1,(p[id]||1) - 1) }));
 
@@ -523,10 +682,10 @@ export default function MenuPage() {
           )}
         </div>
 
-        {/* Quick filters — menu mode only */}
+        {/* Quick filters + sort — menu mode only */}
         {selectedRestaurantId && (
           <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 40px 12px', display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
-            <span style={{ fontFamily:sans, fontSize:12, fontWeight:700, color:T.muted, letterSpacing:'0.06em' }}>Filtres rapides :</span>
+            <span style={{ fontFamily:sans, fontSize:12, fontWeight:700, color:T.muted, letterSpacing:'0.06em' }}>Filtres :</span>
             {QFILTERS.map(f => {
               const on = quickFilters[f.key];
               return (
@@ -542,6 +701,24 @@ export default function MenuPage() {
                 Effacer ({activeFiltersCount})
               </button>
             )}
+            {/* Separator */}
+            <span style={{ width:1, height:20, background:T.line, margin:'0 4px', flexShrink:0 }} />
+            <span style={{ fontFamily:sans, fontSize:12, fontWeight:700, color:T.muted, letterSpacing:'0.06em' }}>Trier :</span>
+            {[
+              { key:'name',       label:'A → Z' },
+              { key:'price-low',  label:'Prix ↑' },
+              { key:'price-high', label:'Prix ↓' },
+              { key:'popular',    label:'🔥 Top ventes' },
+              { key:'newest',     label:'✨ Nouveautés' },
+            ].map(s => {
+              const active = filters.sortBy === s.key;
+              return (
+                <button key={s.key} onClick={() => setFilters(prev => ({ ...prev, sortBy: s.key }))}
+                  style={{ fontFamily:sans, fontSize:12, fontWeight:600, padding:'6px 14px', borderRadius:50, border:`1.5px solid ${active?T.accent:T.line}`, background:active?`${T.accent}18`:'transparent', color:active?T.accent:T.muted, cursor:'pointer', transition:'all .2s' }}>
+                  {s.label}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -561,38 +738,53 @@ export default function MenuPage() {
             </p>
           </div>
 
-          {/* Promo banner */}
-          <div style={{ borderRadius:22, overflow:'hidden', position:'relative', height:220, marginBottom:48, cursor:'pointer' }}>
-            <img src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=1400&auto=format&fit=crop" alt="Promo"
-              style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
-            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(15,23,42,0.92) 0%,rgba(15,23,42,0.65) 45%,rgba(15,23,42,0.1) 75%)' }} />
-            <div style={{ position:'absolute', top:0, bottom:0, left:28, display:'flex', flexDirection:'column', justifyContent:'center' }}>
-              <span style={{ display:'inline-block', background:T.red, color:'#fff', fontFamily:sans, fontSize:10, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', padding:'4px 10px', borderRadius:6, marginBottom:10, alignSelf:'flex-start' }}>OFFRE LIMITÉE</span>
-              <h2 style={{ fontFamily:serif, fontSize:'clamp(22px,3vw,34px)', color:'#fff', fontWeight:900, margin:'0 0 6px', lineHeight:1.1 }}>Livraison Offerte ce Weekend</h2>
-              <p style={{ fontFamily:sans, fontSize:13, color:'rgba(255,255,255,0.7)', margin:'0 0 16px', maxWidth:340 }}>Sur toutes les commandes supérieures à 3 000 FCFA.</p>
-              <button style={{ display:'inline-flex', alignItems:'center', gap:7, background:`linear-gradient(135deg,${T.accent},${T.accentD})`, color:'#fff', fontFamily:sans, fontSize:13, fontWeight:700, border:'none', borderRadius:50, padding:'10px 22px', cursor:'pointer', alignSelf:'flex-start', boxShadow:`0 6px 20px ${T.accent}55` }}>
-                Commander maintenant <ArrowRight size={13} />
-              </button>
-            </div>
+          {/* Guide étapes */}
+          <div style={{ display:'flex', alignItems:'center', background:T.card, border:`1px solid ${T.line}`, borderRadius:14, padding:'14px 24px', marginBottom:32, boxShadow:T.shadowS, flexWrap:'wrap', gap:0 }}>
+            {[
+              { n:'1', t:'Choisissez un restaurant', d:'Explorez notre liste de partenaires' },
+              { n:'2', t:'Sélectionnez vos plats',   d:'Parcourez le menu et ajoutez au panier' },
+              { n:'3', t:'Passez commande',           d:'Réglez en 1 clic — livraison ou sur place' },
+            ].map((s, i) => (
+              <div key={s.n} style={{ display:'flex', alignItems:'center', gap:0, flex:1, minWidth:180 }}>
+                {i > 0 && <div style={{ width:1, height:36, background:T.line, flexShrink:0, marginRight:20 }} />}
+                <div style={{ display:'flex', alignItems:'center', gap:10, flex:1 }}>
+                  <div style={{ width:28, height:28, borderRadius:'50%', background:`linear-gradient(135deg,${T.accent},${T.accentD})`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <span style={{ fontFamily:sans, fontSize:12, fontWeight:800, color:'#fff' }}>{s.n}</span>
+                  </div>
+                  <div>
+                    <p style={{ fontFamily:sans, fontSize:13, fontWeight:700, color:T.dark, margin:0 }}>{s.t}</p>
+                    <p style={{ fontFamily:sans, fontSize:11, color:T.muted, margin:0 }}>{s.d}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Cuisines & Catégories */}
           {discoveryCircles.length > 0 && (
             <div style={{ marginBottom:48 }}>
-              <h2 style={{ fontFamily:serif, fontSize:22, color:T.dark, fontWeight:900, margin:'0 0 20px' }}>Cuisines &amp; Catégories</h2>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+                <h2 style={{ fontFamily:serif, fontSize:22, color:T.dark, fontWeight:900, margin:0 }}>Cuisines &amp; Catégories</h2>
+                {selectedDiscoveryCat && (
+                  <button onClick={() => setSelectedDiscoveryCat(null)}
+                    style={{ fontFamily:sans, fontSize:12, fontWeight:700, color:T.accent, background:'none', border:`1px solid ${T.accent}`, borderRadius:50, padding:'5px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                    <X size={12} /> Tout voir
+                  </button>
+                )}
+              </div>
               <div style={{ display:'flex', gap:18, overflowX:'auto', paddingBottom:8 }}>
                 {/* Tout */}
-                <div onClick={() => setDiscoveryFilter(null)} style={{ cursor:'pointer', textAlign:'center', flexShrink:0 }}>
-                  <div style={{ width:72, height:72, borderRadius:'50%', border:`2.5px solid ${!discoveryFilter ? T.accent : T.line}`, marginBottom:7, display:'flex', alignItems:'center', justifyContent:'center', background:!discoveryFilter ? `${T.accent}12` : T.bgAlt, transition:'all .2s' }}>
-                    <UtensilsCrossed size={26} color={!discoveryFilter ? T.accent : T.muted} />
+                <div onClick={() => { setSelectedDiscoveryCat(null); setDiscoveryFilter(null); }} style={{ cursor:'pointer', textAlign:'center', flexShrink:0 }}>
+                  <div style={{ width:72, height:72, borderRadius:'50%', border:`2.5px solid ${!selectedDiscoveryCat ? T.accent : T.line}`, marginBottom:7, display:'flex', alignItems:'center', justifyContent:'center', background:!selectedDiscoveryCat ? `${T.accent}12` : T.bgAlt, transition:'all .2s' }}>
+                    <UtensilsCrossed size={26} color={!selectedDiscoveryCat ? T.accent : T.muted} />
                   </div>
-                  <p style={{ fontFamily:sans, fontSize:11, color:!discoveryFilter?T.accent:T.muted, fontWeight:700, margin:0 }}>Tout</p>
+                  <p style={{ fontFamily:sans, fontSize:11, color:!selectedDiscoveryCat?T.accent:T.muted, fontWeight:700, margin:0 }}>Tout</p>
                 </div>
-                {discoveryCircles.slice(0, 6).map((cat, i) => {
-                  const active = discoveryFilter === cat.nom;
+                {discoveryCircles.map((cat, i) => {
+                  const active = selectedDiscoveryCat?.id === cat.id;
                   return (
-                    <div key={cat.id} onClick={() => setDiscoveryFilter(active ? null : cat.nom)} style={{ cursor:'pointer', textAlign:'center', flexShrink:0 }}>
-                      <div style={{ width:72, height:72, borderRadius:'50%', overflow:'hidden', border:`2.5px solid ${active?T.accent:T.line}`, marginBottom:7, transition:'border-color .2s' }}>
+                    <div key={cat.id} onClick={() => { setSelectedDiscoveryCat(active ? null : cat); setDiscoveryFilter(active ? null : cat.nom); }} style={{ cursor:'pointer', textAlign:'center', flexShrink:0 }}>
+                      <div style={{ width:72, height:72, borderRadius:'50%', overflow:'hidden', border:`2.5px solid ${active?T.accent:T.line}`, marginBottom:7, transition:'border-color .2s', boxShadow:active?`0 0 0 4px ${T.accent}22`:undefined }}>
                         <img src={`https://images.unsplash.com/${FOOD_IMGS[i%FOOD_IMGS.length]}?q=70&w=140&auto=format&fit=crop`} alt={cat.nom}
                           style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                       </div>
@@ -601,6 +793,52 @@ export default function MenuPage() {
                   );
                 })}
               </div>
+
+              {/* Plats de la catégorie sélectionnée */}
+              {selectedDiscoveryCat && (() => {
+                const dishes = discoveryArticles.filter(p =>
+                  p.disponible !== false &&
+                  (p.categorie?.id === selectedDiscoveryCat.id || p.categorieId === selectedDiscoveryCat.id || p.categorie?.nom === selectedDiscoveryCat.nom)
+                );
+                if (!dishes.length) return (
+                  <div style={{ marginTop:24, padding:'32px 0', textAlign:'center', background:T.bgAlt, borderRadius:16 }}>
+                    <p style={{ fontFamily:serif, fontSize:16, color:T.muted, fontStyle:'italic', margin:0 }}>Aucun plat disponible dans cette catégorie.</p>
+                  </div>
+                );
+                return (
+                  <div style={{ marginTop:24 }}>
+                    <p style={{ fontFamily:sans, fontSize:12, fontWeight:700, color:T.muted, letterSpacing:'0.1em', textTransform:'uppercase', margin:'0 0 16px' }}>
+                      {dishes.length} plat{dishes.length > 1 ? 's' : ''} · {selectedDiscoveryCat.nom}
+                    </p>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:14 }}>
+                      {dishes.map((p, i) => {
+                        const price = (p.promoActif && p.prixPromo) ? Number(p.prixPromo) : parseFloat(p.prix) || 0;
+                        return (
+                          <div key={p.id || i}
+                            onClick={() => handleRestaurantSelect(p._restaurantId)}
+                            style={{ background:T.card, borderRadius:16, overflow:'hidden', boxShadow:T.shadowS, border:`1px solid ${T.line}`, cursor:'pointer', transition:'all .25s' }}
+                            onMouseEnter={e => { e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 12px 32px rgba(255,140,0,0.15)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow=T.shadowS; }}>
+                            <div style={{ height:130, overflow:'hidden', position:'relative' }}>
+                              <img src={p.photoUrl || fallbackImg(i)} alt={p.nom} onError={e => { e.target.src=fallbackImg(i); }}
+                                style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+                              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom,transparent 50%,rgba(26,12,0,0.22))' }} />
+                            </div>
+                            <div style={{ padding:'12px 14px' }}>
+                              <p style={{ fontFamily:serif, fontSize:15, fontWeight:700, color:T.dark, margin:'0 0 3px', lineHeight:1.2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{p.nom}</p>
+                              <p style={{ fontFamily:sans, fontSize:10, color:T.muted, margin:'0 0 8px' }}>{p._restaurantNom || 'Restaurant'}</p>
+                              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                                <span style={{ fontFamily:sans, fontSize:14, fontWeight:800, color:T.accent }}>{price.toLocaleString('fr-FR')} F</span>
+                                <span style={{ fontFamily:sans, fontSize:10, fontWeight:600, background:`${T.accent}15`, color:T.accent, borderRadius:20, padding:'2px 8px' }}>Voir le menu →</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -613,20 +851,25 @@ export default function MenuPage() {
           </div>
 
           {loading ? (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:24 }}>
-              {[0,1,2].map(i => (
-                <div key={i} style={{ background:T.card, borderRadius:18, overflow:'hidden', boxShadow:T.shadowS }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20 }}>
+              {[0,1,2,3,4,5].map(i => (
+                <div key={i} style={{ background:T.card, borderRadius:22, overflow:'hidden', boxShadow:T.shadowS }}>
                   <Shimmer h={210} r={0} />
-                  <div style={{ padding:'14px 16px 18px' }}>
-                    <Shimmer h={20} w="65%" r={6} /><div style={{ height:8 }} />
-                    <Shimmer h={14} w="45%" r={6} /><div style={{ height:12 }} />
-                    <Shimmer h={36} r={6} />
+                  <div style={{ padding:'16px 18px 18px', display:'flex', flexDirection:'column', gap:10 }}>
+                    <Shimmer h={22} w="70%" r={6} />
+                    <Shimmer h={14} w="50%" r={6} />
+                    <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                      <Shimmer h={24} w={90} r={20} />
+                      <Shimmer h={24} w={75} r={20} />
+                      <Shimmer h={24} w={110} r={20} />
+                    </div>
+                    <Shimmer h={44} r={12} />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:24 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20 }}>
               {visibleRestaurants.map((r, i) => (
                 <RestaurantCard key={r.id} restaurant={r} idx={i} onSelect={handleRestaurantSelect} />
               ))}
@@ -684,21 +927,62 @@ export default function MenuPage() {
                       <MapPin size={11} color={T.accent} /> {restaurantDetails.address}
                     </span>
                   )}
-                  <span style={{ background:T.bgAlt, borderRadius:20, padding:'4px 12px', fontFamily:sans, fontSize:11, color:T.muted }}>
-                    {restaurantDetails.reviews} avis
-                  </span>
+                  {restaurantDetails.phone && (
+                    <span style={{ background:T.bgAlt, borderRadius:20, padding:'4px 12px', fontFamily:sans, fontSize:11, fontWeight:600, color:T.muted, display:'flex', alignItems:'center', gap:4 }}>
+                      📞 {restaurantDetails.phone}
+                    </span>
+                  )}
+                  {restaurantDetails.openingTime && (
+                    <span style={{ background:`${T.accent}12`, borderRadius:20, padding:'4px 12px', fontFamily:sans, fontSize:11, fontWeight:600, color:T.accent, display:'flex', alignItems:'center', gap:4 }}>
+                      <Clock size={11} /> {restaurantDetails.openingTime} – {restaurantDetails.closingTime || '...'}
+                    </span>
+                  )}
+                  {restaurantDetails.reviews > 0 && (
+                    <span style={{ background:T.bgAlt, borderRadius:20, padding:'4px 12px', fontFamily:sans, fontSize:11, color:T.muted, display:'flex', alignItems:'center', gap:4 }}>
+                      ★ {restaurantDetails.rating.toFixed(1)} · {restaurantDetails.reviews} avis
+                    </span>
+                  )}
                 </div>
               </div>
-              <div style={{ display:'flex', gap:8 }}>
-                {['Sur place','À emporter','Livraison'].map(m => (
-                  <button key={m} onClick={() => setServiceMode(m)}
-                    style={{ fontFamily:sans, fontSize:12, fontWeight:600, padding:'8px 16px', borderRadius:50, border:`1.5px solid ${serviceMode===m?T.accent:T.line}`, background:serviceMode===m?T.accent:'transparent', color:serviceMode===m?'#fff':T.muted, cursor:'pointer', transition:'all .2s' }}>
-                    {m}
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
+                {tableNumber && serviceMode === 'Sur place' ? (
+                  <div style={{ display:'flex', alignItems:'center', gap:8, background:`${T.accent}15`, border:`1.5px solid ${T.accent}`, borderRadius:50, padding:'6px 16px' }}>
+                    <span style={{ fontSize:16 }}>🪑</span>
+                    <span style={{ fontFamily:sans, fontSize:13, fontWeight:800, color:T.accent }}>Table {tableNumber}</span>
+                    <span style={{ fontFamily:sans, fontSize:11, color:T.accent, opacity:0.7 }}>— Commande en salle</span>
+                  </div>
+                ) : (
+                  ['Sur place','À emporter','Livraison'].map(m => (
+                    <button key={m} onClick={() => setServiceMode(m)}
+                      style={{ fontFamily:sans, fontSize:12, fontWeight:600, padding:'8px 16px', borderRadius:50, border:`1.5px solid ${serviceMode===m?T.accent:T.line}`, background:serviceMode===m?T.accent:'transparent', color:serviceMode===m?'#fff':T.muted, cursor:'pointer', transition:'all .2s' }}>
+                      {m}
+                    </button>
+                  ))
+                )}
+                {cartCount > 0 && (
+                  <button onClick={() => setCartOpen(true)}
+                    style={{ display:'flex', alignItems:'center', gap:6, fontFamily:sans, fontSize:13, fontWeight:700, padding:'9px 20px', borderRadius:50, border:'none', background:`linear-gradient(135deg,${T.accent},${T.accentD})`, color:'#fff', cursor:'pointer', boxShadow:`0 4px 14px ${T.accent}44`, transition:'all .2s', whiteSpace:'nowrap' }}>
+                    <ShoppingCart size={14} /> Commander ({cartCount}) · {formatFCFA(cartTotal())}
                   </button>
-                ))}
+                )}
               </div>
             </div>
           </div>
+
+          {/* ── Offres limitées dynamiques ── */}
+          {activePromos.length > 0 && (
+            <div style={{ marginBottom:28 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+                <h3 style={{ fontFamily:serif, fontSize:18, color:T.dark, fontWeight:800, margin:0 }}>⚡ Offres en cours</h3>
+                <span style={{ fontFamily:sans, fontSize:12, color:T.muted }}>{activePromos.length} offre{activePromos.length > 1 ? 's' : ''} active{activePromos.length > 1 ? 's' : ''}</span>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                {activePromos.map(promo => (
+                  <PromoBanner key={promo.id} promo={promo} onUseCode={code => setPromoCodeInput(code)} />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Categories + Products */}
           <div style={{ display:'flex', gap:28, alignItems:'flex-start' }}>
@@ -798,7 +1082,7 @@ export default function MenuPage() {
         </div>
       )}
 
-      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} tableNumber={tableNumber} />
     </div>
   );
 }

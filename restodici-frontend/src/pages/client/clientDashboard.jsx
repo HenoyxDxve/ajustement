@@ -1,10 +1,16 @@
+/* ═══════════════════════════════════════════════════════════════
+   clientDashboard.jsx — Espace personnel du client
+   5 onglets : Vue d'ensemble · Commandes · Paiement · Profil · Sécurité
+   Données temps réel via WebSocket + cache localStorage 10 min
+   Responsive : grille 1→3 colonnes, tabs avec scroll horizontal
+   ═══════════════════════════════════════════════════════════════ */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag, Clock, CheckCircle, Star, Download, Eye,
   User, Shield, ChefHat, Package, X, Send,
   Printer, RefreshCw, RefreshCcw, Receipt, Truck, ArrowRight,
-  UtensilsCrossed, Wallet, AlertCircle, MessageSquare,
+  UtensilsCrossed, Wallet, AlertCircle, MessageSquare, CreditCard, Plus, Trash2,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { commandesService as svcTs, createCommandesSocket } from '../../services/commandes.service';
@@ -13,7 +19,7 @@ import SecurityPanel from '../../components/security/SecurityPanel';
 import NotificationBell from '../../components/notifications/NotificationBell';
 import { formatFCFA } from '../../utils/formatters';
 
-// ── Design tokens ─────────────────────────────────────────────────────────────
+/* ── Palette de couleurs orange Restodici ── */
 const ACCENT      = '#FF8C00';
 const ACCENT_DARK = '#CC7000';
 const ACCENT_LIGHT= '#FFE4B5';
@@ -34,7 +40,26 @@ const STEPS     = ['RECUE', 'CONFIRMEE', 'EN_PREP', 'PRETE', 'EN_LIVRAISON', 'LI
 const MODE_LABELS = { SUR_PLACE: 'Sur place', EMPORTER: 'À emporter', LIVRAISON: 'Livraison' };
 const MODE_ICONS  = { SUR_PLACE: UtensilsCrossed, EMPORTER: Package, LIVRAISON: Truck };
 
-// ── localStorage helpers ───────────────────────────────────────────────────────
+/* ── Liste des types de paiement supportés — Orange Money, MTN, Wave… ── */
+const PAYMENT_TYPES = [
+  { id: 'ORANGE_MONEY',  label: 'Orange Money',   icon: '🟠', placeholder: '07 XX XX XX XX' },
+  { id: 'MTN_MONEY',     label: 'MTN MoMo',        icon: '🟡', placeholder: '05 XX XX XX XX' },
+  { id: 'WAVE',          label: 'Wave',             icon: '🔵', placeholder: '01 XX XX XX XX' },
+  { id: 'MOOV_MONEY',    label: 'Moov Money',       icon: '🟢', placeholder: '01 XX XX XX XX' },
+  { id: 'CARTE_BANCAIRE',label: 'Carte Bancaire',   icon: '💳', placeholder: 'XXXX XXXX XXXX XXXX' },
+];
+
+function pmKey(uid) { return uid ? `saved_pm:${uid}` : 'saved_pm'; }
+
+function loadSavedPM(uid) {
+  try { return JSON.parse(localStorage.getItem(pmKey(uid)) || '[]'); }
+  catch { return []; }
+}
+function savePM(uid, list) {
+  localStorage.setItem(pmKey(uid), JSON.stringify(list));
+}
+
+/* ── Helpers localStorage — cache des commandes et des avis donnés ── */
 function ordersKey(uid) { return uid ? `orders:${uid}` : 'orders'; }
 function avisKey(uid)   { return uid ? `avis_given:${uid}` : 'avis_given'; }
 
@@ -60,7 +85,7 @@ function saveAvisGiven(uid, set) {
   catch { /* ignore */ }
 }
 
-// ── Receipt Modal ─────────────────────────────────────────────────────────────
+/* ── Modal reçu de commande — affiche le détail + boutons imprimer/PDF ── */
 function ReceiptModal({ order, onClose, onDownload }) {
   const printRef = useRef(null);
   const date  = new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -130,7 +155,7 @@ function ReceiptModal({ order, onClose, onDownload }) {
   );
 }
 
-// ── Avis Modal ────────────────────────────────────────────────────────────────
+/* ── Modal d'avis — note de 1 à 5 étoiles + commentaire optionnel ── */
 function AvisModal({ order, onClose, onSubmit }) {
   const [note, setNote] = useState(5);
   const [commentaire, setCommentaire] = useState('');
@@ -192,7 +217,7 @@ function AvisModal({ order, onClose, onSubmit }) {
   );
 }
 
-// ── Active Order Card ─────────────────────────────────────────────────────────
+/* ── Carte commande active — barre de progression + boutons "Suivre" et "Reçu" ── */
 function ActiveOrderCard({ order, onTrack, onReceipt }) {
   const idx = STEPS.indexOf(order.statut);
   const progress = idx >= 0 ? Math.round(((idx + 1) / STEPS.length) * 100) : 0;
@@ -249,7 +274,7 @@ function ActiveOrderCard({ order, onTrack, onReceipt }) {
   );
 }
 
-// ── Past Order Row ────────────────────────────────────────────────────────────
+/* ── Ligne d'historique de commande — actions : reçu, PDF, avis, renouveler ── */
 function PastOrderRow({ order, onReceipt, onDownload, onAvis, canAvis, onReorder }) {
   const date = new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' });
   const status = ORDER_STATUS[order.statut] || { label: order.statut, bg: '#F3F4F6', color: '#6B7280' };
@@ -307,7 +332,7 @@ function PastOrderRow({ order, onReceipt, onDownload, onAvis, canAvis, onReorder
   );
 }
 
-// ── Avis Prompt Card (for recently delivered orders needing review) ─────────
+/* ── Invitation à laisser un avis — s'affiche pour les commandes livrées sans avis ── */
 function AvisPromptCard({ order, onAvis }) {
   const items = (order.lignes || []).slice(0, 2).map(l => l.article?.nom || 'Article').join(', ');
   return (
@@ -330,7 +355,7 @@ function AvisPromptCard({ order, onAvis }) {
   );
 }
 
-// ── Order Track Modal ─────────────────────────────────────────────────────────
+/* ── Modal de suivi de commande — timeline des statuts + récapitulatif des articles ── */
 function OrderTrackModal({ order, onClose, onReceipt }) {
   const currentIdx = STEPS.indexOf(order.statut);
   const [history, setHistory] = useState([]);
@@ -418,7 +443,9 @@ function OrderTrackModal({ order, onClose, onReceipt }) {
   );
 }
 
-// ── Main Dashboard ────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   ClientDashboard — Composant principal de l'espace client
+   ═══════════════════════════════════════════════════════════════ */
 export default function ClientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -434,9 +461,13 @@ export default function ClientDashboard() {
   const [profileForm, setProfileForm] = useState({ nom: user?.nom || '', email: user?.email || '', telephone: user?.telephone || '' });
   const [profileMsg, setProfileMsg]   = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
+  const [savedPM, setSavedPM] = useState(() => loadSavedPM(user?.id));
+  const [pmForm, setPmForm]   = useState({ type: 'ORANGE_MONEY', label: '', numero: '' });
+  const [pmMsg, setPmMsg]     = useState('');
 
   const userId = user?.id;
 
+  /* ── Chargement des commandes depuis l'API (silent=true = pas d'indicateur de chargement) ── */
   const loadOrders = useCallback(async (silent = false) => {
     if (!silent) setLoadingOrders(true); else setRefreshing(true);
     setOrdersError('');
@@ -503,6 +534,7 @@ export default function ClientDashboard() {
 
   const canAvis = (o) => o.statut === 'LIVREE' && !avisGiven.has(o.id) && !o.avis;
 
+  /* ── Renouveler une commande : copie les articles dans le pendingOrder et redirige vers le checkout ── */
   const handleReorder = (order) => {
     const items = (order.lignes || []).map(l => ({
       articleId: l.article?.id || l.articleId,
@@ -527,6 +559,30 @@ export default function ClientDashboard() {
     navigate('/checkout');
   };
 
+  const addPM = (e) => {
+    e.preventDefault();
+    if (!pmForm.label.trim()) { setPmMsg('Ajoutez un libellé.'); return; }
+    const entry = { id: `${Date.now()}`, type: pmForm.type, label: pmForm.label.trim(), numero: pmForm.numero.trim(), isDefault: savedPM.length === 0 };
+    const next = [...savedPM, entry];
+    setSavedPM(next);
+    savePM(userId, next);
+    setPmForm({ type: 'ORANGE_MONEY', label: '', numero: '' });
+    setPmMsg('Moyen de paiement ajouté !');
+    setTimeout(() => setPmMsg(''), 3000);
+  };
+
+  const removePM = (id) => {
+    const next = savedPM.filter(m => m.id !== id);
+    setSavedPM(next);
+    savePM(userId, next);
+  };
+
+  const setDefaultPM = (id) => {
+    const next = savedPM.map(m => ({ ...m, isDefault: m.id === id }));
+    setSavedPM(next);
+    savePM(userId, next);
+  };
+
   const activeOrders  = orders.filter(o => !['LIVREE', 'ANNULEE'].includes(o.statut));
   const delivered     = orders.filter(o => o.statut === 'LIVREE');
   const cancelled     = orders.filter(o => o.statut === 'ANNULEE');
@@ -542,6 +598,7 @@ export default function ClientDashboard() {
   const TABS = [
     { key: 'overview', label: 'Vue d\'ensemble', icon: ShoppingBag },
     { key: 'orders',   label: 'Commandes', icon: Package, badge: activeOrders.length || undefined },
+    { key: 'payment',  label: 'Paiement', icon: CreditCard },
     { key: 'profile',  label: 'Profil', icon: User },
     { key: 'security', label: 'Sécurité', icon: Shield },
   ];
@@ -873,6 +930,115 @@ export default function ClientDashboard() {
         )}
 
         {/* ── PROFILE ─────────────────────────────────────────────────────────── */}
+        {/* ── PAIEMENT ─────────────────────────────────────────────────────────── */}
+        {tab === 'payment' && (
+          <div className="max-w-lg space-y-5">
+            {/* Moyens sauvegardés */}
+            <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+              <div className="px-5 py-3.5 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
+                <span className="text-sm font-bold text-[#111827]">Moyens de paiement enregistrés</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: ACCENT_LIGHT, color: ACCENT_DARK }}>
+                  {savedPM.length} enregistré{savedPM.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              {savedPM.length === 0 ? (
+                <div className="px-5 py-8 text-center">
+                  <CreditCard className="w-8 h-8 mx-auto mb-3" style={{ color: ACCENT }} />
+                  <p className="text-sm font-semibold text-[#111827] mb-1">Aucun moyen enregistré</p>
+                  <p className="text-xs text-[#6B7280]">Ajoutez un moyen pour payer plus vite à la prochaine commande.</p>
+                </div>
+              ) : (
+                <ul className="divide-y" style={{ borderColor: BORDER }}>
+                  {savedPM.map(m => {
+                    const type = PAYMENT_TYPES.find(t => t.id === m.type) || PAYMENT_TYPES[0];
+                    return (
+                      <li key={m.id} className="flex items-center gap-3 px-5 py-3.5">
+                        <span className="text-xl shrink-0">{type.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-[#111827] truncate">{m.label}</p>
+                          <p className="text-xs text-[#6B7280]">{type.label}{m.numero ? ` · ${m.numero}` : ''}</p>
+                        </div>
+                        {m.isDefault ? (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: ACCENT_LIGHT, color: ACCENT_DARK }}>Par défaut</span>
+                        ) : (
+                          <button onClick={() => setDefaultPM(m.id)} className="text-xs font-semibold shrink-0" style={{ color: ACCENT }}>
+                            Définir par défaut
+                          </button>
+                        )}
+                        <button onClick={() => removePM(m.id)} className="p-1.5 rounded-lg hover:bg-red-50 shrink-0" title="Supprimer">
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* Formulaire ajout */}
+            <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+              <div className="px-5 py-3.5 border-b text-sm font-bold text-[#111827]" style={{ borderColor: BORDER }}>
+                Ajouter un moyen de paiement
+              </div>
+              <form onSubmit={addPM} className="p-5 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#374151] mb-1.5">Type</label>
+                  <select
+                    value={pmForm.type}
+                    onChange={e => setPmForm(p => ({ ...p, type: e.target.value }))}
+                    className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                    style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
+                  >
+                    {PAYMENT_TYPES.map(t => (
+                      <option key={t.id} value={t.id}>{t.icon} {t.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#374151] mb-1.5">Libellé <span className="text-red-400">*</span></label>
+                  <input
+                    type="text" required
+                    placeholder="ex: Mon Orange Money perso"
+                    value={pmForm.label}
+                    onChange={e => setPmForm(p => ({ ...p, label: e.target.value }))}
+                    className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                    style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#374151] mb-1.5">
+                    Numéro <span className="text-[#9CA3AF]">(optionnel)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={PAYMENT_TYPES.find(t => t.id === pmForm.type)?.placeholder || ''}
+                    value={pmForm.numero}
+                    onChange={e => setPmForm(p => ({ ...p, numero: e.target.value }))}
+                    className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                    style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
+                  />
+                </div>
+                {pmMsg && (
+                  <p className="text-sm font-semibold" style={{ color: pmMsg.includes('Erreur') || pmMsg.includes('Ajoutez') ? '#EF4444' : '#16A34A' }}>
+                    {pmMsg}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white"
+                  style={{ background: ACCENT }}
+                >
+                  <Plus className="w-4 h-4" /> Ajouter
+                </button>
+              </form>
+            </div>
+
+            <p className="text-xs text-[#9CA3AF] text-center px-4">
+              🔒 Vos informations sont stockées localement et ne sont jamais partagées avec des tiers.
+            </p>
+          </div>
+        )}
+
         {tab === 'profile' && (
           <div className="max-w-md">
             <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>

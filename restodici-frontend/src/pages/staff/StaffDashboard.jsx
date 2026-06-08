@@ -1,4 +1,9 @@
-// src/pages/staff/StaffDashboard.jsx
+/* ═══════════════════════════════════════════════════════════════
+   StaffDashboard.jsx — Tableau de bord du personnel de restaurant
+   3 onglets : Tableau de bord · Commandes · Stocks
+   Données temps réel : WebSocket + polling toutes les 8 secondes
+   Responsive : grille 1/3/5 colonnes selon la taille d'écran
+   ═══════════════════════════════════════════════════════════════ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -13,6 +18,7 @@ import { useAuth } from '../../hooks/useAuth';
 import OnboardingWizard from '../../components/wizard/OnboardingWizard';
 import { commandesService, createCommandesSocket } from '../../services/commandes.service';
 import { stocksAPI, authAPI, b2bAPI } from '../../services/api';
+import NewOrderModal from '../../components/staff/NewOrderModal';
 import SecurityPanel from '../../components/security/SecurityPanel';
 import NotificationBell from '../../components/notifications/NotificationBell';
 import {
@@ -20,7 +26,7 @@ import {
   STATUS_LABELS, timeAgo,
 } from '../../utils/formatters';
 
-// ─── Design tokens ──────────────────────────────────────────────────────────
+/* ── Palette de couleurs — cohérente avec le StaffLayout ── */
 const ACCENT     = '#E04E1A';
 const ACCENT_DARK = '#B83A00';
 const SURFACE    = '#F9F7F5';
@@ -28,7 +34,7 @@ const BORDER     = '#E8E2D9';
 const TEXT       = '#2D2720';
 const MUTED      = '#8B7355';
 
-// ─── Order pipeline ──────────────────────────────────────────────────────────
+/* ── Pipeline des commandes — chaque statut définit ses transitions possibles ── */
 const STATUS_FLOW = {
   RECUE:       ['CONFIRMEE'],
   CONFIRMEE:   ['EN_PREP'],
@@ -102,7 +108,7 @@ function isInService(open, close) {
   return cur >= oh * 60 + om && cur < ch * 60 + cm;
 }
 
-// ─── Small components ────────────────────────────────────────────────────────
+/* ── Petits composants réutilisables dans la page ── */
 
 function Spinner({ size = 14, color = '#fff' }) {
   return (
@@ -144,7 +150,7 @@ function KpiCard({ icon: Icon, iconBg, iconColor, label, value, unit, sub, subOk
   );
 }
 
-// ─── Order card ───────────────────────────────────────────────────────────────
+/* ── Carte de commande client — affiche statut, articles, encaissement et actions ── */
 function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDraft, saving }) {
   const age = order.createdAt ? Date.now() - new Date(order.createdAt).getTime() : 0;
   const isUrgent = age >= 15 * 60 * 1000;
@@ -380,7 +386,7 @@ function B2BOrderCard({ order, onAction, saving }) {
   );
 }
 
-// ─── Weekly Schedule ──────────────────────────────────────────────────────────
+/* ── Planning hebdomadaire — affiche les horaires et indique si le resto est en service ── */
 function WeeklySchedule({ openingTime, closingTime }) {
   const todayIdx = (new Date().getDay() + 6) % 7;
   const week = buildWeek(openingTime, closingTime);
@@ -434,7 +440,7 @@ function WeeklySchedule({ openingTime, closingTime }) {
   );
 }
 
-// ─── Profile slide panel ──────────────────────────────────────────────────────
+/* ── Panneau glissant de profil — s'ouvre depuis l'avatar en haut à droite ── */
 function PanelField({ label, type = 'text', icon: Icon, value, onChange, placeholder }) {
   return (
     <div>
@@ -513,7 +519,9 @@ function ProfilePanel({ user, onClose, form, setForm, onSave, saving, error, suc
   );
 }
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   StaffDashboard — Composant principal
+   ═══════════════════════════════════════════════════════════════ */
 export default function StaffDashboard() {
   const { user, syncUser, refreshProfile } = useAuth();
   const navigate    = useNavigate();
@@ -523,6 +531,7 @@ export default function StaffDashboard() {
 
   // activeTab driven by URL — see goTab() above
   const [showPanel, setShowPanel]       = useState(false);
+  const [showNewOrder, setShowNewOrder] = useState(false);
   const [isAvailable, setIsAvailable]   = useState(true);
   const [orders, setOrders]             = useState([]);
   const [b2bOrders, setB2bOrders]       = useState([]);
@@ -544,6 +553,7 @@ export default function StaffDashboard() {
   const [profileError, setProfileError]     = useState('');
   const [profileSuccess, setProfileSuccess] = useState('');
 
+  /* ── Synchronise le formulaire de profil quand l'utilisateur change ── */
   useEffect(() => {
     if (user) setForm({ nom: user.nom ?? '', prenom: user.prenom ?? '', email: user.email ?? '', telephone: user.telephone ?? '' });
   }, [user]);
@@ -568,6 +578,7 @@ export default function StaffDashboard() {
     } catch { /* non-bloquant */ }
   }, []);
 
+  /* ── Chargement global : commandes KDS + commandes B2B + stocks ── */
   const refresh = useCallback(async ({ silent = false } = {}) => {
     try {
       if (!silent) setLoading(true);
@@ -598,7 +609,7 @@ export default function StaffDashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // WebSocket + polling
+  /* ── Connexion WebSocket + polling de secours toutes les 8 secondes ── */
   const userId      = user?.id;
   const restaurantId = user?.restaurant?.id;
   const userRole    = user?.role;
@@ -618,7 +629,7 @@ export default function StaffDashboard() {
     return () => { clearInterval(poll); socket.disconnect(); };
   }, [appendHistory, refresh, userId, restaurantId, userRole]);
 
-  // Derived data
+  /* ── Données dérivées calculées une seule fois avec useMemo ── */
   const activeOrders = useMemo(
     () => orders.filter(o => ['RECUE','CONFIRMEE','EN_PREP','PRETE','EN_LIVRAISON'].includes(o.statut)),
     [orders],
@@ -665,7 +676,7 @@ export default function StaffDashboard() {
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }, [orderFilter, allActive, activeB2B, activeOrders, completedToday, b2bOrders]);
 
-  // Actions
+  /* ── Actions métier ── */
   const updateStatus = async (id, next) => {
     try {
       setSavingOrderId(id); setError('');
@@ -728,7 +739,7 @@ export default function StaffDashboard() {
   const initials = ((user?.prenom?.[0] ?? '') + (user?.nom?.[0] ?? '')).toUpperCase() || 'S';
   const firstName = user?.prenom || user?.nom || 'vous';
 
-  // ── Loading ──
+  /* ── Écran de chargement initial (premier rendu) ── */
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F9F7F5] flex items-center justify-center">
@@ -767,8 +778,16 @@ export default function StaffDashboard() {
 
           {/* Right */}
           <div className="flex items-center gap-2">
+            {/* Nouvelle commande */}
+            <button
+              onClick={() => setShowNewOrder(true)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: '#fff', padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: `0 2px 8px ${ACCENT}44` }}
+            >
+              <Plus style={{ width: 13, height: 13 }} />
+              <span className="hidden sm:inline">Nouvelle commande</span>
+            </button>
             {/* KDS shortcut */}
-            <Link to="/staff/kds" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: ACCENT, color: '#fff', padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
+            <Link to="/staff/kds" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#fff', color: TEXT, padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: 'none', border: `1px solid ${BORDER}` }}>
               <UtensilsCrossed style={{ width: 13, height: 13 }} />
               <span className="hidden sm:inline">KDS</span>
               <ArrowRight style={{ width: 12, height: 12 }} />
@@ -1205,6 +1224,18 @@ export default function StaffDashboard() {
           saving={savingProfile}
           error={profileError}
           success={profileSuccess}
+        />
+      )}
+
+      {/* ── NOUVELLE COMMANDE EN SALLE ── */}
+      {showNewOrder && (
+        <NewOrderModal
+          restaurantId={user?.restaurant?.id || user?.restaurantId}
+          onClose={() => setShowNewOrder(false)}
+          onSuccess={(order) => {
+            appendHistory('commande', `Commande #${order?.numero || 'nouvelle'}`, 'Créée en salle');
+            void refresh({ silent: true });
+          }}
         />
       )}
     </div>

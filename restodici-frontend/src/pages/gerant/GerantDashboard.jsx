@@ -1,4 +1,9 @@
-// src/pages/gerant/GerantDashboard.jsx
+/* ═══════════════════════════════════════════════════════════════
+   GerantDashboard.jsx — Tableau de bord du gérant de restaurant
+   7 onglets : vue d'ensemble, menu, commandes, stocks, finance,
+               promotions, paramètres, historique
+   Fonctionnalités : WebSocket temps réel, QR Code, carte Leaflet
+   ═══════════════════════════════════════════════════════════════ */
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import QRCode from "qrcode";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -86,7 +91,7 @@ import {
 import { FREQUENT_LOCATION_ZONES } from "../../components/maps/locationAssistantData";
 import OnboardingWizard from "../../components/wizard/OnboardingWizard";
 
-// ==================== B2B COUNTDOWN BADGE ====================
+/* ── Badge compte à rebours B2B ── */
 function B2BCountdown({ deadlineAt, statut }) {
   const DONE = ['LIVREE', 'ANNULEE'];
   const [ms, setMs] = useState(() => deadlineAt ? new Date(deadlineAt) - Date.now() : null);
@@ -113,7 +118,7 @@ function B2BCountdown({ deadlineAt, statut }) {
   );
 }
 
-// ==================== COLOR THEME CONSTANTS ====================
+/* ── Constantes de couleurs et thème visuel ── */
 const COLORS = {
   primary: {
     bg: "bg-[#FBE8DC]",
@@ -268,7 +273,7 @@ function DeliveryZonesMap({ restaurantPosition, selectedPosition, zones, onPick 
   );
 }
 
-// ==================== MENU MODULE ====================
+/* ══════════════════ Module Menu — Catalogue et articles ══════════════════ */
 function MenuTab({ restaurantId, token }) {
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -1023,7 +1028,7 @@ function MenuTab({ restaurantId, token }) {
   );
 }
 
-// ==================== COMMANDES MODULE ====================
+/* ══════════════════ Module Commandes ══════════════════ */
 function OrdersTab({ restaurantId }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1354,7 +1359,7 @@ function OrdersTab({ restaurantId }) {
   );
 }
 
-// ==================== STOCKS MODULE ====================
+/* ══════════════════ Module Stocks — Inventaire et alertes ══════════════════ */
 function StocksTab({ restaurantId }) {
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1856,7 +1861,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
   );
 }
 
-// ==================== FINANCE MODULE ====================
+/* ══════════════════ Module Finance — Trésorerie ══════════════════ */
 const EXPENSE_CATS = [
   { value: 'loyer',        label: 'Loyer',          color: '#8B5CF6' },
   { value: 'salaires',     label: 'Salaires',       color: '#F59E0B' },
@@ -2264,7 +2269,7 @@ function FinanceTab({ restaurantId }) {
   );
 }
 
-// ==================== PROMOS MODULE ====================
+/* ══════════════════ Module Promotions ══════════════════ */
 const PROMO_TYPES = [
   { value: 'PERCENT', label: '% de réduction',   color: '#C05015', bg: '#FBE8DC' },
   { value: 'FIXED',   label: 'Montant fixe (FCFA)', color: '#0F172A', bg: '#F1F5F9' },
@@ -2661,7 +2666,7 @@ function PromosTab({ restaurantId }) {
   );
 }
 
-// ==================== SETTINGS MODULE ====================
+/* ══════════════════ Module Paramètres — Équipe et configuration ══════════════════ */
 function SettingsTab({ restaurantId, user }) {
   const defaultLat = 5.3364;
   const defaultLng = -4.0267;
@@ -2710,6 +2715,9 @@ function SettingsTab({ restaurantId, user }) {
   const [nbTables, setNbTables] = useState(10);
   const [tableQrCodes, setTableQrCodes] = useState([]);
   const [tableQrLoading, setTableQrLoading] = useState(false);
+
+  /* ── Sidebar active section tracking ── */
+  const [activeSection, setActiveSection] = useState('sec-profil');
 
   const handleGenerateTableQR = async () => {
     setTableQrLoading(true);
@@ -3041,6 +3049,21 @@ function SettingsTab({ restaurantId, user }) {
     }
   };
 
+  /* Observer: met à jour activeSection quand une section entre dans le viewport */
+  useEffect(() => {
+    if (loadingProfile) return;
+    const ids = ['sec-profil','sec-horaires','sec-livraison','sec-apparence','sec-staff','sec-securite','sec-qr'];
+    const obs = new IntersectionObserver(
+      entries => {
+        const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length > 0) setActiveSection(visible[0].target.id);
+      },
+      { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
+    );
+    ids.forEach(id => { const el = document.getElementById(id); if (el) obs.observe(el); });
+    return () => obs.disconnect();
+  }, [loadingProfile]);
+
   if (loadingProfile) {
     return (
       <div className="flex min-h-[280px] items-center justify-center">
@@ -3101,21 +3124,39 @@ function SettingsTab({ restaurantId, user }) {
       <div className="flex gap-6 items-start">
 
         {/* ── Sidebar navigation minimale ── */}
-        <aside className="hidden xl:block shrink-0" style={{ width: 176, position: 'sticky', top: 80 }}>
-          <nav style={{ background: '#fff', border: '1px solid rgba(192,80,21,0.14)', borderRadius: 18, padding: '8px 0', boxShadow: '0 1px 6px rgba(15,23,42,0.07)' }}>
-            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#9A8070', padding: '6px 16px 10px', borderBottom: '1px solid rgba(192,80,21,0.08)', marginBottom: 4 }}>
-              Navigation
-            </p>
-            {SEC_NAV.map(({ id, label, emoji }) => (
-              <button key={id} type="button"
-                onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '9px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#64748B', textAlign: 'left', transition: 'all 0.1s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#FBE8DC'; e.currentTarget.style.color = '#C05015'; e.currentTarget.style.fontWeight = '700'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748B'; e.currentTarget.style.fontWeight = '500'; }}>
-                <span style={{ fontSize: 15 }}>{emoji}</span>
-                {label}
-              </button>
-            ))}
+        <aside className="shrink-0" style={{ width: 172, position: 'sticky', top: 80, alignSelf: 'flex-start' }}>
+          <nav style={{ background: '#fff', border: '1px solid rgba(192,80,21,0.14)', borderRadius: 18, overflow: 'hidden', boxShadow: '0 2px 10px rgba(15,23,42,0.07)' }}>
+            <div style={{ padding: '12px 14px 8px', borderBottom: '1px solid rgba(192,80,21,0.08)' }}>
+              <p style={{ margin: 0, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#C05015' }}>
+                Paramètres
+              </p>
+            </div>
+            <div style={{ padding: '6px 0' }}>
+              {SEC_NAV.map(({ id, label, emoji }) => {
+                const isActive = activeSection === id;
+                return (
+                  <button key={id} type="button"
+                    onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 9,
+                      width: '100%', padding: '9px 14px',
+                      border: 'none',
+                      borderLeft: isActive ? '3px solid #C05015' : '3px solid transparent',
+                      background: isActive ? 'rgba(192,80,21,0.07)' : 'transparent',
+                      cursor: 'pointer', fontFamily: 'inherit',
+                      fontSize: 13, fontWeight: isActive ? 700 : 500,
+                      color: isActive ? '#C05015' : '#64748B',
+                      textAlign: 'left', transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = '#FBE8DC'; e.currentTarget.style.color = '#C05015'; }}}
+                    onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748B'; }}}
+                  >
+                    <span style={{ fontSize: 14 }}>{emoji}</span>
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </nav>
         </aside>
 
@@ -3734,7 +3775,7 @@ function computeWeeklyPerformance(orders) {
   };
 }
 
-// ==================== HISTORIQUE / AUDIT MODULE ====================
+/* ══════════════════ Module Historique / Audit ══════════════════ */
 function HistoryTab({ restaurantId }) {
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -3883,7 +3924,7 @@ function HistoryTab({ restaurantId }) {
   );
 }
 
-// ==================== DYNAMIC OVERVIEW MODULE ====================
+/* ══════════════════ Module Vue d'ensemble dynamique ══════════════════ */
 
 /* ── Setup completion banner ── */
 function SetupBanner({ restaurant, navigate }) {
@@ -4632,7 +4673,7 @@ function OverviewTab({ restaurantId }) {
 }
 
 
-// ==================== MAIN DASHBOARD COMPONENT ====================
+/* ═══ GerantDashboard — Composant principal ═══ */
 export default function GerantDashboard({ restaurantId, token }) {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);

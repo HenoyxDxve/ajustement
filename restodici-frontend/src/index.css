@@ -1,39 +1,236 @@
+/* ═══════════════════════════════════════════════════════════════
+   index.css — Feuille de styles globale de l'application Restodici
+   Palette orange #FF8C00 · Police Manrope · Mode responsive complet
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Ordre recommandé par Tailwind (base → components → utilities) ── */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── Google Fonts ── */
+/* ── Google Fonts — chargées en asynchrone pour ne pas bloquer le rendu ── */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
-/* ── CSS custom properties ── */
+/* ═══════════════════════════════════════════════════════════════
+   VARIABLES CSS — Palette chaude Restodici
+   Accessibles partout dans l'app via var(--color-...)
+   ═══════════════════════════════════════════════════════════════ */
 :root {
-  --color-bg:       #FFFAF3;
-  --color-bg-alt:   #FFF5E8;
-  --color-surface:  #FFEFD8;
-  --color-dark:     #1A0C00;
-  --color-text:     #3B2409;
-  --color-muted:    #7A5E3A;
+  /* Couleurs de fond */
+  --color-bg:       #FFFAF3;   /* fond principal */
+  --color-bg-alt:   #FFF5E8;   /* fond alternatif */
+  --color-surface:  #FFEFD8;   /* surfaces de cartes */
+
+  /* Couleurs de texte */
+  --color-dark:     #1A0C00;   /* texte principal très foncé */
+  --color-text:     #3B2409;   /* texte courant */
+  --color-muted:    #7A5E3A;   /* texte secondaire */
+
+  /* Couleur d'accentuation — orange Restodici */
   --color-accent:   #FF8C00;
-  --color-accent-d: #E07A00;
-  --color-yellow:   #FFB800;
+  --color-accent-d: #E07A00;   /* version foncée */
+  --color-yellow:   #FFB800;   /* jaune complémentaire */
+
+  /* Cartes et bordures */
   --color-card:     #FFFFFF;
-  --color-line:     rgba(255,140,0,0.14);
+  --color-line:     rgba(255,140,0,0.14);   /* bordure subtile */
+
+  /* Ombres */
   --shadow-card:    0 2px 14px rgba(0,0,0,0.07);
   --shadow-accent:  0 6px 28px rgba(255,140,0,0.14);
+
+  /* Espacements responsifs — s'adaptent à la taille de l'écran */
+  --page-px:        clamp(12px, 4vw, 24px);   /* padding horizontal des pages */
+  --section-gap:    clamp(16px, 3vw, 32px);   /* espace entre les sections */
 }
 
-/* ── Base ── */
-html { scroll-behavior: smooth; }
+/* ═══════════════════════════════════════════════════════════════
+   BASE — Styles fondamentaux appliqués à tous les éléments
+   ═══════════════════════════════════════════════════════════════ */
+html {
+  scroll-behavior: smooth;           /* défilement fluide au clic sur ancre */
+  text-size-adjust: 100%;            /* empêche iOS de grossir le texte à tort */
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: 'Manrope', 'Inter', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;   /* rendu de police lissé sur Mac/iOS */
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;               /* dvh évite le bug de hauteur sur mobile */
+  overflow-x: hidden;               /* évite le défilement horizontal parasite */
 }
 
-/* ── Scrollbar ── */
+/* ── Images responsives par défaut ── */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Boutons — réinitialisation du curseur pour les éléments désactivés ── */
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLLBAR — Style personnalisé (Chrome / Edge / Safari)
+   Firefox utilise scrollbar-width et scrollbar-color dans la section suivante
+   ═══════════════════════════════════════════════════════════════ */
 ::-webkit-scrollbar         { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track   { background: var(--color-bg-alt); }
 ::-webkit-scrollbar-thumb   { background: rgba(255,140,0,0.35); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,140,0,0.35) var(--color-bg-alt);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FOCUS — Accessibilité clavier
+   Visible uniquement quand l'utilisateur navigue au clavier (focus-visible)
+   ═══════════════════════════════════════════════════════════════ */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Supprime le focus par défaut du navigateur quand on clique à la souris */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITAIRES RESPONSIFS — Classes Tailwind personnalisées
+   ═══════════════════════════════════════════════════════════════ */
+@layer utilities {
+
+  /* Conteneur centré avec padding responsive horizontal */
+  .page-container {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: var(--page-px);
+  }
+
+  /* Supprime la scrollbar visible mais garde le défilement fonctionnel */
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Troncature de texte multi-lignes */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Animation d'apparition douce — utilisée sur les cartes, modals */
+  .fade-up {
+    animation: fadeUp 0.3s ease both;
+  }
+
+  /* Spinner de chargement — appliqué sur l'icône avec animate-spin */
+  .spin {
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS GLOBALES — Réutilisées dans toutes les pages
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Skeleton shimmer — animation de chargement sur les placeholders */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Apparition d'un élément flottant depuis le bas (ex: barre panier) */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SKELETON — Composant de chargement utilisé sur les cartes / listes
+   ═══════════════════════════════════════════════════════════════ */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #EBEBEB 25%,
+    #F5F5F5 50%,
+    #EBEBEB 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   IMPRESSION — Masque les éléments de navigation à l'impression
+   ═══════════════════════════════════════════════════════════════ */
+@media print {
+  /* Cache la navigation, les boutons d'action et les sidebars à l'impression */
+  header,
+  nav,
+  aside,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 12pt;
+  }
+
+  /* Les liens affichent leur URL entre parenthèses */
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.85em;
+    color: #666;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE — Corrections pour très petits écrans (≤ 360px)
+   Téléphones anciens ou bas de gamme (Samsung Galaxy A02, etc.)
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 360px) {
+  /* Réduit les tailles de police pour éviter le débordement */
+  .text-3xl { font-size: 1.5rem !important; }
+  .text-2xl { font-size: 1.25rem !important; }
+
+  /* Réduit le padding horizontal sur les très petits écrans */
+  .px-4 { padding-left: 0.75rem; padding-right: 0.75rem; }
+  .px-6 { padding-left: 1rem;    padding-right: 1rem; }
+
+  /* S'assure que les boutons en ligne passent en colonne */
+  .flex-nowrap-mobile {
+    flex-wrap: wrap;
+  }
+}

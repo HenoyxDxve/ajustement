@@ -1,12 +1,17 @@
-// src/layouts/GerantLayout.jsx
+/* ═══════════════════════════════════════════════════════════════
+   GerantLayout.jsx — Mise en page pour les gérants de restaurant
+   Contient : sidebar dark collapsible + mode sombre + hamburger mobile
+   Accès    : rôle GERANT uniquement
+   ═══════════════════════════════════════════════════════════════ */
 import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   LayoutDashboard, Package, ClipboardList, AlertTriangle,
-  TrendingUp, Settings, LogOut, ChevronRight, UtensilsCrossed, Activity,
+  TrendingUp, Settings, LogOut, ChevronRight, UtensilsCrossed, Activity, Menu, X,
 } from 'lucide-react';
 
+/* ── Éléments de la navigation sidebar ── */
 const MENU_ITEMS = [
   { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard, path: '/gerant' },
   { id: 'menu', label: 'Menu', icon: Package, path: '/gerant?tab=menu' },
@@ -21,7 +26,8 @@ export default function GerantLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed,       setCollapsed]       = useState(false);
+  const [mobileOpen,      setMobileOpen]      = useState(false);
   const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
   const [restaurantName, setRestaurantName] = useState(() => {
     const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -51,7 +57,8 @@ export default function GerantLayout() {
     };
   }, [user?.restaurant?.nom]);
 
-  const handleNav = (path) => navigate(path);
+  /* Ferme aussi le menu mobile après navigation */
+  const handleNav = (path) => { navigate(path); setMobileOpen(false); };
   const handleLogout = () => {
     setShowLogoutModal(true);
   };
@@ -64,6 +71,7 @@ export default function GerantLayout() {
 
   return (
     <div className={`flex min-h-screen ${darkMode ? 'bg-[#0C1220]' : 'bg-white'}`}>
+      {/* ── Styles dynamiques : corrections mode sombre ── */}
       <style>{`
         .gerant-theme-dark [class*='bg-white'] { background: rgba(15,23,42,0.88) !important; color: #e2e8f0; }
         .gerant-theme-dark [class*='border-[#E2E8F0]'] { border-color: rgba(148,163,184,0.15) !important; }
@@ -75,12 +83,12 @@ export default function GerantLayout() {
         .nav-item-hover:hover { background: rgba(255,255,255,0.08) !important; }
       `}</style>
 
-      {/* ── Sidebar ── */}
+      {/* ── Sidebar bureau — masquée sur mobile, toujours visible sur écran ≥ 1024px ── */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-full transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}
+        className={`fixed left-0 top-0 z-50 h-full transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'} hidden lg:block`}
         style={{ background: '#0F172A', borderRight: '1px solid rgba(255,255,255,0.06)', boxShadow: '4px 0 24px rgba(0,0,0,0.18)' }}
       >
-        {/* Collapse toggle */}
+        {/* ── Bouton collapse : réduire / agrandir la sidebar ── */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="absolute -right-3 top-6 flex h-7 w-7 items-center justify-center rounded-full text-white shadow-md transition"
@@ -90,7 +98,7 @@ export default function GerantLayout() {
           <ChevronRight className={`h-4 w-4 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
         </button>
 
-        {/* Logo / Brand */}
+        {/* ── Logo + nom du restaurant actif ── */}
         <div style={{ padding: collapsed ? '20px 0' : '20px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           {!collapsed ? (
             <div>
@@ -119,7 +127,7 @@ export default function GerantLayout() {
           )}
         </div>
 
-        {/* Nav */}
+        {/* ── Navigation principale ── */}
         <nav style={{ padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {MENU_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -162,7 +170,7 @@ export default function GerantLayout() {
           })}
         </nav>
 
-        {/* Footer */}
+        {/* ── Pied de sidebar : info utilisateur + déconnexion ── */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid rgba(255,255,255,0.07)', padding: collapsed ? '12px 0' : '12px 10px' }}>
           {!collapsed && (
             <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 9, padding: '8px 12px', marginBottom: 8 }}>
@@ -181,10 +189,95 @@ export default function GerantLayout() {
         </div>
       </aside>
 
-      <main className={`flex-1 overflow-y-auto p-6 lg:p-8 transition-all duration-300 ${collapsed ? 'ml-20' : 'ml-64'}`}>
+      {/* ── Overlay mobile — fond semi-transparent quand la sidebar est ouverte ── */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar mobile — slide-in depuis la gauche sur téléphone/tablette ── */}
+      {mobileOpen && (
+        <aside
+          className="fixed left-0 top-0 z-50 h-full w-64 lg:hidden"
+          style={{ background: '#0F172A', boxShadow: '4px 0 24px rgba(0,0,0,0.28)' }}
+        >
+          {/* Bouton fermer */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="absolute top-4 right-3 flex items-center justify-center w-8 h-8 rounded-lg"
+            style={{ background: 'rgba(255,255,255,0.08)', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)' }}
+            aria-label="Fermer le menu"
+          >
+            <X style={{ width: 16, height: 16 }} />
+          </button>
+          {/* Réutilise le même contenu que la sidebar bureau */}
+          <div style={{ padding: '20px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#FF8C00', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <UtensilsCrossed style={{ width: 18, height: 18, color: '#fff' }} />
+              </div>
+              <div>
+                <p style={{ fontSize: 9, fontWeight: 700, color: '#FF8C00', textTransform: 'uppercase', letterSpacing: '0.2em', margin: 0 }}>Espace gérant</p>
+                <p style={{ fontSize: 15, fontWeight: 800, color: '#FDF5EF', margin: 0, lineHeight: 1.2 }}>Resto d'ici</p>
+              </div>
+            </div>
+            {restaurantName && (
+              <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '6px 10px' }}>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', margin: '0 0 1px' }}>Restaurant actif</p>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.85)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{restaurantName}</p>
+              </div>
+            )}
+          </div>
+          <nav style={{ padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {MENU_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNav(item.path)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    justifyContent: 'flex-start',
+                    width: '100%', padding: '10px 12px',
+                    border: 'none', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                    background: isActive ? '#FF8C00' : 'transparent',
+                    boxShadow: isActive ? '0 4px 14px rgba(255,140,0,0.35)' : 'none',
+                    transition: 'all 0.18s',
+                  }}
+                  className={isActive ? '' : 'nav-item-hover'}
+                >
+                  <span style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isActive ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.06)', color: isActive ? '#fff' : 'rgba(255,255,255,0.5)' }}>
+                    <Icon style={{ width: 16, height: 16 }} />
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: isActive ? '#fff' : 'rgba(255,255,255,0.75)', lineHeight: 1.3 }}>{item.label}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+      )}
+
+      {/* ── Bouton hamburger — visible sur mobile / tablette uniquement ── */}
+      <button
+        className="lg:hidden fixed top-4 left-4 z-30 w-9 h-9 flex items-center justify-center rounded-xl shadow-sm"
+        style={{ background: '#0F172A', border: '1px solid rgba(255,255,255,0.12)' }}
+        onClick={() => setMobileOpen(true)}
+        aria-label="Ouvrir le menu"
+      >
+        <Menu style={{ width: 16, height: 16, color: '#FF8C00' }} />
+      </button>
+
+      {/* ── Contenu principal ── */}
+      <main className={`flex-1 overflow-y-auto p-6 lg:p-8 transition-all duration-300 ${collapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <Outlet />
       </main>
 
+      {/* ── Modal de confirmation de déconnexion ── */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">

@@ -1,3 +1,8 @@
+/* ═══════════════════════════════════════════════════════════════
+   Checkout.jsx — Page de validation de commande
+   Moyens de paiement : Orange Money, MTN MoMo, Moov Money, en espèces
+   Modes de livraison : sur place, à emporter, livraison à domicile
+   ═══════════════════════════════════════════════════════════════ */
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, CreditCard, Smartphone, Store, Truck, UtensilsCrossed, Tag, X } from 'lucide-react';

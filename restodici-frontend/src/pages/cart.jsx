@@ -187,7 +187,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-white px-4 py-10 sm:px-6 lg:px-8">
+      <div className="min-h-[calc(100dvh-64px)] bg-white px-4 py-10 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto rounded-[32px] border border-[#E2E8F0] bg-white p-8 sm:p-12 text-center shadow-sm">
           <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#FBE8DC] text-[#C05015]">
             <ShoppingBag className="h-10 w-10" />
@@ -209,7 +209,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-white px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-[calc(100dvh-64px)] bg-white px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
         <section className="rounded-[32px] border border-[#E2E8F0] bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">

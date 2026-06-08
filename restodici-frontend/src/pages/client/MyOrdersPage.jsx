@@ -249,14 +249,14 @@ export default function MyOrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-white">
+      <div className="min-h-[calc(100dvh-64px)] flex items-center justify-center bg-white">
         <Loader2 className="w-8 h-8 animate-spin text-[#C05015]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-white">
+    <div className="min-h-[calc(100dvh-64px)] bg-white">
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
 
         {/* Header */}

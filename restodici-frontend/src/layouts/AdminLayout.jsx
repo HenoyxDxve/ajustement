@@ -1,3 +1,8 @@
+/* ═══════════════════════════════════════════════════════════════
+   AdminLayout.jsx — Mise en page pour les administrateurs système
+   Contient : sidebar collapsible + hamburger mobile + modal déconnexion
+   Accès    : rôle ADMIN uniquement
+   ═══════════════════════════════════════════════════════════════ */
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -6,9 +11,11 @@ import {
   Download, Settings, LogOut, ChevronRight, Shield, X, Menu,
 } from 'lucide-react';
 
+/* ── Palette de couleurs ── */
 const ACCENT  = '#FF8C00';
 const SIDEBAR = '#0F172A';
 
+/* ── Éléments de la navigation sidebar ── */
 const MENU_ITEMS = [
   { id: 'overview',     label: 'Vue d\'ensemble', sub: 'Pilotage plateforme', icon: LayoutDashboard, path: '/admin' },
   { id: 'users',        label: 'Utilisateurs',    sub: 'CRUD & rôles',        icon: Users,           path: '/admin?tab=users' },
@@ -24,7 +31,7 @@ function SidebarInner({ collapsed, user, activeTab, navigate, onLogout, onClose,
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: SIDEBAR }}>
 
-      {/* Header */}
+      {/* ── Logo / En-tête de la sidebar ── */}
       <div style={{
         padding: collapsed ? '20px 0' : '20px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
@@ -52,7 +59,7 @@ function SidebarInner({ collapsed, user, activeTab, navigate, onLogout, onClose,
         )}
       </div>
 
-      {/* Nav */}
+      {/* ── Navigation principale ── */}
       <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
         {MENU_ITEMS.map(item => {
           const Icon  = item.icon;
@@ -95,7 +102,7 @@ function SidebarInner({ collapsed, user, activeTab, navigate, onLogout, onClose,
         })}
       </nav>
 
-      {/* Footer */}
+      {/* ── Pied de sidebar : info utilisateur + déconnexion ── */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: collapsed ? '12px 0' : '12px 10px' }}>
         {!collapsed && (
           <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 9, padding: '8px 12px', marginBottom: 8 }}>
@@ -141,7 +148,7 @@ export default function AdminLayout() {
   return (
     <div className="flex min-h-screen" style={{ background: '#FFFAF3' }}>
 
-      {/* Desktop sidebar */}
+      {/* ── Sidebar bureau — visible sur écran ≥ 1024px ── */}
       <aside
         className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-40 transition-all duration-300"
         style={{ width: collapsed ? 80 : 256, background: SIDEBAR, borderRight: '1px solid rgba(255,255,255,0.06)', boxShadow: '4px 0 24px rgba(0,0,0,0.18)' }}
@@ -158,7 +165,7 @@ export default function AdminLayout() {
         <SidebarInner {...sidebarProps} collapsed={collapsed} />
       </aside>
 
-      {/* Mobile overlay */}
+      {/* ── Overlay + sidebar mobile (slide-in) ── */}
       {sideOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSideOpen(false)} />
@@ -168,7 +175,7 @@ export default function AdminLayout() {
         </>
       )}
 
-      {/* Mobile hamburger */}
+      {/* ── Bouton hamburger — visible sur mobile uniquement ── */}
       <button
         className="lg:hidden fixed top-4 left-4 z-30 w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#E2E8F0] shadow-sm"
         onClick={() => setSideOpen(true)}
@@ -176,7 +183,7 @@ export default function AdminLayout() {
         <Menu style={{ width: 16, height: 16, color: '#6B7280' }} />
       </button>
 
-      {/* Main */}
+      {/* ── Contenu principal ── */}
       <main
         className="flex-1 overflow-y-auto transition-all duration-300"
         style={{ marginLeft: 0 }}
@@ -186,7 +193,7 @@ export default function AdminLayout() {
         </div>
       </main>
 
-      {/* Logout modal */}
+      {/* ── Modal de confirmation de déconnexion ── */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">

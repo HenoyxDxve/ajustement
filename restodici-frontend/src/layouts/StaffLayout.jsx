@@ -1,4 +1,9 @@
-// src/layouts/StaffLayout.jsx
+/* ═══════════════════════════════════════════════════════════════
+   StaffLayout.jsx — Mise en page pour le personnel de restaurant
+   Contient : sidebar navy + topbar + notifications temps réel +
+              panneau profil + modal déconnexion + onboarding tour
+   Accès    : rôle STAFF uniquement
+   ═══════════════════════════════════════════════════════════════ */
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -47,7 +52,7 @@ const STAFF_TOUR_STEPS = [
   },
 ];
 
-// ── Tokens ────────────────────────────────────────────────────────────────────
+/* ── Palette de couleurs et design tokens ── */
 const BG     = '#F8FAFC';
 const CARD   = '#FFFFFF';
 const NAVY   = '#0F172A';
@@ -72,7 +77,7 @@ const NAV = [
   { to: '/staff/articles', label: 'Articles',       icon: Package },
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+/* ── Fonctions utilitaires ── */
 function Avatar({ name, size = 36, fontSize = 13 }) {
   const initials = name.split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase() || 'S';
   const hue = ((initials.charCodeAt(0) || 0) * 37) % 360;
@@ -100,7 +105,7 @@ const STATUT_LABEL = {
   PRETE: 'Prête', EN_LIVRAISON: 'En livraison', LIVREE: 'Livrée',
 };
 
-// ── Notification Panel ────────────────────────────────────────────────────────
+/* ── Panneau de notifications ── */
 function NotifPanel({ notifs, onMarkAllRead, onClear, onClose, anchorRef }) {
   const panelRef = useRef(null);
 
@@ -227,7 +232,7 @@ function NotifPanel({ notifs, onMarkAllRead, onClear, onClose, anchorRef }) {
   );
 }
 
-// ── Profile Drawer ────────────────────────────────────────────────────────────
+/* ── Panneau glissant de profil utilisateur ── */
 function ProfileDrawer({ user, onClose, syncUser }) {
   const [tab,    setTab]    = useState('profil');
   const [form,   setForm]   = useState({
@@ -319,7 +324,7 @@ function ProfileDrawer({ user, onClose, syncUser }) {
   );
 }
 
-// ── Layout ────────────────────────────────────────────────────────────────────
+/* ═══ StaffLayout — Composant principal ═══ */
 export default function StaffLayout() {
   const { user, logout, syncUser } = useAuth();
   const navigate  = useNavigate();
@@ -379,7 +384,7 @@ export default function StaffLayout() {
   const fullName = [user?.prenom, user?.nom].filter(Boolean).join(' ') || 'Staff';
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: BG, fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: BG, fontFamily: "'Inter', system-ui, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
         *, *::before, *::after { box-sizing: border-box; }
@@ -394,12 +399,12 @@ export default function StaffLayout() {
         {/* Logo */}
         <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, background: TER_G, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(171,53,0,0.40)' }}>
-              <ChefHat size={18} color="#fff" strokeWidth={2.2} />
+            <div style={{ width: 38, height: 38, borderRadius: 11, background: '#FF8C00', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 14px rgba(255,140,0,0.45)' }}>
+              <UtensilsCrossed size={18} color="#fff" strokeWidth={2.2} />
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#fff', fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em', lineHeight: 1 }}>Resto d'ici</p>
-              <p style={{ margin: '3px 0 0', fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Staff · Cuisine</p>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#fff', fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.03em', lineHeight: 1 }}>Resto d'ici</p>
+              <p style={{ margin: '3px 0 0', fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Espace Staff</p>
             </div>
           </div>
         </div>

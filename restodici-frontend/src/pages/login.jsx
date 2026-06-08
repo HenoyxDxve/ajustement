@@ -1,65 +1,98 @@
-// src/pages/Login.jsx
+/* ═══════════════════════════════════════════════════════════════
+   login.jsx — Page de connexion Restodici
+   Gère : identifiants normaux + vérification 2FA (code TOTP)
+   Responsive : mobile-first, image hero masquée sur petit écran
+   ═══════════════════════════════════════════════════════════════ */
 import { useState } from 'react';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, CheckCircle, UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Login() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate       = useNavigate();
+  const location       = useLocation();
   const [searchParams] = useSearchParams();
   const { login, syncUser } = useAuth();
 
-  const [formData, setFormData]   = useState({ email: '', password: '' });
-  const [errors, setErrors]       = useState({});
-  const [isSubmitting, setSubmit] = useState(false);
-  const [showPassword, setShowPw] = useState(false);
-  const [twoFactorStep, set2FA]   = useState(false);
-  const [tempToken, setTemp]      = useState('');
-  const [twoFactorCode, set2FACode] = useState('');
+  /* ── État du formulaire principal ── */
+  const [formData,    setFormData]  = useState({ email: '', password: '' });
+  const [errors,      setErrors]    = useState({});
+  const [isSubmitting, setSubmit]   = useState(false);
+  const [showPassword, setShowPw]   = useState(false);
 
-  const redirectParam = searchParams.get('redirect') || location.state?.redirect || '/';
-  const registered    = searchParams.get('registered') === '1';
-  const verifyEmailCta = errors.verifyEmailCta === true;
+  /* ── État de la vérification 2FA (étape secondaire) ── */
+  const [twoFactorStep, set2FA]     = useState(false);   // true = on affiche le champ code
+  const [tempToken,     setTemp]    = useState('');       // token temporaire reçu du backend
+  const [twoFactorCode, set2FACode] = useState('');       // code TOTP saisi par l'utilisateur
 
+  /* ── Paramètres de redirection et messages contextuels ── */
+  const redirectParam   = searchParams.get('redirect') || location.state?.redirect || '/';
+  const registered      = searchParams.get('registered') === '1';  // vient de s'inscrire ?
+  const verifyEmailCta  = errors.verifyEmailCta === true;           // email non vérifié ?
+
+  /* ─────────────────────────────────────────────────
+     Validation locale avant envoi au serveur
+     Retourne true si le formulaire est valide
+  ───────────────────────────────────────────────── */
   const validate = () => {
-    const e = {};
+    const e     = {};
     const email = formData.email.trim();
     const pwd   = formData.password.trim();
-    if (!email) e.email = 'Email requis';
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Email invalide';
-    if (!pwd) e.password = 'Mot de passe requis';
-    else if (pwd.length < 6) e.password = 'Minimum 6 caractères';
+
+    if (!email)                          e.email    = 'Email requis';
+    else if (!/\S+@\S+\.\S+/.test(email)) e.email   = 'Email invalide';
+    if (!pwd)                            e.password = 'Mot de passe requis';
+    else if (pwd.length < 6)            e.password = 'Minimum 6 caractères';
+
     setErrors(e);
-    return !Object.keys(e).length;
+    return Object.keys(e).length === 0;
   };
 
+  /* ─────────────────────────────────────────────────
+     Redirection après une connexion réussie
+     Chaque rôle a son espace dédié
+  ───────────────────────────────────────────────── */
   const redirectAfterLogin = (user) => {
     const role = user.role?.toUpperCase();
+
     if (redirectParam === 'checkout') navigate('/checkout');
-    else if (role === 'ADMIN')  navigate('/admin');
-    else if (role === 'GERANT') navigate('/gerant');
-    else if (role === 'B2B')    navigate('/b2b/dashboard');
-    else if (role === 'STAFF')  navigate('/staff');
-    else navigate('/menu');
+    else if (role === 'ADMIN')        navigate('/admin');
+    else if (role === 'GERANT')       navigate('/gerant');
+    else if (role === 'B2B')          navigate('/b2b/dashboard');
+    else if (role === 'STAFF')        navigate('/staff');
+    else                              navigate('/menu');
   };
 
+  /* ─────────────────────────────────────────────────
+     Soumission du formulaire de connexion
+     - Si le compte a la 2FA activée → passe à l'étape code TOTP
+     - Sinon → redirige directement
+  ───────────────────────────────────────────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+
     setSubmit(true);
     try {
       const result = await login(formData.email.trim(), formData.password.trim());
+
       if (!result.success) {
+        /* Le backend demande un code 2FA : on passe à l'étape suivante */
         if (result.requiresTwoFactor && result.tempToken) {
-          setTemp(result.tempToken); set2FA(true); setSubmit(false); return;
+          setTemp(result.tempToken);
+          set2FA(true);
+          setSubmit(false);
+          return;
         }
         setErrors({ submit: result.error || 'Identifiants incorrects' });
         return;
       }
+
       redirectAfterLogin(result.user);
     } catch (err) {
       const msg = err.response?.data?.message;
+
+      /* Cas spécial : l'utilisateur n'a pas vérifié son email */
       if (typeof msg === 'string' && msg.toLowerCase().includes('email non vérifié')) {
         setErrors({ submit: msg, verifyEmailCta: true });
       } else {
@@ -70,18 +103,29 @@ export default function Login() {
     }
   };
 
+  /* ─────────────────────────────────────────────────
+     Vérification du code TOTP (étape 2FA)
+  ───────────────────────────────────────────────── */
   const handle2FA = async (e) => {
     e.preventDefault();
-    if (!twoFactorCode || twoFactorCode.length < 6) { setErrors({ submit: 'Code à 6 chiffres requis' }); return; }
+    if (!twoFactorCode || twoFactorCode.length < 6) {
+      setErrors({ submit: 'Code à 6 chiffres requis' });
+      return;
+    }
+
     setSubmit(true);
     try {
       const { authAPI } = await import('../services/api');
       const res = await authAPI.verify2FALogin(tempToken, twoFactorCode);
+
       const userData = res.data?.user;
       if (!userData) throw new Error('Réponse invalide');
+
+      /* Stockage du token JWT dans le localStorage */
       const token = res.data.accessToken || res.data.access_token || res.data.token;
       localStorage.setItem('token', token);
       syncUser({ ...userData, token });
+
       redirectAfterLogin(userData);
     } catch (err) {
       setErrors({ submit: err.response?.data?.message || 'Code invalide' });
@@ -90,78 +134,130 @@ export default function Login() {
     }
   };
 
+  /* ═══════════════════════════════════════════════
+     RENDU — Layout deux colonnes :
+       gauche  → formulaire (toujours visible)
+       droite  → image héro (masquée sur mobile)
+     ═══════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen flex" style={{ background: '#F8FAFC' }}>
+    <div className="min-h-screen min-h-dvh flex" style={{ background: '#F8FAFC' }}>
 
-      {/* ── Left: form ── */}
-      <div className="flex-1 flex flex-col justify-center px-8 py-12 sm:px-12 lg:px-16 xl:px-24">
+      {/* ── Colonne gauche : formulaire ── */}
+      <div className="flex-1 flex flex-col justify-center px-5 py-10 sm:px-10 lg:px-16 xl:px-24">
         <div className="w-full max-w-sm mx-auto">
 
-          {/* Logo */}
+          {/* Logo Restodici */}
           <div className="flex items-center gap-2.5 mb-10">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: '#FF8C00' }}>
-              <UtensilsCrossed className="w-4.5 h-4.5 text-white" style={{ width: 18, height: 18 }} />
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: '#FF8C00' }}
+            >
+              <UtensilsCrossed className="w-[18px] h-[18px] text-white" />
             </div>
-            <span className="font-bold text-lg" style={{ color: '#0F172A' }}>Resto d'ici</span>
+            <span className="font-bold text-lg" style={{ color: '#0F172A' }}>
+              Resto d'ici
+            </span>
           </div>
 
-          {/* Heading */}
+          {/* Titre et sous-titre */}
           <div className="mb-8">
             <h1 className="text-2xl font-bold" style={{ color: '#0F172A' }}>
               {twoFactorStep ? 'Vérification' : 'Connexion'}
             </h1>
             <p className="mt-1 text-sm" style={{ color: '#64748B' }}>
-              {twoFactorStep ? "Entrez le code de votre application" : 'Bon retour sur votre espace'}
+              {twoFactorStep
+                ? "Entrez le code de votre application"
+                : 'Bon retour sur votre espace'}
             </p>
           </div>
 
+          {/* Message de confirmation après inscription */}
           {registered && (
-            <div className="mb-6 flex items-start gap-2.5 rounded-xl px-4 py-3 text-sm"
-              style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#15803D' }}>
+            <div
+              className="mb-6 flex items-start gap-2.5 rounded-xl px-4 py-3 text-sm"
+              style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#15803D' }}
+            >
               <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
               Inscription réussie ! Connectez-vous maintenant.
             </div>
           )}
 
-          {/* 2FA form */}
+          {/* ── Formulaire 2FA ── */}
           {twoFactorStep ? (
             <form onSubmit={handle2FA} className="space-y-4">
               <p className="text-sm" style={{ color: '#64748B' }}>
                 Entrez le code à 6 chiffres généré par votre application d'authentification.
               </p>
+
+              {/* Champ du code TOTP — grand et centré pour faciliter la saisie */}
               <input
-                type="text" inputMode="numeric" maxLength={8}
+                type="text"
+                inputMode="numeric"
+                maxLength={8}
                 value={twoFactorCode}
                 onChange={e => set2FACode(e.target.value.replace(/\s/g, ''))}
                 placeholder="000000"
                 className="w-full px-4 py-3 rounded-xl text-center text-2xl tracking-[0.4em] font-mono outline-none"
-                style={{ background: '#F1F5F9', border: '1.5px solid #E2E8F0', color: '#0F172A' }}
+                style={{
+                  background: '#F1F5F9',
+                  border: '1.5px solid #E2E8F0',
+                  color: '#0F172A',
+                }}
                 autoFocus
+                aria-label="Code de vérification à deux facteurs"
               />
+
               {errors.submit && (
-                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{errors.submit}</p>
+                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  {errors.submit}
+                </p>
               )}
-              <button type="submit" disabled={isSubmitting}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
                 className="w-full py-3 rounded-xl font-semibold text-white text-sm transition disabled:opacity-60"
-                style={{ background: '#FF8C00' }}>
+                style={{ background: '#FF8C00' }}
+              >
                 {isSubmitting ? 'Vérification…' : 'Valider'}
               </button>
-              <button type="button" onClick={() => { set2FA(false); set2FACode(''); setErrors({}); }}
-                className="w-full py-2 text-sm" style={{ color: '#94A3B8' }}>
+
+              {/* Retour à l'étape de connexion principale */}
+              <button
+                type="button"
+                onClick={() => { set2FA(false); set2FACode(''); setErrors({}); }}
+                className="w-full py-2 text-sm"
+                style={{ color: '#94A3B8' }}
+              >
                 ← Retour
               </button>
             </form>
+
           ) : (
+            /* ── Formulaire de connexion principal ── */
             <form onSubmit={handleSubmit} className="space-y-4">
 
-              {/* Email */}
+              {/* Champ Email */}
               <div>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#475569' }}>Email</label>
+                <label
+                  htmlFor="login-email"
+                  className="block text-xs font-semibold mb-1.5"
+                  style={{ color: '#475569' }}
+                >
+                  Email
+                </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#94A3B8' }} />
+                  <Mail
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
+                    style={{ color: '#94A3B8' }}
+                  />
                   <input
-                    type="email" value={formData.email} autoComplete="email"
+                    id="login-email"
+                    type="email"
+                    value={formData.email}
+                    autoComplete="email"
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                     placeholder="vous@exemple.com"
                     className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition"
@@ -172,21 +268,43 @@ export default function Login() {
                     }}
                   />
                 </div>
-                {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+                {errors.email && (
+                  <p id="email-error" className="text-xs text-red-500 mt-1">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
-              {/* Password */}
+              {/* Champ Mot de passe */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold" style={{ color: '#475569' }}>Mot de passe</label>
-                  <Link to="/forgot-password" className="text-xs font-medium hover:underline" style={{ color: '#FF8C00' }}>
+                  <label
+                    htmlFor="login-password"
+                    className="text-xs font-semibold"
+                    style={{ color: '#475569' }}
+                  >
+                    Mot de passe
+                  </label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-medium hover:underline"
+                    style={{ color: '#FF8C00' }}
+                  >
                     Oublié ?
                   </Link>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#94A3B8' }} />
+                  <Lock
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
+                    style={{ color: '#94A3B8' }}
+                  />
                   <input
-                    type={showPassword ? 'text' : 'password'} value={formData.password} autoComplete="current-password"
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    autoComplete="current-password"
+                    aria-invalid={!!errors.password}
+                    aria-describedby={errors.password ? 'password-error' : undefined}
                     onChange={e => setFormData({ ...formData, password: e.target.value })}
                     placeholder="••••••••"
                     className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none transition"
@@ -196,43 +314,72 @@ export default function Login() {
                       color: '#0F172A',
                     }}
                   />
-                  <button type="button" tabIndex={-1} onClick={() => setShowPw(!showPassword)}
+                  {/* Bouton afficher / masquer le mot de passe */}
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPw(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 hover:opacity-70 transition"
-                    style={{ color: '#94A3B8' }}>
+                    style={{ color: '#94A3B8' }}
+                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+                {errors.password && (
+                  <p id="password-error" className="text-xs text-red-500 mt-1">
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
+              {/* Message d'erreur global (identifiants incorrects, email non vérifié…) */}
               {errors.submit && (
-                <div className="rounded-xl px-4 py-3 text-sm text-red-700"
-                  style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                <div
+                  className="rounded-xl px-4 py-3 text-sm text-red-700"
+                  style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}
+                  role="alert"
+                  aria-live="polite"
+                >
                   {errors.submit}
+                  {/* Lien CTA si l'email n'a pas été vérifié */}
                   {verifyEmailCta && (
-                    <Link to="/verify-email"
+                    <Link
+                      to="/verify-email"
                       className="block mt-2 text-center py-1.5 px-4 rounded-lg font-semibold text-white text-xs"
-                      style={{ background: '#EF4444' }}>
+                      style={{ background: '#EF4444' }}
+                    >
                       Vérifier mon email
                     </Link>
                   )}
                 </div>
               )}
 
-              <button type="submit" disabled={isSubmitting}
+              {/* Bouton de soumission */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
                 className="w-full py-3 rounded-xl font-semibold text-white text-sm transition disabled:opacity-60 active:scale-[0.99]"
-                style={{ background: '#FF8C00' }}>
+                style={{ background: '#FF8C00' }}
+              >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Connexion…
                   </span>
-                ) : 'Se connecter'}
+                ) : (
+                  'Se connecter'
+                )}
               </button>
 
+              {/* Lien vers l'inscription */}
               <p className="text-center text-sm pt-1" style={{ color: '#94A3B8' }}>
                 Pas encore de compte ?{' '}
-                <Link to="/register" className="font-semibold hover:underline" style={{ color: '#FF8C00' }}>
+                <Link
+                  to="/register"
+                  className="font-semibold hover:underline"
+                  style={{ color: '#FF8C00' }}
+                >
                   S'inscrire
                 </Link>
               </p>
@@ -241,18 +388,28 @@ export default function Login() {
         </div>
       </div>
 
-      {/* ── Right: image ── */}
+      {/* ── Colonne droite : image héro — masquée sur mobile et tablette ── */}
       <div className="hidden lg:block relative w-[44%] shrink-0">
         <img
           src="/burger-hero.jpg"
-          alt="Plat Resto d'ici"
+          alt="Plat savoureux Restodici"
           className="absolute inset-0 w-full h-full object-cover object-center"
+          loading="eager"
         />
-        <div className="absolute inset-0"
-          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.10) 50%, transparent 100%)' }} />
+        {/* Dégradé sombre en bas pour rendre le texte lisible */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.10) 50%, transparent 100%)',
+          }}
+        />
+        {/* Accroche en bas de l'image */}
         <div className="absolute bottom-10 left-8 right-8">
           <p className="text-white font-bold text-xl">La table digitale</p>
-          <p className="text-white/70 text-sm mt-1">Commandes, budgets et équipes en un seul endroit.</p>
+          <p className="text-white/70 text-sm mt-1">
+            Commandes, budgets et équipes en un seul endroit.
+          </p>
         </div>
       </div>
     </div>

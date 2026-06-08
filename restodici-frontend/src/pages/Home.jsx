@@ -1,8 +1,13 @@
+/* ═══════════════════════════════════════════════════════════════
+   Home.jsx — Page d'accueil publique
+   Contient : hero, plats populaires, catégories, avantages, témoignages,
+              newsletter, footer — entièrement responsive
+   ═══════════════════════════════════════════════════════════════ */
 import { useState, useEffect, useRef } from "react";
 import { UtensilsCrossed, ArrowRight, Check, Star, Search, ShoppingBag, Truck, Clock, Heart, Mail } from "lucide-react";
 import { menuAPI } from "../services/api";
 
-/* ─── Palette ─── */
+/* ─── Palette de couleurs ─── */
 const T = {
   bg:      "#FFFAF3",
   bgAlt:   "#FFF5E8",
@@ -42,7 +47,7 @@ const CSS = `
 .rd-foot-link:hover    { color:${T.accent} !important; }
 `;
 
-/* ─── Image fallback pool ─── */
+/* ─── Images de substitution pour les plats sans photo ─── */
 const FOOD_IMGS = [
   "photo-1565299585323-38d6b0865b47",
   "photo-1567620905732-2d1ec7ab7445",
@@ -65,7 +70,7 @@ function formatPrix(prix) {
   return new Intl.NumberFormat("fr-FR").format(prix) + " FCFA";
 }
 
-/* ─── Utilities ─── */
+/* ─── Fonctions utilitaires ─── */
 function FontLoader() {
   useEffect(() => {
     if (!document.getElementById("rd-fonts")) {
@@ -139,7 +144,7 @@ function Stars({ n=5 }) {
   return <span>{Array.from({length:5},(_,i)=><Star key={i} size={13} fill={i<n?T.yellow:"#E0D0B8"} color={i<n?T.yellow:"#E0D0B8"} />)}</span>;
 }
 
-/* ─── Skeleton card ─── */
+/* ─── Carte squelette — état de chargement ─── */
 function SkeletonCard() {
   const shimmer = {
     background: `linear-gradient(90deg, ${T.bgAlt} 25%, ${T.surface} 50%, ${T.bgAlt} 75%)`,
@@ -158,7 +163,7 @@ function SkeletonCard() {
   );
 }
 
-/* ─── Nav ─── */
+/* ─── Barre de navigation ─── */
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -191,13 +196,13 @@ function Nav() {
   );
 }
 
-/* ─── Hero ─── */
+/* ─── Section héros — bannière principale ─── */
 function Hero({ search, onSearch, menuRef, restaurantCount = 0 }) {
   const handleSubmit = () => {
     if (menuRef?.current) menuRef.current.scrollIntoView({ behavior:"smooth", block:"start" });
   };
   return (
-    <section style={{ position:"relative", minHeight:"100vh", display:"flex", flexDirection:"column", justifyContent:"flex-end", overflow:"hidden" }}>
+    <section style={{ position:"relative", minHeight:"100dvh", display:"flex", flexDirection:"column", justifyContent:"flex-end", overflow:"hidden" }}>
       {/* Image de fond */}
       <img
         src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=85&w=1800&auto=format&fit=crop"
@@ -330,7 +335,7 @@ function Marquee() {
   );
 }
 
-/* ─── How it works ─── */
+/* ─── Section "Comment ça marche" ─── */
 function HowItWorks() {
   const cards = [
     {
@@ -393,7 +398,7 @@ function HowItWorks() {
   );
 }
 
-/* ─── Menu card — style screenshot ─── */
+/* ─── Carte article du menu ─── */
 function MenuItem({ item, restaurant, idx }) {
   const [fav, setFav] = useState(false);
   const [hov, setHov] = useState(false);
@@ -465,7 +470,7 @@ function MenuItem({ item, restaurant, idx }) {
   );
 }
 
-/* ─── Menu Section — style screenshot ─── */
+/* ─── Section menu — plats populaires ─── */
 function MenuSection({ search, onSearch, sectionRef }) {
   const [categories, setCategories] = useState([]);
   const [items, setItems]           = useState([]);
@@ -637,7 +642,7 @@ function MenuSection({ search, onSearch, sectionRef }) {
   );
 }
 
-/* ─── Feature banners ─── */
+/* ─── Bandeaux des avantages ─── */
 function Banners() {
   const banners=[
     { img:"photo-1568901346375-23c9450c58cd", title:"MOST POPULAR BURGER", sub:"À ne pas manquer", dark:true },
@@ -678,7 +683,7 @@ function Banners() {
   );
 }
 
-/* ─── Stats ─── */
+/* ─── Section statistiques ─── */
 function Stats() {
   const items=[
     { n:12000, pre:"+", suf:"", l:"Clients actifs",     c:T.accent },
@@ -708,7 +713,7 @@ function Stats() {
   );
 }
 
-/* ─── Testimonials ─── */
+/* ─── Section témoignages ─── */
 function Testimonials() {
   const items=[
     { q:"Le QR Code table a transformé notre restaurant. Moins d'erreurs, clients ravis, CA +23% en 3 mois.", name:"Koffi Jean-Claude", role:"Gérant — Le Wôrôwôrô, Cocody", ini:"KJ", c:T.accent },
@@ -758,7 +763,7 @@ function Testimonials() {
   );
 }
 
-/* ─── Dual Offer ─── */
+/* ─── Double offre — Client & Restaurant ─── */
 function DualOffer() {
   const cards=[
     { tag:"GRAND PUBLIC", tagBg:T.accent, tagCol:"#fff", topCol:T.accent, title:"Pour toute la famille", sub:"Commandez, payez, profitez.", img:"photo-1567620905732-2d1ec7ab7445", perks:["Menu dynamique & QR Code table","Orange Money · MTN · Wave · Espèces","Suivi commande en temps réel","Reçu SYSCOHADA par email"], perkCol:T.accent, cta:"Commander maintenant", ctaBg:`linear-gradient(135deg,${T.accent},${T.accentD})`, ctaCol:"#fff", href:"/menu" },
@@ -810,7 +815,7 @@ function DualOffer() {
   );
 }
 
-/* ─── CTA ─── */
+/* ─── Section appel à l'action ─── */
 function CTA() {
   return (
     <section style={{ background:T.dark,padding:"100px 48px",position:"relative",overflow:"hidden" }}>
@@ -842,7 +847,7 @@ function CTA() {
   );
 }
 
-/* ─── Footer ─── */
+/* ─── Pied de page ─── */
 function Footer() {
   const COLS = [
     {
@@ -1030,7 +1035,7 @@ function Footer() {
   );
 }
 
-/* ─── Page ─── */
+/* ─── Composant principal — Page d'accueil ─── */
 export default function Home() {
   const [search, setSearch] = useState("");
   const [restaurantCount, setRestaurantCount] = useState(0);
@@ -1039,7 +1044,7 @@ export default function Home() {
     menuAPI.getRestaurants().then(res => setRestaurantCount((res.data || []).length)).catch(() => {});
   }, []);
   return (
-    <div style={{ background:T.bg,minHeight:"100vh",overflowX:"hidden" }}>
+    <div style={{ background:T.bg,minHeight:"100dvh",overflowX:"hidden" }}>
       <FontLoader />
       <Nav />
       <Hero search={search} onSearch={setSearch} menuRef={menuRef} restaurantCount={restaurantCount} />

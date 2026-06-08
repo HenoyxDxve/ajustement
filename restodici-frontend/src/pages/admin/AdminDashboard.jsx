@@ -1,7 +1,13 @@
+/* ═══════════════════════════════════════════════════════════════
+   AdminDashboard.jsx — Tableau de bord administrateur système
+   6 onglets : vue d'ensemble, utilisateurs, restaurants, audit,
+               exports, configuration + modules B2B et fournisseurs
+   ═══════════════════════════════════════════════════════════════ */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Chart from 'chart.js/auto';
 import { adminAPI, authAPI, fournisseursAPI } from '../../services/api';
+import { useAuth } from '../../hooks/useAuth';
 import {
   Users, UtensilsCrossed, ScrollText, Download, Settings,
   RefreshCw, ToggleLeft, ToggleRight, Plus, X, Check,
@@ -14,7 +20,7 @@ import {
   Percent, TrendingUp as TrendUp,
 } from 'lucide-react';
 
-/* ── Design tokens ─────────────────────────────────── */
+/* ── Palette de couleurs et constantes ── */
 const ACCENT = '#4F46E5';
 const ROLES  = ['ADMIN', 'GERANT', 'STAFF', 'CLIENT', 'B2B'];
 const ROLE_COLOR = {
@@ -26,7 +32,7 @@ const ROLE_COLOR = {
 };
 const DAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
-/* ── Shared styles ──────────────────────────────────── */
+/* ── Styles partagés (inputs, cartes) ── */
 const inputStyle = {
   width: '100%', padding: '8px 12px', border: '1px solid #E2E8F0',
   borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: '#fff',
@@ -34,7 +40,7 @@ const inputStyle = {
 const labelStyle = { fontSize: 11, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 };
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #E8EDF5', overflow: 'hidden' };
 
-/* ── Utility ────────────────────────────────────────── */
+/* ── Composants utilitaires ── */
 function RoleBadge({ role }) {
   const c = ROLE_COLOR[role] || { bg: '#F1F5F9', text: '#475569' };
   return <span style={{ background: c.bg, color: c.text, borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>{role}</span>;
@@ -54,7 +60,7 @@ function SectionHeader({ title, onRefresh, loading }) {
   );
 }
 
-/* ══════════════════ STAT CARD (Flowdex style) ══════════════════ */
+/* ══════════════════ Carte KPI ══════════════════ */
 function KpiCard({ label, value, sub, trend, trendUp, color = ACCENT, icon: Icon, featured = false }) {
   return (
     <div style={{
@@ -91,7 +97,7 @@ function KpiCard({ label, value, sub, trend, trendUp, color = ACCENT, icon: Icon
   );
 }
 
-/* ══════════════════ CHART: BARRES Inscriptions + Activité ══════════════════ */
+/* ══════════════════ Graphique barres — Inscriptions & Activité ══════════════════ */
 function BarComboChart({ usersByDay, auditByDay }) {
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
@@ -160,7 +166,7 @@ function BarComboChart({ usersByDay, auditByDay }) {
   return <canvas ref={canvasRef} />;
 }
 
-/* ══════════════════ CHART: DONUT rôles ══════════════════ */
+/* ══════════════════ Graphique donut — Répartition des rôles ══════════════════ */
 function DonutRolesChart({ roleDist }) {
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
@@ -204,7 +210,7 @@ function DonutRolesChart({ roleDist }) {
   return <canvas ref={canvasRef} />;
 }
 
-/* ══════════════════ HEATMAP activité ══════════════════ */
+/* ══════════════════ Carte de chaleur — Activité ══════════════════ */
 function ActivityHeatmap({ heatmap }) {
   if (!heatmap?.length) {
     return <div style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 12 }}>Données insuffisantes</div>;
@@ -270,6 +276,8 @@ function OverviewTab() {
   const [stats,   setStats]   = useState(null);
   const [charts,  setCharts]  = useState(null);
   const [loading, setLoading] = useState(true);
+  const [secAlerts, setSecAlerts] = useState([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -282,6 +290,20 @@ function OverviewTab() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    const SECURITY_ACTIONS = new Set(['LOGIN_FAILED', 'UNAUTHORIZED_ACCESS', 'INVALID_TOKEN', 'SUSPICIOUS_ACTIVITY']);
+    const fetchAlerts = () => {
+      setAlertsLoading(true);
+      adminAPI.getAuditLogs({ limit: 50 })
+        .then(r => setSecAlerts((r.data || []).filter(l => SECURITY_ACTIONS.has(l.action)).slice(0, 10)))
+        .catch(() => {})
+        .finally(() => setAlertsLoading(false));
+    };
+    fetchAlerts();
+    const iv = setInterval(fetchAlerts, 30000);
+    return () => clearInterval(iv);
+  }, []);
 
   const total = stats?.users?.total ?? 0;
 
@@ -444,6 +466,53 @@ function OverviewTab() {
           ))}
         </div>
       </div>
+
+      {/* ── Alertes de sécurité (RG-34) ── */}
+      <div style={{ ...card, marginTop: 16 }}>
+        <div style={{ padding: '18px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Shield style={{ width: 16, height: 16, color: '#DC2626' }} />
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>Alertes de sécurité</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {secAlerts.length > 0 && (
+              <span style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 20, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>
+                {secAlerts.length} alerte{secAlerts.length > 1 ? 's' : ''}
+              </span>
+            )}
+            <span style={{ fontSize: 10, color: '#94A3B8' }}>· rafraîchi toutes les 30s</span>
+          </div>
+        </div>
+        <div style={{ padding: '12px 20px' }}>
+          {alertsLoading && secAlerts.length === 0 ? (
+            <p style={{ color: '#94A3B8', fontSize: 12, textAlign: 'center', padding: '12px 0' }}>Chargement…</p>
+          ) : secAlerts.length === 0 ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', color: '#16A34A' }}>
+              <CheckCircle style={{ width: 16, height: 16 }} />
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Aucune alerte de sécurité détectée</span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {secAlerts.map((alert, i) => (
+                <div key={alert.id ?? i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <AlertTriangle style={{ width: 14, height: 14, color: '#DC2626', flexShrink: 0 }} />
+                    <div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#991B1B' }}>{alert.action}</span>
+                      {alert.userId && (
+                        <span style={{ fontSize: 11, color: '#B91C1C', marginLeft: 8, fontFamily: 'monospace' }}>user:{alert.userId.slice(0, 8)}</span>
+                      )}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 10, color: '#64748B', whiteSpace: 'nowrap', marginLeft: 12 }}>
+                    {new Date(alert.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -458,6 +527,10 @@ function UsersTab() {
   const [form, setForm]             = useState({ nom: '', prenom: '', email: '', password: '', role: 'CLIENT', telephone: '', restaurantId: '' });
   const [saving, setSaving]         = useState(false);
   const [formError, setFormError]   = useState('');
+  const [editUser, setEditUser]     = useState(null);
+  const [editForm, setEditForm]     = useState({});
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError]   = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -475,6 +548,12 @@ function UsersTab() {
 
   const toggle = async (id) => { try { await adminAPI.toggleUser(id); load(); } catch { /* ignore */ } };
 
+  const openEdit = (u) => {
+    setEditUser(u);
+    setEditForm({ nom: u.nom || '', prenom: u.prenom || '', email: u.email || '', role: u.role || 'CLIENT', telephone: u.telephone || '', restaurantId: u.restaurantId || u.restaurant?.id || '' });
+    setEditError('');
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     setFormError('');
@@ -487,6 +566,19 @@ function UsersTab() {
     } catch (err) {
       setFormError(err?.response?.data?.message || 'Erreur lors de la création');
     } finally { setSaving(false); }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setEditError('');
+    setEditSaving(true);
+    try {
+      await adminAPI.updateUser(editUser.id, editForm);
+      setEditUser(null);
+      load();
+    } catch (err) {
+      setEditError(err?.response?.data?.message || 'Erreur lors de la mise à jour');
+    } finally { setEditSaving(false); }
   };
 
   return (
@@ -544,9 +636,14 @@ function UsersTab() {
                     {new Date(u.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' })}
                   </td>
                   <td style={{ padding: '10px 14px' }}>
-                    <button onClick={() => toggle(u.id)} title={u.actif ? 'Désactiver' : 'Activer'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: u.actif ? '#DC2626' : '#16A34A' }}>
-                      {u.actif ? <ToggleRight style={{ width: 20, height: 20 }} /> : <ToggleLeft style={{ width: 20, height: 20 }} />}
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button onClick={() => openEdit(u)} title="Modifier" style={{ background: '#EEF2FF', border: 'none', borderRadius: 7, padding: '4px 8px', cursor: 'pointer', color: ACCENT, display: 'flex', alignItems: 'center' }}>
+                        <Pencil style={{ width: 14, height: 14 }} />
+                      </button>
+                      <button onClick={() => toggle(u.id)} title={u.actif ? 'Désactiver' : 'Activer'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: u.actif ? '#DC2626' : '#16A34A' }}>
+                        {u.actif ? <ToggleRight style={{ width: 20, height: 20 }} /> : <ToggleLeft style={{ width: 20, height: 20 }} />}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -586,6 +683,46 @@ function UsersTab() {
           </div>
         </div>
       )}
+
+      {editUser && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 18, width: '100%', maxWidth: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Modifier l'utilisateur</h3>
+                <p style={{ margin: '2px 0 0', fontSize: 11, color: '#94A3B8' }}>{editUser.email}</p>
+              </div>
+              <button onClick={() => setEditUser(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}><X style={{ width: 18, height: 18 }} /></button>
+            </div>
+            <form onSubmit={handleUpdate} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div><label style={labelStyle}>Nom *</label><input required value={editForm.nom} onChange={e => setEditForm(f => ({ ...f, nom: e.target.value }))} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Prénom</label><input value={editForm.prenom} onChange={e => setEditForm(f => ({ ...f, prenom: e.target.value }))} style={inputStyle} /></div>
+              </div>
+              <div><label style={labelStyle}>Email *</label><input required type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={labelStyle}>Rôle *</label>
+                  <select required value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                    {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+                <div><label style={labelStyle}>Téléphone</label><input value={editForm.telephone} onChange={e => setEditForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} /></div>
+              </div>
+              {(editForm.role === 'GERANT' || editForm.role === 'STAFF') && (
+                <div><label style={labelStyle}>ID Restaurant</label><input value={editForm.restaurantId} onChange={e => setEditForm(f => ({ ...f, restaurantId: e.target.value }))} style={inputStyle} placeholder="UUID du restaurant" /></div>
+              )}
+              {editError && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{editError}</p>}
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <button type="button" onClick={() => setEditUser(null)} style={{ flex: 1, padding: 10, border: '1px solid #E2E8F0', borderRadius: 10, cursor: 'pointer', fontWeight: 600, color: '#475569', background: '#fff' }}>Annuler</button>
+                <button type="submit" disabled={editSaving} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: editSaving ? 'not-allowed' : 'pointer', fontWeight: 700, color: '#fff', background: ACCENT, opacity: editSaving ? 0.7 : 1 }}>
+                  {editSaving ? 'Sauvegarde…' : 'Enregistrer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -597,6 +734,10 @@ function RestaurantsTab() {
   const [showModal, setShowModal]     = useState(false);
   const [form, setForm]               = useState({ nom: '', telephone: '', adresse: '', email: '', description: '' });
   const [saving, setSaving]           = useState(false);
+  const [editResto, setEditResto]     = useState(null);
+  const [editForm, setEditForm]       = useState({});
+  const [editSaving, setEditSaving]   = useState(false);
+  const [editError, setEditError]     = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -608,11 +749,30 @@ function RestaurantsTab() {
 
   const toggle = async (id) => { try { await adminAPI.toggleRestaurant(id); load(); } catch { /* ignore */ } };
 
+  const openEdit = (r) => {
+    setEditResto(r);
+    setEditForm({ nom: r.nom || '', telephone: r.telephone || '', adresse: r.adresse || '', email: r.email || '' });
+    setEditError('');
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     setSaving(true);
     try { await adminAPI.createRestaurant(form); setShowModal(false); setForm({ nom: '', telephone: '', adresse: '', email: '', description: '' }); load(); }
     finally { setSaving(false); }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setEditError('');
+    setEditSaving(true);
+    try {
+      await adminAPI.updateRestaurant(editResto.id, editForm);
+      setEditResto(null);
+      load();
+    } catch (err) {
+      setEditError(err?.response?.data?.message || 'Erreur lors de la mise à jour');
+    } finally { setEditSaving(false); }
   };
 
   return (
@@ -662,9 +822,14 @@ function RestaurantsTab() {
                   </td>
                   <td style={{ padding: '10px 14px' }}><span style={{ background: r.actif ? '#DCFCE7' : '#FEE2E2', color: r.actif ? '#166534' : '#991B1B', borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>{r.actif ? 'Actif' : 'Inactif'}</span></td>
                   <td style={{ padding: '10px 14px' }}>
-                    <button onClick={() => toggle(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: r.actif ? '#DC2626' : '#16A34A' }}>
-                      {r.actif ? <ToggleRight style={{ width: 20, height: 20 }} /> : <ToggleLeft style={{ width: 20, height: 20 }} />}
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button onClick={() => openEdit(r)} title="Modifier" style={{ background: '#EEF2FF', border: 'none', borderRadius: 7, padding: '4px 8px', cursor: 'pointer', color: ACCENT, display: 'flex', alignItems: 'center' }}>
+                        <Pencil style={{ width: 14, height: 14 }} />
+                      </button>
+                      <button onClick={() => toggle(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: r.actif ? '#DC2626' : '#16A34A' }}>
+                        {r.actif ? <ToggleRight style={{ width: 20, height: 20 }} /> : <ToggleLeft style={{ width: 20, height: 20 }} />}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -692,6 +857,35 @@ function RestaurantsTab() {
               <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                 <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: 10, border: '1px solid #E2E8F0', borderRadius: 10, cursor: 'pointer', fontWeight: 600, color: '#475569', background: '#fff' }}>Annuler</button>
                 <button type="submit" disabled={saving} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: saving ? 'not-allowed' : 'pointer', fontWeight: 700, color: '#fff', background: ACCENT, opacity: saving ? 0.7 : 1 }}>{saving ? 'Création…' : 'Créer'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editResto && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 18, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Modifier le restaurant</h3>
+                <p style={{ margin: '2px 0 0', fontSize: 11, color: '#94A3B8' }}>{editResto.nom}</p>
+              </div>
+              <button onClick={() => setEditResto(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}><X style={{ width: 18, height: 18 }} /></button>
+            </div>
+            <form onSubmit={handleUpdate} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div><label style={labelStyle}>Nom *</label><input required value={editForm.nom} onChange={e => setEditForm(f => ({ ...f, nom: e.target.value }))} style={inputStyle} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div><label style={labelStyle}>Téléphone *</label><input required value={editForm.telephone} onChange={e => setEditForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Email</label><input type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
+              </div>
+              <div><label style={labelStyle}>Adresse *</label><input required value={editForm.adresse} onChange={e => setEditForm(f => ({ ...f, adresse: e.target.value }))} style={inputStyle} /></div>
+              {editError && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{editError}</p>}
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <button type="button" onClick={() => setEditResto(null)} style={{ flex: 1, padding: 10, border: '1px solid #E2E8F0', borderRadius: 10, cursor: 'pointer', fontWeight: 600, color: '#475569', background: '#fff' }}>Annuler</button>
+                <button type="submit" disabled={editSaving} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: editSaving ? 'not-allowed' : 'pointer', fontWeight: 700, color: '#fff', background: ACCENT, opacity: editSaving ? 0.7 : 1 }}>
+                  {editSaving ? 'Sauvegarde…' : 'Enregistrer'}
+                </button>
               </div>
             </form>
           </div>
@@ -1224,6 +1418,7 @@ function IntegrationModal({ initial, onClose, onSave }) {
 }
 
 function ConfigTab() {
+  const { user } = useAuth();
   const [configs, setConfigs]         = useState([]);
   const [loading, setLoading]         = useState(true);
   const [saving, setSaving]           = useState({});
@@ -1235,6 +1430,12 @@ function ConfigTab() {
   const [modal, setModal]             = useState(null); // null | {} | {id,…}
   const [testResults, setTestResults] = useState({});
   const [testing, setTesting]         = useState({});
+  const [twoFAEnabled, setTwoFAEnabled] = useState(!!user?.twoFactorEnabled);
+  const [twoFAStep, setTwoFAStep]     = useState(0); // 0=idle, 1=qr, 2=done
+  const [twoFAData, setTwoFAData]     = useState(null);
+  const [twoFACode, setTwoFACode]     = useState('');
+  const [twoFASaving, setTwoFASaving] = useState(false);
+  const [twoFAMsg, setTwoFAMsg]       = useState(null);
 
   const loadConfig = useCallback(async () => {
     setLoading(true);
@@ -1310,6 +1511,44 @@ function ConfigTab() {
       setTestResults(t => ({ ...t, [id]: res.data }));
     } catch { setTestResults(t => ({ ...t, [id]: { ok: false, message: 'Erreur réseau.' } })); }
     finally { setTesting(t => ({ ...t, [id]: false })); }
+  };
+
+  const handleSetup2FA = async () => {
+    setTwoFASaving(true); setTwoFAMsg(null);
+    try {
+      const res = await authAPI.setup2FA();
+      setTwoFAData(res.data);
+      setTwoFAStep(1);
+    } catch (e) {
+      setTwoFAMsg({ ok: false, text: e?.response?.data?.message || 'Erreur lors de la configuration.' });
+    } finally { setTwoFASaving(false); }
+  };
+
+  const handleEnable2FA = async () => {
+    if (twoFACode.length !== 6) { setTwoFAMsg({ ok: false, text: 'Entrez un code à 6 chiffres.' }); return; }
+    setTwoFASaving(true); setTwoFAMsg(null);
+    try {
+      await authAPI.enable2FA(twoFACode);
+      setTwoFAEnabled(true);
+      setTwoFAStep(0);
+      setTwoFAData(null);
+      setTwoFACode('');
+      setTwoFAMsg({ ok: true, text: '2FA activé avec succès.' });
+    } catch (e) {
+      setTwoFAMsg({ ok: false, text: e?.response?.data?.message || 'Code incorrect.' });
+    } finally { setTwoFASaving(false); }
+  };
+
+  const handleDisable2FA = async () => {
+    if (!window.confirm('Désactiver la double authentification ?')) return;
+    setTwoFASaving(true); setTwoFAMsg(null);
+    try {
+      await authAPI.disable2FA();
+      setTwoFAEnabled(false);
+      setTwoFAMsg({ ok: true, text: '2FA désactivé.' });
+    } catch (e) {
+      setTwoFAMsg({ ok: false, text: e?.response?.data?.message || 'Erreur lors de la désactivation.' });
+    } finally { setTwoFASaving(false); }
   };
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#94A3B8' }}>Chargement…</div>;
@@ -1412,6 +1651,88 @@ function ConfigTab() {
             </button>
           </div>
         </div>
+
+        {/* Double authentification (2FA) */}
+        <div style={{ ...card, marginTop: 20 }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Smartphone style={{ width: 16, height: 16, color: '#7C3AED' }} />
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', margin: 0 }}>Double authentification (2FA)</p>
+            <span style={{ marginLeft: 'auto', background: twoFAEnabled ? '#DCFCE7' : '#F1F5F9', color: twoFAEnabled ? '#166534' : '#64748B', borderRadius: 20, padding: '2px 10px', fontSize: 10, fontWeight: 700 }}>
+              {twoFAEnabled ? 'ACTIVÉ' : 'DÉSACTIVÉ'}
+            </span>
+          </div>
+          <div style={{ padding: '14px 20px' }}>
+            {twoFAMsg && (
+              <div style={{ padding: '8px 12px', borderRadius: 8, background: twoFAMsg.ok ? '#DCFCE7' : '#FEE2E2', color: twoFAMsg.ok ? '#166534' : '#991B1B', fontSize: 12, fontWeight: 600, marginBottom: 12 }}>
+                {twoFAMsg.ok
+                  ? <CheckCircle style={{ width: 12, height: 12, marginRight: 6, display: 'inline' }} />
+                  : <XCircle    style={{ width: 12, height: 12, marginRight: 6, display: 'inline' }} />}
+                {twoFAMsg.text}
+              </div>
+            )}
+
+            {twoFAStep === 0 && !twoFAEnabled && (
+              <>
+                <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 12px' }}>Protégez votre compte admin avec une application TOTP (Google Authenticator, Authy…).</p>
+                <button
+                  onClick={handleSetup2FA}
+                  disabled={twoFASaving}
+                  style={{ width: '100%', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 0', cursor: twoFASaving ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: twoFASaving ? 0.7 : 1 }}>
+                  <Smartphone style={{ width: 13, height: 13 }} />
+                  {twoFASaving ? 'Génération du QR…' : 'Configurer le 2FA'}
+                </button>
+              </>
+            )}
+
+            {twoFAStep === 1 && twoFAData && (
+              <>
+                <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 10px' }}>Scannez ce QR code avec votre application TOTP :</p>
+                <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(twoFAData.otpauthUrl)}`}
+                    alt="QR 2FA"
+                    style={{ borderRadius: 8, border: '1px solid #E8EDF5' }}
+                  />
+                </div>
+                <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 4px' }}>Clé secrète (saisie manuelle) :</p>
+                <div style={{ fontFamily: 'monospace', fontSize: 11, background: '#F8FAFC', border: '1px solid #E8EDF5', borderRadius: 6, padding: '6px 10px', marginBottom: 12, wordBreak: 'break-all', color: '#4338CA', letterSpacing: '0.1em' }}>
+                  {twoFAData.secret}
+                </div>
+                <label style={labelStyle}>Code de vérification (6 chiffres)</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="000000"
+                  value={twoFACode}
+                  onChange={e => setTwoFACode(e.target.value.replace(/\D/g, ''))}
+                  style={{ ...inputStyle, letterSpacing: '0.4em', fontSize: 18, fontWeight: 700, textAlign: 'center', marginBottom: 10 }}
+                />
+                <button
+                  onClick={handleEnable2FA}
+                  disabled={twoFASaving || twoFACode.length !== 6}
+                  style={{ width: '100%', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 0', cursor: 'pointer', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: (twoFASaving || twoFACode.length !== 6) ? 0.55 : 1 }}>
+                  <Check style={{ width: 13, height: 13 }} />
+                  {twoFASaving ? 'Vérification…' : 'Activer le 2FA'}
+                </button>
+              </>
+            )}
+
+            {twoFAEnabled && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <p style={{ fontSize: 12, color: '#166534', margin: 0, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <CheckCircle style={{ width: 14, height: 14 }} /> Votre compte est protégé par le 2FA.
+                </p>
+                <button
+                  onClick={handleDisable2FA}
+                  disabled={twoFASaving}
+                  style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <XCircle style={{ width: 12, height: 12 }} /> Désactiver
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* ── Colonne droite : Intégrations dynamiques ── */}
@@ -1501,7 +1822,7 @@ function ConfigTab() {
   );
 }
 
-/* ══════════════════ B2B PENDING BANNER ══════════════════ */
+/* ══════════════════ Bannière — Commandes B2B en attente ══════════════════ */
 function B2BPendingBanner() {
   const [pending, setPending]       = useState([]);
   const [processing, setProcessing] = useState({});
@@ -1552,15 +1873,20 @@ function MetriquesTab() {
   const [backupRunning, setBackupRunning] = useState(false);
   const [loading, setLoading]   = useState(true);
   const [refreshAt, setRefreshAt] = useState(Date.now());
+  const [apiResponseMs, setApiResponseMs] = useState(null);
 
   useEffect(() => {
     setLoading(true);
+    const t0 = Date.now();
     Promise.all([
       adminAPI.getSystemMetrics(),
       adminAPI.getStats(),
       adminAPI.getBackups().catch(() => ({ data: [] })),
     ])
-      .then(([m, s, b]) => { setMetrics(m.data); setStats(s.data); setBackups(Array.isArray(b.data) ? b.data : []); })
+      .then(([m, s, b]) => {
+        setApiResponseMs(Date.now() - t0);
+        setMetrics(m.data); setStats(s.data); setBackups(Array.isArray(b.data) ? b.data : []);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [refreshAt]);
@@ -1584,6 +1910,12 @@ function MetriquesTab() {
 
   if (loading) return <div style={{ padding: 60, textAlign: 'center', color: '#94A3B8' }}>Chargement des métriques…</div>;
 
+  const MONTH_SEC = 30 * 24 * 3600;
+  const uptimePct = metrics ? Math.min(100, (metrics.uptime?.seconds / MONTH_SEC) * 100) : null;
+  const slaColor = uptimePct === null ? '#94A3B8' : uptimePct >= 99.5 ? '#10B981' : uptimePct >= 99 ? '#F59E0B' : '#EF4444';
+  const slaLabel = uptimePct === null ? '—' : uptimePct >= 99.5 ? 'SLA respecté' : uptimePct >= 99 ? 'SLA marginal' : 'SLA critique';
+  const apiLatencyColor = apiResponseMs === null ? '#94A3B8' : apiResponseMs < 500 ? '#10B981' : apiResponseMs < 1500 ? '#F59E0B' : '#EF4444';
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -1592,6 +1924,63 @@ function MetriquesTab() {
           <RefreshCw style={{ width: 13, height: 13 }} /> Actualiser
         </button>
       </div>
+
+      {/* ── SLA & Disponibilité (RG-30) ── */}
+      {uptimePct !== null && (
+        <>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>SLA & Disponibilité</p>
+          <div style={{ ...card, padding: '20px', marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 32, flexWrap: 'wrap' }}>
+              {/* Uptime gauge */}
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Disponibilité (30 j)</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
+                  <span style={{ fontSize: 32, fontWeight: 800, color: slaColor }}>{uptimePct.toFixed(2)}%</span>
+                  <span style={{ fontSize: 12, color: '#94A3B8' }}>/ 99.5% cible</span>
+                </div>
+                <div style={{ height: 8, background: '#F1F5F9', borderRadius: 8, overflow: 'hidden', marginBottom: 8 }}>
+                  <div style={{ height: '100%', width: `${uptimePct}%`, background: slaColor, borderRadius: 8 }} />
+                </div>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: slaColor + '22', color: slaColor, borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
+                  {uptimePct >= 99.5 ? <CheckCircle style={{ width: 12, height: 12 }} /> : <AlertTriangle style={{ width: 12, height: 12 }} />}
+                  {slaLabel}
+                </span>
+              </div>
+
+              {/* API response time */}
+              <div style={{ minWidth: 160 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Temps réponse API</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
+                  <span style={{ fontSize: 32, fontWeight: 800, color: apiLatencyColor }}>{apiResponseMs ?? '—'}</span>
+                  <span style={{ fontSize: 12, color: '#94A3B8' }}>ms</span>
+                </div>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: apiLatencyColor + '22', color: apiLatencyColor, borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
+                  {apiResponseMs !== null && apiResponseMs < 500 ? <CheckCircle style={{ width: 12, height: 12 }} /> : <AlertTriangle style={{ width: 12, height: 12 }} />}
+                  {apiResponseMs === null ? '—' : apiResponseMs < 500 ? '< 500ms ✓' : apiResponseMs < 1500 ? 'Acceptable' : 'Lent'}
+                </span>
+              </div>
+
+              {/* SLA targets checklist */}
+              <div style={{ minWidth: 220 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>Objectifs SLA</p>
+                {[
+                  { label: 'Disponibilité ≥ 99.5%', met: uptimePct >= 99.5 },
+                  { label: 'Réponse API < 500ms', met: apiResponseMs !== null && apiResponseMs < 500 },
+                  { label: `Uptime: ${metrics.uptime?.label ?? '—'}`, met: true },
+                  { label: `Env: ${metrics.env ?? '—'}`, met: metrics.env === 'production' || metrics.env === 'staging' },
+                ].map(row => (
+                  <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    {row.met
+                      ? <CheckCircle style={{ width: 14, height: 14, color: '#10B981', flexShrink: 0 }} />
+                      : <XCircle style={{ width: 14, height: 14, color: '#EF4444', flexShrink: 0 }} />}
+                    <span style={{ fontSize: 12, color: row.met ? '#475569' : '#991B1B' }}>{row.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Process metrics */}
       {metrics && (
@@ -1989,7 +2378,7 @@ const TABS = [
   { id: 'config',        label: 'Configuration',  icon: Settings },
 ];
 
-/* ══════════════════ ROOT ══════════════════ */
+/* ═══ AdminDashboard — Composant principal ═══ */
 export default function AdminDashboard() {
   const location = useLocation();
   const navigate = useNavigate();

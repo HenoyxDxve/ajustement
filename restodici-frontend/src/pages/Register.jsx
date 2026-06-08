@@ -1,4 +1,8 @@
-// src/pages/Register.jsx
+/* ═══════════════════════════════════════════════════════════════
+   Register.jsx — Page d'inscription
+   3 types d'utilisateurs : client, restaurant, entreprise (B2B)
+   Formulaire validé côté client + redirection post-inscription
+   ═══════════════════════════════════════════════════════════════ */
 import { useState } from "react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Mail, Lock, User, Store, Phone, Building2, ChefHat, UtensilsCrossed } from "lucide-react";
@@ -121,13 +125,13 @@ export default function Register() {
     : "Créer un compte";
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#F8FAFC' }}>
+    <div className="min-h-screen min-h-dvh flex" style={{ background: '#F8FAFC' }}>
 
-      {/* ── Left: form ── */}
+      {/* ── Formulaire d'inscription — côté gauche ── */}
       <div className="flex-1 flex flex-col justify-center px-8 py-10 sm:px-12 lg:px-16 xl:px-24 overflow-y-auto">
         <div className="w-full max-w-sm mx-auto">
 
-          {/* Logo */}
+          {/* ── Logo ── */}
           <div className="flex items-center gap-2.5 mb-8">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#FF8C00' }}>
               <UtensilsCrossed style={{ width: 18, height: 18, color: 'white' }} />
@@ -135,7 +139,7 @@ export default function Register() {
             <span className="font-bold text-lg" style={{ color: '#0F172A' }}>Resto d'ici</span>
           </div>
 
-          {/* Heading */}
+          {/* ── Titre selon le type d'inscription ── */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold" style={{ color: '#0F172A' }}>{heading}</h1>
             <p className="mt-1 text-sm" style={{ color: '#64748B' }}>
@@ -145,7 +149,7 @@ export default function Register() {
             </p>
           </div>
 
-          {/* Type tabs */}
+          {/* ── Onglets de sélection du type de compte ── */}
           <div className="flex gap-1 mb-6 p-1 rounded-xl" style={{ background: '#F1F5F9' }}>
             {TABS.map(({ key, label, icon: Icon }) => (
               <button key={key} type="button"
@@ -162,14 +166,14 @@ export default function Register() {
             ))}
           </div>
 
-          {/* Form */}
+          {/* ── Formulaire ── */}
           <form onSubmit={onSubmit} className="space-y-4">
             {apiError && (
               <div className="rounded-xl px-4 py-3 text-sm text-red-700"
                 style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>{apiError}</div>
             )}
 
-            {/* ─── RESTAURANT ─── */}
+            {/* ── Champs spécifiques au compte restaurant ── */}
             {isRestaurant && (
               <>
                 <div className="grid grid-cols-2 gap-3">
@@ -197,7 +201,7 @@ export default function Register() {
               </>
             )}
 
-            {/* ─── BUSINESS ─── */}
+            {/* ── Champs spécifiques au compte entreprise ── */}
             {isBusiness && (
               <>
                 <Field label="Nom de l'entreprise *" icon={Building2} error={errors.nomEntreprise}>
@@ -225,7 +229,7 @@ export default function Register() {
               </>
             )}
 
-            {/* ─── CLIENT ─── */}
+            {/* ── Champs du compte client standard ── */}
             {!isRestaurant && !isBusiness && (
               <>
                 <div className="grid grid-cols-2 gap-3">
@@ -274,7 +278,7 @@ export default function Register() {
         </div>
       </div>
 
-      {/* ── Right: image ── */}
+      {/* ── Image décorative — visible uniquement sur écran ≥ 1024px ── */}
       <div className="hidden lg:block relative w-[44%] shrink-0">
         <img
           src="/burger-hero.jpg"

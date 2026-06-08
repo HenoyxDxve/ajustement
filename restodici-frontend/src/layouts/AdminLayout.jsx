@@ -146,7 +146,7 @@ export default function AdminLayout() {
   const sidebarProps = { user, activeTab, navigate, onLogout: () => setShowLogoutModal(true) };
 
   return (
-    <div className="flex min-h-screen" style={{ background: '#FFFAF3' }}>
+    <div className="flex min-h-screen" style={{ background: '#F5F6F8' }}>
 
       {/* ── Sidebar bureau — visible sur écran ≥ 1024px ── */}
       <aside

@@ -103,7 +103,7 @@ export default function PaiementPage() {
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="w-9 h-9 rounded-2xl bg-[#FBE8DC] flex items-center justify-center text-lg">
+                    <span className="w-9 h-9 rounded-2xl bg-[#FFF0DF] flex items-center justify-center text-lg">
                       <Icon className="w-5 h-5" />
                     </span>
                     <span className="text-sm font-semibold">{option.label}</span>

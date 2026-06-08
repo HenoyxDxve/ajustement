@@ -194,7 +194,7 @@ export default function KDSPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C05015]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8C00]" />
       </div>
     );
   }
@@ -213,7 +213,7 @@ export default function KDSPage() {
         </div>
         <div className="flex items-center gap-3">
           {lastRealtimeEvent && (
-            <span className="text-xs px-3 py-2 rounded-full bg-[#FBE8DC] text-[#9A3E10]">
+            <span className="text-xs px-3 py-2 rounded-full bg-[#FFF0DF] text-[#E07A00]">
               {lastRealtimeEvent}
             </span>
           )}
@@ -237,9 +237,9 @@ export default function KDSPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm">
           <h3 className="font-bold text-base text-[#1C1917] mb-4 flex items-center gap-2">
-            <ChefHat className="w-5 h-5 text-[#C05015]" />
+            <ChefHat className="w-5 h-5 text-[#FF8C00]" />
             Flux opérationnel
-            <span className="ml-auto text-sm font-medium text-[#78716C] bg-[#FBE8DC] px-2.5 py-1 rounded-full">{activeOrders.length}</span>
+            <span className="ml-auto text-sm font-medium text-[#78716C] bg-[#FFF0DF] px-2.5 py-1 rounded-full">{activeOrders.length}</span>
           </h3>
           <div className="space-y-4">
             {activeOrders.map((order) => (
@@ -255,7 +255,7 @@ export default function KDSPage() {
               />
             ))}
             {activeOrders.length === 0 && (
-              <div className="text-center py-8 text-[#9A7060]">
+              <div className="text-center py-8 text-[#6B7280]">
                 Aucune commande active
               </div>
             )}
@@ -266,14 +266,14 @@ export default function KDSPage() {
           <h3 className="font-bold text-base text-[#1C1917] mb-4 flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-[#57534E]" />
             Prêtes / En livraison
-            <span className="ml-auto text-sm font-medium text-[#78716C] bg-[#FBE8DC] px-2.5 py-1 rounded-full">{readyOrders.length}</span>
+            <span className="ml-auto text-sm font-medium text-[#78716C] bg-[#FFF0DF] px-2.5 py-1 rounded-full">{readyOrders.length}</span>
           </h3>
           <div className="space-y-4">
             {readyOrders.map((order) => (
               <OrderCompact key={order.id} order={order} />
             ))}
             {readyOrders.length === 0 && (
-              <div className="text-center py-8 text-[#9A7060]">
+              <div className="text-center py-8 text-[#6B7280]">
                 Aucune commande prête
               </div>
             )}
@@ -400,7 +400,7 @@ function OrderCard({
               key={nextStatus}
               onClick={() => void onStatusUpdate(order.id, nextStatus)}
               disabled={statusSavingId === order.id}
-              className="w-full bg-[#C05015] text-white py-2 rounded-xl hover:bg-[#9A3E10] transition-colors font-medium disabled:opacity-50 text-sm"
+              className="w-full bg-[#FF8C00] text-white py-2 rounded-xl hover:bg-[#E07A00] transition-colors font-medium disabled:opacity-50 text-sm"
             >
               {statusSavingId === order.id
                 ? 'Mise à jour...'
@@ -435,5 +435,5 @@ function StatusIcon({ status }) {
   if (status === 'EN_PREP') return <ChefHat className="w-5 h-5 text-indigo-500" />;
   if (status === 'PRETE') return <CheckCircle className="w-5 h-5 text-green-600" />;
   if (status === 'EN_LIVRAISON') return <Truck className="w-5 h-5 text-purple-600" />;
-  return <Clock className="w-5 h-5 text-[#9A7060]" />;
+  return <Clock className="w-5 h-5 text-[#6B7280]" />;
 }

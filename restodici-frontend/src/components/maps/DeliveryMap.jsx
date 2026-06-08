@@ -121,11 +121,11 @@ export default function DeliveryMap({ value, onChange, heightClassName = 'h-72',
     <div className={`relative ${heightClassName} ${className}`} style={{ isolation: 'isolate' }}>
       <div
         ref={containerRef}
-        className="absolute inset-0 rounded-xl overflow-hidden border border-[#E2E8F0] bg-[#FBE8DC]"
+        className="absolute inset-0 rounded-xl overflow-hidden border border-[#E2E8F0] bg-[#FFF0DF]"
       />
       {!ready && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[#FBE8DC]">
-          <div className="text-center text-sm text-[#9A7060]">
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[#FFF0DF]">
+          <div className="text-center text-sm text-[#6B7280]">
             <MapPin className="mx-auto mb-2 h-8 w-8 opacity-40" />
             Chargement de la carte…
           </div>
@@ -137,7 +137,7 @@ export default function DeliveryMap({ value, onChange, heightClassName = 'h-72',
           onClick={handleLocate}
           disabled={locating}
           title="Utiliser ma position"
-          className="absolute bottom-3 right-3 z-[1000] flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-[#0F172A] shadow-md transition hover:bg-[#FBE8DC] hover:text-[#C05015] disabled:opacity-50"
+          className="absolute bottom-3 right-3 z-[1000] flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-[#0F172A] shadow-md transition hover:bg-[#FFF0DF] hover:text-[#FF8C00] disabled:opacity-50"
         >
           <LocateFixed className={`h-4 w-4 ${locating ? 'animate-pulse' : ''}`} />
           {locating ? 'Localisation…' : 'Ma position'}

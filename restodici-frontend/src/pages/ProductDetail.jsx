@@ -111,7 +111,7 @@ export default function ProductDetail() {
                   className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
                     selectedSpicy === level.id
                       ? 'bg-primary text-white shadow-button'
-                      : 'bg-[#FBE8DC] text-neutral-600 hover:bg-neutral-200'
+                      : 'bg-[#FFF0DF] text-neutral-600 hover:bg-neutral-200'
                   }`}
                 >
                   {level.nom}
@@ -124,7 +124,7 @@ export default function ProductDetail() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-neutral-900">Suppléments</h3>
-              <span className="text-xs text-neutral-400 bg-[#FBE8DC] px-3 py-1 rounded-full">Optionnel</span>
+              <span className="text-xs text-neutral-400 bg-[#FFF0DF] px-3 py-1 rounded-full">Optionnel</span>
             </div>
             <div className="space-y-3">
               {product.supplements.map(sup => (
@@ -161,7 +161,7 @@ export default function ProductDetail() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 p-4 z-30">
         <div className="flex items-center gap-4">
           {/* Sélecteur quantité */}
-          <div className="flex items-center gap-3 bg-[#FBE8DC] rounded-xl px-2 py-2">
+          <div className="flex items-center gap-3 bg-[#FFF0DF] rounded-xl px-2 py-2">
             <button 
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               className="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-lg font-bold text-neutral-700 hover:bg-white"

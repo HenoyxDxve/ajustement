@@ -98,6 +98,15 @@ export class B2BController {
     return this.b2bService.getCollaborateurSolde(id, req.user.id);
   }
 
+  @Patch('collaborateurs/:id')
+  async updateCollaborateur(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() dto: Partial<CreateCollaborateurB2BDto>,
+  ) {
+    return this.b2bService.updateCollaborateurB2B(id, req.user.id, dto);
+  }
+
   @Delete('collaborateurs/:id')
   async deactivateCollaborateur(
     @Req() req: RequestWithUser,

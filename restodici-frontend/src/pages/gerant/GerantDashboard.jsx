@@ -121,11 +121,11 @@ function B2BCountdown({ deadlineAt, statut }) {
 /* ── Constantes de couleurs et thème visuel ── */
 const COLORS = {
   primary: {
-    bg: "bg-[#FBE8DC]",
-    border: "border-[rgba(224,78,26,0.2)]",
-    text: "text-[#C05015]",
-    button: "bg-[#C05015] hover:bg-[#9A3E10]",
-    light: "bg-[#FFE4D4]",
+    bg: "bg-[#FFF0DF]",
+    border: "border-[rgba(0,0,0,0.07)]",
+    text: "text-[#FF8C00]",
+    button: "bg-[#FF8C00] hover:bg-[#E07A00]",
+    light: "bg-[#FFF0DF]",
   },
   secondary: {
     bg: "bg-emerald-50",
@@ -136,10 +136,10 @@ const COLORS = {
   },
   accent: {
     bg: "bg-white",
-    border: "border-[rgba(197,138,85,0.25)]",
-    text: "text-[#F97316]",
-    button: "bg-[#F97316] hover:bg-[#A87040]",
-    light: "bg-[#F5E8D5]",
+    border: "border-[rgba(0,0,0,0.07)]",
+    text: "text-[#FF8C00]",
+    button: "bg-[#FF8C00] hover:bg-[#E07A00]",
+    light: "bg-[#FFF0DF]",
   },
   warning: {
     bg: "bg-amber-50",
@@ -226,7 +226,7 @@ function DeliveryZonesMap({ restaurantPosition, selectedPosition, zones, onPick 
           type="button"
           onClick={handleLocate}
           disabled={locating}
-          className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-[#0F172A] shadow-sm transition hover:bg-[#FBE8DC] hover:text-[#C05015] disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-[#0F172A] shadow-sm transition hover:bg-[#FFF0DF] hover:text-[#FF8C00] disabled:opacity-50"
         >
           <LocateFixed className={`h-4 w-4 ${locating ? 'animate-pulse' : ''}`} />
           {locating ? 'Localisation…' : 'Utiliser ma position'}
@@ -509,7 +509,7 @@ function MenuTab({ restaurantId, token }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="h-9 w-9 rounded-full border-4 border-[#C05015] border-t-transparent animate-spin" />
+        <div className="h-9 w-9 rounded-full border-4 border-[#FF8C00] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -519,7 +519,7 @@ function MenuTab({ restaurantId, token }) {
       <section className="rounded-[28px] border border-[#E2E8F0] bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#FBE8DC] px-3 py-1 text-xs font-medium text-[#C05015]">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#FFF0DF] px-3 py-1 text-xs font-medium text-[#FF8C00]">
               <Package className="h-3.5 w-3.5" />
               Gestion visuelle du catalogue
             </div>
@@ -530,13 +530,13 @@ function MenuTab({ restaurantId, token }) {
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
-              <span className="rounded-full bg-[#FBE8DC] px-3 py-1.5 text-[#1A1A1A]">
+              <span className="rounded-full bg-[#FFF0DF] px-3 py-1.5 text-[#1A1A1A]">
                 {articles.length} article(s)
               </span>
-              <span className="rounded-full bg-[#FBE8DC] px-3 py-1.5 text-[#1A1A1A]">
+              <span className="rounded-full bg-[#FFF0DF] px-3 py-1.5 text-[#1A1A1A]">
                 {articles.filter((article) => article.disponible).length} disponible(s)
               </span>
-              <span className="rounded-full bg-[#FBE8DC] px-3 py-1.5 text-[#C05015]">
+              <span className="rounded-full bg-[#FFF0DF] px-3 py-1.5 text-[#FF8C00]">
                 {categories.length} catégorie(s)
               </span>
             </div>
@@ -551,7 +551,7 @@ function MenuTab({ restaurantId, token }) {
             </button>
             <button
               onClick={() => setShowAddForm(!showAddForm)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#C05015] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#9A3E10]"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#FF8C00] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E07A00]"
             >
               <Plus className="h-4 w-4" />
               {showAddForm ? "Fermer article" : "Nouvel article"}
@@ -574,7 +574,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewCategory({ ...newCategory, nom: e.target.value })
                 }
-                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] ${categoryErrors.nom ? "border-red-500" : "border-[#E2E8F0]"}`}
+                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] ${categoryErrors.nom ? "border-red-500" : "border-[#E2E8F0]"}`}
                 placeholder="Ex: Plats Principaux"
               />
               {categoryErrors.nom && (
@@ -591,7 +591,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewCategory({ ...newCategory, icone: e.target.value })
                 }
-                className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015]"
+                className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
                 placeholder="Ex: 🍽️"
               />
             </div>
@@ -599,7 +599,7 @@ function MenuTab({ restaurantId, token }) {
           <div className="flex flex-wrap gap-3 pt-2">
             <button
               onClick={handleCreateCategory}
-              className="rounded-2xl bg-[#C05015] px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-[#9A3E10]"
+              className="rounded-2xl bg-[#FF8C00] px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-[#E07A00]"
             >
               Créer la catégorie
             </button>
@@ -608,7 +608,7 @@ function MenuTab({ restaurantId, token }) {
                 setShowCategoryForm(false);
                 setCategoryErrors({});
               }}
-              className="rounded-2xl border border-[#E2E8F0] bg-white px-6 py-3 font-semibold text-[#0F172A] transition hover:bg-[#FBE8DC]"
+              className="rounded-2xl border border-[#E2E8F0] bg-white px-6 py-3 font-semibold text-[#0F172A] transition hover:bg-[#FFF0DF]"
             >
               Annuler
             </button>
@@ -628,7 +628,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewArticle({ ...newArticle, nom: e.target.value })
                 }
-                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] ${formErrors.nom ? "border-red-500" : "border-[#E2E8F0]"}`}
+                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] ${formErrors.nom ? "border-red-500" : "border-[#E2E8F0]"}`}
                 placeholder="Ex: Attiéké Poisson"
               />
               {formErrors.nom && <p className="mt-1 text-xs text-red-500">{formErrors.nom}</p>}
@@ -642,7 +642,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewArticle({ ...newArticle, prix: e.target.value })
                 }
-                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] ${formErrors.prix ? "border-red-500" : "border-[#E2E8F0]"}`}
+                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] ${formErrors.prix ? "border-red-500" : "border-[#E2E8F0]"}`}
                 placeholder="Ex: 3500"
               />
               {formErrors.prix && <p className="mt-1 text-xs text-red-500">{formErrors.prix}</p>}
@@ -654,7 +654,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewArticle({ ...newArticle, categorieId: e.target.value })
                 }
-                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] ${formErrors.categorieId ? "border-red-500" : "border-[#E2E8F0]"}`}
+                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] ${formErrors.categorieId ? "border-red-500" : "border-[#E2E8F0]"}`}
               >
                 <option value="">Sélectionner une catégorie</option>
                 {categories.map((cat) => (
@@ -676,7 +676,7 @@ function MenuTab({ restaurantId, token }) {
                 onChange={(e) =>
                   setNewArticle({ ...newArticle, stock: e.target.value })
                 }
-                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] ${formErrors.stock ? "border-red-500" : "border-[#E2E8F0]"}`}
+                className={`w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] ${formErrors.stock ? "border-red-500" : "border-[#E2E8F0]"}`}
                 placeholder="Ex: 50"
               />
               {formErrors.stock && <p className="mt-1 text-xs text-red-500">{formErrors.stock}</p>}
@@ -691,7 +691,7 @@ function MenuTab({ restaurantId, token }) {
                     onChange={(e) =>
                       setNewArticle({ ...newArticle, photoUrl: e.target.value })
                     }
-                    className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015]"
+                    className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
                     placeholder="URL de l'image ou laissez vide"
                   />
                   <p className="mt-2 text-xs text-[#78716C]">
@@ -727,7 +727,7 @@ function MenuTab({ restaurantId, token }) {
               onChange={(e) =>
                 setNewArticle({ ...newArticle, description: e.target.value })
               }
-              className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015]"
+              className="w-full rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
               rows="3"
               placeholder="Description du plat..."
             />
@@ -757,7 +757,7 @@ function MenuTab({ restaurantId, token }) {
             <div className="flex items-center gap-2">
               <input type="checkbox" id="new-menu-jour" checked={!!newArticle.estMenuDuJour}
                 onChange={e => setNewArticle(p => ({ ...p, estMenuDuJour: e.target.checked }))}
-                className="accent-[#C05015] h-4 w-4" />
+                className="accent-[#FF8C00] h-4 w-4" />
               <label htmlFor="new-menu-jour" className="text-sm font-bold text-amber-900 cursor-pointer">
                 📅 Menu du jour (activation/désactivation automatique)
               </label>
@@ -784,7 +784,7 @@ function MenuTab({ restaurantId, token }) {
           <div className="flex flex-wrap gap-3 pt-2">
             <button
               onClick={handleAddArticle}
-              className="rounded-2xl bg-[#C05015] px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-[#9A3E10]"
+              className="rounded-2xl bg-[#FF8C00] px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-[#E07A00]"
             >
               Créer l'article
             </button>
@@ -793,7 +793,7 @@ function MenuTab({ restaurantId, token }) {
                 setShowAddForm(false);
                 setFormErrors({});
               }}
-              className="rounded-2xl border border-[#E2E8F0] bg-white px-6 py-3 font-semibold text-[#0F172A] transition hover:bg-[#FBE8DC]"
+              className="rounded-2xl border border-[#E2E8F0] bg-white px-6 py-3 font-semibold text-[#0F172A] transition hover:bg-[#FFF0DF]"
             >
               Annuler
             </button>
@@ -809,7 +809,7 @@ function MenuTab({ restaurantId, token }) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Rechercher un article ou une catégorie..."
-            className="w-full rounded-2xl border border-[#E2E8F0] bg-white py-3 pl-10 pr-4 outline-none transition focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015]"
+            className="w-full rounded-2xl border border-[#E2E8F0] bg-white py-3 pl-10 pr-4 outline-none transition focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00]"
           />
         </div>
       </div>
@@ -823,7 +823,7 @@ function MenuTab({ restaurantId, token }) {
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-[#FBE8DC] text-2xl shadow-sm">
+                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-[#FFF0DF] text-2xl shadow-sm">
                     <img
                       src={getArticleImage(a, { width: 128, quality: 70 })}
                       alt={a.nom}
@@ -834,11 +834,11 @@ function MenuTab({ restaurantId, token }) {
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-semibold text-[#1C1917]">{a.nom}</p>
-                      <span className="rounded-full bg-[#FBE8DC] px-2.5 py-1 text-xs font-medium text-[#57534E]">
+                      <span className="rounded-full bg-[#FFF0DF] px-2.5 py-1 text-xs font-medium text-[#57534E]">
                         {a.categorie?.nom || "Sans catégorie"}
                       </span>
                       <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${a.disponible ? "bg-[#FBE8DC] text-[#1A1A1A]" : "bg-red-50 text-red-700"}`}
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${a.disponible ? "bg-[#FFF0DF] text-[#1A1A1A]" : "bg-red-50 text-red-700"}`}
                       >
                         {a.disponible ? "Disponible" : "Masqué"}
                       </span>
@@ -860,9 +860,9 @@ function MenuTab({ restaurantId, token }) {
                   <div className="flex items-center gap-2">
                     {a.promoActif && a.prixPromo ? (
                       <>
-                        <span className="text-lg font-bold text-[#C05015]">{formatFCFA(Number(a.prixPromo))}</span>
-                        <span className="text-sm text-[#9A7060] line-through">{formatFCFA(Number(a.prix || 0))}</span>
-                        <span className="rounded-full bg-[#C05015] px-2 py-0.5 text-[10px] font-bold text-white">PROMO</span>
+                        <span className="text-lg font-bold text-[#FF8C00]">{formatFCFA(Number(a.prixPromo))}</span>
+                        <span className="text-sm text-[#6B7280] line-through">{formatFCFA(Number(a.prix || 0))}</span>
+                        <span className="rounded-full bg-[#FF8C00] px-2 py-0.5 text-[10px] font-bold text-white">PROMO</span>
                       </>
                     ) : (
                       <span className="text-lg font-bold text-[#1C1917]">{formatFCFA(Number(a.prix || 0))}</span>
@@ -870,7 +870,7 @@ function MenuTab({ restaurantId, token }) {
                   </div>
                   <button
                     onClick={() => handleToggleDisponibilite(a.id, !a.disponible)}
-                    className={`relative h-8 w-14 rounded-full transition-all ${a.disponible ? "bg-[#C05015]" : "bg-[#D1CBC5]"}`}
+                    className={`relative h-8 w-14 rounded-full transition-all ${a.disponible ? "bg-[#FF8C00]" : "bg-[#D1CBC5]"}`}
                     title={a.disponible ? "Désactiver" : "Activer"}
                   >
                     <span
@@ -908,7 +908,7 @@ function MenuTab({ restaurantId, token }) {
       {editArticle && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && setEditArticle(null)}>
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div className="bg-[#C05015] px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#FF8C00] px-6 py-4 flex items-center justify-between">
               <h3 className="text-white font-extrabold">Modifier l'article</h3>
               <button onClick={() => setEditArticle(null)} className="text-white/70 hover:text-white"><X className="w-4 h-4" /></button>
             </div>
@@ -922,7 +922,7 @@ function MenuTab({ restaurantId, token }) {
                 <div key={f.k} className="space-y-1">
                   <label className="text-xs font-semibold text-[#1A1A1A]">{f.label}</label>
                   <input type={f.type} value={editArticle[f.k] || ''} onChange={e => setEditArticle(p => ({ ...p, [f.k]: e.target.value }))}
-                    className="w-full bg-[#FDDDD4] border-0 rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#C05015]/40" />
+                    className="w-full bg-[#FFF0DF] border-0 rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF8C00]/40" />
                 </div>
               ))}
               {/* Photo article */}
@@ -931,8 +931,8 @@ function MenuTab({ restaurantId, token }) {
                 <div className="flex gap-3 items-start">
                   <div className="flex-1 space-y-2">
                     <input type="text" value={editArticle.photoUrl || ''} onChange={e => setEditArticle(p => ({ ...p, photoUrl: e.target.value }))}
-                      placeholder="URL de la photo" className="w-full bg-[#FDDDD4] border-0 rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#C05015]/40" />
-                    <label className={`flex items-center gap-2 cursor-pointer text-xs font-semibold px-3 py-2 rounded-xl border border-dashed border-[#C05015]/40 text-[#C05015] hover:bg-[#FBE8DC] transition ${uploadingEdit ? 'opacity-60 pointer-events-none' : ''}`}>
+                      placeholder="URL de la photo" className="w-full bg-[#FFF0DF] border-0 rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF8C00]/40" />
+                    <label className={`flex items-center gap-2 cursor-pointer text-xs font-semibold px-3 py-2 rounded-xl border border-dashed border-[#FF8C00]/40 text-[#FF8C00] hover:bg-[#FFF0DF] transition ${uploadingEdit ? 'opacity-60 pointer-events-none' : ''}`}>
                       {uploadingEdit ? 'Upload en cours…' : '📷 Télécharger une photo'}
                       <input type="file" accept="image/*" className="hidden" disabled={uploadingEdit}
                         onChange={e => handleEditFileUpload(e.target.files[0])} />
@@ -943,31 +943,31 @@ function MenuTab({ restaurantId, token }) {
                       <img src={editArticle.photoUrl} alt="Aperçu" className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className="w-20 h-20 rounded-xl bg-[#FBE8DC] flex items-center justify-center text-2xl flex-shrink-0">🍽️</div>
+                    <div className="w-20 h-20 rounded-xl bg-[#FFF0DF] flex items-center justify-center text-2xl flex-shrink-0">🍽️</div>
                   )}
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-[#1A1A1A]">Catégorie</label>
                 <select value={editArticle.categorieId || ''} onChange={e => setEditArticle(p => ({ ...p, categorieId: e.target.value }))}
-                  className="w-full bg-[#FDDDD4] border-0 rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#C05015]/40">
+                  className="w-full bg-[#FFF0DF] border-0 rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF8C00]/40">
                   <option value="">Sélectionner…</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
                 </select>
               </div>
               {/* Prix promo */}
-              <div className="rounded-xl bg-[#FBE8DC] p-3 space-y-2">
-                <p className="text-xs font-bold text-[#C05015] uppercase tracking-wide">Prix promotionnel (optionnel)</p>
+              <div className="rounded-xl bg-[#FFF0DF] p-3 space-y-2">
+                <p className="text-xs font-bold text-[#FF8C00] uppercase tracking-wide">Prix promotionnel (optionnel)</p>
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-[#1A1A1A]">Prix promo (F CFA)</label>
                   <input type="number" min="0" value={editArticle.prixPromo || ''} onChange={e => setEditArticle(p => ({ ...p, prixPromo: e.target.value }))}
                     placeholder="Ex : 2 500"
-                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#C05015]/40" />
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF8C00]/40" />
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="checkbox" id="edit-promo-actif" checked={!!editArticle.promoActif}
                     onChange={e => setEditArticle(p => ({ ...p, promoActif: e.target.checked }))} />
-                  <label htmlFor="edit-promo-actif" className="text-sm font-semibold text-[#C05015]">Activer le prix promo</label>
+                  <label htmlFor="edit-promo-actif" className="text-sm font-semibold text-[#FF8C00]">Activer le prix promo</label>
                 </div>
               </div>
               {/* Variantes */}
@@ -1017,7 +1017,7 @@ function MenuTab({ restaurantId, token }) {
                 <label htmlFor="edit-dispo" className="text-sm font-semibold text-[#1A1A1A]">Disponible</label>
               </div>
               <button onClick={handleUpdateArticle}
-                className="w-full py-3 rounded-2xl bg-[#C05015] hover:bg-[#9A3E10] text-white font-bold text-sm flex items-center justify-center gap-2">
+                className="w-full py-3 rounded-2xl bg-[#FF8C00] hover:bg-[#E07A00] text-white font-bold text-sm flex items-center justify-center gap-2">
                 <Pencil className="w-3.5 h-3.5" />Enregistrer les modifications
               </button>
             </div>
@@ -1151,15 +1151,15 @@ function OrdersTab({ restaurantId }) {
 
   const getStatusColor = (status) => {
     const colors = {
-      RECUE: "bg-[#FBE8DC] text-[#C05015]",
-      CONFIRMEE: "bg-[#FBE8DC] text-[#1A1A1A]",
-      EN_PREP: "bg-[#FBE8DC] text-[#9A3E10]",
-      PRETE: "bg-[#FBE8DC] text-[#1C1917]",
-      LIVREE: "bg-[#FBE8DC] text-[#57534E]",
+      RECUE: "bg-[#FFF0DF] text-[#FF8C00]",
+      CONFIRMEE: "bg-[#FFF0DF] text-[#1A1A1A]",
+      EN_PREP: "bg-[#FFF0DF] text-[#E07A00]",
+      PRETE: "bg-[#FFF0DF] text-[#1C1917]",
+      LIVREE: "bg-[#FFF0DF] text-[#57534E]",
       ANNULEE: "bg-red-50 text-red-700",
       EN_ATTENTE: "bg-[#FFFBEB] text-[#92400E]",
     };
-    return colors[status] || "bg-[#FBE8DC] text-[#1A1A1A]";
+    return colors[status] || "bg-[#FFF0DF] text-[#1A1A1A]";
   };
 
   const getStatusLabel = (status) => {
@@ -1189,7 +1189,7 @@ function OrdersTab({ restaurantId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="w-8 h-8 border-4 border-[#C05015] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#FF8C00] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -1215,7 +1215,7 @@ function OrdersTab({ restaurantId }) {
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <span className="font-semibold">Commande #{order.numero}</span>
-                  <span className="text-xs px-2 py-1 rounded-full bg-[#FBE8DC] text-slate-700">
+                  <span className="text-xs px-2 py-1 rounded-full bg-[#FFF0DF] text-slate-700">
                     {order.source}
                   </span>
                   <span
@@ -1227,7 +1227,7 @@ function OrdersTab({ restaurantId }) {
                 <p className="text-sm text-gray-600">
                   {new Date(order.createdAt).toLocaleString("fr-FR")}
                 </p>
-                <p className="text-sm text-[#9A7060]">Référence CDC: {order.numero}</p>
+                <p className="text-sm text-[#6B7280]">Référence CDC: {order.numero}</p>
                 <p className="font-bold text-[#1C1917]">
                   {Number(order.amount || 0).toLocaleString()} FCFA
                 </p>
@@ -1244,7 +1244,7 @@ function OrdersTab({ restaurantId }) {
                 {order.type === "CLIENT" && canConfirmOrder(order) && (
                   <button
                     onClick={() => updateOrderStatus(order.id, "CONFIRMEE")}
-                    className="px-3 py-1.5 bg-[#C05015] text-white rounded-lg text-sm hover:bg-[#9A3E10] transition"
+                    className="px-3 py-1.5 bg-[#FF8C00] text-white rounded-lg text-sm hover:bg-[#E07A00] transition"
                   >
                     Valider
                   </button>
@@ -1274,7 +1274,7 @@ function OrdersTab({ restaurantId }) {
                   </button>
                 )}
                 {order.type === "B2B" && (
-                  <span className="px-3 py-1.5 bg-[#FBE8DC] text-slate-700 rounded-lg text-sm">
+                  <span className="px-3 py-1.5 bg-[#FFF0DF] text-slate-700 rounded-lg text-sm">
                     Commande entreprise - lecture seule
                   </span>
                 )}
@@ -1286,7 +1286,7 @@ function OrdersTab({ restaurantId }) {
                     <button
                       onClick={() => handleDownloadReceipt(order)}
                       disabled={receiptLoading[order.id]}
-                      className="flex items-center gap-1.5 px-3 py-1.5 border border-[#C05015] text-[#C05015] rounded-lg text-sm hover:bg-[#FBE8DC] transition disabled:opacity-60"
+                      className="flex items-center gap-1.5 px-3 py-1.5 border border-[#FF8C00] text-[#FF8C00] rounded-lg text-sm hover:bg-[#FFF0DF] transition disabled:opacity-60"
                       title="Télécharger le reçu PDF (RG-16)"
                     >
                       <FileText className="w-3.5 h-3.5" />
@@ -1405,16 +1405,16 @@ function StocksTab({ restaurantId }) {
 <style>
   body{font-family:Georgia,serif;color:#1A0C00;padding:40px;max-width:700px;margin:auto}
   h1{font-size:22px;margin:0}
-  .meta{display:flex;justify-content:space-between;margin:24px 0;padding:16px;background:#FBE8DC;border-radius:8px}
+  .meta{display:flex;justify-content:space-between;margin:24px 0;padding:16px;background:#FFF0DF;border-radius:8px}
   .block{margin-bottom:20px}
-  .block h3{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#9A7060;margin:0 0 6px}
+  .block h3{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#6B7280;margin:0 0 6px}
   table{width:100%;border-collapse:collapse;margin-top:16px}
   th{background:#1A0C00;color:#fff;padding:8px 12px;text-align:left;font-size:12px}
   td{padding:8px 12px;border-bottom:1px solid #E2D8CC;font-size:13px}
   tr:last-child td{border-bottom:none}
-  .total{text-align:right;font-size:16px;font-weight:bold;margin-top:16px;color:#C05015}
+  .total{text-align:right;font-size:16px;font-weight:bold;margin-top:16px;color:#FF8C00}
   .sig{display:flex;gap:40px;margin-top:48px}
-  .sig div{flex:1;border-top:1px solid #1A0C00;padding-top:8px;font-size:11px;color:#9A7060}
+  .sig div{flex:1;border-top:1px solid #1A0C00;padding-top:8px;font-size:11px;color:#6B7280}
   @media print{body{padding:20px}}
 </style></head><body>
 <h1>Bon de Commande</h1>
@@ -1535,7 +1535,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="h-9 w-9 rounded-full border-4 border-[#C05015] border-t-transparent animate-spin" />
+        <div className="h-9 w-9 rounded-full border-4 border-[#FF8C00] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -1552,7 +1552,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
       {/* KPI header */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Articles suivis', value: stocks.length, icon: Package, iconBg: '#FBE8DC', iconColor: '#C05015' },
+          { label: 'Articles suivis', value: stocks.length, icon: Package, iconBg: '#FFF0DF', iconColor: '#FF8C00' },
           { label: 'Niveaux OK', value: okItems, icon: CheckCircle, iconBg: '#F0FDF4', iconColor: '#16A34A' },
           { label: 'Alertes critiques', value: criticalItems.length, icon: AlertTriangle, iconBg: criticalItems.length > 0 ? '#FEF2F2' : '#F0FDF4', iconColor: criticalItems.length > 0 ? '#DC2626' : '#16A34A' },
         ].map(({ label, value, icon: Icon, iconBg, iconColor }) => (
@@ -1561,7 +1561,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
               <Icon className="w-5 h-5" style={{ color: iconColor }} />
             </div>
             <div>
-              <p className="text-xs font-semibold text-[#9A7060] uppercase tracking-wide">{label}</p>
+              <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide">{label}</p>
               <p className="text-2xl font-extrabold text-[#0F172A]">{value}</p>
             </div>
           </div>
@@ -1584,16 +1584,16 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#F4F6F8]">
           <div>
             <h4 className="text-sm font-bold text-[#0F172A]">Inventaire</h4>
-            <p className="text-xs text-[#9A7060] mt-0.5">Vue détaillée par article avec niveau de stock</p>
+            <p className="text-xs text-[#6B7280] mt-0.5">Vue détaillée par article avec niveau de stock</p>
           </div>
           <button onClick={loadStocks}
-            className="flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-xs font-semibold text-[#475569] hover:border-[#C05015]/40 hover:text-[#C05015] transition-colors">
+            className="flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-xs font-semibold text-[#475569] hover:border-[#FF8C00]/40 hover:text-[#FF8C00] transition-colors">
             <RefreshCcw className="w-3.5 h-3.5" />
             Actualiser
           </button>
         </div>
         {stocks.length === 0 ? (
-          <div className="px-5 py-12 text-center text-[#9A7060] text-sm">
+          <div className="px-5 py-12 text-center text-[#6B7280] text-sm">
             <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-[#E2E8F0]" />
             Aucun article dans le stock
           </div>
@@ -1619,10 +1619,10 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className={`text-lg font-extrabold ${isAlert ? 'text-red-600' : 'text-[#0F172A]'}`}>{stockVal}</p>
-                    <p className="text-xs text-[#9A7060]">{item.unite || 'unités'}</p>
+                    <p className="text-xs text-[#6B7280]">{item.unite || 'unités'}</p>
                   </div>
                   <div className="text-right flex-shrink-0 hidden sm:block w-20">
-                    <p className="text-[10px] text-[#9A7060] uppercase tracking-wide">Seuil min.</p>
+                    <p className="text-[10px] text-[#6B7280] uppercase tracking-wide">Seuil min.</p>
                     <p className="text-sm font-semibold text-[#475569]">{seuil} {item.unite || 'u.'}</p>
                   </div>
                 </div>
@@ -1638,7 +1638,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
         <div className="flex border-b border-[#E2E8F0]">
           <button
             onClick={() => setStockTab('entree')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${stockTab === 'entree' ? 'bg-[#FBE8DC] text-[#C05015] border-b-2 border-[#C05015]' : 'text-[#64748B] hover:bg-[#F8FAFC]'}`}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${stockTab === 'entree' ? 'bg-[#FFF0DF] text-[#FF8C00] border-b-2 border-[#FF8C00]' : 'text-[#64748B] hover:bg-[#F8FAFC]'}`}
           >
             <Plus className="w-4 h-4" /> Entrée de stock
           </button>
@@ -1665,8 +1665,8 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
         <div className="p-5">
           {stockTab === 'entree' ? (
             <>
-              <p className="text-xs text-[#9A7060] mb-4 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-[#C05015] inline-block" />
+              <p className="text-xs text-[#6B7280] mb-4 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-[#FF8C00] inline-block" />
                 Réception marchandise — fournisseur <strong>obligatoire</strong> (RG-24)
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -1674,7 +1674,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
                   <label className="mb-1 block text-xs font-semibold text-[#475569]">Article</label>
                   <select value={entreeForm.articleId}
                     onChange={e => setEntreeForm({ ...entreeForm, articleId: e.target.value })}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] transition">
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition">
                     <option value="">Sélectionner un article</option>
                     {stocks.map(item => <option key={item.id} value={item.id}>{item.nom}</option>)}
                   </select>
@@ -1690,7 +1690,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
                   ) : (
                     <select value={entreeForm.fournisseurId}
                       onChange={e => setEntreeForm({ ...entreeForm, fournisseurId: e.target.value })}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] transition">
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition">
                       <option value="">Sélectionner un fournisseur</option>
                       {fournisseurs.map(f => <option key={f.id} value={f.id}>{f.nom}{f.delaiLivraison ? ` (${f.delaiLivraison}j)` : ''}</option>)}
                     </select>
@@ -1700,19 +1700,19 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
                   <label className="mb-1 block text-xs font-semibold text-[#475569]">Quantité reçue</label>
                   <input type="number" min="1" value={entreeForm.quantity}
                     onChange={e => setEntreeForm({ ...entreeForm, quantity: e.target.value })}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] transition"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition"
                     placeholder="Ex: 10" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-[#475569]">Motif / Référence bon de livraison</label>
                   <input type="text" value={entreeForm.motif}
                     onChange={e => setEntreeForm({ ...entreeForm, motif: e.target.value })}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] transition"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition"
                     placeholder="BL-2026-042, livraison hebdo..." />
                 </div>
               </div>
               <button onClick={handleEntreeStock} disabled={saving || !entreeForm.fournisseurId}
-                className="flex items-center gap-2 rounded-xl bg-[#C05015] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#9A3E10] disabled:opacity-60">
+                className="flex items-center gap-2 rounded-xl bg-[#FF8C00] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E07A00] disabled:opacity-60">
                 {saving ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Plus className="w-4 h-4" />}
                 {saving ? 'Enregistrement...' : 'Enregistrer la réception'}
               </button>
@@ -1727,7 +1727,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
                   <label className="mb-1 block text-xs font-semibold text-[#475569]">Article</label>
                   <select value={adjustmentForm.articleId}
                     onChange={e => setAdjustmentForm({ ...adjustmentForm, articleId: e.target.value })}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#C05015] focus:ring-1 transition">
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#FF8C00] focus:ring-1 transition">
                     <option value="">Sélectionner un article</option>
                     {stocks.map(item => <option key={item.id} value={item.id}>{item.nom}</option>)}
                   </select>
@@ -1736,14 +1736,14 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
                   <label className="mb-1 block text-xs font-semibold text-[#475569]">Quantité (+/-)</label>
                   <input type="number" value={adjustmentForm.quantity}
                     onChange={e => setAdjustmentForm({ ...adjustmentForm, quantity: e.target.value })}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#C05015] focus:ring-1 transition"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#FF8C00] focus:ring-1 transition"
                     placeholder="Ex: -2 (casse)" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-[#475569]">Motif</label>
                   <input type="text" value={adjustmentForm.motif}
                     onChange={e => setAdjustmentForm({ ...adjustmentForm, motif: e.target.value })}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#C05015] focus:ring-1 transition"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm outline-none focus:border-[#FF8C00] focus:ring-1 transition"
                     placeholder="Casse, correction inventaire..." />
                 </div>
               </div>
@@ -1758,7 +1758,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm font-bold text-emerald-800">Rapport d'écarts inventaire</p>
-                  <p className="text-xs text-[#9A7060] mt-0.5">Saisissez le stock réel compté — l'écart est calculé automatiquement</p>
+                  <p className="text-xs text-[#6B7280] mt-0.5">Saisissez le stock réel compté — l'écart est calculé automatiquement</p>
                 </div>
                 <button onClick={exportRapportCSV} disabled={rapportItems.length === 0}
                   className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition">
@@ -1768,7 +1768,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
               {rapportLoading ? (
                 <div className="flex justify-center py-8"><div className="h-8 w-8 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" /></div>
               ) : rapportItems.length === 0 ? (
-                <p className="text-center text-sm text-[#9A7060] py-8">Aucun article trouvé</p>
+                <p className="text-center text-sm text-[#6B7280] py-8">Aucun article trouvé</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -1796,7 +1796,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
                                 placeholder="—"
                                 className="w-20 rounded-lg border border-[#E2E8F0] px-2 py-1 text-right text-sm outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400" />
                             </td>
-                            <td className={`py-2.5 text-right font-bold ${ecart === null ? 'text-[#9A7060]' : ecart === 0 ? 'text-emerald-600' : ecart > 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                            <td className={`py-2.5 text-right font-bold ${ecart === null ? 'text-[#6B7280]' : ecart === 0 ? 'text-emerald-600' : ecart > 0 ? 'text-blue-600' : 'text-red-600'}`}>
                               {ecart === null ? '—' : ecart > 0 ? `+${ecart}` : ecart}
                             </td>
                           </tr>
@@ -1809,7 +1809,7 @@ ${total > 0 ? `<div class="total">Total estimé : ${total.toLocaleString('fr-FR'
             </>
           ) : stockTab === 'bon' ? (
             <>
-              <p className="text-xs text-[#9A7060] mb-4">Générez un bon de commande PDF à envoyer à votre fournisseur</p>
+              <p className="text-xs text-[#6B7280] mb-4">Générez un bon de commande PDF à envoyer à votre fournisseur</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-[#475569]">Fournisseur <span className="text-red-500">*</span></label>
@@ -1867,10 +1867,10 @@ const EXPENSE_CATS = [
   { value: 'salaires',     label: 'Salaires',       color: '#F59E0B' },
   { value: 'charges',      label: 'Charges sociales',color:'#EC4899' },
   { value: 'fournitures',  label: 'Fournitures',    color: '#10B981' },
-  { value: 'electricite',  label: 'Électricité',    color: '#F97316' },
+  { value: 'electricite',  label: 'Électricité',    color: '#FF8C00' },
   { value: 'eau',          label: 'Eau',            color: '#0EA5E9' },
   { value: 'maintenance',  label: 'Maintenance',    color: '#64748B' },
-  { value: 'marketing',    label: 'Marketing',      color: '#C05015' },
+  { value: 'marketing',    label: 'Marketing',      color: '#FF8C00' },
   { value: 'autre',        label: 'Autre',          color: '#334155' },
 ];
 
@@ -1911,7 +1911,7 @@ function FinanceTab({ restaurantId }) {
       type: 'doughnut',
       data: {
         labels: ['Mobile Money', 'Carte bancaire', 'Espèces'],
-        datasets: [{ data: [Math.round(ca * 0.55), Math.round(ca * 0.25), Math.round(ca * 0.20)], backgroundColor: ['#C05015', '#0F172A', '#9CA3AF'], borderWidth: 0, hoverOffset: 4 }],
+        datasets: [{ data: [Math.round(ca * 0.55), Math.round(ca * 0.25), Math.round(ca * 0.20)], backgroundColor: ['#FF8C00', '#0F172A', '#9CA3AF'], borderWidth: 0, hoverOffset: 4 }],
       },
       options: {
         cutout: '72%', responsive: true, maintainAspectRatio: false,
@@ -1983,7 +1983,7 @@ function FinanceTab({ restaurantId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="h-9 w-9 rounded-full border-4 border-[#C05015] border-t-transparent animate-spin" />
+        <div className="h-9 w-9 rounded-full border-4 border-[#FF8C00] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -2005,12 +2005,12 @@ function FinanceTab({ restaurantId }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-extrabold text-[#0F172A]">Trésorerie & Finances</h3>
-          <p className="text-xs text-[#9A7060] mt-0.5">CA, dépenses, budget, exports SYSCOHADA — US-26, US-27, US-28, RG-27, RG-29</p>
+          <p className="text-xs text-[#6B7280] mt-0.5">CA, dépenses, budget, exports SYSCOHADA — US-26, US-27, US-28, RG-27, RG-29</p>
         </div>
         <div className="flex p-1 bg-[#F4F6F8] rounded-2xl gap-1">
           {[{ v: 'day', l: "Aujourd'hui" }, { v: 'week', l: 'Semaine' }, { v: 'month', l: 'Mois' }].map(p => (
             <button key={p.v} onClick={() => setPeriod(p.v)}
-              className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${period === p.v ? 'bg-white text-[#C05015] shadow-sm' : 'text-[#9A7060] hover:text-[#C05015]'}`}>
+              className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${period === p.v ? 'bg-white text-[#FF8C00] shadow-sm' : 'text-[#6B7280] hover:text-[#FF8C00]'}`}>
               {p.l}
             </button>
           ))}
@@ -2025,19 +2025,19 @@ function FinanceTab({ restaurantId }) {
           <p className="text-xs text-white/30 mt-2">Chiffre d'affaires — US-26</p>
         </div>
         {[
-          { label: 'Commandes', value: kpiData.nbCommandes, sub: 'période sélectionnée', icon: ShoppingBag, bg: '#FBE8DC', color: '#C05015' },
+          { label: 'Commandes', value: kpiData.nbCommandes, sub: 'période sélectionnée', icon: ShoppingBag, bg: '#FFF0DF', color: '#FF8C00' },
           { label: 'Ticket moyen', value: formatFCFA(kpiData.ticketMoyen), sub: 'par commande', icon: CreditCard, bg: '#F0FDF4', color: '#16A34A' },
           { label: 'Marge brute', value: (kpiData.margesBrutes || 0) + '%', sub: '(PV−Coût)/PV — RG-28', icon: PieChart, bg: '#EFF6FF', color: '#2563EB' },
         ].map(({ label, value, sub, icon: Icon, bg, color }) => (
           <div key={label} className="rounded-2xl bg-white border border-[#E2E8F0] p-5 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#9A7060]">{label}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7280]">{label}</p>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: bg }}>
                 <Icon className="w-3.5 h-3.5" style={{ color }} />
               </div>
             </div>
             <p className="text-2xl font-extrabold text-[#0F172A] leading-none">{value}</p>
-            <p className="text-[10px] text-[#9A7060] mt-1">{sub}</p>
+            <p className="text-[10px] text-[#6B7280] mt-1">{sub}</p>
           </div>
         ))}
       </div>
@@ -2048,12 +2048,12 @@ function FinanceTab({ restaurantId }) {
         {/* Répartition paiements */}
         <div className="rounded-2xl bg-white border border-[#E2E8F0] p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-lg bg-[#FBE8DC] flex items-center justify-center">
-              <CreditCard className="w-3.5 h-3.5 text-[#C05015]" />
+            <div className="w-7 h-7 rounded-lg bg-[#FFF0DF] flex items-center justify-center">
+              <CreditCard className="w-3.5 h-3.5 text-[#FF8C00]" />
             </div>
             <div>
               <h4 className="text-sm font-bold text-[#0F172A]">Répartition modes de paiement</h4>
-              <p className="text-[10px] text-[#9A7060]">Mobile Money · Carte · Espèces — US-15</p>
+              <p className="text-[10px] text-[#6B7280]">Mobile Money · Carte · Espèces — US-15</p>
             </div>
           </div>
           <div className="flex gap-4 items-center">
@@ -2062,7 +2062,7 @@ function FinanceTab({ restaurantId }) {
             </div>
             <div className="flex flex-col gap-2 flex-1">
               {[
-                { label: 'Mobile Money', pct: 55, color: '#C05015', note: 'Orange · MTN · Wave' },
+                { label: 'Mobile Money', pct: 55, color: '#FF8C00', note: 'Orange · MTN · Wave' },
                 { label: 'Carte bancaire', pct: 25, color: '#0F172A', note: 'Visa · Mastercard' },
                 { label: 'Espèces', pct: 20, color: '#9CA3AF', note: 'Caisse physique' },
               ].map(({ label, pct, color, note }) => (
@@ -2074,7 +2074,7 @@ function FinanceTab({ restaurantId }) {
                   <div className="h-1.5 w-full rounded-full bg-[#F1F5F9] overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: pct + '%', background: color }} />
                   </div>
-                  <p className="text-[10px] text-[#9A7060] mt-0.5">{note}</p>
+                  <p className="text-[10px] text-[#6B7280] mt-0.5">{note}</p>
                 </div>
               ))}
             </div>
@@ -2084,22 +2084,22 @@ function FinanceTab({ restaurantId }) {
         {/* Budget & Alertes RG-30 */}
         <div className="rounded-2xl bg-white border border-[#E2E8F0] p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-lg bg-[#FBE8DC] flex items-center justify-center">
-              <Wallet className="w-3.5 h-3.5 text-[#C05015]" />
+            <div className="w-7 h-7 rounded-lg bg-[#FFF0DF] flex items-center justify-center">
+              <Wallet className="w-3.5 h-3.5 text-[#FF8C00]" />
             </div>
             <div>
               <h4 className="text-sm font-bold text-[#0F172A]">Plafond budgétaire</h4>
-              <p className="text-[10px] text-[#9A7060]">Alertes automatiques à 80% et 100% — RG-30</p>
+              <p className="text-[10px] text-[#6B7280]">Alertes automatiques à 80% et 100% — RG-30</p>
             </div>
           </div>
 
           {/* Config plafond */}
           <div className="flex gap-2 mb-4">
             <input type="number" min="0" value={budget.plafond} onChange={e => setBudget(b => ({ ...b, plafond: e.target.value }))}
-              className="flex-1 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-sm text-[#0F172A] outline-none focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] transition"
+              className="flex-1 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-sm text-[#0F172A] outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition"
               placeholder="Plafond mensuel (FCFA)" />
             <button onClick={handleSaveBudget} disabled={budget.saving}
-              className="rounded-xl bg-[#C05015] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#9A3E10] disabled:opacity-60">
+              className="rounded-xl bg-[#FF8C00] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#E07A00] disabled:opacity-60">
               {budget.saving ? '…' : 'Définir'}
             </button>
           </div>
@@ -2113,12 +2113,12 @@ function FinanceTab({ restaurantId }) {
               </div>
               <div className="relative h-3 w-full rounded-full bg-[#F1F5F9] overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-500"
-                  style={{ width: budgetPct + '%', background: budgetAlert === 'rouge' ? '#DC2626' : budgetAlert === 'orange' ? '#F97316' : '#059669' }} />
+                  style={{ width: budgetPct + '%', background: budgetAlert === 'rouge' ? '#DC2626' : budgetAlert === 'orange' ? '#FF8C00' : '#059669' }} />
                 {/* Markers */}
                 <div className="absolute top-0 h-full w-0.5 bg-orange-400" style={{ left: '80%' }} title="80%" />
                 <div className="absolute top-0 h-full w-0.5 bg-red-600" style={{ left: '100%' }} title="100%" />
               </div>
-              <div className="flex justify-between text-[10px] text-[#9A7060] mt-1">
+              <div className="flex justify-between text-[10px] text-[#6B7280] mt-1">
                 <span>{formatFCFA(depTotal)} dépensés</span>
                 <span>{formatFCFA(plafond)} plafond</span>
               </div>
@@ -2133,7 +2133,7 @@ function FinanceTab({ restaurantId }) {
 
           {/* Checkboxes alertes */}
           <div className="flex gap-4">
-            {[{ key: 'alerte80', label: 'Alerte 80%', color: '#F97316' }, { key: 'alerte100', label: 'Alerte 100%', color: '#DC2626' }].map(({ key, label, color }) => (
+            {[{ key: 'alerte80', label: 'Alerte 80%', color: '#FF8C00' }, { key: 'alerte100', label: 'Alerte 100%', color: '#DC2626' }].map(({ key, label, color }) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={budget[key]} onChange={e => setBudget(b => ({ ...b, [key]: e.target.checked }))}
                   className="h-4 w-4 rounded" style={{ accentColor: color }} />
@@ -2150,19 +2150,19 @@ function FinanceTab({ restaurantId }) {
         {/* Saisie dépenses + liste */}
         <div className="rounded-2xl bg-white border border-[#E2E8F0] p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-lg bg-[#FBE8DC] flex items-center justify-center">
-              <DollarSign className="w-3.5 h-3.5 text-[#C05015]" />
+            <div className="w-7 h-7 rounded-lg bg-[#FFF0DF] flex items-center justify-center">
+              <DollarSign className="w-3.5 h-3.5 text-[#FF8C00]" />
             </div>
             <div>
               <h4 className="text-sm font-bold text-[#0F172A]">Saisir une dépense opérationnelle</h4>
-              <p className="text-[10px] text-[#9A7060]">Catégorie obligatoire · montant {'>'} 0 — US-28, RG-27</p>
+              <p className="text-[10px] text-[#6B7280]">Catégorie obligatoire · montant {'>'} 0 — US-28, RG-27</p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
             <div>
               <label className="mb-1 block text-xs font-semibold text-[#475569]">Catégorie *</label>
               <select value={expenseForm.categorie} onChange={e => setExpenseForm(f => ({ ...f, categorie: e.target.value }))}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] outline-none focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] transition">
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition">
                 <option value="">Catégorie…</option>
                 {EXPENSE_CATS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
@@ -2170,18 +2170,18 @@ function FinanceTab({ restaurantId }) {
             <div>
               <label className="mb-1 block text-xs font-semibold text-[#475569]">Montant (FCFA) *</label>
               <input type="number" min="1" value={expenseForm.montant} onChange={e => setExpenseForm(f => ({ ...f, montant: e.target.value }))}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] outline-none focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] transition"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition"
                 placeholder="Ex: 50 000" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[#475569]">Description</label>
               <input type="text" value={expenseForm.description} onChange={e => setExpenseForm(f => ({ ...f, description: e.target.value }))}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] outline-none focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] transition"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] outline-none focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] transition"
                 placeholder="Optionnel" />
             </div>
           </div>
           <button onClick={handleRecordExpense} disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-[#C05015] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#9A3E10] disabled:opacity-60 mb-5">
+            className="flex items-center gap-2 rounded-xl bg-[#FF8C00] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E07A00] disabled:opacity-60 mb-5">
             {saving ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Plus className="w-4 h-4" />}
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
@@ -2198,16 +2198,16 @@ function FinanceTab({ restaurantId }) {
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: cat?.color || '#64748B' }} />
                         <span className="text-xs font-semibold text-[#334155]">{cat?.label || exp.categorie}</span>
-                        {exp.description && <span className="text-[10px] text-[#9A7060]">— {exp.description}</span>}
+                        {exp.description && <span className="text-[10px] text-[#6B7280]">— {exp.description}</span>}
                       </div>
-                      <span className="text-xs font-bold text-[#C05015] flex-shrink-0">{formatFCFA(exp.montant)}</span>
+                      <span className="text-xs font-bold text-[#FF8C00] flex-shrink-0">{formatFCFA(exp.montant)}</span>
                     </div>
                   );
                 })}
               </div>
               <div className="mt-2 flex justify-between text-xs font-bold border-t border-[#F1F5F9] pt-2">
                 <span className="text-[#475569]">Total session</span>
-                <span className="text-[#C05015]">{formatFCFA(depTotal)}</span>
+                <span className="text-[#FF8C00]">{formatFCFA(depTotal)}</span>
               </div>
             </div>
           )}
@@ -2221,7 +2221,7 @@ function FinanceTab({ restaurantId }) {
             </div>
             <div>
               <h4 className="text-sm font-bold text-[#0F172A]">Exports financiers</h4>
-              <p className="text-[10px] text-[#9A7060]">SYSCOHADA · Rapports — RG-29</p>
+              <p className="text-[10px] text-[#6B7280]">SYSCOHADA · Rapports — RG-29</p>
             </div>
           </div>
 
@@ -2229,7 +2229,7 @@ function FinanceTab({ restaurantId }) {
           <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-wide mb-2">Export SYSCOHADA (RG-29)</p>
           <div className="space-y-2 mb-4">
             {[
-              { period: 'monthly',   label: 'Mensuel',      color: '#C05015' },
+              { period: 'monthly',   label: 'Mensuel',      color: '#FF8C00' },
               { period: 'quarterly', label: 'Trimestriel',  color: '#0F172A' },
               { period: 'yearly',    label: 'Annuel',       color: '#059669' },
             ].map(({ period: p, label, color }) => (
@@ -2251,7 +2251,7 @@ function FinanceTab({ restaurantId }) {
               { rp: 'yearly',    label: 'Rapport annuel' },
             ].map(({ rp, label }) => (
               <button key={rp} onClick={() => downloadReport(rp)} disabled={dlState[`rp_${rp}`]}
-                className="w-full flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-2.5 text-xs font-semibold text-[#334155] transition hover:border-[#C05015] hover:text-[#C05015] disabled:opacity-60">
+                className="w-full flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-2.5 text-xs font-semibold text-[#334155] transition hover:border-[#FF8C00] hover:text-[#FF8C00] disabled:opacity-60">
                 <FileText className="w-3.5 h-3.5 flex-shrink-0" />
                 {dlState[`rp_${rp}`] ? 'Génération…' : label}
               </button>
@@ -2271,7 +2271,7 @@ function FinanceTab({ restaurantId }) {
 
 /* ══════════════════ Module Promotions ══════════════════ */
 const PROMO_TYPES = [
-  { value: 'PERCENT', label: '% de réduction',   color: '#C05015', bg: '#FBE8DC' },
+  { value: 'PERCENT', label: '% de réduction',   color: '#FF8C00', bg: '#FFF0DF' },
   { value: 'FIXED',   label: 'Montant fixe (FCFA)', color: '#0F172A', bg: '#F1F5F9' },
 ];
 
@@ -2380,7 +2380,7 @@ function PromosTab({ restaurantId }) {
   const statusOf = (p) => {
     if (!p.actif) return { label: 'Inactif', color: '#9CA3AF', bg: '#F1F5F9', banner: false };
     if (isExpired(p)) return { label: 'Expiré', color: '#DC2626', bg: '#FEF2F2', banner: false };
-    if (p.maxUses != null && p.usedCount >= p.maxUses) return { label: 'Épuisé', color: '#F97316', bg: '#FFF7ED', banner: false };
+    if (p.maxUses != null && p.usedCount >= p.maxUses) return { label: 'Épuisé', color: '#FF8C00', bg: '#FFF7ED', banner: false };
     return { label: 'Actif ⚡', color: '#059669', bg: '#F0FDF4', banner: true };
   };
 
@@ -2394,12 +2394,12 @@ function PromosTab({ restaurantId }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-extrabold text-[#0F172A] flex items-center gap-2">
-            <Tag className="w-5 h-5 text-[#C05015]" /> Codes promos & Réductions
+            <Tag className="w-5 h-5 text-[#FF8C00]" /> Codes promos & Réductions
           </h3>
-          <p className="text-xs text-[#9A7060] mt-0.5">Créez des codes à partager avec vos clients · Les prix promo s'activent directement sur chaque article du menu</p>
+          <p className="text-xs text-[#6B7280] mt-0.5">Créez des codes à partager avec vos clients · Les prix promo s'activent directement sur chaque article du menu</p>
         </div>
         <button onClick={openCreate}
-          className="flex items-center gap-2 rounded-2xl bg-[#C05015] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#9A3E10] transition">
+          className="flex items-center gap-2 rounded-2xl bg-[#FF8C00] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#E07A00] transition">
           <Plus className="w-4 h-4" /> Nouveau code promo
         </button>
       </div>
@@ -2407,7 +2407,7 @@ function PromosTab({ restaurantId }) {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Codes créés', value: promos.length, icon: Tag, bg: '#FBE8DC', color: '#C05015' },
+          { label: 'Codes créés', value: promos.length, icon: Tag, bg: '#FFF0DF', color: '#FF8C00' },
           { label: 'Codes actifs', value: actifCount, icon: CheckCircle, bg: '#F0FDF4', color: '#059669' },
           { label: 'Total utilisations', value: totalUses, icon: TrendingUp, bg: '#EFF6FF', color: '#2563EB' },
         ].map(({ label, value, icon: Icon, bg, color }) => (
@@ -2417,7 +2417,7 @@ function PromosTab({ restaurantId }) {
             </div>
             <div>
               <p className="text-xl font-extrabold text-[#0F172A] leading-none">{value}</p>
-              <p className="text-[10px] text-[#9A7060] mt-0.5">{label}</p>
+              <p className="text-[10px] text-[#6B7280] mt-0.5">{label}</p>
             </div>
           </div>
         ))}
@@ -2427,14 +2427,14 @@ function PromosTab({ restaurantId }) {
       <div className="rounded-2xl bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 rounded-full border-4 border-[#C05015] border-t-transparent animate-spin" />
+            <div className="w-8 h-8 rounded-full border-4 border-[#FF8C00] border-t-transparent animate-spin" />
           </div>
         ) : promos.length === 0 ? (
           <div className="text-center py-14">
             <Tag className="w-10 h-10 text-[#E2E8F0] mx-auto mb-3" />
             <p className="font-semibold text-[#334155]">Aucun code promo</p>
-            <p className="text-xs text-[#9A7060] mt-1">Créez votre premier code et partagez-le avec vos clients</p>
-            <button onClick={openCreate} className="mt-4 rounded-xl bg-[#C05015] px-4 py-2 text-xs font-bold text-white hover:bg-[#9A3E10] transition">
+            <p className="text-xs text-[#6B7280] mt-1">Créez votre premier code et partagez-le avec vos clients</p>
+            <button onClick={openCreate} className="mt-4 rounded-xl bg-[#FF8C00] px-4 py-2 text-xs font-bold text-white hover:bg-[#E07A00] transition">
               + Créer un code
             </button>
           </div>
@@ -2471,7 +2471,7 @@ function PromosTab({ restaurantId }) {
                       </td>
                       {/* Valeur */}
                       <td className="px-4 py-3">
-                        <span className="font-bold text-[#C05015]">
+                        <span className="font-bold text-[#FF8C00]">
                           {p.type === 'PERCENT' ? `-${p.valeur}%` : `-${Number(p.valeur).toLocaleString('fr-FR')} FCFA`}
                         </span>
                       </td>
@@ -2526,8 +2526,8 @@ function PromosTab({ restaurantId }) {
 
       {/* Info box */}
       <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4 flex gap-3">
-        <div className="w-8 h-8 rounded-xl bg-[#FBE8DC] flex items-center justify-center flex-shrink-0">
-          <Percent className="w-4 h-4 text-[#C05015]" />
+        <div className="w-8 h-8 rounded-xl bg-[#FFF0DF] flex items-center justify-center flex-shrink-0">
+          <Percent className="w-4 h-4 text-[#FF8C00]" />
         </div>
         <div>
           <p className="text-sm font-bold text-[#0F172A]">Comment ça marche ?</p>
@@ -2544,7 +2544,7 @@ function PromosTab({ restaurantId }) {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && setModal(null)}>
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div className="bg-[#C05015] px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#FF8C00] px-6 py-4 flex items-center justify-between">
               <h3 className="text-white font-extrabold flex items-center gap-2">
                 <Tag className="w-4 h-4" /> {modal === 'create' ? 'Nouveau code promo' : `Modifier "${modal.code}"`}
               </h3>
@@ -2558,7 +2558,7 @@ function PromosTab({ restaurantId }) {
                 <input value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase().replace(/\s/g, '') }))}
                   placeholder="Ex: RESTO10, BIENVENUE, NOEL2025"
                   maxLength={30}
-                  className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 font-mono font-bold text-sm text-[#0F172A] uppercase tracking-widest focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] outline-none transition" />
+                  className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 font-mono font-bold text-sm text-[#0F172A] uppercase tracking-widest focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] outline-none transition" />
               </div>
 
               {/* Type */}
@@ -2567,7 +2567,7 @@ function PromosTab({ restaurantId }) {
                 <div className="mt-1.5 grid grid-cols-2 gap-2">
                   {PROMO_TYPES.map(t => (
                     <button key={t.value} onClick={() => setForm(f => ({ ...f, type: t.value }))}
-                      className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition text-center ${form.type === t.value ? 'border-[#C05015] bg-[#FBE8DC] text-[#C05015]' : 'border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B] hover:border-[#C05015]'}`}>
+                      className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition text-center ${form.type === t.value ? 'border-[#FF8C00] bg-[#FFF0DF] text-[#FF8C00]' : 'border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B] hover:border-[#FF8C00]'}`}>
                       {t.label}
                     </button>
                   ))}
@@ -2582,7 +2582,7 @@ function PromosTab({ restaurantId }) {
                 <div className="mt-1 flex items-center gap-2">
                   <input type="number" min="0" value={form.valeur} onChange={e => setForm(f => ({ ...f, valeur: e.target.value }))}
                     placeholder={form.type === 'PERCENT' ? 'Ex: 10' : 'Ex: 5000'}
-                    className="flex-1 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] outline-none transition" />
+                    className="flex-1 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] outline-none transition" />
                   <span className="text-sm font-bold text-[#64748B]">{form.type === 'PERCENT' ? '%' : 'FCFA'}</span>
                 </div>
               </div>
@@ -2594,7 +2594,7 @@ function PromosTab({ restaurantId }) {
                 </label>
                 <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="Ex: Livraison offerte ce weekend, -20% sur tous les plats…"
-                  className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] outline-none transition" />
+                  className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] outline-none transition" />
                 <p className="mt-1 text-[10px] text-[#9CA3AF]">Ce texte s'affiche comme titre du bandeau ⚡ Offre Limitée dans votre menu client</p>
               </div>
 
@@ -2612,7 +2612,7 @@ function PromosTab({ restaurantId }) {
                       </p>
                       {form.minMontant > 0 && <p className="text-white/50 text-[10px] mt-0.5">Dès {Number(form.minMontant).toLocaleString('fr-FR')} FCFA d'achat</p>}
                     </div>
-                    <div className="bg-[#C05015]/20 border border-[#C05015]/30 rounded-lg px-3 py-2 text-center flex-shrink-0">
+                    <div className="bg-[#FF8C00]/20 border border-[#FF8C00]/30 rounded-lg px-3 py-2 text-center flex-shrink-0">
                       <p className="text-[#E07A2D] font-black text-base leading-none">
                         {form.type === 'PERCENT' ? `-${form.valeur || 'X'}%` : `-${Number(form.valeur || 0).toLocaleString('fr-FR')}`}
                       </p>
@@ -2627,13 +2627,13 @@ function PromosTab({ restaurantId }) {
                   <label className="text-xs font-bold text-[#475569] uppercase tracking-wide">Montant min (FCFA)</label>
                   <input type="number" min="0" value={form.minMontant} onChange={e => setForm(f => ({ ...f, minMontant: e.target.value }))}
                     placeholder="0 = aucun"
-                    className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] outline-none transition" />
+                    className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] outline-none transition" />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-[#475569] uppercase tracking-wide">Max utilisations</label>
                   <input type="number" min="1" value={form.maxUses} onChange={e => setForm(f => ({ ...f, maxUses: e.target.value }))}
                     placeholder="Illimité"
-                    className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] outline-none transition" />
+                    className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] outline-none transition" />
                 </div>
               </div>
 
@@ -2642,19 +2642,19 @@ function PromosTab({ restaurantId }) {
                 <label className="text-xs font-bold text-[#475569] uppercase tracking-wide">Date d'expiration</label>
                 <input type="date" value={form.expiresAt} onChange={e => setForm(f => ({ ...f, expiresAt: e.target.value }))}
                   min={new Date().toISOString().slice(0, 10)}
-                  className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] outline-none transition" />
+                  className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0F172A] focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] outline-none transition" />
                 <p className="mt-1 text-[10px] text-[#9CA3AF]">Laissez vide pour un code sans expiration</p>
               </div>
 
               {/* Actif */}
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.actif} onChange={e => setForm(f => ({ ...f, actif: e.target.checked }))}
-                  className="h-4 w-4 rounded" style={{ accentColor: '#C05015' }} />
+                  className="h-4 w-4 rounded" style={{ accentColor: '#FF8C00' }} />
                 <span className="text-sm font-semibold text-[#0F172A]">Code actif dès la création</span>
               </label>
 
               <button onClick={handleSave} disabled={saving}
-                className="w-full rounded-xl bg-[#C05015] py-3 text-sm font-bold text-white shadow-sm hover:bg-[#9A3E10] disabled:opacity-60 transition flex items-center justify-center gap-2">
+                className="w-full rounded-xl bg-[#FF8C00] py-3 text-sm font-bold text-white shadow-sm hover:bg-[#E07A00] disabled:opacity-60 transition flex items-center justify-center gap-2">
                 {saving ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                 {saving ? 'Enregistrement…' : modal === 'create' ? 'Créer le code' : 'Enregistrer les modifications'}
               </button>
@@ -3067,12 +3067,12 @@ function SettingsTab({ restaurantId, user }) {
   if (loadingProfile) {
     return (
       <div className="flex min-h-[280px] items-center justify-center">
-        <div className="h-10 w-10 rounded-full border-4 border-[#C05015] border-t-transparent animate-spin" />
+        <div className="h-10 w-10 rounded-full border-4 border-[#FF8C00] border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  const inputCls = "w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#C05015]/20 focus:border-[#C05015]/60";
+  const inputCls = "w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#FF8C00]/20 focus:border-[#FF8C00]/60";
   const inputStyle = { borderColor: 'rgba(192,80,21,0.2)', background: '#FDF8F3' };
 
   const SEC_NAV = [
@@ -3091,7 +3091,7 @@ function SettingsTab({ restaurantId, user }) {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Configuration</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#FF8C00' }}>Configuration</p>
           <h2 className="mt-1 text-2xl font-bold text-[#0F172A]">Paramètres du restaurant</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {[
@@ -3099,7 +3099,7 @@ function SettingsTab({ restaurantId, user }) {
               `${staffAccounts.length} compte(s) staff`,
               `${settings.horaires.ouverture}–${settings.horaires.fermeture}`,
             ].map(t => (
-              <span key={t} className="rounded-full px-3 py-1 text-xs font-medium text-[#0F172A]" style={{ background: '#FBE8DC' }}>{t}</span>
+              <span key={t} className="rounded-full px-3 py-1 text-xs font-medium text-[#0F172A]" style={{ background: '#FFF0DF' }}>{t}</span>
             ))}
           </div>
         </div>
@@ -3113,7 +3113,7 @@ function SettingsTab({ restaurantId, user }) {
             onClick={handleSaveSettings}
             disabled={savingSettings}
             className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-sm transition disabled:opacity-60"
-            style={{ background: '#C05015' }}
+            style={{ background: '#FF8C00' }}
           >
             <Settings className="h-4 w-4" />
             {savingSettings ? 'Enregistrement…' : 'Sauvegarder'}
@@ -3127,7 +3127,7 @@ function SettingsTab({ restaurantId, user }) {
         <aside className="shrink-0" style={{ width: 172, position: 'sticky', top: 80, alignSelf: 'flex-start' }}>
           <nav style={{ background: '#fff', border: '1px solid rgba(192,80,21,0.14)', borderRadius: 18, overflow: 'hidden', boxShadow: '0 2px 10px rgba(15,23,42,0.07)' }}>
             <div style={{ padding: '12px 14px 8px', borderBottom: '1px solid rgba(192,80,21,0.08)' }}>
-              <p style={{ margin: 0, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#C05015' }}>
+              <p style={{ margin: 0, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#FF8C00' }}>
                 Paramètres
               </p>
             </div>
@@ -3141,14 +3141,14 @@ function SettingsTab({ restaurantId, user }) {
                       display: 'flex', alignItems: 'center', gap: 9,
                       width: '100%', padding: '9px 14px',
                       border: 'none',
-                      borderLeft: isActive ? '3px solid #C05015' : '3px solid transparent',
+                      borderLeft: isActive ? '3px solid #FF8C00' : '3px solid transparent',
                       background: isActive ? 'rgba(192,80,21,0.07)' : 'transparent',
                       cursor: 'pointer', fontFamily: 'inherit',
                       fontSize: 13, fontWeight: isActive ? 700 : 500,
-                      color: isActive ? '#C05015' : '#64748B',
+                      color: isActive ? '#FF8C00' : '#64748B',
                       textAlign: 'left', transition: 'all 0.15s',
                     }}
-                    onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = '#FBE8DC'; e.currentTarget.style.color = '#C05015'; }}}
+                    onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = '#FFF0DF'; e.currentTarget.style.color = '#FF8C00'; }}}
                     onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748B'; }}}
                   >
                     <span style={{ fontSize: 14 }}>{emoji}</span>
@@ -3171,7 +3171,7 @@ function SettingsTab({ restaurantId, user }) {
           {/* Profil */}
           <div id="sec-profil" className="rounded-2xl border bg-white p-6 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
             <div className="mb-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Identité</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#FF8C00' }}>Identité</p>
               <h3 className="mt-1 text-base font-bold text-[#0F172A]">Profil du restaurant</h3>
               <p className="mt-0.5 text-xs text-[#64748B]">Ces informations apparaissent sur la fiche publique et le tableau de bord.</p>
             </div>
@@ -3181,14 +3181,14 @@ function SettingsTab({ restaurantId, user }) {
               <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border" style={{ borderColor: 'rgba(192,80,21,0.18)' }}>
                 {settings.logo
                   ? <img src={settings.logo} alt="Logo" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-3xl" style={{ background: '#FBE8DC' }}>🍽️</div>
+                  : <div className="w-full h-full flex items-center justify-center text-3xl" style={{ background: '#FFF0DF' }}>🍽️</div>
                 }
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#0F172A] mb-0.5">Logo du restaurant</p>
                 <p className="text-xs text-[#9CA3AF] mb-3">JPG, PNG, WebP — max 5 Mo</p>
-                <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer border transition ${uploadingLogo ? 'opacity-50 pointer-events-none' : 'hover:bg-[#FBE8DC]'}`}
-                  style={{ borderColor: 'rgba(192,80,21,0.3)', color: '#C05015', background: '#fff' }}>
+                <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer border transition ${uploadingLogo ? 'opacity-50 pointer-events-none' : 'hover:bg-[#FFF0DF]'}`}
+                  style={{ borderColor: 'rgba(192,80,21,0.3)', color: '#FF8C00', background: '#fff' }}>
                   📷 {uploadingLogo ? 'Téléchargement…' : 'Choisir un fichier'}
                   <input type="file" accept="image/*" className="hidden" disabled={uploadingLogo}
                     onChange={e => handleLogoUpload(e.target.files[0])} />
@@ -3233,7 +3233,7 @@ function SettingsTab({ restaurantId, user }) {
                 <textarea value={settings.description}
                   onChange={e => setSettings(p => ({ ...p, description: e.target.value }))}
                   rows={3} placeholder="Décrivez l'ambiance et la spécialité de votre restaurant…"
-                  className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition resize-none focus:ring-2 focus:ring-[#C05015]/20 focus:border-[#C05015]/60"
+                  className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition resize-none focus:ring-2 focus:ring-[#FF8C00]/20 focus:border-[#FF8C00]/60"
                   style={inputStyle}
                 />
               </div>
@@ -3243,7 +3243,7 @@ function SettingsTab({ restaurantId, user }) {
           {/* Horaires */}
           <div id="sec-horaires" className="rounded-2xl border bg-white p-6 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
             <div className="mb-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Disponibilité</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#FF8C00' }}>Disponibilité</p>
               <h3 className="mt-1 text-base font-bold text-[#0F172A]">Horaires d'ouverture</h3>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -3271,7 +3271,7 @@ function SettingsTab({ restaurantId, user }) {
           {/* Zones de livraison */}
           <div id="sec-livraison" className="rounded-2xl border bg-white p-6 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
             <div className="mb-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Logistique</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#FF8C00' }}>Logistique</p>
               <h3 className="mt-1 text-base font-bold text-[#0F172A]">Zones de livraison</h3>
               <p className="mt-0.5 text-xs text-[#64748B]">Cliquez sur la carte pour définir précisément la position.</p>
             </div>
@@ -3284,7 +3284,7 @@ function SettingsTab({ restaurantId, user }) {
               />
               <button onClick={handleAddZone}
                 className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold text-white transition"
-                style={{ background: '#C05015' }}>
+                style={{ background: '#FF8C00' }}>
                 <Plus className="h-4 w-4" /> Ajouter
               </button>
             </div>
@@ -3293,7 +3293,7 @@ function SettingsTab({ restaurantId, user }) {
                 {settings.zonesLivraison.map((zone, i) => (
                   <div key={i} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium"
                     style={{ borderColor: 'rgba(192,80,21,0.2)', background: '#FDF8F3', color: '#0F172A' }}>
-                    <MapPin className="h-3 w-3" style={{ color: '#C05015' }} />
+                    <MapPin className="h-3 w-3" style={{ color: '#FF8C00' }} />
                     {zone.nom}
                     <button onClick={() => handleRemoveZone(zone)} className="ml-0.5 text-[#9CA3AF] hover:text-red-500 transition font-bold">×</button>
                   </div>
@@ -3323,13 +3323,13 @@ function SettingsTab({ restaurantId, user }) {
           <div id="sec-apparence" className="rounded-2xl border bg-white p-5 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#C05015' }}>Interface</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#FF8C00' }}>Interface</p>
                 <h4 className="mt-0.5 text-sm font-bold text-[#0F172A]">Mode sombre</h4>
                 <p className="text-[11px] text-[#9CA3AF] mt-0.5">{settings.darkMode ? 'Activé' : 'Désactivé'}</p>
               </div>
               <button onClick={toggleDarkMode}
                 className="relative h-7 w-12 rounded-full flex-shrink-0 transition-colors"
-                style={{ background: settings.darkMode ? '#C05015' : '#E5E7EB' }}>
+                style={{ background: settings.darkMode ? '#FF8C00' : '#E5E7EB' }}>
                 <span className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${settings.darkMode ? 'translate-x-5' : ''}`} />
               </button>
             </div>
@@ -3338,14 +3338,14 @@ function SettingsTab({ restaurantId, user }) {
           {/* Comptes staff */}
           <div id="sec-staff" className="rounded-2xl border bg-white p-5 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
             <div className="mb-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Équipe</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#FF8C00' }}>Équipe</p>
               <h3 className="mt-1 text-sm font-bold text-[#0F172A]">Comptes staff</h3>
             </div>
 
             {/* Formulaire création */}
             <div className="rounded-xl p-4 space-y-3 mb-4" style={{ background: '#FDF8F3', border: '1px solid rgba(192,80,21,0.1)' }}>
               <p className="text-xs font-bold text-[#0F172A] flex items-center gap-2">
-                <UserPlus className="h-3.5 w-3.5" style={{ color: '#C05015' }} /> Nouveau compte
+                <UserPlus className="h-3.5 w-3.5" style={{ color: '#FF8C00' }} /> Nouveau compte
               </p>
               <div className="space-y-2">
                 {[
@@ -3358,7 +3358,7 @@ function SettingsTab({ restaurantId, user }) {
                     <input type={f.type} value={staffForm[f.key]}
                       onChange={e => setStaffForm(p => ({ ...p, [f.key]: e.target.value }))}
                       placeholder={f.ph}
-                      className="w-full rounded-lg border px-3 py-2 text-xs outline-none transition focus:ring-1 focus:ring-[#C05015]/30"
+                      className="w-full rounded-lg border px-3 py-2 text-xs outline-none transition focus:ring-1 focus:ring-[#FF8C00]/30"
                       style={{ borderColor: 'rgba(192,80,21,0.2)', background: '#fff' }}
                     />
                   </div>
@@ -3375,7 +3375,7 @@ function SettingsTab({ restaurantId, user }) {
               </div>
               <button onClick={handleCreateStaff}
                 className="w-full rounded-xl py-2.5 text-xs font-bold text-white transition"
-                style={{ background: '#C05015' }}>
+                style={{ background: '#FF8C00' }}>
                 Créer le compte
               </button>
               {staffCreationNotice && (
@@ -3388,7 +3388,7 @@ function SettingsTab({ restaurantId, user }) {
             {/* Liste staff */}
             {loadingStaff ? (
               <div className="flex justify-center py-5">
-                <div className="h-6 w-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#C05015', borderTopColor: 'transparent' }} />
+                <div className="h-6 w-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#FF8C00', borderTopColor: 'transparent' }} />
               </div>
             ) : staffAccounts.length === 0 ? (
               <div className="text-center py-6">
@@ -3406,7 +3406,7 @@ function SettingsTab({ restaurantId, user }) {
                     <div key={staff.id} className="flex items-center gap-3 p-3 rounded-xl border"
                       style={{ borderColor: 'rgba(192,80,21,0.1)', background: '#FDF8F3' }}>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                        style={{ background: '#FBE8DC', color: '#C05015' }}>
+                        style={{ background: '#FFF0DF', color: '#FF8C00' }}>
                         {ini}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -3418,7 +3418,7 @@ function SettingsTab({ restaurantId, user }) {
                           {staff.actif ? 'Actif' : 'Inactif'}
                         </span>
                         <button onClick={() => handleToggleStaff(staff.id, staff.actif)}
-                          className={`rounded-lg px-2.5 py-1 text-[10px] font-bold text-white transition ${staff.actif ? 'bg-red-500 hover:bg-red-600' : 'bg-[#C05015] hover:bg-[#9A3E10]'}`}>
+                          className={`rounded-lg px-2.5 py-1 text-[10px] font-bold text-white transition ${staff.actif ? 'bg-red-500 hover:bg-red-600' : 'bg-[#FF8C00] hover:bg-[#E07A00]'}`}>
                           {staff.actif ? 'Désactiver' : 'Activer'}
                         </button>
                       </div>
@@ -3432,7 +3432,7 @@ function SettingsTab({ restaurantId, user }) {
           {/* Sécurité */}
           <div id="sec-securite" className="rounded-2xl border bg-white p-5 space-y-4 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Sécurité</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#FF8C00' }}>Sécurité</p>
               <h3 className="mt-1 text-sm font-bold text-[#0F172A]">Authentification & Protection</h3>
             </div>
 
@@ -3456,8 +3456,8 @@ function SettingsTab({ restaurantId, user }) {
             <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'rgba(192,80,21,0.1)' }}>
               <div className="flex items-center justify-between gap-3 p-3" style={{ background: '#FDF8F3' }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#FBE8DC' }}>
-                    <Lock className="h-3.5 w-3.5" style={{ color: '#C05015' }} />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#FFF0DF' }}>
+                    <Lock className="h-3.5 w-3.5" style={{ color: '#FF8C00' }} />
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-[#0F172A]">Mot de passe</p>
@@ -3467,7 +3467,7 @@ function SettingsTab({ restaurantId, user }) {
                 <button
                   onClick={() => { setShowPasswordForm(!showPasswordForm); setSecError(''); setSecSuccess(''); }}
                   className="rounded-lg px-3 py-1.5 text-[10px] font-bold text-white transition"
-                  style={{ background: '#C05015' }}>
+                  style={{ background: '#FF8C00' }}>
                   Modifier
                 </button>
               </div>
@@ -3483,7 +3483,7 @@ function SettingsTab({ restaurantId, user }) {
                         type={showSecPwd[key] ? 'text' : 'password'}
                         placeholder={ph} value={secPwd[key]}
                         onChange={e => setSecPwd(p => ({ ...p, [key]: e.target.value }))}
-                        className="w-full rounded-lg border px-3 py-2 pr-9 text-xs outline-none transition focus:ring-1 focus:ring-[#C05015]/30"
+                        className="w-full rounded-lg border px-3 py-2 pr-9 text-xs outline-none transition focus:ring-1 focus:ring-[#FF8C00]/30"
                         style={{ borderColor: 'rgba(192,80,21,0.2)', background: '#fff' }}
                       />
                       <button type="button"
@@ -3498,7 +3498,7 @@ function SettingsTab({ restaurantId, user }) {
                       {[1,2,3,4].map(i => (
                         <div key={i} className="h-1 flex-1 rounded-full" style={{
                           background: i <= Math.min(Math.floor(secPwd.next.length / 3), 4)
-                            ? (secPwd.next.length < 6 ? '#EF4444' : secPwd.next.length < 9 ? '#F97316' : '#16A34A')
+                            ? (secPwd.next.length < 6 ? '#EF4444' : secPwd.next.length < 9 ? '#FF8C00' : '#16A34A')
                             : '#E5E7EB'
                         }} />
                       ))}
@@ -3507,7 +3507,7 @@ function SettingsTab({ restaurantId, user }) {
                   <div className="flex gap-2 pt-1">
                     <button onClick={handleChangePwd} disabled={secSaving}
                       className="flex-1 rounded-lg py-2 text-xs font-bold text-white disabled:opacity-50"
-                      style={{ background: '#C05015' }}>
+                      style={{ background: '#FF8C00' }}>
                       {secSaving ? 'Enregistrement…' : 'Confirmer'}
                     </button>
                     <button onClick={() => setShowPasswordForm(false)}
@@ -3524,8 +3524,8 @@ function SettingsTab({ restaurantId, user }) {
             <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'rgba(192,80,21,0.1)' }}>
               <div className="flex flex-wrap items-center justify-between gap-3 p-3" style={{ background: '#FDF8F3' }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#FBE8DC' }}>
-                    <Shield className="h-3.5 w-3.5" style={{ color: '#C05015' }} />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#FFF0DF' }}>
+                    <Shield className="h-3.5 w-3.5" style={{ color: '#FF8C00' }} />
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-[#0F172A]">Double authentification</p>
@@ -3539,7 +3539,7 @@ function SettingsTab({ restaurantId, user }) {
                   <button
                     onClick={twoFactorEnabled ? handleDisable2FA : handleSetup2FA}
                     disabled={secSaving}
-                    className={`rounded-lg px-3 py-1.5 text-[10px] font-bold text-white transition disabled:opacity-50 ${twoFactorEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-[#C05015] hover:bg-[#9A3E10]'}`}>
+                    className={`rounded-lg px-3 py-1.5 text-[10px] font-bold text-white transition disabled:opacity-50 ${twoFactorEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-[#FF8C00] hover:bg-[#E07A00]'}`}>
                     {twoFactorEnabled ? 'Désactiver' : 'Configurer'}
                   </button>
                 </div>
@@ -3572,7 +3572,7 @@ function SettingsTab({ restaurantId, user }) {
                   <div className="flex gap-2">
                     <button onClick={handleEnable2FA} disabled={secSaving}
                       className="flex-1 rounded-xl py-2.5 text-xs font-bold text-white disabled:opacity-50"
-                      style={{ background: '#C05015' }}>
+                      style={{ background: '#FF8C00' }}>
                       {secSaving ? 'Activation…' : 'Activer la 2FA'}
                     </button>
                     <button onClick={() => setShow2FA(false)}
@@ -3589,8 +3589,8 @@ function SettingsTab({ restaurantId, user }) {
             <div id="sec-qr" className="rounded-2xl border bg-white p-5 space-y-4 scroll-mt-4" style={{ borderColor: 'rgba(192,80,21,0.14)' }}>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <QrCode className="h-4 w-4" style={{ color: '#C05015' }} />
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#C05015' }}>Commande en salle</p>
+                  <QrCode className="h-4 w-4" style={{ color: '#FF8C00' }} />
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#FF8C00' }}>Commande en salle</p>
                 </div>
                 <h3 className="text-base font-bold text-[#0F172A]">QR Codes par table</h3>
                 <p className="text-xs text-[#64748B] mt-0.5">Le client scanne le QR de sa table et commande directement sans app.</p>
@@ -3610,7 +3610,7 @@ function SettingsTab({ restaurantId, user }) {
                   onClick={handleGenerateTableQR}
                   disabled={tableQrLoading}
                   className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold text-white disabled:opacity-60 transition"
-                  style={{ background: '#C05015' }}
+                  style={{ background: '#FF8C00' }}
                 >
                   <QrCode className="h-3.5 w-3.5" />
                   {tableQrLoading ? 'Génération…' : 'Générer les QR codes'}
@@ -3619,7 +3619,7 @@ function SettingsTab({ restaurantId, user }) {
                   <button
                     onClick={handlePrintTableQR}
                     className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition hover:bg-orange-50"
-                    style={{ borderColor: 'rgba(192,80,21,0.35)', color: '#C05015' }}
+                    style={{ borderColor: 'rgba(192,80,21,0.35)', color: '#FF8C00' }}
                   >
                     <Printer className="h-3.5 w-3.5" /> Imprimer tout
                   </button>
@@ -3635,7 +3635,7 @@ function SettingsTab({ restaurantId, user }) {
                         href={dataUrl}
                         download={`qr-table-${table}.png`}
                         className="text-[10px] font-semibold rounded-lg px-2 py-0.5 hover:bg-orange-100 transition"
-                        style={{ color: '#C05015' }}
+                        style={{ color: '#FF8C00' }}
                       >
                         Télécharger
                       </a>
@@ -3842,7 +3842,7 @@ function HistoryTab({ restaurantId }) {
             onClick={() => void load()}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
-            style={{ background: '#C05015' }}
+            style={{ background: '#FF8C00' }}
           >
             <RefreshCcw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Actualiser
@@ -3859,7 +3859,7 @@ function HistoryTab({ restaurantId }) {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C05015', borderTopColor: 'transparent' }} />
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#FF8C00', borderTopColor: 'transparent' }} />
         </div>
       ) : activity.length === 0 ? (
         <div className="py-16 text-center rounded-2xl border border-[#E2E8F0] bg-white">
@@ -3968,7 +3968,7 @@ function SetupBanner({ restaurant, navigate }) {
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white px-5 py-4 shadow-sm">
-      <div className="absolute inset-y-0 left-0 w-1 rounded-l-2xl bg-[#C05015]" />
+      <div className="absolute inset-y-0 left-0 w-1 rounded-l-2xl bg-[#FF8C00]" />
       <button onClick={dismiss} className="absolute right-3 top-3 rounded-full p-1 text-[#737373] hover:bg-[#F4F6F8] transition" aria-label="Fermer">
         <X className="h-4 w-4" />
       </button>
@@ -3980,19 +3980,19 @@ function SetupBanner({ restaurant, navigate }) {
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="text-right">
-              <span className="text-2xl font-extrabold text-[#C05015]">{pct}%</span>
+              <span className="text-2xl font-extrabold text-[#FF8C00]">{pct}%</span>
               <p className="text-[10px] text-[#737373]">complété</p>
             </div>
             {nextIncomplete && (
               <button onClick={() => navigate(`/gerant?tab=${nextIncomplete.tab}`)}
-                className="rounded-xl bg-[#C05015] px-3 py-2 text-xs font-bold text-white hover:bg-[#9A3E10] transition">
+                className="rounded-xl bg-[#FF8C00] px-3 py-2 text-xs font-bold text-white hover:bg-[#E07A00] transition">
                 Compléter →
               </button>
             )}
           </div>
         </div>
         <div className="mt-3 h-1.5 w-full rounded-full bg-[#F4F6F8] overflow-hidden">
-          <div className="h-full rounded-full bg-[#C05015] transition-all duration-500" style={{ width: pct + '%' }} />
+          <div className="h-full rounded-full bg-[#FF8C00] transition-all duration-500" style={{ width: pct + '%' }} />
         </div>
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
           {steps.map((s) => (
@@ -4004,7 +4004,7 @@ function SetupBanner({ restaurant, navigate }) {
               ) : (
                 <div className="h-3.5 w-3.5 rounded-full border-2 border-[#E2E8F0] shrink-0" />
               )}
-              <span className={'text-xs ' + (s.done ? 'text-emerald-600 font-medium' : s.tab ? 'text-[#C05015] hover:underline underline-offset-2' : 'text-[#737373]')}>
+              <span className={'text-xs ' + (s.done ? 'text-emerald-600 font-medium' : s.tab ? 'text-[#FF8C00] hover:underline underline-offset-2' : 'text-[#737373]')}>
                 {s.label}
               </span>
             </button>
@@ -4236,7 +4236,7 @@ function OverviewTab({ restaurantId }) {
             data: weeklyPerformance.orders,
             backgroundColor: weeklyPerformance.orders.map((_, i) =>
               i === weeklyPerformance.orders.indexOf(Math.max(...weeklyPerformance.orders))
-                ? "#C05015"
+                ? "#FF8C00"
                 : "rgba(224,78,26,0.18)"
             ),
             borderRadius: 8,
@@ -4247,13 +4247,13 @@ function OverviewTab({ restaurantId }) {
             label: "Revenus (FCFA)",
             data: weeklyPerformance.revenue,
             type: "line",
-            borderColor: "#F97316",
+            borderColor: "#FF8C00",
             backgroundColor: "rgba(197,138,85,0.08)",
             fill: true,
             tension: 0.42,
             pointRadius: 5,
             pointBackgroundColor: "#fff",
-            pointBorderColor: "#F97316",
+            pointBorderColor: "#FF8C00",
             pointBorderWidth: 2,
             yAxisID: "y1",
           },
@@ -4280,7 +4280,7 @@ function OverviewTab({ restaurantId }) {
             grid: { drawOnChartArea: false },
             border: { display: false },
             ticks: {
-              color: "#F97316",
+              color: "#FF8C00",
               font: { size: 10 },
               callback: (v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : String(v),
             },
@@ -4376,13 +4376,13 @@ function OverviewTab({ restaurantId }) {
     }
 
     return {
-      badge: "bg-[#FBE8DC] text-[#1A1A1A]",
+      badge: "bg-[#FFF0DF] text-[#1A1A1A]",
       label: `${Math.max(ageMinutes, 0)} min`,
     };
   };
 
   const getOrderStatusClasses = (status) =>
-    STATUS_COLORS[status] || "bg-[#FBE8DC] text-slate-700";
+    STATUS_COLORS[status] || "bg-[#FFF0DF] text-slate-700";
 
   const getOrderStatusLabel = (status) =>
     STATUS_LABELS[status] || status?.replace(/_/g, " ") || "-";
@@ -4390,7 +4390,7 @@ function OverviewTab({ restaurantId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="h-10 w-10 rounded-full border-4 border-[#C05015] border-t-transparent animate-spin" />
+        <div className="h-10 w-10 rounded-full border-4 border-[#FF8C00] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -4400,30 +4400,30 @@ function OverviewTab({ restaurantId }) {
       {/* ── Header ── */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#C05015]">Dashboard</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#FF8C00]">Dashboard</p>
           <h2 className="mt-1 text-2xl font-bold text-[#0F172A]">{restaurantName}</h2>
           <p className="mt-0.5 text-sm text-[#64748B]">Pilotez votre restaurant en temps réel.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="rounded-xl border border-[#FDDDD4] bg-[#0F172A] p-1">
-            <NotificationBell accentColor="#C05015" />
+          <div className="rounded-xl border border-[#FFF0DF] bg-[#0F172A] p-1">
+            <NotificationBell accentColor="#FF8C00" />
           </div>
           <button
             onClick={() => void loadOverviewData({ silent: true })}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#FDDDD4] bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#C05015]/40 hover:text-[#C05015]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#FFF0DF] bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#FF8C00]/40 hover:text-[#FF8C00]"
           >
             <RefreshCcw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             {refreshing ? "Sync…" : "Actualiser"}
           </button>
           <button
             onClick={() => navigate("/gerant?tab=orders")}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#FDDDD4] bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#C05015]/40 hover:text-[#C05015]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#FFF0DF] bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#FF8C00]/40 hover:text-[#FF8C00]"
           >
             <ClipboardList className="h-4 w-4" /> Commandes
           </button>
           <button
             onClick={() => navigate("/gerant/kds")}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#C05015] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#C05015]/25 transition hover:bg-[#9A3E10]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#FF8C00] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF8C00]/25 transition hover:bg-[#E07A00]"
           >
             <ChefHat className="h-4 w-4" /> KDS live
           </button>
@@ -4441,12 +4441,12 @@ function OverviewTab({ restaurantId }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Card 1 — primary dark (CA du jour) */}
         <div className="relative overflow-hidden rounded-2xl p-5 shadow-md" style={{ background: '#0F172A' }}>
-          <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-20" style={{ background: '#C05015', filter: 'blur(28px)' }} />
+          <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-20" style={{ background: '#FF8C00', filter: 'blur(28px)' }} />
           <div className="relative">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/50">CA du jour</p>
               <div className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: 'rgba(224,78,26,0.25)' }}>
-                <TrendingUp className="h-4 w-4 text-[#C05015]" />
+                <TrendingUp className="h-4 w-4 text-[#FF8C00]" />
               </div>
             </div>
             <p className="text-3xl font-bold text-white leading-none">{formatFCFA(stats.todayRevenue)}</p>
@@ -4462,24 +4462,24 @@ function OverviewTab({ restaurantId }) {
         {/* Card 2 — commandes actives */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9A7060]">En cuisine</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6B7280]">En cuisine</p>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-50">
-              <ClipboardList className="h-4 w-4 text-[#C05015]" />
+              <ClipboardList className="h-4 w-4 text-[#FF8C00]" />
             </div>
           </div>
           <p className="text-4xl font-bold text-[#0F172A] leading-none">{stats.activeOrders}</p>
           <div className="mt-3 flex items-center gap-1.5">
-            <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-semibold text-[#C05015]">
+            <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-semibold text-[#FF8C00]">
               {stats.b2bOrders} B2B
             </span>
-            <span className="text-xs text-[#9A7060]">commandes actives</span>
+            <span className="text-xs text-[#6B7280]">commandes actives</span>
           </div>
         </div>
 
         {/* Card 3 — alertes stock */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9A7060]">Alertes stock</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6B7280]">Alertes stock</p>
             <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${stats.lowStockItems > 0 ? 'bg-red-50' : 'bg-emerald-50'}`}>
               <AlertTriangle className={`h-4 w-4 ${stats.lowStockItems > 0 ? 'text-red-500' : 'text-emerald-500'}`} />
             </div>
@@ -4495,17 +4495,17 @@ function OverviewTab({ restaurantId }) {
         {/* Card 4 — équipe */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9A7060]">Équipe</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6B7280]">Équipe</p>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50">
-              <Users className="h-4 w-4 text-[#F97316]" />
+              <Users className="h-4 w-4 text-[#FF8C00]" />
             </div>
           </div>
           <p className="text-4xl font-bold text-[#0F172A] leading-none">{stats.staffCount}</p>
           <div className="mt-3 flex items-center gap-1.5">
-            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-[#F97316]">
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-[#FF8C00]">
               {stats.uniqueCustomers} clients
             </span>
-            <span className="text-xs text-[#9A7060]">uniques</span>
+            <span className="text-xs text-[#6B7280]">uniques</span>
           </div>
         </div>
       </div>
@@ -4518,16 +4518,16 @@ function OverviewTab({ restaurantId }) {
           <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-[#0F172A]">Analyse des performances</h3>
-              <p className="mt-0.5 text-xs text-[#9A7060]">Commandes & revenus sur 7 jours</p>
+              <p className="mt-0.5 text-xs text-[#6B7280]">Commandes & revenus sur 7 jours</p>
             </div>
             <div className="flex gap-3">
               <div className="rounded-xl border border-slate-100 bg-white px-4 py-2 text-center">
-                <p className="text-[10px] font-medium text-[#9A7060] uppercase tracking-wider">Commandes</p>
-                <p className="mt-0.5 text-xl font-bold text-[#C05015]">{weekOrdersTotal}</p>
+                <p className="text-[10px] font-medium text-[#6B7280] uppercase tracking-wider">Commandes</p>
+                <p className="mt-0.5 text-xl font-bold text-[#FF8C00]">{weekOrdersTotal}</p>
               </div>
               <div className="rounded-xl border border-slate-100 bg-white px-4 py-2 text-center">
-                <p className="text-[10px] font-medium text-[#9A7060] uppercase tracking-wider">Revenus</p>
-                <p className="mt-0.5 text-xl font-bold text-[#F97316]">{formatFCFA(weekRevenueTotal)}</p>
+                <p className="text-[10px] font-medium text-[#6B7280] uppercase tracking-wider">Revenus</p>
+                <p className="mt-0.5 text-xl font-bold text-[#FF8C00]">{formatFCFA(weekRevenueTotal)}</p>
               </div>
             </div>
           </div>
@@ -4546,7 +4546,7 @@ function OverviewTab({ restaurantId }) {
               <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-orange-50 to-white px-4 py-3 border border-orange-100">
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
-                    <CreditCard className="h-4 w-4 text-[#C05015]" />
+                    <CreditCard className="h-4 w-4 text-[#FF8C00]" />
                   </div>
                   <span className="text-sm font-medium text-slate-600">Ticket moyen</span>
                 </div>
@@ -4555,7 +4555,7 @@ function OverviewTab({ restaurantId }) {
               <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-amber-50 to-white px-4 py-3 border border-amber-100">
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
-                    <PieChart className="h-4 w-4 text-[#F97316]" />
+                    <PieChart className="h-4 w-4 text-[#FF8C00]" />
                   </div>
                   <span className="text-sm font-medium text-slate-600">Marge brute</span>
                 </div>
@@ -4587,19 +4587,19 @@ function OverviewTab({ restaurantId }) {
             <h3 className="mb-3 text-sm font-bold text-[#0F172A]">Accès rapides</h3>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { icon: Package, label: "Menu", path: "/gerant?tab=menu", color: '#C05015' },
-                { icon: ClipboardList, label: "Commandes", path: "/gerant?tab=orders", color: '#C05015' },
-                { icon: AlertTriangle, label: "Stocks", path: "/gerant?tab=stocks", color: '#F97316' },
-                { icon: Wallet, label: "Trésorerie", path: "/gerant?tab=finance", color: '#F97316' },
-                { icon: Tag, label: "Promos", path: "/gerant?tab=promos", color: '#C05015' },
+                { icon: Package, label: "Menu", path: "/gerant?tab=menu", color: '#FF8C00' },
+                { icon: ClipboardList, label: "Commandes", path: "/gerant?tab=orders", color: '#FF8C00' },
+                { icon: AlertTriangle, label: "Stocks", path: "/gerant?tab=stocks", color: '#FF8C00' },
+                { icon: Wallet, label: "Trésorerie", path: "/gerant?tab=finance", color: '#FF8C00' },
+                { icon: Tag, label: "Promos", path: "/gerant?tab=promos", color: '#FF8C00' },
                 { icon: Users, label: "Équipe", path: "/gerant?tab=settings", color: '#64748B' },
-                { icon: ChefHat, label: "KDS live", path: "/gerant/kds", color: '#C05015' },
+                { icon: ChefHat, label: "KDS live", path: "/gerant/kds", color: '#FF8C00' },
                 { icon: History, label: "Historique", path: "/gerant?tab=history", color: '#6366F1' },
               ].map(({ icon: Icon, label, path, color }) => (
                 <button
                   key={label}
                   onClick={() => navigate(path)}
-                  className="flex items-center gap-2 rounded-xl border border-slate-100 bg-white px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-[#C05015]"
+                  className="flex items-center gap-2 rounded-xl border border-slate-100 bg-white px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-[#FF8C00]"
                 >
                   <Icon className="h-4 w-4 shrink-0" style={{ color }} />
                   {label}
@@ -4615,20 +4615,20 @@ function OverviewTab({ restaurantId }) {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-[#0F172A]">Commandes récentes</h3>
-            <p className="mt-0.5 text-xs text-[#9A7060]">Client + entreprise · {recentOrders.length} dernières</p>
+            <p className="mt-0.5 text-xs text-[#6B7280]">Client + entreprise · {recentOrders.length} dernières</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleExportPDF}
               disabled={recentOrders.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#FDDDD4] bg-white px-3 py-2 text-xs font-medium text-[#9A7060] transition hover:bg-[#FBE8DC] disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#FFF0DF] bg-white px-3 py-2 text-xs font-medium text-[#6B7280] transition hover:bg-[#FFF0DF] disabled:opacity-40"
             >
               <Download className="h-3.5 w-3.5" /> PDF
             </button>
             <button
               onClick={handleExportSyscohada}
               disabled={!restaurantId}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#C05015] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#9A3E10] disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF8C00] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#E07A00] disabled:opacity-40"
             >
               <Download className="h-3.5 w-3.5" /> SYSCOHADA
             </button>
@@ -4642,7 +4642,7 @@ function OverviewTab({ restaurantId }) {
               return (
                 <div key={order.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FBE8DC] text-[11px] font-bold text-[#C05015]">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FFF0DF] text-[11px] font-bold text-[#FF8C00]">
                       #{(order.numero ?? '').toString().slice(-3)}
                     </div>
                     <div>
@@ -4654,7 +4654,7 @@ function OverviewTab({ restaurantId }) {
                           {ageTone.label}
                         </span>
                       </div>
-                      <p className="mt-0.5 text-[11px] text-[#9A7060]">{order.source} · {formatDate(order.createdAt)}</p>
+                      <p className="mt-0.5 text-[11px] text-[#6B7280]">{order.source} · {formatDate(order.createdAt)}</p>
                     </div>
                   </div>
                   <span className="font-bold text-sm text-[#0F172A]">{formatFCFA(order.amount)}</span>
@@ -4663,7 +4663,7 @@ function OverviewTab({ restaurantId }) {
             })}
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-[#FDDDD4] bg-white py-10 text-center text-sm text-[#9A7060]">
+          <div className="rounded-xl border border-dashed border-[#FFF0DF] bg-white py-10 text-center text-sm text-[#6B7280]">
             Aucune commande récente
           </div>
         )}

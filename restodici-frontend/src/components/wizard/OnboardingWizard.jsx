@@ -6,10 +6,10 @@ import {
   Users, Package, TrendingUp, Settings, Star, Flame, Check,
 } from 'lucide-react';
 
-const ACCENT = '#C05015';
+const ACCENT = '#FF8C00';
 const CREAM = '#0F172A';
 const MUTED = '#64748B';
-const GOLD = '#F97316';
+const GOLD = '#FF8C00';
 
 const STEPS_BY_ROLE = {
   CLIENT: [
@@ -172,7 +172,7 @@ export default function OnboardingWizard() {
         {/* Close */}
         <button
           onClick={dismiss}
-          className="absolute right-4 top-4 rounded-xl p-1.5 text-[#9A7060] hover:text-gray-700 hover:bg-[#FBE8DC] transition"
+          className="absolute right-4 top-4 rounded-xl p-1.5 text-[#6B7280] hover:text-gray-700 hover:bg-[#FFF0DF] transition"
         >
           <X className="h-4 w-4" />
         </button>

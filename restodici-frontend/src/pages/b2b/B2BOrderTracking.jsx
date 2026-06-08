@@ -4,14 +4,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, CheckCircle, Clock, MapPin, Package,
   Truck, UtensilsCrossed, XCircle, AlertTriangle,
-  Star, ThumbsUp, ThumbsDown, Send, Users, Building2,
+  Star, ThumbsUp, ThumbsDown, Send, Users, Building2, Mail,
 } from 'lucide-react';
 import { b2bAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { createCommandesSocket } from '../../services/commandes.service';
 import { formatFCFA } from '../../utils/formatters';
 
-const A = '#C05015';
+const A = '#FF8C00';
 const BD = 'rgba(89,67,42,0.10)';
 
 const safeDate = (d) => {
@@ -184,15 +184,26 @@ export default function B2BOrderTracking() {
             </div>
           </div>
         ) : isDelivered ? (
-          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 flex items-center gap-4">
-            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-              <CheckCircle className="w-6 h-6 text-emerald-500" />
+          <>
+            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                <CheckCircle className="w-6 h-6 text-emerald-500" />
+              </div>
+              <div>
+                <p className="font-bold text-emerald-700">Commande livrée !</p>
+                <p className="text-xs text-emerald-600 mt-0.5">Nous espérons que tout vous a satisfait.</p>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-emerald-700">Commande livrée !</p>
-              <p className="text-xs text-emerald-600 mt-0.5">Nous espérons que tout vous a satisfait.</p>
-            </div>
-          </div>
+            {user?.email && (
+              <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
+                <Mail className="w-5 h-5 text-blue-500 shrink-0" />
+                <p className="text-sm text-blue-700">
+                  Reçu de commande groupée envoyé à{' '}
+                  <span className="font-bold">{user.email}</span>
+                </p>
+              </div>
+            )}
+          </>
         ) : (
           <div className="bg-white rounded-2xl border p-5 flex items-center gap-4" style={{ borderColor: BD }}>
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shrink-0">
@@ -231,7 +242,7 @@ export default function B2BOrderTracking() {
                     </div>
                     <div className={`pb-5 ${isLast ? 'pb-0' : ''} flex items-start pt-1.5`}>
                       <div>
-                        <p className={`text-sm font-semibold ${current ? 'text-[#C05015]' : done ? 'text-[#0F172A]' : 'text-[#64748B]/40'}`}>
+                        <p className={`text-sm font-semibold ${current ? 'text-[#FF8C00]' : done ? 'text-[#0F172A]' : 'text-[#64748B]/40'}`}>
                           {s.label}
                         </p>
                         {current && <p className="text-xs text-[#64748B] mt-0.5 animate-pulse">En cours…</p>}
@@ -303,7 +314,7 @@ export default function B2BOrderTracking() {
 
           {/* Company info */}
           {(order.compteB2B || order.entreprise) && (
-            <div className="mx-5 mb-4 rounded-xl px-4 py-3 flex items-center gap-3" style={{ background: '#FBE8DC' }}>
+            <div className="mx-5 mb-4 rounded-xl px-4 py-3 flex items-center gap-3" style={{ background: '#FFF0DF' }}>
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: A }}>
                 <Building2 className="w-4 h-4 text-white" />
               </div>

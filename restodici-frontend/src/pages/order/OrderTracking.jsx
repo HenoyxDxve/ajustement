@@ -32,8 +32,8 @@ const MODE_LABELS = {
 
 const STEPS = [
   { key: 'RECUE',        label: 'Commande reçue',   icon: CheckCircle, color: '#64748B' },
-  { key: 'CONFIRMEE',    label: 'Confirmée',         icon: CheckCircle, color: '#C05015' },
-  { key: 'EN_PREP',      label: 'En préparation',    icon: Clock,       color: '#C05015' },
+  { key: 'CONFIRMEE',    label: 'Confirmée',         icon: CheckCircle, color: '#FF8C00' },
+  { key: 'EN_PREP',      label: 'En préparation',    icon: Clock,       color: '#FF8C00' },
   { key: 'PRETE',        label: 'Prête',             icon: Package,     color: '#2ECC71' },
   { key: 'EN_LIVRAISON', label: 'En livraison',      icon: Truck,       color: '#0066CC' },
   { key: 'LIVREE',       label: 'Livrée',            icon: MapPin,      color: '#2ECC71' },
@@ -76,6 +76,7 @@ export default function OrderTrackingPage() {
   const [error, setError] = useState('');
   const [justUpdated, setJustUpdated] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [refundInfo, setRefundInfo] = useState(null);
 
   // Delivery confirmation state
   const [receptionStatus, setReceptionStatus] = useState(null); // null | 'OUI' | 'NON'
@@ -158,8 +159,12 @@ export default function OrderTrackingPage() {
     if (!window.confirm('Confirmer l\'annulation de cette commande ?')) return;
     setCancelling(true);
     try {
+      const wasP = order.estPaye;
+      const amount = order.montantTotal;
+      const mode = order.modePaiement;
       await commandesService.updateStatut(id, 'ANNULEE');
       setOrder((prev) => ({ ...prev, statut: 'ANNULEE' }));
+      if (wasP) setRefundInfo({ amount, mode });
     } catch (err) {
       alert(err?.response?.data?.message || 'Impossible d\'annuler la commande.');
     } finally {
@@ -198,7 +203,7 @@ export default function OrderTrackingPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-10 h-10 border-[3px] border-[#C05015] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-[3px] border-[#FF8C00] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -210,7 +215,7 @@ export default function OrderTrackingPage() {
           <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-4" />
           <p className="font-bold text-[#0F172A] mb-2">Commande introuvable</p>
           <p className="text-sm text-[#64748B] mb-6">{error || 'Aucune commande trouvée.'}</p>
-          <button onClick={() => navigate('/menu')} className="w-full bg-[#C05015] hover:bg-[#9A3E10] text-white font-bold py-3 px-6 rounded-xl transition">
+          <button onClick={() => navigate('/menu')} className="w-full bg-[#FF8C00] hover:bg-[#E07A00] text-white font-bold py-3 px-6 rounded-xl transition">
             Retour au menu
           </button>
         </div>
@@ -251,14 +256,29 @@ export default function OrderTrackingPage() {
 
         {/* Status hero */}
         {isCancelled ? (
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-5 flex items-center gap-4">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
-              <XCircle className="w-6 h-6 text-red-500" />
+          <div className="space-y-3">
+            <div className="bg-red-50 border border-red-100 rounded-2xl p-5 flex items-center gap-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                <XCircle className="w-6 h-6 text-red-500" />
+              </div>
+              <div>
+                <p className="font-bold text-red-700">Commande annulée</p>
+                <p className="text-xs text-red-500 mt-0.5">Cette commande a été annulée.</p>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-red-700">Commande annulée</p>
-              <p className="text-xs text-red-500 mt-0.5">Cette commande a été annulée.</p>
-            </div>
+            {(refundInfo || order.estPaye) && (
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                <p className="text-sm font-bold text-blue-700 mb-1">💳 Remboursement en cours</p>
+                <p className="text-xs text-blue-600">
+                  {refundInfo?.amount || order.montantTotal
+                    ? `${formatFCFA(refundInfo?.amount || order.montantTotal)} `
+                    : ''}
+                  seront recrédités sur votre{' '}
+                  {(refundInfo?.mode || order.modePaiement || '').replace('_', ' ').toLowerCase() || 'moyen de paiement'}{' '}
+                  sous <span className="font-bold">24 à 48h</span>.
+                </p>
+              </div>
+            )}
           </div>
         ) : isDelivered ? (
           <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 flex items-center gap-4">
@@ -273,7 +293,7 @@ export default function OrderTrackingPage() {
         ) : (
           <div className="bg-white rounded-2xl border border-[rgba(89,67,42,0.10)] p-5 flex items-center gap-4">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shrink-0">
-              <div className="w-5 h-5 border-2 border-[#C05015] border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-[#FF8C00] border-t-transparent rounded-full animate-spin" />
             </div>
             <div>
               <p className="font-bold text-[#0F172A]">
@@ -322,12 +342,12 @@ export default function OrderTrackingPage() {
                         <Icon className="w-4 h-4" />
                       </div>
                       {!isLast && (
-                        <div className="w-0.5 my-1 flex-1 min-h-[20px] transition-all" style={{ background: done ? '#C05015' : '#E5E0D8' }} />
+                        <div className="w-0.5 my-1 flex-1 min-h-[20px] transition-all" style={{ background: done ? '#FF8C00' : '#E5E0D8' }} />
                       )}
                     </div>
                     <div className={`pb-5 ${isLast ? 'pb-0' : ''} flex items-start pt-1.5`}>
                       <div>
-                        <p className={`text-sm font-semibold ${current ? 'text-[#C05015]' : done ? 'text-[#0F172A]' : 'text-[#64748B]/40'}`}>
+                        <p className={`text-sm font-semibold ${current ? 'text-[#FF8C00]' : done ? 'text-[#0F172A]' : 'text-[#64748B]/40'}`}>
                           {step.label}
                         </p>
                         {current && (
@@ -371,13 +391,13 @@ export default function OrderTrackingPage() {
               <span className="font-bold text-[#0F172A]">Total</span>
               {isPaid && <span className="ml-2 text-xs text-emerald-600 font-medium">· {order.modePaiement?.replace(/_/g, ' ')}</span>}
             </div>
-            <span className="text-lg font-extrabold text-[#C05015]">{formatFCFA(order.montantTotal)} FCFA</span>
+            <span className="text-lg font-extrabold text-[#FF8C00]">{formatFCFA(order.montantTotal)} FCFA</span>
           </div>
 
           {order.restaurant && (
             <div className="mx-5 mb-4 rounded-xl bg-white px-4 py-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#C05015]/10 flex items-center justify-center">
-                <UtensilsCrossed className="w-4 h-4 text-[#C05015]" />
+              <div className="w-8 h-8 rounded-lg bg-[#FF8C00]/10 flex items-center justify-center">
+                <UtensilsCrossed className="w-4 h-4 text-[#FF8C00]" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-[#0F172A]">{order.restaurant.nom}</p>
@@ -442,20 +462,20 @@ export default function OrderTrackingPage() {
                 <div className="space-y-3">
                   <StarRating value={rating} onChange={setRating} />
                   {rating > 0 && (
-                    <p className="text-sm font-semibold text-[#C05015]">{RATING_LABELS[rating]}</p>
+                    <p className="text-sm font-semibold text-[#FF8C00]">{RATING_LABELS[rating]}</p>
                   )}
                   <textarea
                     value={ratingComment}
                     onChange={(e) => setRatingComment(e.target.value)}
                     placeholder="Commentaire optionnel…"
                     rows={2}
-                    className="w-full rounded-xl border border-[rgba(89,67,42,0.12)] bg-white px-4 py-2.5 text-sm text-[#0F172A] placeholder-[#64748B]/50 outline-none focus:ring-1 focus:ring-[#C05015]/30 resize-none"
+                    className="w-full rounded-xl border border-[rgba(89,67,42,0.12)] bg-white px-4 py-2.5 text-sm text-[#0F172A] placeholder-[#64748B]/50 outline-none focus:ring-1 focus:ring-[#FF8C00]/30 resize-none"
                   />
                   {ratingError && <p className="text-xs text-red-600">{ratingError}</p>}
                   <button
                     onClick={handleSubmitRating}
                     disabled={ratingSubmitting || rating === 0}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#C05015] hover:bg-[#9A3E10] px-4 py-3 font-bold text-white text-sm transition disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#FF8C00] hover:bg-[#E07A00] px-4 py-3 font-bold text-white text-sm transition disabled:opacity-60"
                   >
                     {ratingSubmitting ? (
                       <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -472,7 +492,7 @@ export default function OrderTrackingPage() {
 
             {/* Rating confirmed */}
             {receptionStatus === 'OUI' && ratingDone && (
-              <div className="rounded-xl bg-[#FBE8DC] border border-[rgba(224,78,26,0.1)] px-4 py-4 text-center">
+              <div className="rounded-xl bg-[#FFF0DF] border border-[rgba(224,78,26,0.1)] px-4 py-4 text-center">
                 <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-2">
                   <CheckCircle className="w-5 h-5 text-emerald-600" />
                 </div>
@@ -514,7 +534,7 @@ export default function OrderTrackingPage() {
           </button>
           <button
             onClick={() => navigate(getClientOrdersPath())}
-            className="flex-1 bg-[#C05015] hover:bg-[#9A3E10] text-white font-bold py-3.5 rounded-xl shadow-sm transition text-sm flex items-center justify-center gap-1.5"
+            className="flex-1 bg-[#FF8C00] hover:bg-[#E07A00] text-white font-bold py-3.5 rounded-xl shadow-sm transition text-sm flex items-center justify-center gap-1.5"
           >
             Mes commandes <ChevronRight className="w-4 h-4" />
           </button>

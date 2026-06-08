@@ -5,37 +5,41 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Brand orange — primary accent
         primary: {
           DEFAULT: '#FF8C00',
-          light: '#FFAD40',
-          lighter: '#FFF5E8',
-          dark: '#E07A00',
-          darker: '#C06800',
+          50:  '#FFF5E6',
+          100: '#FFE5BF',
+          200: '#FFCF8A',
+          300: '#FFB855',
+          400: '#FFA330',
+          500: '#FF8C00',   // ← main brand
+          600: '#E07A00',
+          700: '#C06800',
+          800: '#9A5200',
+          900: '#6B3800',
         },
-        secondary: {
-          DEFAULT: '#FFB800',
-          light: '#FFF5E8',
+        // Neutral dark backgrounds
+        dark: {
+          50:  '#F5F5F5',
+          100: '#E8E8E8',
+          200: '#C8C8C8',
+          300: '#A0A0A0',
+          400: '#6E6E6E',
+          500: '#3E3E3E',
+          600: '#2A2A2A',
+          700: '#1E1E1E',
+          800: '#141414',
+          900: '#0C0C0C',
+          950: '#070707',
         },
-        tertiary: {
-          DEFAULT: '#00A7CB',
-          light: '#E6F5F9',
-        },
-        neutral: {
-          DEFAULT: '#F5F5F5',
-          50:  '#FFFAF3',
-          100: '#FFF5E8',
-          200: '#FFEFD8',
-          300: '#D4D4D4',
-          500: '#7A5E3A',
-          700: '#3B2409',
-          800: '#3F3F3F',
-          900: '#1A0C00',
-        },
-        status: {
-          disponible: '#2ECC71',
-          epuise:     '#E67E22',
-          rupture:    '#E74C3C',
-        },
+        // Semantic colors
+        success:  { DEFAULT: '#22C55E', light: '#DCFCE7', dark: '#16A34A' },
+        warning:  { DEFAULT: '#F59E0B', light: '#FEF3C7', dark: '#D97706' },
+        danger:   { DEFAULT: '#EF4444', light: '#FEE2E2', dark: '#DC2626' },
+        info:     { DEFAULT: '#3B82F6', light: '#DBEAFE', dark: '#2563EB' },
+        // Keep existing semantic aliases for backward compat
+        accent: '#FF8C00',
       },
       fontFamily: {
         sans:    ['Manrope', 'Inter', 'system-ui', 'sans-serif'],

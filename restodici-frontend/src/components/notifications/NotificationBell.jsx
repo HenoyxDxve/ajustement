@@ -12,8 +12,8 @@ const ROLE_EVENTS = {
 };
 
 const EVENT_META = {
-  'commande.nouvelle':     { icon: ChefHat,       color: '#C05015', label: 'Nouvelle commande',  body: (p) => p?.numero ? `Commande #${p.numero} reçue` : 'Nouvelle commande reçue' },
-  'commande.creee':        { icon: ChefHat,       color: '#C05015', label: 'Commande créée',      body: (p) => p?.numero ? `Votre commande #${p.numero} a été placée` : 'Commande enregistrée' },
+  'commande.nouvelle':     { icon: ChefHat,       color: '#FF8C00', label: 'Nouvelle commande',  body: (p) => p?.numero ? `Commande #${p.numero} reçue` : 'Nouvelle commande reçue' },
+  'commande.creee':        { icon: ChefHat,       color: '#FF8C00', label: 'Commande créée',      body: (p) => p?.numero ? `Votre commande #${p.numero} a été placée` : 'Commande enregistrée' },
   'commande.statut':       { icon: Truck,         color: '#2563EB', label: 'Statut mis à jour',   body: (p) => p?.numero && p?.statut ? `#${p.numero} → ${STATUS_FR[p.statut] || p.statut}` : 'Statut de commande mis à jour' },
   'commande.paiement':     { icon: CreditCard,    color: '#16A34A', label: 'Paiement confirmé',   body: (p) => p?.numero ? `Paiement reçu pour #${p.numero}` : 'Paiement confirmé' },
   'commande.b2b.nouvelle': { icon: Package,       color: '#7C3AED', label: 'Commande B2B',        body: (p) => p?.entreprise ? `${p.entreprise} — nouvelle commande groupée` : 'Nouvelle commande entreprise' },
@@ -50,7 +50,7 @@ function timeAgo(iso) {
 
 // light=true → fond blanc (top bar staff/client)
 // light=false (défaut) → fond sombre (sidebar B2B/gérant)
-export default function NotificationBell({ accentColor = '#C05015', size = 'md', light = false }) {
+export default function NotificationBell({ accentColor = '#FF8C00', size = 'md', light = false }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState(() => {
     try { return JSON.parse(localStorage.getItem(`notifs:${user?.id}`) || '[]'); } catch { return []; }

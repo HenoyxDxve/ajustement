@@ -3,45 +3,118 @@
    Palette orange #FF8C00 · Police Manrope · Mode responsive complet
    ═══════════════════════════════════════════════════════════════ */
 
+/* ── Google Fonts — doit précéder @tailwind ── */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
 /* ── Ordre recommandé par Tailwind (base → components → utilities) ── */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ── Google Fonts — chargées en asynchrone pour ne pas bloquer le rendu ── */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
    VARIABLES CSS — Palette chaude Restodici
    Accessibles partout dans l'app via var(--color-...)
    ═══════════════════════════════════════════════════════════════ */
 :root {
-  /* Couleurs de fond */
-  --color-bg:       #FFFAF3;   /* fond principal */
-  --color-bg-alt:   #FFF5E8;   /* fond alternatif */
-  --color-surface:  #FFEFD8;   /* surfaces de cartes */
+  /* ── Brand colors ─────────────────────────────────────── */
+  --color-primary:       #FF8C00;
+  --color-primary-dark:  #E07A00;
+  --color-primary-light: #FFF0DF;
+  --color-primary-dim:   rgba(255,140,0,0.12);
+  --color-primary-glow:  rgba(255,140,0,0.3);
 
-  /* Couleurs de texte */
-  --color-dark:     #1A0C00;   /* texte principal très foncé */
-  --color-text:     #3B2409;   /* texte courant */
-  --color-muted:    #7A5E3A;   /* texte secondaire */
+  /* ── Surfaces ─────────────────────────────────────────── */
+  --surface-base:    #F5F6F8;
+  --surface-card:    #FFFFFF;
+  --surface-raised:  #FFFFFF;
+  --surface-overlay: rgba(0,0,0,0.45);
 
-  /* Couleur d'accentuation — orange Restodici */
+  /* ── Light mode surfaces (backward compat) ───────────── */
+  --color-bg:            #F5F6F8;
+  --color-bg-alt:        #EEEFF2;
+  --color-surface:       #FFFFFF;
+  --color-surface-alt:   #F5F6F8;
+
+  /* ── Dark mode surfaces (used when .dark class present) ── */
+  --color-dark-bg:       #070707;
+  --color-dark-panel:    #0C0C0C;
+  --color-dark-card:     #141414;
+  --color-dark-elevated: #1E1E1E;
+  --color-dark-raised:   #282828;
+
+  /* ── Text ─────────────────────────────────────────────── */
+  --text-primary:   #111827;
+  --text-secondary: #6B7280;
+  --text-muted:     #9CA3AF;
+  --text-inverse:   #FFFFFF;
+
+  /* ── Text (backward compat) ───────────────────────────── */
+  --color-text:          #111827;
+  --color-text-secondary:#6B7280;
+  --color-text-muted:    #9CA3AF;
+  --color-text-inverse:  #FFFFFF;
+
+  /* ── Borders ──────────────────────────────────────────── */
+  --border:         rgba(0,0,0,0.07);
+  --border-strong:  rgba(0,0,0,0.14);
+  --border-focus:   rgba(255,140,0,0.4);
+
+  /* ── Borders (backward compat) ───────────────────────── */
+  --color-border:        rgba(0,0,0,0.07);
+  --color-border-soft:   rgba(0,0,0,0.08);
+  --color-border-dark:   rgba(255,255,255,0.08);
+
+  /* ── Semantic ─────────────────────────────────────────── */
+  --color-success:       #22C55E;
+  --color-warning:       #F59E0B;
+  --color-danger:        #EF4444;
+  --color-info:          #3B82F6;
+
+  /* ── Shadows ──────────────────────────────────────────── */
+  --shadow-card:    0 1px 8px rgba(0,0,0,0.04);
+  --shadow-hover:   0 4px 20px rgba(0,0,0,0.08);
+  --shadow-button:  0 4px 16px rgba(255,140,0,0.3);
+  --shadow-modal:   0 20px 60px rgba(0,0,0,0.2);
+  --shadow-float:   0 -4px 20px rgba(0,0,0,0.08);
+
+  /* ── Shadows (backward compat) ───────────────────────── */
+  --shadow-card-hover:   0 4px 20px rgba(0,0,0,0.08);
+  --shadow-accent:       0 4px 20px rgba(255,140,0,0.30);
+  --shadow-floating:     0 -4px 20px rgba(0,0,0,0.08);
+
+  /* ── Radii ────────────────────────────────────────────── */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  /* ── Spacing ──────────────────────────────────────────── */
+  --page-px:    clamp(12px, 4vw, 24px);
+  --section-gap: clamp(16px, 3vw, 32px);
+
+  /* ── Backward-compat aliases ──────────────────────────── */
   --color-accent:   #FF8C00;
-  --color-accent-d: #E07A00;   /* version foncée */
-  --color-yellow:   #FFB800;   /* jaune complémentaire */
-
-  /* Cartes et bordures */
+  --color-accent-d: #E07A00;
+  --color-dark:     #111827;
+  --color-muted:    #9CA3AF;
   --color-card:     #FFFFFF;
-  --color-line:     rgba(255,140,0,0.14);   /* bordure subtile */
+  --color-line:     rgba(0,0,0,0.07);
+}
 
-  /* Ombres */
-  --shadow-card:    0 2px 14px rgba(0,0,0,0.07);
-  --shadow-accent:  0 6px 28px rgba(255,140,0,0.14);
-
-  /* Espacements responsifs — s'adaptent à la taille de l'écran */
-  --page-px:        clamp(12px, 4vw, 24px);   /* padding horizontal des pages */
-  --section-gap:    clamp(16px, 3vw, 32px);   /* espace entre les sections */
+html.dark {
+  --color-bg:            #070707;
+  --color-bg-alt:        #0C0C0C;
+  --color-surface:       #141414;
+  --color-surface-alt:   #1E1E1E;
+  --color-text:          #F0F0F0;
+  --color-text-secondary:#A0A0A0;
+  --color-text-muted:    #606060;
+  --color-border:        rgba(255, 255, 255, 0.08);
+  --color-border-soft:   rgba(255, 255, 255, 0.05);
+  --shadow-card:         0 2px 16px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover:   0 8px 32px rgba(0, 0, 0, 0.7);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -189,6 +262,51 @@ button:disabled {
   animation: shimmer 1.4s ease infinite;
   border-radius: 8px;
 }
+
+/* ── Reusable button utilities ───────────────────────── */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-button);
+}
+.btn-primary:hover {
+  background-color: var(--color-primary-light);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(255, 140, 0, 0.45);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  font-weight: 500;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-ghost:hover {
+  background-color: var(--color-primary-dim);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── Status badge utilities ──────────────────────────── */
+.badge         { display: inline-flex; align-items: center; padding: 0.2rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+.badge-success { background-color: rgba(34, 197, 94, 0.12);  color: #22C55E; }
+.badge-warning { background-color: rgba(245, 158, 11, 0.12); color: #F59E0B; }
+.badge-danger  { background-color: rgba(239, 68, 68, 0.12);  color: #EF4444; }
+.badge-info    { background-color: rgba(59, 130, 246, 0.12); color: #3B82F6; }
+.badge-neutral { background-color: rgba(0, 0, 0, 0.06);      color: #6B6B6B; }
 
 /* ═══════════════════════════════════════════════════════════════
    IMPRESSION — Masque les éléments de navigation à l'impression

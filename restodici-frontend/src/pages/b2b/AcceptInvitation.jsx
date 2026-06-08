@@ -4,7 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { UtensilsCrossed, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { b2bAPI } from '../../services/api';
 
-const A = '#C05015';
+const A = '#FF8C00';
 
 export default function AcceptInvitation() {
   const { token } = useParams();
@@ -101,7 +101,7 @@ export default function AcceptInvitation() {
             {/* Form */}
             {!loadingInvit && invitation && !success && (
               <>
-                <div className="mb-6 p-4 rounded-2xl" style={{ background: '#FBE8DC' }}>
+                <div className="mb-6 p-4 rounded-2xl" style={{ background: '#FFF0DF' }}>
                   <p className="text-sm font-bold" style={{ color: A }}>
                     {invitation.entreprise}
                   </p>

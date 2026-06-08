@@ -189,7 +189,7 @@ export default function CartPage() {
     return (
       <div className="min-h-[calc(100dvh-64px)] bg-white px-4 py-10 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto rounded-[32px] border border-[#E2E8F0] bg-white p-8 sm:p-12 text-center shadow-sm">
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#FBE8DC] text-[#C05015]">
+          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#FFF0DF] text-[#FF8C00]">
             <ShoppingBag className="h-10 w-10" />
           </div>
           <h1 className="text-3xl font-bold text-[#0F172A]">Votre panier est vide</h1>
@@ -198,7 +198,7 @@ export default function CartPage() {
           </p>
           <Link
             to="/menu"
-            className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#C05015] px-6 py-3.5 font-semibold text-white shadow-md transition hover:bg-[#9A3E10]"
+            className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#FF8C00] px-6 py-3.5 font-semibold text-white shadow-md transition hover:bg-[#E07A00]"
           >
             Découvrir les restaurants
             <ChevronRight className="h-4 w-4" />
@@ -214,7 +214,7 @@ export default function CartPage() {
         <section className="rounded-[32px] border border-[#E2E8F0] bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-[#FBE8DC] px-4 py-2 text-sm font-semibold text-[#C05015]">
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#FFF0DF] px-4 py-2 text-sm font-semibold text-[#FF8C00]">
                 <ShieldCheck className="h-4 w-4" />
                 Panier sécurisé
               </span>
@@ -253,7 +253,7 @@ export default function CartPage() {
                   </button>
                   <Link
                     to="/menu"
-                    className="rounded-2xl border border-[#C05015] px-4 py-2.5 text-sm font-semibold text-[#C05015] transition hover:bg-[#FBE8DC]"
+                    className="rounded-2xl border border-[#FF8C00] px-4 py-2.5 text-sm font-semibold text-[#FF8C00] transition hover:bg-[#FFF0DF]"
                   >
                     Ajouter d'autres plats
                   </Link>
@@ -274,7 +274,7 @@ export default function CartPage() {
                           className="h-24 w-full rounded-2xl object-cover sm:h-28 sm:w-28"
                         />
                       ) : (
-                        <div className="flex h-24 w-full items-center justify-center rounded-2xl bg-[#FBE8DC] text-[#C05015] sm:h-28 sm:w-28">
+                        <div className="flex h-24 w-full items-center justify-center rounded-2xl bg-[#FFF0DF] text-[#FF8C00] sm:h-28 sm:w-28">
                           <Package className="h-8 w-8" />
                         </div>
                       )}
@@ -332,7 +332,7 @@ export default function CartPage() {
                             <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#737373]">
                               Total ligne
                             </p>
-                            <p className="mt-1 text-2xl font-bold text-[#C05015]">
+                            <p className="mt-1 text-2xl font-bold text-[#FF8C00]">
                               {formatFCFA(Number(item.prix) * Number(item.quantite))}
                             </p>
                           </div>
@@ -349,7 +349,7 @@ export default function CartPage() {
             {restaurantId && (
               <section className="rounded-[28px] border border-[#E2E8F0] bg-white p-5 shadow-sm sm:p-6">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FBE8DC] text-[#C05015]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF0DF] text-[#FF8C00]">
                     <Store className="h-5 w-5" />
                   </div>
                   <div>
@@ -371,7 +371,7 @@ export default function CartPage() {
 
             <section className="rounded-[28px] border border-[#E2E8F0] bg-white p-5 shadow-sm sm:p-6">
               <h3 className="flex items-center gap-2 text-lg font-bold text-[#0F172A]">
-                <BadgePercent className="h-5 w-5 text-[#C05015]" />
+                <BadgePercent className="h-5 w-5 text-[#FF8C00]" />
                 Code promo
               </h3>
               <div className="mt-4 flex gap-2">
@@ -383,12 +383,12 @@ export default function CartPage() {
                     setErrors((current) => ({ ...current, promo: undefined }));
                   }}
                   placeholder="WELCOME10 ou FREESHIP"
-                  className="flex-1 rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#C05015] focus:ring-2 focus:ring-[#C05015]/15"
+                  className="flex-1 rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-2 focus:ring-[#FF8C00]/15"
                 />
                 {!promoApplied ? (
                   <button
                     onClick={handleApplyPromo}
-                    className="rounded-2xl bg-[#C05015] px-4 py-3 font-semibold text-white transition hover:bg-[#9A3E10]"
+                    className="rounded-2xl bg-[#FF8C00] px-4 py-3 font-semibold text-white transition hover:bg-[#E07A00]"
                   >
                     Appliquer
                   </button>
@@ -428,14 +428,14 @@ export default function CartPage() {
                       onClick={() => setOrderMode(mode.id)}
                       className={`rounded-[24px] border p-4 text-left transition ${
                         active
-                          ? 'border-[#C05015] bg-[#FBE8DC] shadow-sm'
-                          : 'border-[#E2E8F0] bg-white hover:border-[#C05015]/40'
+                          ? 'border-[#FF8C00] bg-[#FFF0DF] shadow-sm'
+                          : 'border-[#E2E8F0] bg-white hover:border-[#FF8C00]/40'
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <div
                           className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
-                            active ? 'bg-[#C05015] text-white' : 'bg-white text-[#737373]'
+                            active ? 'bg-[#FF8C00] text-white' : 'bg-white text-[#737373]'
                           }`}
                         >
                           <Icon className="h-5 w-5" />
@@ -504,8 +504,8 @@ export default function CartPage() {
                           }}
                           className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${
                             deliveryZone === zone.name
-                              ? 'border-[#C05015] bg-[#FBE8DC] text-[#C05015]'
-                              : 'border-[#E2E8F0] bg-white text-[#737373] hover:border-[#C05015]/40'
+                              ? 'border-[#FF8C00] bg-[#FFF0DF] text-[#FF8C00]'
+                              : 'border-[#E2E8F0] bg-white text-[#737373] hover:border-[#FF8C00]/40'
                           }`}
                         >
                           {zone.name} · +{formatFCFA(zone.fee)}
@@ -532,19 +532,19 @@ export default function CartPage() {
                 />
               </div>
 
-              <div className="mt-5 rounded-[24px] bg-[#FBE8DC] px-5 py-4">
+              <div className="mt-5 rounded-[24px] bg-[#FFF0DF] px-5 py-4">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-[#737373]">Total à payer</p>
-                    <p className="mt-1 text-3xl font-bold text-[#C05015]">{formatFCFA(total)}</p>
+                    <p className="mt-1 text-3xl font-bold text-[#FF8C00]">{formatFCFA(total)}</p>
                   </div>
-                  <CreditCard className="h-8 w-8 text-[#C05015]" />
+                  <CreditCard className="h-8 w-8 text-[#FF8C00]" />
                 </div>
               </div>
 
               <button
                 onClick={handleProceedToCheckout}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#C05015] px-5 py-4 font-semibold text-white shadow-md transition hover:bg-[#9A3E10]"
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF8C00] px-5 py-4 font-semibold text-white shadow-md transition hover:bg-[#E07A00]"
               >
                 Passer au paiement
                 <ChevronRight className="h-4 w-4" />

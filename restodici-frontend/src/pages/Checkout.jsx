@@ -11,6 +11,10 @@ import { useAuth } from '../hooks/useAuth';
 import { formatFCFA } from '../utils/formatters';
 import { commandesService } from '../services/commandes.service';
 import { promosAPI } from '../services/api';
+import orangeMoneyLogo from '../assets/payments/orange-money.svg';
+import mtnMomoLogo from '../assets/payments/mtn-momo.svg';
+import moovMoneyLogo from '../assets/payments/moov-money.svg';
+import carteBancaireLogo from '../assets/payments/carte-bancaire.svg';
 
 const PAYMENT_METHODS = [
   {
@@ -18,7 +22,7 @@ const PAYMENT_METHODS = [
     apiMode: 'ORANGE_MONEY',
     name: 'Orange Money',
     shortName: 'Orange',
-    logo: '🟠',
+    logo: orangeMoneyLogo,
     accent: '#FF7900',
     accentLight: '#FFF3E0',
     borderActive: 'border-orange-400',
@@ -31,7 +35,7 @@ const PAYMENT_METHODS = [
     apiMode: 'MTN_MONEY',
     name: 'MTN Mobile Money',
     shortName: 'MTN MoMo',
-    logo: '🟡',
+    logo: mtnMomoLogo,
     accent: '#FFCC00',
     accentLight: '#FFFDE7',
     borderActive: 'border-yellow-400',
@@ -44,7 +48,7 @@ const PAYMENT_METHODS = [
     apiMode: 'MOOV_MONEY',
     name: 'Moov Money',
     shortName: 'Moov',
-    logo: '🔵',
+    logo: moovMoneyLogo,
     accent: '#0066CC',
     accentLight: '#E3F0FF',
     borderActive: 'border-blue-400',
@@ -57,7 +61,7 @@ const PAYMENT_METHODS = [
     apiMode: 'CARTE_BANCAIRE',
     name: 'Carte Bancaire',
     shortName: 'Carte',
-    logo: '💳',
+    logo: carteBancaireLogo,
     accent: '#0F172A',
     accentLight: '#F5F0FF',
     borderActive: 'border-stone-600',
@@ -315,7 +319,7 @@ export default function CheckoutPage() {
         <section className="bg-white rounded-2xl border border-[rgba(89,67,42,0.10)] overflow-hidden">
           <div className="px-5 py-4 border-b border-[rgba(89,67,42,0.08)] flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center">
-              <UtensilsCrossed className="w-4 h-4 text-[#C05015]" />
+              <UtensilsCrossed className="w-4 h-4 text-[#FF8C00]" />
             </div>
             <div>
               <p className="font-semibold text-[#0F172A] text-sm">{pendingOrder.restaurantName}</p>
@@ -332,13 +336,13 @@ export default function CheckoutPage() {
               <div key={i} className="flex justify-between items-start text-sm">
                 <div>
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-lg bg-white text-[#C05015] font-bold text-xs flex items-center justify-center">
+                    <span className="w-5 h-5 rounded-lg bg-white text-[#FF8C00] font-bold text-xs flex items-center justify-center">
                       {item.quantite ?? item.quantity ?? 1}
                     </span>
                     <span className="text-[#0F172A] font-medium">{item.nom || 'Article'}</span>
                   </span>
                   {item.variantLabel && (
-                    <p className="text-xs text-[#C05015] mt-0.5 ml-6 font-semibold">{item.variantLabel}</p>
+                    <p className="text-xs text-[#FF8C00] mt-0.5 ml-6 font-semibold">{item.variantLabel}</p>
                   )}
                   {item.instructions && (
                     <p className="text-xs text-[#64748B] mt-0.5 ml-6 italic">{item.instructions}</p>
@@ -367,7 +371,7 @@ export default function CheckoutPage() {
             )}
             <div className="flex justify-between items-center pt-1 border-t border-[rgba(89,67,42,0.08)]">
               <span className="font-bold text-[#0F172A]">Total à payer</span>
-              <span className="text-xl font-extrabold text-[#C05015]">
+              <span className="text-xl font-extrabold text-[#FF8C00]">
                 {formatFCFA(Math.max(0, total - (promoResult?.remise ?? 0)))} FCFA
               </span>
             </div>
@@ -378,7 +382,7 @@ export default function CheckoutPage() {
         {!isB2B && (
           <section className="bg-white rounded-2xl border border-[rgba(89,67,42,0.10)] p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Tag className="w-4 h-4 text-[#C05015]" />
+              <Tag className="w-4 h-4 text-[#FF8C00]" />
               <span className="text-sm font-bold text-[#0F172A]">Code promo</span>
             </div>
             {promoResult ? (
@@ -401,12 +405,12 @@ export default function CheckoutPage() {
                   onChange={e => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
                   onKeyDown={e => e.key === 'Enter' && handleApplyPromo()}
                   placeholder="Entrez votre code…"
-                  className="flex-1 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm font-mono font-semibold uppercase tracking-widest text-[#0F172A] focus:border-[#C05015] focus:ring-1 focus:ring-[#C05015] outline-none transition"
+                  className="flex-1 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm font-mono font-semibold uppercase tracking-widest text-[#0F172A] focus:border-[#FF8C00] focus:ring-1 focus:ring-[#FF8C00] outline-none transition"
                 />
                 <button
                   onClick={handleApplyPromo}
                   disabled={promoLoading || !promoCode.trim()}
-                  className="rounded-xl bg-[#C05015] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#9A3E10] disabled:opacity-60 transition"
+                  className="rounded-xl bg-[#FF8C00] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#E07A00] disabled:opacity-60 transition"
                 >
                   {promoLoading ? '…' : 'Appliquer'}
                 </button>
@@ -418,11 +422,11 @@ export default function CheckoutPage() {
 
         {/* Payment method — hidden for B2B (facturation mensuelle) */}
         {isB2B ? (
-          <section className="bg-[#FBE8DC] rounded-2xl border border-[rgba(192,80,21,0.20)] p-5">
+          <section className="bg-[#FFF0DF] rounded-2xl border border-[rgba(192,80,21,0.20)] p-5">
             <div className="flex items-start gap-3">
               <span className="text-2xl mt-0.5">📋</span>
               <div>
-                <h2 className="font-bold text-[#C05015] mb-1">Facturation mensuelle B2B</h2>
+                <h2 className="font-bold text-[#FF8C00] mb-1">Facturation mensuelle B2B</h2>
                 <p className="text-sm text-[#64748B] leading-relaxed">
                   Cette commande sera ajoutée à votre facture mensuelle consolidée.
                   Vous recevrez en fin de mois une <strong>facture SYSCOHADA</strong> globale à régler
@@ -447,9 +451,9 @@ export default function CheckoutPage() {
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xl">{m.logo}</span>
+                      <img src={m.logo} alt={m.name} className="h-8 w-auto object-contain" />
                       <div className={`ml-auto w-4 h-4 rounded-full border-2 transition ${
-                        active ? 'border-[#C05015] bg-[#C05015]' : 'border-[#64748B]/30'
+                        active ? 'border-[#FF8C00] bg-[#FF8C00]' : 'border-[#64748B]/30'
                       }`}>
                         {active && <div className="w-1.5 h-1.5 bg-white rounded-full mx-auto mt-0.5" />}
                       </div>
@@ -473,7 +477,7 @@ export default function CheckoutPage() {
         {/* Confirm/Pay button */}
         <button
           onClick={runSimulation}
-          className="w-full py-4 rounded-2xl font-extrabold text-white text-base bg-[#C05015] hover:bg-[#9A3E10] active:scale-[0.98] transition-all shadow-lg shadow-[#C05015]/25"
+          className="w-full py-4 rounded-2xl font-extrabold text-white text-base bg-[#FF8C00] hover:bg-[#E07A00] active:scale-[0.98] transition-all shadow-lg shadow-[#FF8C00]/25"
         >
           {isB2B
             ? `Confirmer la commande · ${formatFCFA(effectiveTotal)} FCFA`
@@ -495,7 +499,7 @@ export default function CheckoutPage() {
               className="px-6 py-5 flex items-center gap-3"
               style={{ background: method?.accentLight ?? '#FDF5EF' }}
             >
-              <span className="text-3xl">{method?.logo}</span>
+              <img src={method?.logo} alt={method?.name} className="h-8 w-auto object-contain" />
               <div>
                 <p className="font-bold text-[#0F172A] text-sm">{method?.name}</p>
                 <p className="text-xs text-[#64748B]">{formatFCFA(effectiveTotal)} FCFA</p>
@@ -544,7 +548,7 @@ export default function CheckoutPage() {
                   <div className="relative mx-auto w-16 h-16 mb-5">
                     <div
                       className="absolute inset-0 rounded-full animate-ping opacity-20"
-                      style={{ background: method?.accent ?? '#C05015' }}
+                      style={{ background: method?.accent ?? '#FF8C00' }}
                     />
                     <div
                       className="relative w-16 h-16 rounded-full flex items-center justify-center"
@@ -568,7 +572,7 @@ export default function CheckoutPage() {
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
-                        background: method?.accent ?? '#C05015',
+                        background: method?.accent ?? '#FF8C00',
                         width: `${Math.min(100, ((simPhase + 1) / (SIM_PHASES.length - 1)) * 100)}%`,
                       }}
                     />
@@ -580,7 +584,7 @@ export default function CheckoutPage() {
                         key={i}
                         className="w-1.5 h-1.5 rounded-full transition-all duration-300"
                         style={{
-                          background: i <= simPhase ? (method?.accent ?? '#C05015') : '#E5E7EB',
+                          background: i <= simPhase ? (method?.accent ?? '#FF8C00') : '#E5E7EB',
                           transform: i === simPhase ? 'scale(1.4)' : 'scale(1)',
                         }}
                       />

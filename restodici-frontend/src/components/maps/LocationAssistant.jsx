@@ -24,8 +24,8 @@ function getToneStyles(tone) {
   }
 
   return {
-    badge: 'bg-[#FBE8DC] text-[#E8906A]',
-    chip: 'border-[#FFD8CC] bg-[#FBE8DC] text-[#7A2E0A] hover:border-[#E8906A] hover:bg-[#FBE8DC]',
+    badge: 'bg-[#FFF0DF] text-[#E8906A]',
+    chip: 'border-[#FFD8CC] bg-[#FFF0DF] text-[#7A2E0A] hover:border-[#E8906A] hover:bg-[#FFF0DF]',
     card: 'border-[#F4DED3] bg-[#FFFCFA]',
     input: 'focus:border-[#E8906A] focus:ring-[#E8906A]/15',
     icon: 'text-[#E8906A]',

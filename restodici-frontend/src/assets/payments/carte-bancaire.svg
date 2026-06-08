@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40">
+  <!-- Card background dark blue -->
+  <rect width="120" height="40" rx="8" fill="#1A1F71"/>
+  <!-- Visa logo style text -->
+  <text x="8" y="27" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="#FFFFFF" letter-spacing="-1" font-style="italic">VISA</text>
+  <!-- Mastercard circles -->
+  <circle cx="88" cy="20" r="12" fill="#EB001B"/>
+  <circle cx="104" cy="20" r="12" fill="#F79E1B"/>
+  <!-- Overlap blend -->
+  <circle cx="96" cy="20" r="8" fill="#FF5F00"/>
+</svg>

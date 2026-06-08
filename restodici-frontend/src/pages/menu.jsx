@@ -233,7 +233,7 @@ function RestaurantCard({ restaurant, idx, onSelect, favorites, onFav }) {
 }
 
 /* ── Carte produit — image carrée à gauche, nom + prix + bouton à droite ── */
-function ProductCard({ product, qty, onAdd, onRemove, idx }) {
+function ProductCard({ product, qty, onAdd, onRemove, onCustomize, idx }) {
   const img = getArticleImage(product) || fallback(idx, 200);
   const isAvail = product.disponible !== false;
 
@@ -271,6 +271,19 @@ function ProductCard({ product, qty, onAdd, onRemove, idx }) {
         <span style={{ fontFamily: sans, fontSize: 15, fontWeight: 900, color: C.accent, marginTop: 4 }}>
           {formatFCFA(product.prix)}
         </span>
+        {onCustomize && isAvail && (
+          <button
+            onClick={e => { e.stopPropagation(); onCustomize(product); }}
+            style={{
+              fontFamily: sans, fontSize: 11, fontWeight: 600, color: C.accent,
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: 0, marginTop: 3, opacity: 0.75,
+              textDecoration: 'underline', textDecorationStyle: 'dotted',
+            }}
+          >
+            Personnaliser ›
+          </button>
+        )}
       </div>
 
       {/* Bouton + / compteur */}
@@ -384,8 +397,8 @@ export default function MenuPage() {
   const [customModal,    setCustomModal]    = useState({ open: false, product: null });
   const [error,          setError]          = useState(null);
 
-  const { addItem, removeItem, items, total: cartTotal, restaurantName } = useCart();
-  const cartCount = items.reduce((s, i) => s + i.quantity, 0);
+  const { addItem, removeItem, updateQuantity, items, total, restaurantName } = useCart();
+  const cartCount = items.reduce((s, i) => s + (i.quantite || 0), 0);
 
   /* ── Chargement des restaurants au montage du composant ── */
   useEffect(() => {
@@ -416,7 +429,10 @@ export default function MenuPage() {
   /* ── Synchronisation des quantités avec le panier ── */
   useEffect(() => {
     const map = {};
-    items.forEach(i => { map[i.id] = i.quantity; });
+    items.forEach(i => {
+      const aid = i.articleId;
+      map[aid] = (map[aid] || 0) + (i.quantite || 0);
+    });
     setQuantities(map);
   }, [items]);
 
@@ -425,18 +441,31 @@ export default function MenuPage() {
     setFavorites(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   }, []);
 
-  /* ── Ajout d'un produit au panier (ouvre la modal si options disponibles) ── */
+  /* ── Ajout rapide au panier (bouton +) ── */
   const handleAdd = useCallback((product) => {
-    if (product.options?.length > 0) {
-      setCustomModal({ open: true, product });
-    } else {
-      addItem(product, 1, '', selectedResto);
-    }
+    addItem({
+      articleId: product.id,
+      nom: product.nom,
+      prix: product.promoActif && product.prixPromo
+        ? Number(product.prixPromo)
+        : Number(product.prix),
+      photoUrl: product.photoUrl || product.imageUrl,
+      categorie: product.categorie,
+      restaurantId: selectedResto.id,
+      restaurantName: selectedResto.nom,
+    }, 1);
   }, [addItem, selectedResto]);
 
+  /* ── Ouvre la modal de personnalisation ── */
+  const handleCustomize = useCallback((product) => {
+    setCustomModal({ open: true, product });
+  }, []);
+
+  /* ── Décrémente la quantité d'un article dans le panier ── */
   const handleRemove = useCallback((product) => {
-    removeItem(product.id);
-  }, [removeItem]);
+    const lineItem = items.find(i => i.articleId === product.id);
+    if (lineItem) updateQuantity(lineItem.lineId, lineItem.quantite - 1);
+  }, [updateQuantity, items]);
 
   /* ── Catégories de découverte — extraites des tags de tous les restaurants ── */
   const discoCats = useMemo(() => {
@@ -549,7 +578,7 @@ export default function MenuPage() {
               <>
                 <span>{cartCount}</span>
                 <span style={{ opacity: 0.85 }}>·</span>
-                <span>{formatFCFA(cartTotal)}</span>
+                <span>{formatFCFA(total())}</span>
               </>
             )}
           </button>
@@ -765,7 +794,7 @@ export default function MenuPage() {
                   <ProductCard
                     key={p.id} product={p} idx={i}
                     qty={quantities[p.id] || 0}
-                    onAdd={handleAdd} onRemove={handleRemove}
+                    onAdd={handleAdd} onRemove={handleRemove} onCustomize={handleCustomize}
                   />
                 ))}
               </div>
@@ -788,7 +817,7 @@ export default function MenuPage() {
                         <ProductCard
                           key={p.id} product={p} idx={gi * 10 + i}
                           qty={quantities[p.id] || 0}
-                          onAdd={handleAdd} onRemove={handleRemove}
+                          onAdd={handleAdd} onRemove={handleRemove} onCustomize={handleCustomize}
                         />
                       ))}
                     </div>
@@ -823,7 +852,7 @@ export default function MenuPage() {
             </div>
             Voir le panier ({cartCount})
             <span style={{ opacity: 0.85 }}>·</span>
-            <span>{formatFCFA(cartTotal)}</span>
+            <span>{formatFCFA(total())}</span>
             <ChevronRight size={15} />
           </button>
         </div>
@@ -836,8 +865,25 @@ export default function MenuPage() {
           product={customModal.product}
           restaurant={selectedResto}
           onClose={() => setCustomModal({ open: false, product: null })}
-          onConfirm={(product, qty, options) => {
-            addItem(product, qty, options, selectedResto);
+          onAdd={(product, qty, details, selectedVariant) => {
+            const basePrice = product.promoActif && product.prixPromo
+              ? Number(product.prixPromo)
+              : Number(product.prix);
+            const variantSupplement = selectedVariant
+              ? Number(selectedVariant.prixSupplement || 0)
+              : 0;
+            addItem({
+              articleId: product.id,
+              nom: product.nom,
+              prix: basePrice + variantSupplement,
+              photoUrl: product.photoUrl || product.imageUrl,
+              categorie: product.categorie,
+              instructions: details || '',
+              variantLabel: selectedVariant?.label,
+              variantSupplement: variantSupplement || undefined,
+              restaurantId: selectedResto.id,
+              restaurantName: selectedResto.nom,
+            }, qty);
             setCustomModal({ open: false, product: null });
           }}
         />

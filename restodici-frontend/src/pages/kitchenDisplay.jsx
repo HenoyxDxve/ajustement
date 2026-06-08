@@ -36,7 +36,7 @@ export default function KitchenDisplay() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <p className="text-lg font-bold">#{order.numero}</p>
-                <p className="text-xs text-[#9A7060] flex items-center gap-1"><Clock className="w-3 h-3"/> {new Date(order.createdAt).toLocaleTimeString()}</p>
+                <p className="text-xs text-[#6B7280] flex items-center gap-1"><Clock className="w-3 h-3"/> {new Date(order.createdAt).toLocaleTimeString()}</p>
               </div>
               <span className="px-2 py-1 bg-[#1A1A1A] rounded text-xs font-medium">{order.modeLivraison.replace('_', ' ')}</span>
             </div>

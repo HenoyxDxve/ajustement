@@ -5,9 +5,9 @@ import { b2bAPI } from '../../services/api';
 import { commandesService } from '../../services/commandes.service';
 import { formatFCFA } from '../../utils/formatters';
 
-const BG = '#F0F4FF'; const CARD = '#FFFFFF'; const TEXT = '#0F172A';
-const MUTED = '#64748B'; const FAINT = '#94A3B8'; const BORDER = '#E2E8F0';
-const ACC = '#F97316'; const ACL = '#FFF7ED';
+const BG = '#F5F6F8'; const CARD = '#FFFFFF'; const TEXT = '#111827';
+const MUTED = '#6B7280'; const FAINT = '#9CA3AF'; const BORDER = 'rgba(0,0,0,0.07)';
+const ACC = '#FF8C00'; const ACL = '#FFF0DF';
 const SH = '0 1px 3px rgba(15,23,42,0.07),0 1px 2px rgba(15,23,42,0.04)';
 
 const STATUS = {
@@ -114,7 +114,7 @@ export default function B2BOrders() {
         <div className="grid grid-cols-3 gap-3">
           {[
             { label: 'Total',     value: orders.length, bg: '#4F46E5' },
-            { label: 'En cours',  value: active.length, bg: '#F97316' },
+            { label: 'En cours',  value: active.length, bg: '#FF8C00' },
             { label: 'Terminées', value: done.length,   bg: '#10B981' },
           ].map(s => (
             <div key={s.label} className="rounded-xl p-4 text-center" style={{ background: s.bg }}>

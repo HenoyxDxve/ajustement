@@ -15,7 +15,7 @@ export default function DashboardLayout({ children, navGroups = [], title = '', 
   const todayCap = today.charAt(0).toUpperCase() + today.slice(1);
 
   return (
-    <div className="min-h-screen flex bg-[#F4F6F8]">
+    <div className="min-h-screen flex bg-[#F5F6F8]">
 
       {/* ── Sidebar overlay (mobile) ── */}
       {sidebarOpen && (
@@ -28,12 +28,12 @@ export default function DashboardLayout({ children, navGroups = [], title = '', 
 
         {/* Logo */}
         <div className="h-14 flex items-center gap-2.5 px-5 border-b border-gray-100 flex-shrink-0">
-          <div className="w-8 h-8 bg-[#C05015] rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-[#FF8C00] rounded-lg flex items-center justify-center">
             <UtensilsCrossed className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[#1A1A1A] font-extrabold text-sm leading-none">Resto d'ici</p>
-            <p className="text-[#9A7060] text-[10px] mt-0.5 truncate">{user?.nom || user?.email || ''}</p>
+            <p className="text-[#111827] font-extrabold text-sm leading-none">Resto d'ici</p>
+            <p className="text-[#6B7280] text-[10px] mt-0.5 truncate">{user?.nom || user?.email || ''}</p>
           </div>
           <button className="lg:hidden text-gray-400" onClick={() => setSidebarOpen(false)}>
             <X className="w-4 h-4" />
@@ -95,7 +95,7 @@ export default function DashboardLayout({ children, navGroups = [], title = '', 
             <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors relative">
               <Bell className="w-4 h-4 text-gray-500" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-[#C05015] flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-8 h-8 rounded-full bg-[#FF8C00] flex items-center justify-center text-white text-xs font-bold">
               {(user?.nom || user?.email || 'U').slice(0, 1).toUpperCase()}
             </div>
           </div>
@@ -103,8 +103,8 @@ export default function DashboardLayout({ children, navGroups = [], title = '', 
 
         {/* Page header */}
         <div className="bg-white border-b border-gray-100 px-6 py-4">
-          <p className="text-xs text-[#9A7060] mb-0.5">Maj: {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} — {todayCap}</p>
-          <h1 className="text-2xl font-extrabold text-[#1A1A1A]">{title}</h1>
+          <p className="text-xs text-[#6B7280] mb-0.5">Maj: {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} — {todayCap}</p>
+          <h1 className="text-2xl font-extrabold text-[#111827]">{title}</h1>
         </div>
 
         {/* Content */}
@@ -126,11 +126,11 @@ function NavItem({ item }) {
     return (
       <button onClick={item.onClick}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
-          ${isActive ? 'bg-[#C05015] text-white' : 'text-gray-600 hover:bg-[#FBE8DC] hover:text-[#C05015]'}`}>
+          ${isActive ? 'bg-[#FF8C00] text-white' : 'text-gray-600 hover:bg-[#FFF0DF] hover:text-[#FF8C00]'}`}>
         {item.icon && <item.icon className="w-4 h-4 flex-shrink-0" />}
         <span className="truncate">{item.label}</span>
         {item.badge != null && item.badge > 0 && (
-          <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-[#C05015] text-white'}`}>
+          <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-[#FF8C00] text-white'}`}>
             {item.badge > 99 ? '99+' : item.badge}
           </span>
         )}
@@ -141,11 +141,11 @@ function NavItem({ item }) {
   return (
     <Link to={item.to || '#'}
       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
-        ${isActive ? 'bg-[#C05015] text-white' : 'text-gray-600 hover:bg-[#FBE8DC] hover:text-[#C05015]'}`}>
+        ${isActive ? 'bg-[#FF8C00] text-white' : 'text-gray-600 hover:bg-[#FFF0DF] hover:text-[#FF8C00]'}`}>
       {item.icon && <item.icon className="w-4 h-4 flex-shrink-0" />}
       <span className="truncate">{item.label}</span>
       {item.badge != null && item.badge > 0 && (
-        <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-[#C05015] text-white'}`}>
+        <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-[#FF8C00] text-white'}`}>
           {item.badge > 99 ? '99+' : item.badge}
         </span>
       )}
@@ -154,7 +154,7 @@ function NavItem({ item }) {
 }
 
 // KPI Card component (Bompay style)
-export function KpiCard({ label, value, trend, trendLabel, icon: Icon, iconBg = '#FBE8DC', iconColor = '#C05015', loading }) {
+export function KpiCard({ label, value, trend, trendLabel, icon: Icon, iconBg = '#FFF0DF', iconColor = '#FF8C00', loading }) {
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col gap-4">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0`} style={{ background: iconBg }}>
@@ -163,7 +163,7 @@ export function KpiCard({ label, value, trend, trendLabel, icon: Icon, iconBg = 
       <div>
         <p className="text-sm text-gray-500 mb-1">{label}</p>
         <div className="flex items-end gap-2 flex-wrap">
-          <span className="text-2xl font-extrabold text-[#1A1A1A]">
+          <span className="text-2xl font-extrabold text-[#111827]">
             {loading ? <span className="inline-block w-20 h-7 bg-gray-100 rounded animate-pulse" /> : value}
           </span>
           {trend != null && (

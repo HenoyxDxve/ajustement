@@ -3,6 +3,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, Receipt, X, AlertCircle } from 'lucide-react';
 import { commandesService, createCommandesSocket } from '../../services/commandes.service';
 import { useAuth } from '../../hooks/useAuth';
+import orangeMoneyLogo from '../../assets/payments/orange-money.svg';
+import mtnMomoLogo from '../../assets/payments/mtn-momo.svg';
+import moovMoneyLogo from '../../assets/payments/moov-money.svg';
+import carteBancaireLogo from '../../assets/payments/carte-bancaire.svg';
 
 // ── Tokens B2B-aligned ────────────────────────────────────────────────────────
 const BG     = '#F8FAFC';
@@ -43,10 +47,10 @@ const STATUT_META = {
 };
 
 const PAY_MODES = [
-  { id: 'ESPECES',      label: 'Espèces',      icon: '💵' },
-  { id: 'WAVE',         label: 'Wave',          icon: '🌊' },
-  { id: 'MOBILE_MONEY', label: 'Mobile Money',  icon: '📱' },
-  { id: 'CARTE',        label: 'Carte',         icon: '💳' },
+  { id: 'ESPECES',      label: 'Espèces',      icon: '💵',  logo: null },
+  { id: 'WAVE',         label: 'Wave',          icon: '🌊',  logo: null },
+  { id: 'MOBILE_MONEY', label: 'Mobile Money',  icon: '📱',  logo: null },
+  { id: 'CARTE',        label: 'Carte',         icon: null,  logo: carteBancaireLogo },
 ];
 
 // ── StatusPill (B2B style) ────────────────────────────────────────────────────
@@ -295,7 +299,10 @@ export default function CaissePage() {
                       boxShadow: sel ? `0 0 0 3px rgba(171,53,0,0.12)` : 'none',
                       transition: 'all 0.14s', fontFamily: 'inherit',
                     }}>
-                      <span style={{ fontSize: 24 }}>{m.icon}</span>
+                      {m.logo
+                        ? <img src={m.logo} alt={m.label} style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
+                        : <span style={{ fontSize: 24 }}>{m.icon}</span>
+                      }
                       <span style={{ fontSize: 11, fontWeight: 700, color: sel ? TER : MUTED }}>{m.label}</span>
                       {sel && <CheckCircle2 size={12} color={TER} />}
                     </button>

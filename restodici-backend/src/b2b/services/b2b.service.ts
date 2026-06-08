@@ -325,6 +325,40 @@ export class B2BService {
     await this.collaborateurRepository.remove(collab);
   }
 
+  async updateCollaborateurB2B(
+    collaborateurId: string,
+    userId: string,
+    dto: Partial<CreateCollaborateurB2BDto>,
+  ): Promise<Record<string, any>> {
+    const compte = await this.getCompteB2B(userId);
+    if (!compte) throw new NotFoundException('Compte entreprise introuvable');
+    const collab = await this.collaborateurRepository.findOne({
+      where: { id: collaborateurId, compteB2BId: compte.id },
+    });
+    if (!collab) throw new NotFoundException('Collaborateur introuvable');
+
+    const budget = dto.limiteBudget ?? dto.budgetMensuel;
+    if (budget !== undefined) {
+      if (budget < 0) throw new BadRequestException('Le budget doit être positif');
+      collab.limiteBudget = budget;
+    }
+    if (dto.nom) collab.nom = dto.nom.trim();
+
+    const saved = await this.collaborateurRepository.save(collab);
+    await this.logAudit('MODIFICATION_COLLABORATEUR' as any, compte.id, userId, {
+      action: 'Mise à jour limite de dépense',
+      collaborateurId,
+      nom: collab.nom,
+      limiteBudget: collab.limiteBudget,
+    });
+    return {
+      id: saved.id,
+      nom: saved.nom,
+      email: saved.email,
+      limiteBudget: Number(saved.limiteBudget),
+    };
+  }
+
   private async sendInvitationEmail(
     collab: CollaborateurB2B,
     compte: CompteB2B,

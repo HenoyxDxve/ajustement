@@ -8,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { commandesService, createCommandesSocket } from '../../services/commandes.service';
 import { formatFCFA, formatDate } from '../../utils/formatters';
 
-const KENTE = ['#C05015', '#F97316', '#0F172A', '#9A3E10'];
+const KENTE = ['#FF8C00', '#FF8C00', '#0F172A', '#E07A00'];
 
 const STATUS_STEPS = [
   { key: 'RECUE',        label: 'Reçue',        short: '1' },
@@ -69,15 +69,15 @@ function StatusTimeline({ statut }) {
           <div key={step.key} className="flex items-center gap-1 flex-shrink-0">
             <div
               className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold border transition-all ${
-                active ? 'bg-[#C05015] text-white border-[#C05015] scale-110 shadow-sm' :
-                done   ? 'bg-[#C05015]/15 text-[#C05015] border-[#C05015]/30' :
+                active ? 'bg-[#FF8C00] text-white border-[#FF8C00] scale-110 shadow-sm' :
+                done   ? 'bg-[#FF8C00]/15 text-[#FF8C00] border-[#FF8C00]/30' :
                          'bg-white text-[#C5B8AC] border-[#E2E8F0]'
               }`}
             >
               {done ? <CheckCircle2 className="w-3.5 h-3.5" /> : step.short}
             </div>
             {i < STATUS_STEPS.length - 1 && (
-              <div className={`h-0.5 w-5 rounded flex-shrink-0 ${i < currentIdx ? 'bg-[#C05015]/40' : 'bg-[#E2E8F0]'}`} />
+              <div className={`h-0.5 w-5 rounded flex-shrink-0 ${i < currentIdx ? 'bg-[#FF8C00]/40' : 'bg-[#E2E8F0]'}`} />
             )}
           </div>
         );
@@ -91,7 +91,7 @@ function ActiveOrderCard({ order, onTrack, downloading, onDownload }) {
   const timeElapsed = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
 
   return (
-    <div className="rounded-[24px] border-2 border-[#C05015]/20 bg-gradient-to-br from-[#FFF9F5] to-white p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+    <div className="rounded-[24px] border-2 border-[#FF8C00]/20 bg-gradient-to-br from-[#FFF9F5] to-white p-4 sm:p-5 shadow-sm hover:shadow-md transition">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -134,10 +134,10 @@ function ActiveOrderCard({ order, onTrack, downloading, onDownload }) {
         </div>
 
         <div className="flex flex-col items-end gap-3">
-          <p className="text-xl font-bold text-[#C05015]">{formatFCFA(order.montantTotal)}</p>
+          <p className="text-xl font-bold text-[#FF8C00]">{formatFCFA(order.montantTotal)}</p>
           <button
             onClick={onTrack}
-            className="inline-flex items-center gap-2 rounded-2xl bg-[#C05015] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#9A3E10] shadow-sm"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#FF8C00] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#E07A00] shadow-sm"
           >
             Suivre <ArrowRight className="w-4 h-4" />
           </button>
@@ -149,7 +149,7 @@ function ActiveOrderCard({ order, onTrack, downloading, onDownload }) {
 
 function PastOrderRow({ order, onDownload, downloading }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-[20px] border border-[#E2E8F0] bg-white px-4 py-3 hover:border-[#C05015]/20 transition">
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-[20px] border border-[#E2E8F0] bg-white px-4 py-3 hover:border-[#FF8C00]/20 transition">
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-semibold text-sm text-[#0F172A]">{order.numero}</span>
@@ -171,7 +171,7 @@ function PastOrderRow({ order, onDownload, downloading }) {
           <button
             onClick={onDownload}
             disabled={downloading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#C05015] px-3 py-2 text-xs font-semibold text-[#C05015] transition hover:bg-[#FBE8DC] disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#FF8C00] px-3 py-2 text-xs font-semibold text-[#FF8C00] transition hover:bg-[#FFF0DF] disabled:opacity-50"
           >
             {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
             Reçu
@@ -250,7 +250,7 @@ export default function MyOrdersPage() {
   if (loading) {
     return (
       <div className="min-h-[calc(100dvh-64px)] flex items-center justify-center bg-white">
-        <Loader2 className="w-8 h-8 animate-spin text-[#C05015]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#FF8C00]" />
       </div>
     );
   }
@@ -264,25 +264,25 @@ export default function MyOrdersPage() {
           <KenteStrip />
           <div className="px-6 py-5 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C05015]">Espace client</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FF8C00]">Espace client</p>
               <h1 className="mt-1 text-2xl font-bold text-[#0F172A]">Mes commandes</h1>
               {activeOrders.length > 0 && (
                 <p className="mt-1 text-sm text-[#737373]">
-                  <span className="font-semibold text-[#C05015]">{activeOrders.length}</span> commande{activeOrders.length > 1 ? 's' : ''} en cours
+                  <span className="font-semibold text-[#FF8C00]">{activeOrders.length}</span> commande{activeOrders.length > 1 ? 's' : ''} en cours
                 </p>
               )}
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => void load()}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#737373] transition hover:border-[#C05015] hover:text-[#C05015]"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#737373] transition hover:border-[#FF8C00] hover:text-[#FF8C00]"
               >
                 <RefreshCw className="w-4 h-4" />
                 Actualiser
               </button>
               <button
                 onClick={() => navigate('/menu')}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#C05015] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#9A3E10]"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#FF8C00] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E07A00]"
               >
                 Commander <ChevronRight className="w-4 h-4" />
               </button>
@@ -301,7 +301,7 @@ export default function MyOrdersPage() {
                 onClick={() => setFilter(tab.id)}
                 className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
                   filter === tab.id
-                    ? 'bg-[#C05015] text-white'
+                    ? 'bg-[#FF8C00] text-white'
                     : 'text-[#737373] hover:bg-white hover:text-[#0F172A]'
                 }`}
               >
@@ -318,8 +318,8 @@ export default function MyOrdersPage() {
         {/* Active orders — shown first when filter is 'all' */}
         {filter === 'all' && activeOrders.length > 0 && (
           <div className="space-y-3">
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#C05015]">
-              <span className="inline-block w-2 h-2 rounded-full bg-[#C05015] animate-pulse" />
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#FF8C00]">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#FF8C00] animate-pulse" />
               En cours
             </h2>
             {activeOrders.map(order => (
@@ -400,7 +400,7 @@ function Empty({ title, description, action }) {
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#C05015] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#9A3E10]"
+          className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#FF8C00] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#E07A00]"
         >
           <ShoppingBag className="w-4 h-4" /> {action.label}
         </button>

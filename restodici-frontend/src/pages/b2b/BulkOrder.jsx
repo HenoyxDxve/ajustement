@@ -13,8 +13,8 @@ import { formatFCFA } from '../../utils/formatters';
 import { getArticleImage } from '../../utils/articleImage';
 import B2BOnboardingWizard from './B2BOnboardingWizard';
 
-const A  = '#C05015';
-const AL = '#FBE8DC';
+const A  = '#FF8C00';
+const AL = '#FFF0DF';
 const SF = '#F9F7F5';
 const BD = 'rgba(89,67,42,0.10)';
 
@@ -414,7 +414,7 @@ export default function BulkOrder() {
                 style={{ background: '#fff', borderColor: '#F1D6C9' }}
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9A7060]">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]">
                   <X className="w-5 h-5" />
                 </button>
               )}
@@ -438,7 +438,7 @@ export default function BulkOrder() {
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-400 mb-0.5">Établissements</p>
                       <h2 className="text-xl font-extrabold text-slate-900">Choisissez un restaurant</h2>
-                      <p className="mt-0.5 text-sm text-[#9A7060]">Parcourez les établissements disponibles puis explorez leur menu.</p>
+                      <p className="mt-0.5 text-sm text-[#6B7280]">Parcourez les établissements disponibles puis explorez leur menu.</p>
                     </div>
                     <div className="shrink-0 rounded-2xl bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow-sm">
                       {restaurants.length} restaurant{restaurants.length > 1 ? 's' : ''}
@@ -470,7 +470,7 @@ export default function BulkOrder() {
                               </div>
                             </div>
                             <div className={`p-4 ${isActive ? 'bg-gradient-to-br from-orange-50 via-white to-[#FFF7F2]' : 'bg-white'}`}>
-                              <p className="text-xs text-[#9A7060] line-clamp-1 flex items-center gap-1">
+                              <p className="text-xs text-[#6B7280] line-clamp-1 flex items-center gap-1">
                                 <MapPin className="h-3 w-3 shrink-0 text-orange-400" />
                                 {r.adresse || "Abidjan, Côte d'Ivoire"}
                               </p>
@@ -479,12 +479,12 @@ export default function BulkOrder() {
                                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 font-semibold text-amber-700">
                                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> 4.8
                                   </span>
-                                  <span className="inline-flex items-center gap-1 text-[#9A7060]">
+                                  <span className="inline-flex items-center gap-1 text-[#6B7280]">
                                     <Clock className="h-3 w-3" /> 25-35 min
                                   </span>
                                 </div>
                                 {r.telephone && (
-                                  <span className="text-[11px] text-[#9A7060] flex items-center gap-1">
+                                  <span className="text-[11px] text-[#6B7280] flex items-center gap-1">
                                     <Phone className="h-3 w-3" /> {r.telephone}
                                   </span>
                                 )}
@@ -502,7 +502,7 @@ export default function BulkOrder() {
                   <>
                     {/* Restaurant hero banner */}
                     <section className="mb-8 overflow-hidden rounded-[32px] border shadow-md" style={{ borderColor: '#F3E4DA' }}>
-                      <div className="relative h-28 bg-gradient-to-r from-[#0F172A] via-[#2B1500] to-[#C05015]/80 overflow-hidden">
+                      <div className="relative h-28 bg-gradient-to-r from-[#0F172A] via-[#2B1500] to-[#FF8C00]/80 overflow-hidden">
                         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_50%,white,transparent_60%)]" />
                         <div className="relative z-10 flex h-full items-center gap-5 px-6">
                           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/10 backdrop-blur ring-2 ring-white/20">
@@ -533,7 +533,7 @@ export default function BulkOrder() {
                             </span>
                           )}
                           {restaurantDetails.phone && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBE8DC] px-3 py-1 text-xs font-medium text-gray-600">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFF0DF] px-3 py-1 text-xs font-medium text-gray-600">
                               <Phone className="h-3.5 w-3.5" /> {restaurantDetails.phone}
                             </span>
                           )}
@@ -556,15 +556,15 @@ export default function BulkOrder() {
                       <div className="lg:w-64 lg:flex-shrink-0">
                         <div className="sticky top-20 rounded-[26px] border bg-white p-4 shadow-sm" style={{ borderColor: '#F3E4DA' }}>
                           <h3 className="text-base font-bold text-slate-900">Catégories</h3>
-                          <p className="mt-0.5 text-xs text-[#9A7060]">{restaurantDetails.nom}</p>
+                          <p className="mt-0.5 text-xs text-[#6B7280]">{restaurantDetails.nom}</p>
                           <div className="mt-4 space-y-1.5">
                             <button onClick={() => setActiveCategory('all')}
-                              className={`w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition ${activeCategory === 'all' ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-[#FBE8DC]'}`}>
+                              className={`w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition ${activeCategory === 'all' ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-[#FFF0DF]'}`}>
                               Toutes les catégories
                             </button>
                             {categories.map(cat => (
                               <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                                className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium transition ${activeCategory === cat.id ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-[#FBE8DC]'}`}>
+                                className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium transition ${activeCategory === cat.id ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-[#FFF0DF]'}`}>
                                 {cat.icone && <span>{cat.icone}</span>}
                                 <span className="flex-1 truncate">{cat.nom}</span>
                                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${activeCategory === cat.id ? 'bg-white/20 text-white' : 'bg-orange-50 text-orange-600'}`}>
@@ -589,7 +589,7 @@ export default function BulkOrder() {
                           <div className="rounded-[28px] border bg-white py-16 text-center shadow-sm" style={{ borderColor: '#F3E4DA' }}>
                             <span className="mx-auto mb-4 block text-6xl">🍽️</span>
                             <h3 className="text-lg font-medium text-gray-700">Aucun plat trouvé</h3>
-                            <p className="mt-1 text-sm text-[#9A7060]">Essayez de modifier votre recherche ou catégorie.</p>
+                            <p className="mt-1 text-sm text-[#6B7280]">Essayez de modifier votre recherche ou catégorie.</p>
                           </div>
                         ) : (
                           <>
@@ -655,7 +655,7 @@ export default function BulkOrder() {
                                     <div className="flex flex-col gap-3 p-4">
                                       <div>
                                         <h4 className="text-sm font-extrabold text-slate-900 leading-snug">{product.nom}</h4>
-                                        <p className="mt-1 line-clamp-2 text-xs text-[#9A7060] leading-relaxed">
+                                        <p className="mt-1 line-clamp-2 text-xs text-[#6B7280] leading-relaxed">
                                           {product.description || 'Plat préparé avec soin par nos équipes.'}
                                         </p>
                                       </div>
@@ -687,7 +687,7 @@ export default function BulkOrder() {
                                       {/* Main CTA — opens member picker */}
                                       <button type="button" onClick={() => openPicker(product)}
                                         disabled={!product.disponible}
-                                        className={`w-full rounded-2xl py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2 ${product.disponible ? 'bg-gradient-to-r from-orange-500 to-[#C05015] text-white shadow-sm hover:shadow-lg' : 'cursor-not-allowed bg-[#FBE8DC] text-[#9A7060]'}`}>
+                                        className={`w-full rounded-2xl py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2 ${product.disponible ? 'bg-gradient-to-r from-orange-500 to-[#FF8C00] text-white shadow-sm hover:shadow-lg' : 'cursor-not-allowed bg-[#FFF0DF] text-[#6B7280]'}`}>
                                         <Users className="w-3.5 h-3.5" />
                                         {!product.disponible ? 'Indisponible' : qty > 0 ? `Modifier l'affectation (${qty})` : 'Choisir qui veut ce plat'}
                                       </button>
@@ -1083,7 +1083,7 @@ export default function BulkOrder() {
                         return { ...p, [member.id]: next };
                       })}
                       className="w-8 h-8 rounded-xl flex items-center justify-center text-lg font-bold transition"
-                      style={{ background: qty > 0 ? '#FBE8DC' : '#F3F4F6', color: qty > 0 ? A : '#9CA3AF' }}>
+                      style={{ background: qty > 0 ? '#FFF0DF' : '#F3F4F6', color: qty > 0 ? A : '#9CA3AF' }}>
                       −
                     </button>
                     <span className="w-6 text-center text-sm font-bold text-[#111827]">{qty}</span>
@@ -1107,7 +1107,7 @@ export default function BulkOrder() {
           <div className="px-5 py-4" style={{ borderTop: `1px solid ${BD}` }}>
             <button onClick={applyPicker}
               className="w-full py-3 rounded-2xl text-sm font-bold text-white transition hover:opacity-90"
-              style={{ background: totalPickerQty > 0 ? `linear-gradient(135deg, #F97316, ${A})` : '#D1D5DB' }}>
+              style={{ background: totalPickerQty > 0 ? `linear-gradient(135deg, #FF8C00, ${A})` : '#D1D5DB' }}>
               {totalPickerQty > 0
                 ? `Valider — ${totalPickerQty} portion${totalPickerQty > 1 ? 's' : ''} · ${formatFCFA(totalPickerQty * prix)}`
                 : 'Retirer ce plat du panier'}

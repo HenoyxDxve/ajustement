@@ -5,7 +5,7 @@ import {
   Plus, X, RefreshCw, AlertCircle, UtensilsCrossed, Download,
   CalendarDays, Bell, CheckCircle, Trash2, Send,
   Menu, LogOut, Star, MapPin, Activity, ChevronRight, Shield,
-  Package, CreditCard, UserPlus, TrendingUp, Clock,
+  Package, CreditCard, UserPlus, TrendingUp, Clock, Pencil, Check,
 } from 'lucide-react';
 import { b2bAPI, authAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
@@ -17,19 +17,19 @@ import OnboardingTour from '../../components/onboarding/OnboardingTour';
 import { buildSyscohadaBlob, buildFactureBlob } from '../../utils/syscohada-pdf';
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
-const BG       = '#F8FAFC';      // fond principal
+const BG       = '#F5F6F8';      // fond principal
 const CARD     = '#FFFFFF';
 const NAVY     = '#0F172A';      // sidebar & header dark
 const NAVY2    = '#1E293B';      // secondary dark
-const TEXT     = '#0F172A';
-const MUTED    = '#64748B';
-const FAINT    = '#94A3B8';
-const BORDER   = '#E2E8F0';
+const TEXT     = '#111827';
+const MUTED    = '#6B7280';
+const FAINT    = '#9CA3AF';
+const BORDER   = 'rgba(0,0,0,0.07)';
 
 // Couleurs sémantiques
 const ORANGE   = '#FF8C00';      // CTA principal standard
-const ORANGE_L = '#FFF3E0';      // fond orange léger
-const ORANGE_D = '#E07800';      // orange foncé hover
+const ORANGE_L = '#FFF0DF';      // fond orange léger
+const ORANGE_D = '#E07A00';      // orange foncé hover
 
 const GREEN    = '#16A34A';      // exports PDF / succès / confirmé
 const GREEN_L  = '#DCFCE7';      // fond vert léger
@@ -94,6 +94,24 @@ const loadNotifs = (uid) => {
 };
 const saveNotifs = (uid, notifs) => {
   try { localStorage.setItem(NOTIF_KEY(uid), JSON.stringify(notifs.slice(0, 50))); } catch { /* ignore */ }
+};
+
+// ── Abonnements helpers ────────────────────────────────────────────────────────
+const SUBS_KEY = (cid) => cid ? `b2b_subs:${cid}` : 'b2b_subs';
+const loadSubs = (cid) => {
+  try {
+    const raw = localStorage.getItem(SUBS_KEY(cid));
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+};
+const saveSubs = (cid, subs) => {
+  try { localStorage.setItem(SUBS_KEY(cid), JSON.stringify(subs)); } catch { /* ignore */ }
+};
+const nextDelivery = (freq) => {
+  const d = new Date();
+  if (freq === 'HEBDO') d.setDate(d.getDate() + (7 - d.getDay() + 1) % 7 || 7);
+  else d.setMonth(d.getMonth() + 1, 1);
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
 };
 
 // Maps event type to { icon, label, color }
@@ -627,6 +645,14 @@ export default function B2BDashboard() {
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [deletingId, setDeletingId]         = useState(null);
   const [deleteError, setDeleteError]       = useState('');
+  const [editBudgetId, setEditBudgetId]     = useState(null);
+  const [editBudgetVal, setEditBudgetVal]   = useState('');
+  const [editBudgetSaving, setEditBudgetSaving] = useState(false);
+  const [editBudgetError, setEditBudgetError]   = useState('');
+  const [subs, setSubs]                     = useState(() => loadSubs(null));
+  const [showSubForm, setShowSubForm]       = useState(false);
+  const [subForm, setSubForm]               = useState({ nom: '', frequence: 'HEBDO', nbRepas: 1, budgetRepas: '', notes: '' });
+  const [subFormErr, setSubFormErr]         = useState('');
 
   const loadData = useCallback(async (silent = false) => {
     if (!silent) setLoading(true); else setRefreshing(true);
@@ -721,6 +747,10 @@ export default function B2BDashboard() {
     }
   }, [loading, compte, uid]);
 
+  useEffect(() => {
+    if (compte?.id) setSubs(loadSubs(compte.id));
+  }, [compte?.id]);
+
   // Détection retour Novasend (?payment=success|cancelled&factureId=...)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -758,6 +788,60 @@ export default function B2BDashboard() {
       setDeleteError(e.response?.data?.message || 'Erreur lors de la suppression');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleAddSub = () => {
+    if (!subForm.nom.trim()) { setSubFormErr('Nom du plan requis'); return; }
+    if (!subForm.budgetRepas || Number(subForm.budgetRepas) <= 0) { setSubFormErr('Budget par repas requis'); return; }
+    const newSub = {
+      id: Date.now().toString(),
+      nom: subForm.nom.trim(),
+      frequence: subForm.frequence,
+      nbRepas: Number(subForm.nbRepas) || 1,
+      budgetRepas: Number(subForm.budgetRepas),
+      notes: subForm.notes.trim(),
+      actif: true,
+      createdAt: new Date().toISOString(),
+      prochaineLivraison: nextDelivery(subForm.frequence),
+    };
+    const updated = [...subs, newSub];
+    setSubs(updated);
+    saveSubs(compte?.id, updated);
+    setSubForm({ nom: '', frequence: 'HEBDO', nbRepas: 1, budgetRepas: '', notes: '' });
+    setShowSubForm(false);
+    setSubFormErr('');
+  };
+
+  const handleToggleSub = (id) => {
+    const updated = subs.map(s => s.id === id ? { ...s, actif: !s.actif } : s);
+    setSubs(updated);
+    saveSubs(compte?.id, updated);
+  };
+
+  const handleDeleteSub = (id) => {
+    const updated = subs.filter(s => s.id !== id);
+    setSubs(updated);
+    saveSubs(compte?.id, updated);
+  };
+
+  const handleEditBudget = async (id) => {
+    const val = Number(editBudgetVal);
+    if (!editBudgetVal || isNaN(val) || val < 0) {
+      setEditBudgetError('Montant invalide');
+      return;
+    }
+    setEditBudgetSaving(true);
+    setEditBudgetError('');
+    try {
+      await b2bAPI.updateCollaborateur(id, { limiteBudget: val });
+      setEditBudgetId(null);
+      setEditBudgetVal('');
+      await loadData(true);
+    } catch (e) {
+      setEditBudgetError(e.response?.data?.message || 'Erreur lors de la mise à jour');
+    } finally {
+      setEditBudgetSaving(false);
     }
   };
 
@@ -831,6 +915,7 @@ export default function B2BDashboard() {
     { key: 'overview',       label: 'Vue d\'ensemble', icon: LayoutDashboard },
     { key: 'orders',         label: 'Commandes',       icon: ShoppingBag,  badge: activeOrders.length },
     { key: 'collaborateurs', label: 'Équipe',           icon: Users,        badge: collabs.length },
+    { key: 'abonnements',    label: 'Abonnements',     icon: CalendarDays },
     { key: 'factures',       label: 'Facturation',     icon: FileText,     badge: unpaidInvoices },
     { key: 'historique',     label: 'Historique',      icon: Activity },
     { key: 'notifications',  label: 'Notifications',   icon: Bell,         badge: unreadCount },
@@ -1417,22 +1502,10 @@ export default function B2BDashboard() {
                     )}
                   </div>
                   {Object.keys(centerCounts).length === 0 ? (
-                    <div className="space-y-4">
-                      {['Marketing', 'IT / Dev', 'RH', 'Direction'].map((name, i) => {
-                        const colors = [ORANGE, '#4F46E5', GREEN, '#7C3AED'];
-                        const fakeWidths = [65, 40, 28, 52];
-                        return (
-                          <div key={name} className="flex items-center gap-3" style={{ opacity: 0.3 }}>
-                            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: colors[i] }} />
-                            <span className="text-[12px] font-semibold w-24 shrink-0" style={{ color: TEXT }}>{name}</span>
-                            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: BORDER }}>
-                              <div className="h-full rounded-full" style={{ width: `${fakeWidths[i]}%`, background: colors[i] }} />
-                            </div>
-                            <span className="text-[11px] font-bold w-6 text-right" style={{ color: MUTED }}>—</span>
-                          </div>
-                        );
-                      })}
-                      <p className="text-[11px] text-center pt-2" style={{ color: FAINT }}>Aucune commande enregistrée</p>
+                    <div className="flex flex-col items-center justify-center py-6 gap-2">
+                      <span style={{ fontSize: 28, opacity: 0.35 }}>📊</span>
+                      <p className="text-[13px] font-semibold" style={{ color: MUTED }}>0 commande enregistrée</p>
+                      <p className="text-[11px]" style={{ color: FAINT }}>Les centres de coûts apparaîtront ici</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1613,6 +1686,7 @@ export default function B2BDashboard() {
                   const budget = Number(c.limiteBudget || c.budgetMax || 0);
                   const spent  = Number(c.depenseActuelle || c.depenses || 0);
                   const isConfirming = confirmDeleteId === c.id;
+                  const isEditing = editBudgetId === c.id;
                   return (
                     <div key={c.id} className="transition"
                       style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
@@ -1629,7 +1703,19 @@ export default function B2BDashboard() {
                           <p className="text-sm font-bold" style={{ color: TEXT }}>{formatFCFA(budget)}</p>
                         </div>
                         <button
-                          onClick={() => { setConfirmDeleteId(isConfirming ? null : c.id); setDeleteError(''); }}
+                          onClick={() => {
+                            setEditBudgetId(isEditing ? null : c.id);
+                            setEditBudgetVal(String(budget));
+                            setEditBudgetError('');
+                            setConfirmDeleteId(null);
+                          }}
+                          className="w-9 h-9 rounded-xl flex items-center justify-center border transition hover:opacity-90"
+                          style={{ borderColor: BORDER, background: isEditing ? ORANGE_L : BG, color: isEditing ? ORANGE : MUTED }}
+                          title="Modifier le budget">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => { setConfirmDeleteId(isConfirming ? null : c.id); setDeleteError(''); setEditBudgetId(null); }}
                           disabled={deletingId === c.id}
                           className="w-9 h-9 rounded-xl flex items-center justify-center border transition hover:opacity-90"
                           style={{ borderColor: '#FECACA', background: isConfirming ? RED : RED_L, color: isConfirming ? '#fff' : RED }}
@@ -1639,6 +1725,36 @@ export default function B2BDashboard() {
                             : <Trash2 className="w-3.5 h-3.5" />}
                         </button>
                       </div>
+                      {/* Inline edit budget */}
+                      {isEditing && (
+                        <div className="mx-5 mb-3 px-4 py-3 rounded-xl" style={{ background: ORANGE_L, border: `1px solid ${ORANGE}30` }}>
+                          <p className="text-[11px] font-semibold mb-2" style={{ color: ORANGE_D }}>Modifier le budget mensuel de {c.nom}</p>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              value={editBudgetVal}
+                              onChange={e => setEditBudgetVal(e.target.value)}
+                              placeholder="Ex : 50000"
+                              className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+                              style={{ background: CARD, border: `1.5px solid ${BORDER}`, color: TEXT }}
+                              onKeyDown={e => e.key === 'Enter' && handleEditBudget(c.id)}
+                            />
+                            <span className="text-xs font-semibold shrink-0" style={{ color: MUTED }}>FCFA</span>
+                            <button onClick={() => handleEditBudget(c.id)} disabled={editBudgetSaving}
+                              className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition"
+                              style={{ background: editBudgetSaving ? MUTED : ORANGE }}>
+                              {editBudgetSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            </button>
+                            <button onClick={() => { setEditBudgetId(null); setEditBudgetError(''); }}
+                              className="w-9 h-9 rounded-xl flex items-center justify-center border text-sm"
+                              style={{ borderColor: BORDER, color: MUTED, background: CARD }}>
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          {editBudgetError && <p className="text-xs font-semibold mt-1.5" style={{ color: RED }}>{editBudgetError}</p>}
+                        </div>
+                      )}
                       {/* Bandeau de confirmation inline */}
                       {isConfirming && (
                         <div className="mx-5 mb-3 px-4 py-3 rounded-xl flex items-center gap-3"
@@ -1669,6 +1785,171 @@ export default function B2BDashboard() {
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* ══ ABONNEMENTS ══════════════════════════════════════════════════════ */}
+          {tab === 'abonnements' && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-bold" style={{ color: TEXT }}>Plans repas récurrents</h2>
+                  <p className="text-[12px] mt-0.5" style={{ color: FAINT }}>
+                    {subs.length} plan{subs.length !== 1 ? 's' : ''} · Commandes groupées automatiques
+                  </p>
+                </div>
+                <button onClick={() => { setShowSubForm(true); setSubFormErr(''); }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+                  style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_D})`, boxShadow: `0 2px 8px ${ORANGE}40` }}>
+                  <Plus className="w-4 h-4" /> Nouveau plan
+                </button>
+              </div>
+
+              {/* Add form */}
+              {showSubForm && (
+                <div className="rounded-2xl p-5 space-y-3" style={{ background: CARD, boxShadow: SH2 }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-semibold text-sm" style={{ color: TEXT }}>Nouveau plan repas</p>
+                    <button onClick={() => { setShowSubForm(false); setSubFormErr(''); }}
+                      className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-70"
+                      style={{ background: BG }}>
+                      <X className="w-3.5 h-3.5" style={{ color: MUTED }} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label className="block text-[11px] font-semibold mb-1.5" style={{ color: MUTED }}>Nom du plan *</label>
+                      <input type="text" value={subForm.nom}
+                        onChange={e => setSubForm(p => ({ ...p, nom: e.target.value }))}
+                        placeholder="Ex : Déjeuner équipe commerciale"
+                        className="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
+                        style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold mb-1.5" style={{ color: MUTED }}>Fréquence</label>
+                      <select value={subForm.frequence}
+                        onChange={e => setSubForm(p => ({ ...p, frequence: e.target.value }))}
+                        className="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
+                        style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }}>
+                        <option value="HEBDO">Hebdomadaire</option>
+                        <option value="MENSUEL">Mensuelle</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold mb-1.5" style={{ color: MUTED }}>Nb repas / livraison</label>
+                      <input type="number" min="1" value={subForm.nbRepas}
+                        onChange={e => setSubForm(p => ({ ...p, nbRepas: e.target.value }))}
+                        className="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
+                        style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }} />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-[11px] font-semibold mb-1.5" style={{ color: MUTED }}>Budget par repas (FCFA) *</label>
+                      <input type="number" min="0" value={subForm.budgetRepas}
+                        onChange={e => setSubForm(p => ({ ...p, budgetRepas: e.target.value }))}
+                        placeholder="Ex : 5000"
+                        className="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
+                        style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }} />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-[11px] font-semibold mb-1.5" style={{ color: MUTED }}>Notes / instructions</label>
+                      <textarea value={subForm.notes} rows={2}
+                        onChange={e => setSubForm(p => ({ ...p, notes: e.target.value }))}
+                        placeholder="Allergènes, préférences, instructions particulières…"
+                        className="w-full rounded-lg px-3 py-2.5 text-sm outline-none resize-none"
+                        style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }} />
+                    </div>
+                  </div>
+                  {subFormErr && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: RED_L }}>
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" style={{ color: RED }} />
+                      <p className="text-xs font-medium" style={{ color: RED }}>{subFormErr}</p>
+                    </div>
+                  )}
+                  <button onClick={handleAddSub}
+                    className="w-full py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition hover:opacity-90"
+                    style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_D})` }}>
+                    <CheckCircle className="w-4 h-4" /> Créer le plan
+                  </button>
+                </div>
+              )}
+
+              {/* Subscription list */}
+              <div className="rounded-2xl overflow-hidden" style={{ background: CARD, boxShadow: SH2 }}>
+                {subs.length === 0 ? (
+                  <div className="py-20 text-center">
+                    <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                      style={{ background: ORANGE_L }}>
+                      <CalendarDays className="w-7 h-7" style={{ color: ORANGE }} />
+                    </div>
+                    <p className="text-sm font-bold mb-1" style={{ color: TEXT }}>Aucun plan repas</p>
+                    <p className="text-xs mb-5" style={{ color: FAINT }}>
+                      Planifiez des commandes récurrentes pour votre équipe
+                    </p>
+                    <button onClick={() => setShowSubForm(true)}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
+                      style={{ background: ORANGE }}>
+                      <Plus className="w-4 h-4" /> Créer un plan
+                    </button>
+                  </div>
+                ) : subs.map((s, idx, arr) => (
+                  <div key={s.id} className="transition"
+                    style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
+                    <div className="flex items-start gap-4 px-5 py-4">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ background: s.actif ? ORANGE_L : BG }}>
+                        <CalendarDays className="w-5 h-5" style={{ color: s.actif ? ORANGE : FAINT }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-[13px] font-bold" style={{ color: TEXT }}>{s.nom}</p>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                            style={{ background: s.actif ? GREEN_L : BG, color: s.actif ? GREEN : FAINT }}>
+                            {s.actif ? '● Actif' : '⏸ En pause'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] mt-0.5" style={{ color: FAINT }}>
+                          {s.frequence === 'HEBDO' ? 'Hebdomadaire' : 'Mensuelle'} · {s.nbRepas} repas · {formatFCFA(s.budgetRepas)}/repas
+                        </p>
+                        {s.actif && (
+                          <p className="text-[11px] mt-1 font-medium" style={{ color: ORANGE }}>
+                            Prochaine livraison : {s.prochaineLivraison}
+                          </p>
+                        )}
+                        {s.notes && (
+                          <p className="text-[11px] mt-1 italic" style={{ color: MUTED }}>"{s.notes}"</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => handleToggleSub(s.id)}
+                          className="px-3 py-1.5 rounded-lg text-[11px] font-bold border transition"
+                          style={{
+                            borderColor: s.actif ? BORDER : ORANGE,
+                            background: s.actif ? BG : ORANGE_L,
+                            color: s.actif ? MUTED : ORANGE,
+                          }}>
+                          {s.actif ? 'Pause' : 'Activer'}
+                        </button>
+                        <button onClick={() => handleDeleteSub(s.id)}
+                          className="w-8 h-8 rounded-xl flex items-center justify-center border transition"
+                          style={{ borderColor: '#FECACA', background: RED_L, color: RED }}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {subs.length > 0 && (
+                <div className="rounded-xl px-4 py-3 flex items-start gap-3"
+                  style={{ background: AMBER_L, border: `1px solid ${AMBER}30` }}>
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: AMBER }} />
+                  <p className="text-[11px]" style={{ color: AMBER }}>
+                    <strong>Note :</strong> Les plans repas génèrent automatiquement une demande de commande groupée à la date prévue.
+                    Votre équipe en est notifiée par email.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -2393,7 +2674,7 @@ export default function B2BDashboard() {
         return (
           <OnboardingTour
             steps={B2B_TOUR_STEPS}
-            accentColor="#F97316"
+            accentColor="#FF8C00"
             storageKey={tourKey}
             onComplete={() => setShowTour(false)}
             onSkip={() => setShowTour(false)}

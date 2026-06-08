@@ -2,7 +2,6 @@
    clientDashboard.jsx — Espace personnel du client
    5 onglets : Vue d'ensemble · Commandes · Paiement · Profil · Sécurité
    Données temps réel via WebSocket + cache localStorage 10 min
-   Responsive : grille 1→3 colonnes, tabs avec scroll horizontal
    ═══════════════════════════════════════════════════════════════ */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -10,7 +9,10 @@ import {
   ShoppingBag, Clock, CheckCircle, Star, Download, Eye,
   User, Shield, ChefHat, Package, X, Send,
   Printer, RefreshCw, RefreshCcw, Receipt, Truck, ArrowRight,
-  UtensilsCrossed, Wallet, AlertCircle, MessageSquare, CreditCard, Plus, Trash2,
+  UtensilsCrossed, Wallet, AlertCircle, MessageSquare, CreditCard,
+  Plus, Trash2, Phone, Mail, MapPin, Camera, TrendingUp, Award,
+  Zap, Lock, Key, Smartphone, Globe, ChevronRight, BarChart3,
+  Heart, Gift, Percent, BadgeCheck, Star as StarIcon,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { commandesService as svcTs, createCommandesSocket } from '../../services/commandes.service';
@@ -19,49 +21,46 @@ import SecurityPanel from '../../components/security/SecurityPanel';
 import NotificationBell from '../../components/notifications/NotificationBell';
 import { formatFCFA } from '../../utils/formatters';
 
-/* ── Palette de couleurs orange Restodici ── */
-const ACCENT      = '#FF8C00';
-const ACCENT_DARK = '#CC7000';
-const ACCENT_LIGHT= '#FFE4B5';
-const SURFACE     = '#FFFAF3';
-const BORDER      = 'rgba(255,140,0,0.14)';
+import orangeMoneyLogo  from '../../assets/payments/orange-money.svg';
+import mtnMomoLogo      from '../../assets/payments/mtn-momo.svg';
+import moovMoneyLogo    from '../../assets/payments/moov-money.svg';
+import carteBancaireLogo from '../../assets/payments/carte-bancaire.svg';
+
+/* ── Palette ── */
+const ACCENT       = '#FF8C00';
+const ACCENT_DARK  = '#E07A00';
+const ACCENT_LIGHT = '#FFF0DF';
+const SURFACE      = '#F4F5F7';
+const BORDER       = 'rgba(0,0,0,0.07)';
 
 const ORDER_STATUS = {
-  RECUE:        { label: 'Reçue',           bg: '#FFFBEB', color: '#D97706' },
-  CONFIRMEE:    { label: 'Confirmée',       bg: '#F0FDF4', color: '#16A34A' },
-  EN_PREP:      { label: 'En préparation',  bg: '#FEF3C7', color: '#B45309' },
-  PRETE:        { label: 'Prête',           bg: '#F0FDF4', color: '#16A34A' },
-  EN_LIVRAISON: { label: 'En livraison',    bg: '#EFF6FF', color: '#2563EB' },
-  LIVREE:       { label: 'Livrée ✓',        bg: '#F0FDF4', color: '#15803D' },
-  ANNULEE:      { label: 'Annulée',         bg: '#FFF1F2', color: '#E11D48' },
+  RECUE:        { label: 'Reçue',          bg: '#FFFBEB', color: '#D97706' },
+  CONFIRMEE:    { label: 'Confirmée',      bg: '#F0FDF4', color: '#16A34A' },
+  EN_PREP:      { label: 'En préparation', bg: '#FEF3C7', color: '#B45309' },
+  PRETE:        { label: 'Prête',          bg: '#F0FDF4', color: '#16A34A' },
+  EN_LIVRAISON: { label: 'En livraison',   bg: '#EFF6FF', color: '#2563EB' },
+  LIVREE:       { label: 'Livrée',         bg: '#F0FDF4', color: '#15803D' },
+  ANNULEE:      { label: 'Annulée',        bg: '#FFF1F2', color: '#E11D48' },
 };
 
 const STEPS     = ['RECUE', 'CONFIRMEE', 'EN_PREP', 'PRETE', 'EN_LIVRAISON', 'LIVREE'];
 const MODE_LABELS = { SUR_PLACE: 'Sur place', EMPORTER: 'À emporter', LIVRAISON: 'Livraison' };
 const MODE_ICONS  = { SUR_PLACE: UtensilsCrossed, EMPORTER: Package, LIVRAISON: Truck };
 
-/* ── Liste des types de paiement supportés — Orange Money, MTN, Wave… ── */
 const PAYMENT_TYPES = [
-  { id: 'ORANGE_MONEY',  label: 'Orange Money',   icon: '🟠', placeholder: '07 XX XX XX XX' },
-  { id: 'MTN_MONEY',     label: 'MTN MoMo',        icon: '🟡', placeholder: '05 XX XX XX XX' },
-  { id: 'WAVE',          label: 'Wave',             icon: '🔵', placeholder: '01 XX XX XX XX' },
-  { id: 'MOOV_MONEY',    label: 'Moov Money',       icon: '🟢', placeholder: '01 XX XX XX XX' },
-  { id: 'CARTE_BANCAIRE',label: 'Carte Bancaire',   icon: '💳', placeholder: 'XXXX XXXX XXXX XXXX' },
+  { id: 'ORANGE_MONEY',   label: 'Orange Money',  placeholder: '07 XX XX XX XX', logo: orangeMoneyLogo,   color: '#FF6600', bg: '#FFF3EB' },
+  { id: 'MTN_MONEY',      label: 'MTN MoMo',       placeholder: '05 XX XX XX XX', logo: mtnMomoLogo,       color: '#FFCC00', bg: '#FFFDE6' },
+  { id: 'WAVE',           label: 'Wave',            placeholder: '01 XX XX XX XX', logo: null,              color: '#1DA1F2', bg: '#E8F5FD' },
+  { id: 'MOOV_MONEY',     label: 'Moov Money',      placeholder: '01 XX XX XX XX', logo: moovMoneyLogo,     color: '#0066CC', bg: '#E6F0FF' },
+  { id: 'CARTE_BANCAIRE', label: 'Carte Bancaire',  placeholder: 'XXXX XXXX XXXX XXXX', logo: carteBancaireLogo, color: '#1A1A2E', bg: '#F0F0F5' },
 ];
 
-function pmKey(uid) { return uid ? `saved_pm:${uid}` : 'saved_pm'; }
+function pmKey(uid)          { return uid ? `saved_pm:${uid}` : 'saved_pm'; }
+function loadSavedPM(uid)    { try { return JSON.parse(localStorage.getItem(pmKey(uid)) || '[]'); } catch { return []; } }
+function savePM(uid, list)   { localStorage.setItem(pmKey(uid), JSON.stringify(list)); }
 
-function loadSavedPM(uid) {
-  try { return JSON.parse(localStorage.getItem(pmKey(uid)) || '[]'); }
-  catch { return []; }
-}
-function savePM(uid, list) {
-  localStorage.setItem(pmKey(uid), JSON.stringify(list));
-}
-
-/* ── Helpers localStorage — cache des commandes et des avis donnés ── */
-function ordersKey(uid) { return uid ? `orders:${uid}` : 'orders'; }
-function avisKey(uid)   { return uid ? `avis_given:${uid}` : 'avis_given'; }
+function ordersKey(uid)   { return uid ? `orders:${uid}` : 'orders'; }
+function avisKey(uid)     { return uid ? `avis_given:${uid}` : 'avis_given'; }
 
 function loadCachedOrders(uid) {
   try {
@@ -73,19 +72,16 @@ function loadCachedOrders(uid) {
   return [];
 }
 function saveOrdersCache(uid, orders) {
-  try { localStorage.setItem(ordersKey(uid), JSON.stringify({ orders, ts: Date.now() })); }
-  catch { /* ignore */ }
+  try { localStorage.setItem(ordersKey(uid), JSON.stringify({ orders, ts: Date.now() })); } catch { /* ignore */ }
 }
 function loadAvisGiven(uid) {
-  try { return new Set(JSON.parse(localStorage.getItem(avisKey(uid)) || '[]')); }
-  catch { return new Set(); }
+  try { return new Set(JSON.parse(localStorage.getItem(avisKey(uid)) || '[]')); } catch { return new Set(); }
 }
 function saveAvisGiven(uid, set) {
-  try { localStorage.setItem(avisKey(uid), JSON.stringify([...set])); }
-  catch { /* ignore */ }
+  try { localStorage.setItem(avisKey(uid), JSON.stringify([...set])); } catch { /* ignore */ }
 }
 
-/* ── Modal reçu de commande — affiche le détail + boutons imprimer/PDF ── */
+/* ── Modal reçu ── */
 function ReceiptModal({ order, onClose, onDownload }) {
   const printRef = useRef(null);
   const date  = new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -155,7 +151,7 @@ function ReceiptModal({ order, onClose, onDownload }) {
   );
 }
 
-/* ── Modal d'avis — note de 1 à 5 étoiles + commentaire optionnel ── */
+/* ── Modal avis ── */
 function AvisModal({ order, onClose, onSubmit }) {
   const [note, setNote] = useState(5);
   const [commentaire, setCommentaire] = useState('');
@@ -174,9 +170,7 @@ function AvisModal({ order, onClose, onSubmit }) {
         <div className="px-6 py-4 flex items-center justify-between" style={{ background: ACCENT }}>
           <div>
             <h3 className="text-white font-extrabold">Laisser un avis</h3>
-            <p className="text-white/70 text-xs">
-              {order.restaurant?.nom || 'Restaurant'} · #{order.numero}
-            </p>
+            <p className="text-white/70 text-xs">{order.restaurant?.nom || 'Restaurant'} · #{order.numero}</p>
           </div>
           <button onClick={onClose} className="text-white/70 hover:text-white"><X className="w-4 h-4" /></button>
         </div>
@@ -217,7 +211,7 @@ function AvisModal({ order, onClose, onSubmit }) {
   );
 }
 
-/* ── Carte commande active — barre de progression + boutons "Suivre" et "Reçu" ── */
+/* ── Carte commande active ── */
 function ActiveOrderCard({ order, onTrack, onReceipt }) {
   const idx = STEPS.indexOf(order.statut);
   const progress = idx >= 0 ? Math.round(((idx + 1) / STEPS.length) * 100) : 0;
@@ -249,16 +243,13 @@ function ActiveOrderCard({ order, onTrack, onReceipt }) {
           {formatFCFA(order.montantTotal || 0)} <span className="text-xs font-normal text-[#9CA3AF]">CFA</span>
         </p>
       </div>
-
-      {/* Progress bar */}
       <div className="h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden mb-3">
         <div className="h-full rounded-full transition-all duration-500"
           style={{ width: `${progress}%`, background: order.statut === 'LIVREE' ? '#16A34A' : ACCENT }} />
       </div>
-
       <div className="flex gap-2">
         <button onClick={onTrack}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-[#374151] border transition hover:border-[#C05015] hover:text-[#C05015]"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-[#374151] border transition hover:border-[#FF8C00] hover:text-[#FF8C00]"
           style={{ borderColor: BORDER }}>
           <Eye className="w-3.5 h-3.5" /> Suivre
         </button>
@@ -274,7 +265,7 @@ function ActiveOrderCard({ order, onTrack, onReceipt }) {
   );
 }
 
-/* ── Ligne d'historique de commande — actions : reçu, PDF, avis, renouveler ── */
+/* ── Ligne historique ── */
 function PastOrderRow({ order, onReceipt, onDownload, onAvis, canAvis, onReorder }) {
   const date = new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' });
   const status = ORDER_STATUS[order.statut] || { label: order.statut, bg: '#F3F4F6', color: '#6B7280' };
@@ -332,7 +323,7 @@ function PastOrderRow({ order, onReceipt, onDownload, onAvis, canAvis, onReorder
   );
 }
 
-/* ── Invitation à laisser un avis — s'affiche pour les commandes livrées sans avis ── */
+/* ── Prompt avis ── */
 function AvisPromptCard({ order, onAvis }) {
   const items = (order.lignes || []).slice(0, 2).map(l => l.article?.nom || 'Article').join(', ');
   return (
@@ -355,7 +346,7 @@ function AvisPromptCard({ order, onAvis }) {
   );
 }
 
-/* ── Modal de suivi de commande — timeline des statuts + récapitulatif des articles ── */
+/* ── Modal suivi ── */
 function OrderTrackModal({ order, onClose, onReceipt }) {
   const currentIdx = STEPS.indexOf(order.statut);
   const [history, setHistory] = useState([]);
@@ -386,9 +377,9 @@ function OrderTrackModal({ order, onClose, onReceipt }) {
         <div className="p-5">
           <div className="space-y-2.5">
             {STEPS.map((step, i) => {
-              const done = i < currentIdx;
+              const done   = i < currentIdx;
               const active = i === currentIdx;
-              const ts = tsForStep(step);
+              const ts     = tsForStep(step);
               return (
                 <div key={step} className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
@@ -399,7 +390,8 @@ function OrderTrackModal({ order, onClose, onReceipt }) {
                     }}>
                     {done ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
                   </div>
-                  <p className="text-sm font-medium flex-1" style={{ color: active ? ACCENT : done ? '#16A34A' : '#9CA3AF' }}>
+                  <p className="text-sm font-medium flex-1"
+                    style={{ color: active ? ACCENT : done ? '#16A34A' : '#9CA3AF' }}>
                     {ORDER_STATUS[step]?.label || step}
                   </p>
                   {ts && (
@@ -443,36 +435,873 @@ function OrderTrackModal({ order, onClose, onReceipt }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ClientDashboard — Composant principal de l'espace client
-   ═══════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════
+   ──  OVERVIEW TAB  ──────────────────────────────────────────────
+   ════════════════════════════════════════════════════════════════ */
+function OverviewTab({ user, orders, activeOrders, delivered, cancelled, pendingAvis, totalSpent, avgOrder, loadingOrders, canAvis, setTab, setTrackOrder, setReceiptOrder, setAvisOrder, downloadPdf, handleReorder }) {
+  const initials = ((user?.prenom || user?.nom || 'U').charAt(0)).toUpperCase();
+  const firstName = user?.prenom || user?.nom?.split(' ')[0] || 'Vous';
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+
+  return (
+    <div className="space-y-6">
+
+      {/* ── Hero Banner ─────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl"
+        style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, #FF6B00 40%, #FF4D00 100%)`, boxShadow: `0 8px 40px ${ACCENT}55` }}>
+        {/* Decorative circles */}
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10"
+          style={{ background: '#fff', transform: 'translate(30%, -30%)' }} />
+        <div className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full opacity-10"
+          style={{ background: '#fff', transform: 'translate(-50%, 40%)' }} />
+        <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full opacity-10"
+          style={{ background: '#fff', transform: 'translateY(-50%)' }} />
+
+        <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            <div className="w-20 h-20 rounded-3xl bg-white/20 flex items-center justify-center text-white font-extrabold text-3xl border-4 border-white/30"
+              style={{ backdropFilter: 'blur(8px)' }}>
+              {initials}
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-400 border-2 border-white" />
+          </div>
+
+          {/* Text */}
+          <div className="flex-1">
+            <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mb-1">{greeting} 👋</p>
+            <h2 className="text-white font-extrabold text-2xl sm:text-3xl mb-2" style={{ letterSpacing: '-0.02em' }}>
+              {firstName} !
+            </h2>
+            <p className="text-white/75 text-sm max-w-md">
+              Retrouvez vos commandes, gérez votre profil et suivez vos dépenses en temps réel.
+            </p>
+          </div>
+
+          {/* CTA */}
+          <Link to="/menu"
+            className="shrink-0 flex items-center gap-2 bg-white rounded-2xl px-6 py-3 font-extrabold text-sm transition hover:shadow-xl"
+            style={{ color: ACCENT, textDecoration: 'none' }}>
+            <ChefHat className="w-4 h-4" /> Commander
+          </Link>
+        </div>
+
+        {/* Stats strip */}
+        <div className="relative grid grid-cols-3 divide-x border-t mx-0"
+          style={{ borderColor: 'rgba(255,255,255,0.2)', borderTop: '1px solid rgba(255,255,255,0.2)', divideColor: 'rgba(255,255,255,0.2)' }}>
+          {[
+            { label: 'En cours', value: loadingOrders ? '—' : activeOrders.length, icon: Clock },
+            { label: 'Livrées',  value: loadingOrders ? '—' : delivered.length,     icon: CheckCircle },
+            { label: 'Dépensé',  value: loadingOrders ? '—' : `${formatFCFA(totalSpent)}`, sub: 'CFA', icon: Wallet },
+          ].map((s, i) => (
+            <div key={i} className="px-4 sm:px-6 py-4 flex flex-col items-center text-center"
+              style={{ borderRight: i < 2 ? '1px solid rgba(255,255,255,0.2)' : 'none' }}>
+              <s.icon className="w-4 h-4 text-white/60 mb-1.5" />
+              <p className="text-white font-extrabold text-xl sm:text-2xl leading-none">
+                {s.value}
+                {s.sub && <span className="text-xs font-semibold text-white/60 ml-1">{s.sub}</span>}
+              </p>
+              <p className="text-white/60 text-xs mt-1 font-medium">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── KPI Cards ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          {
+            label: 'Commandes en cours',
+            value: loadingOrders ? '—' : activeOrders.length,
+            sub: activeOrders.length > 0 ? 'En cours de traitement' : 'Aucune active',
+            icon: Clock, iconBg: ACCENT_LIGHT, iconColor: ACCENT,
+            accent: activeOrders.length > 0 ? ACCENT : '#9CA3AF',
+          },
+          {
+            label: 'Total dépensé',
+            value: loadingOrders ? '—' : `${formatFCFA(totalSpent)} CFA`,
+            sub: avgOrder > 0 ? `Moy. ${formatFCFA(avgOrder)} CFA` : 'Aucun achat encore',
+            icon: TrendingUp, iconBg: '#ECFDF5', iconColor: '#10B981',
+            accent: '#10B981',
+          },
+          {
+            label: 'Commandes livrées',
+            value: loadingOrders ? '—' : delivered.length,
+            sub: `${orders.length} au total`,
+            icon: CheckCircle, iconBg: '#EFF6FF', iconColor: '#3B82F6',
+            accent: '#3B82F6',
+          },
+          {
+            label: 'Avis en attente',
+            value: loadingOrders ? '—' : pendingAvis.length,
+            sub: pendingAvis.length > 0 ? 'Partagez votre expérience' : 'Aucun avis requis',
+            icon: Star, iconBg: '#FFFBEB', iconColor: '#F59E0B',
+            accent: '#F59E0B',
+          },
+        ].map((kpi, i) => (
+          <div key={i} className="bg-white rounded-2xl p-5 border"
+            style={{ borderColor: BORDER, boxShadow: '0 1px 12px rgba(0,0,0,0.05)' }}>
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+                style={{ background: kpi.iconBg }}>
+                <kpi.icon className="w-5 h-5" style={{ color: kpi.iconColor }} />
+              </div>
+              <div className="w-1.5 h-1.5 rounded-full mt-2" style={{ background: kpi.accent }} />
+            </div>
+            <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-1">{kpi.label}</p>
+            <p className="text-2xl font-extrabold text-[#111827] leading-tight mb-1" style={{ letterSpacing: '-0.02em' }}>
+              {kpi.value}
+            </p>
+            <p className="text-xs font-medium" style={{ color: kpi.accent }}>{kpi.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── 2-col layout: commandes actives + sidebar ─────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        {/* Left: Active orders */}
+        <div className="lg:col-span-2 space-y-5">
+
+          {/* Avis pending */}
+          {!loadingOrders && pendingAvis.length > 0 && (
+            <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+              <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: BORDER }}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#FFFBEB' }}>
+                  <Star className="w-3.5 h-3.5 text-amber-500" />
+                </div>
+                <span className="text-sm font-bold text-[#111827]">Vos avis nous intéressent</span>
+                <span className="ml-auto text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ background: ACCENT }}>
+                  {pendingAvis.length} en attente
+                </span>
+              </div>
+              <div className="p-4 space-y-3">
+                {pendingAvis.slice(0, 3).map(o => (
+                  <AvisPromptCard key={o.id} order={o} onAvis={() => setAvisOrder(o)} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Active orders */}
+          <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
+                  <Package className="w-3.5 h-3.5" style={{ color: ACCENT }} />
+                </div>
+                <span className="text-sm font-bold text-[#111827]">Commandes en cours</span>
+                {activeOrders.length > 0 && (
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: ACCENT_LIGHT, color: ACCENT }}>
+                    {activeOrders.length}
+                  </span>
+                )}
+              </div>
+              <button onClick={() => setTab('orders')}
+                className="flex items-center gap-1 text-xs font-semibold" style={{ color: ACCENT }}>
+                Voir tout <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+            {loadingOrders ? (
+              <div className="p-5 space-y-3">
+                {[1, 2].map(i => <div key={i} className="h-24 rounded-xl bg-[#F3F4F6] animate-pulse" />)}
+              </div>
+            ) : activeOrders.length === 0 ? (
+              <div className="py-14 text-center">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  style={{ background: ACCENT_LIGHT }}>
+                  <ShoppingBag className="w-7 h-7" style={{ color: ACCENT }} />
+                </div>
+                <p className="text-sm font-semibold text-[#374151] mb-1">Aucune commande en cours</p>
+                <p className="text-xs text-[#9CA3AF] mb-4">Passez votre première commande !</p>
+                <Link to="/menu"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
+                  style={{ background: ACCENT, textDecoration: 'none' }}>
+                  <ChefHat className="w-4 h-4" /> Parcourir le menu
+                </Link>
+              </div>
+            ) : (
+              <div className="p-4 space-y-3">
+                {activeOrders.slice(0, 3).map(o => (
+                  <ActiveOrderCard key={o.id} order={o}
+                    onTrack={() => setTrackOrder(o)}
+                    onReceipt={() => setReceiptOrder(o)} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Historique récent */}
+          {delivered.length > 0 && (
+            <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+              <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                  </div>
+                  <span className="text-sm font-bold text-[#111827]">Historique récent</span>
+                </div>
+                <button onClick={() => setTab('orders')}
+                  className="text-xs font-semibold flex items-center gap-1" style={{ color: ACCENT }}>
+                  Historique complet <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="p-4 space-y-3">
+                {delivered.slice(0, 4).map(o => (
+                  <PastOrderRow key={o.id} order={o}
+                    onReceipt={() => setReceiptOrder(o)}
+                    onDownload={() => downloadPdf(o.id)}
+                    onAvis={() => setAvisOrder(o)}
+                    canAvis={canAvis(o)}
+                    onReorder={handleReorder} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right sidebar */}
+        <div className="space-y-4">
+
+          {/* CTA Commander */}
+          <div className="rounded-2xl p-5 text-white space-y-4"
+            style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, #FF4D00 100%)` }}>
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
+              <ChefHat className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="font-extrabold text-lg leading-tight">Nouvelle commande</p>
+              <p className="text-sm text-white/75 mt-1">Plats frais disponibles, livraison express</p>
+            </div>
+            <Link to="/menu"
+              className="flex items-center justify-center gap-2 bg-white rounded-xl py-3 text-sm font-extrabold"
+              style={{ color: ACCENT, textDecoration: 'none' }}>
+              Parcourir le menu <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* Profil rapide */}
+          <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BORDER }}>
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-4">Mon compte</p>
+            {[
+              { label: 'Profil', icon: User, tab: 'profile' },
+              { label: 'Paiement', icon: CreditCard, tab: 'payment' },
+              { label: 'Sécurité', icon: Shield, tab: 'security' },
+            ].map(item => (
+              <button key={item.tab} onClick={() => setTab(item.tab)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#374151] hover:text-[#111827] transition-colors mb-1"
+                style={{ background: 'transparent' }}
+                onMouseEnter={e => e.currentTarget.style.background = ACCENT_LIGHT}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
+                  <item.icon className="w-4 h-4" style={{ color: ACCENT }} />
+                </div>
+                <span className="flex-1 text-left">{item.label}</span>
+                <ChevronRight className="w-3.5 h-3.5 text-[#9CA3AF]" />
+              </button>
+            ))}
+          </div>
+
+          {/* Dernière livraison */}
+          {delivered.length > 0 && (
+            <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BORDER }}>
+              <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Dernière livraison</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-[#111827]">#{delivered[0].numero}</p>
+                  <p className="text-xs text-[#9CA3AF]">{formatFCFA(delivered[0].montantTotal || 0)} CFA</p>
+                </div>
+                <button onClick={() => setReceiptOrder(delivered[0])}
+                  className="p-2 rounded-xl" style={{ background: ACCENT_LIGHT }}>
+                  <Receipt className="w-4 h-4" style={{ color: ACCENT }} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ──  PROFILE TAB  ───────────────────────────────────────────────
+   ════════════════════════════════════════════════════════════════ */
+function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfileSave, orders, totalSpent, delivered }) {
+  const initials = ((user?.prenom || user?.nom || 'U').charAt(0)).toUpperCase();
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+    : 'Nouveau membre';
+
+  const filled = [profileForm.nom, profileForm.email, profileForm.telephone].filter(Boolean).length;
+  const completion = Math.round((filled / 3) * 100);
+
+  return (
+    <div className="space-y-6">
+
+      {/* ── Hero profil ─────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl bg-white border" style={{ borderColor: BORDER }}>
+        {/* Gradient top band */}
+        <div className="h-32 relative"
+          style={{ background: `linear-gradient(135deg, ${ACCENT}22 0%, ${ACCENT}08 100%)` }}>
+          <div className="absolute inset-0"
+            style={{ backgroundImage: `radial-gradient(circle at 80% 50%, ${ACCENT}15 0%, transparent 70%)` }} />
+        </div>
+
+        {/* Avatar overlay */}
+        <div className="px-6 sm:px-8 pb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5 -mt-12">
+            <div className="relative shrink-0">
+              <div className="w-24 h-24 rounded-3xl flex items-center justify-center text-white font-extrabold text-3xl border-4 border-white shadow-xl"
+                style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_DARK} 100%)` }}>
+                {initials}
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center cursor-pointer"
+                title="Changer la photo">
+                <Camera className="w-4 h-4 text-[#6B7280]" />
+              </div>
+            </div>
+
+            <div className="flex-1 pb-1">
+              <h2 className="text-2xl font-extrabold text-[#111827]" style={{ letterSpacing: '-0.02em' }}>
+                {user?.prenom || user?.nom || 'Mon profil'}
+              </h2>
+              <p className="text-sm text-[#6B7280] mt-0.5">{user?.email || ''}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+                  style={{ background: '#ECFDF5', color: '#059669' }}>
+                  <BadgeCheck className="w-3 h-3" /> Compte vérifié
+                </div>
+                <div className="px-3 py-1 rounded-full text-xs font-semibold text-[#6B7280] bg-[#F3F4F6]">
+                  Membre depuis {memberSince}
+                </div>
+              </div>
+            </div>
+
+            {/* Completion */}
+            <div className="shrink-0 text-right">
+              <p className="text-xs font-semibold text-[#9CA3AF] mb-1.5">Profil complété</p>
+              <div className="flex items-center gap-2">
+                <div className="w-28 h-2 rounded-full bg-[#F3F4F6]">
+                  <div className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${completion}%`, background: completion === 100 ? '#10B981' : ACCENT }} />
+                </div>
+                <span className="text-sm font-extrabold" style={{ color: completion === 100 ? '#10B981' : ACCENT }}>
+                  {completion}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Stats rapides ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: 'Commandes', value: orders.length, icon: ShoppingBag, color: ACCENT, bg: ACCENT_LIGHT },
+          { label: 'Dépenses',  value: `${formatFCFA(totalSpent)} CFA`, icon: Wallet, color: '#10B981', bg: '#ECFDF5' },
+          { label: 'Livrées',   value: delivered.length, icon: CheckCircle, color: '#3B82F6', bg: '#EFF6FF' },
+        ].map((s, i) => (
+          <div key={i} className="bg-white rounded-2xl border p-4 text-center" style={{ borderColor: BORDER }}>
+            <div className="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: s.bg }}>
+              <s.icon className="w-5 h-5" style={{ color: s.color }} />
+            </div>
+            <p className="text-base font-extrabold text-[#111827]">{s.value}</p>
+            <p className="text-xs text-[#9CA3AF] mt-0.5">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Formulaire ─────────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+        <div className="px-6 py-5 border-b flex items-center gap-3" style={{ borderColor: BORDER }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
+            <User className="w-4 h-4" style={{ color: ACCENT }} />
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-[#111827]">Informations personnelles</h3>
+            <p className="text-xs text-[#9CA3AF]">Modifiez vos informations de compte</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleProfileSave} className="p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Nom */}
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-bold text-[#374151] mb-2 uppercase tracking-wider">
+                Nom complet
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <User className="w-4 h-4 text-[#9CA3AF]" />
+                </div>
+                <input
+                  type="text"
+                  value={profileForm.nom}
+                  onChange={e => setProfileForm(p => ({ ...p, nom: e.target.value }))}
+                  placeholder="Votre nom complet"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition"
+                  style={{ background: SURFACE, border: '1.5px solid rgba(0,0,0,0.08)' }}
+                  onFocus={e => e.target.style.borderColor = ACCENT}
+                  onBlur={e => e.target.style.borderColor = 'rgba(0,0,0,0.08)'}
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-bold text-[#374151] mb-2 uppercase tracking-wider">
+                Email
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <Mail className="w-4 h-4 text-[#9CA3AF]" />
+                </div>
+                <input
+                  type="email"
+                  value={profileForm.email}
+                  onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))}
+                  placeholder="votre@email.com"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition"
+                  style={{ background: SURFACE, border: '1.5px solid rgba(0,0,0,0.08)' }}
+                  onFocus={e => e.target.style.borderColor = ACCENT}
+                  onBlur={e => e.target.style.borderColor = 'rgba(0,0,0,0.08)'}
+                />
+              </div>
+            </div>
+
+            {/* Téléphone */}
+            <div>
+              <label className="block text-xs font-bold text-[#374151] mb-2 uppercase tracking-wider">
+                Téléphone
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <Phone className="w-4 h-4 text-[#9CA3AF]" />
+                </div>
+                <input
+                  type="tel"
+                  value={profileForm.telephone}
+                  onChange={e => setProfileForm(p => ({ ...p, telephone: e.target.value }))}
+                  placeholder="07 XX XX XX XX"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition"
+                  style={{ background: SURFACE, border: '1.5px solid rgba(0,0,0,0.08)' }}
+                  onFocus={e => e.target.style.borderColor = ACCENT}
+                  onBlur={e => e.target.style.borderColor = 'rgba(0,0,0,0.08)'}
+                />
+              </div>
+            </div>
+          </div>
+
+          {profileMsg && (
+            <div className="mt-5 flex items-center gap-3 px-4 py-3 rounded-xl"
+              style={{
+                background: profileMsg.includes('Erreur') ? '#FFF1F2' : '#F0FDF4',
+                border: `1px solid ${profileMsg.includes('Erreur') ? '#FECDD3' : '#BBF7D0'}`,
+              }}>
+              {profileMsg.includes('Erreur')
+                ? <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                : <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />}
+              <p className="text-sm font-semibold"
+                style={{ color: profileMsg.includes('Erreur') ? '#DC2626' : '#16A34A' }}>
+                {profileMsg}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-6 flex items-center gap-3">
+            <button type="submit"
+              className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-extrabold text-sm text-white transition hover:opacity-90"
+              style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_DARK} 100%)`, boxShadow: `0 4px 20px ${ACCENT}44` }}>
+              <CheckCircle className="w-4 h-4" /> Enregistrer les modifications
+            </button>
+            <p className="text-xs text-[#9CA3AF]">Vos données sont sécurisées</p>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ──  PAYMENT TAB  ───────────────────────────────────────────────
+   ════════════════════════════════════════════════════════════════ */
+function PaymentTab({ savedPM, setSavedPM, pmForm, setPmForm, pmMsg, setPmMsg, addPM, removePM, setDefaultPM, userId }) {
+  const currentType = PAYMENT_TYPES.find(t => t.id === pmForm.type) || PAYMENT_TYPES[0];
+
+  return (
+    <div className="space-y-6">
+
+      {/* ── Header ───────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8"
+        style={{ background: `linear-gradient(135deg, #1A1A2E 0%, #16213E 60%, #0F3460 100%)` }}>
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-5"
+          style={{ background: '#fff', transform: 'translate(30%, -30%)' }} />
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)' }}>
+            <CreditCard className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-extrabold text-white">Moyens de paiement</h2>
+            <p className="text-white/60 text-sm mt-1">
+              {savedPM.length} moyen{savedPM.length !== 1 ? 's' : ''} enregistré{savedPM.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <div className="sm:ml-auto flex items-center gap-2 px-4 py-2 rounded-xl"
+            style={{ background: 'rgba(255,255,255,0.1)' }}>
+            <div className="w-2 h-2 rounded-full bg-green-400" />
+            <span className="text-white/80 text-xs font-semibold">Stockage local sécurisé</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* ── Cartes enregistrées ────────────────────────────────────── */}
+        <div className="space-y-4">
+          <h3 className="text-base font-extrabold text-[#111827]">Cartes & comptes enregistrés</h3>
+
+          {savedPM.length === 0 ? (
+            <div className="bg-white rounded-2xl border-2 border-dashed p-10 text-center"
+              style={{ borderColor: ACCENT + '30' }}>
+              <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                style={{ background: ACCENT_LIGHT }}>
+                <CreditCard className="w-7 h-7" style={{ color: ACCENT }} />
+              </div>
+              <p className="text-sm font-bold text-[#374151] mb-1">Aucun moyen enregistré</p>
+              <p className="text-xs text-[#9CA3AF]">Ajoutez Orange Money, MTN MoMo ou une carte pour payer plus vite.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {savedPM.map(m => {
+                const type = PAYMENT_TYPES.find(t => t.id === m.type) || PAYMENT_TYPES[0];
+                return (
+                  <div key={m.id} className="relative overflow-hidden rounded-2xl border p-5 transition hover:shadow-md"
+                    style={{ borderColor: m.isDefault ? type.color + '40' : BORDER, background: '#fff',
+                      boxShadow: m.isDefault ? `0 0 0 2px ${type.color}25` : 'none' }}>
+
+                    {m.isDefault && (
+                      <div className="absolute top-3 right-3">
+                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full text-white"
+                          style={{ background: type.color }}>
+                          Par défaut
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
+                        style={{ background: type.bg, border: `1px solid ${type.color}20` }}>
+                        {type.logo
+                          ? <img src={type.logo} alt={type.label} className="w-10 h-10 object-contain" />
+                          : <CreditCard className="w-6 h-6" style={{ color: type.color }} />}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-extrabold text-[#111827] truncate">{m.label}</p>
+                        <p className="text-xs font-medium mt-0.5" style={{ color: type.color }}>{type.label}</p>
+                        {m.numero && (
+                          <p className="text-xs text-[#9CA3AF] mt-0.5 font-mono">
+                            {'•'.repeat(4)} {m.numero.slice(-4)}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {!m.isDefault && (
+                          <button onClick={() => setDefaultPM(m.id)}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition"
+                            style={{ color: ACCENT, borderColor: ACCENT + '40', background: ACCENT_LIGHT }}>
+                            Défaut
+                          </button>
+                        )}
+                        <button onClick={() => removePM(m.id)}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center transition hover:bg-red-50"
+                          title="Supprimer">
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── Formulaire ajout ───────────────────────────────────────── */}
+        <div>
+          <h3 className="text-base font-extrabold text-[#111827] mb-4">Ajouter un moyen de paiement</h3>
+          <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+
+            {/* Type selector */}
+            <div className="p-5 border-b" style={{ borderColor: BORDER }}>
+              <label className="block text-xs font-bold text-[#374151] mb-3 uppercase tracking-wider">Type de compte</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {PAYMENT_TYPES.map(t => (
+                  <button key={t.id} type="button"
+                    onClick={() => setPmForm(p => ({ ...p, type: t.id }))}
+                    className="flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition"
+                    style={{
+                      borderColor: pmForm.type === t.id ? t.color : 'rgba(0,0,0,0.07)',
+                      background: pmForm.type === t.id ? t.bg : '#fff',
+                    }}>
+                    <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center"
+                      style={{ background: t.bg }}>
+                      {t.logo
+                        ? <img src={t.logo} alt={t.label} className="w-8 h-8 object-contain" />
+                        : <CreditCard className="w-5 h-5" style={{ color: t.color }} />}
+                    </div>
+                    <span className="text-[10px] font-bold text-center leading-tight" style={{ color: t.color }}>
+                      {t.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Fields */}
+            <form onSubmit={addPM} className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-[#374151] mb-2 uppercase tracking-wider">
+                  Libellé <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text" required
+                  placeholder={`Mon ${currentType.label}`}
+                  value={pmForm.label}
+                  onChange={e => setPmForm(p => ({ ...p, label: e.target.value }))}
+                  className="w-full rounded-xl px-4 py-3.5 text-sm outline-none transition"
+                  style={{ background: SURFACE, border: '1.5px solid rgba(0,0,0,0.08)' }}
+                  onFocus={e => e.target.style.borderColor = ACCENT}
+                  onBlur={e => e.target.style.borderColor = 'rgba(0,0,0,0.08)'}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#374151] mb-2 uppercase tracking-wider">
+                  Numéro <span className="text-[#9CA3AF]">(optionnel)</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <Phone className="w-4 h-4 text-[#9CA3AF]" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={currentType.placeholder}
+                    value={pmForm.numero}
+                    onChange={e => setPmForm(p => ({ ...p, numero: e.target.value }))}
+                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm outline-none transition"
+                    style={{ background: SURFACE, border: '1.5px solid rgba(0,0,0,0.08)' }}
+                    onFocus={e => e.target.style.borderColor = ACCENT}
+                    onBlur={e => e.target.style.borderColor = 'rgba(0,0,0,0.08)'}
+                  />
+                </div>
+              </div>
+
+              {pmMsg && (
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                  style={{
+                    background: pmMsg.includes('Erreur') || pmMsg.includes('Ajoutez') ? '#FFF1F2' : '#F0FDF4',
+                    border: `1px solid ${pmMsg.includes('Erreur') || pmMsg.includes('Ajoutez') ? '#FECDD3' : '#BBF7D0'}`,
+                  }}>
+                  <p className="text-sm font-semibold"
+                    style={{ color: pmMsg.includes('Erreur') || pmMsg.includes('Ajoutez') ? '#DC2626' : '#16A34A' }}>
+                    {pmMsg}
+                  </p>
+                </div>
+              )}
+
+              <button type="submit"
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-extrabold text-sm text-white transition hover:opacity-90"
+                style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_DARK} 100%)`, boxShadow: `0 4px 16px ${ACCENT}44` }}>
+                <Plus className="w-4 h-4" /> Ajouter ce moyen
+              </button>
+            </form>
+          </div>
+
+          <p className="text-xs text-[#9CA3AF] text-center mt-3 px-4">
+            Vos informations sont stockées localement et ne sont jamais partagées.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ──  SECURITY TAB  ──────────────────────────────────────────────
+   ════════════════════════════════════════════════════════════════ */
+function SecurityTab({ user }) {
+  const hasPhone  = !!user?.telephone;
+  const has2FA    = !!user?.twoFactorEnabled;
+  const hasEmail  = !!user?.email;
+
+  const securityScore = [hasEmail, hasPhone, has2FA, true].filter(Boolean).length;
+  const scorePercent  = Math.round((securityScore / 4) * 100);
+  const scoreColor    = scorePercent >= 75 ? '#10B981' : scorePercent >= 50 ? ACCENT : '#EF4444';
+  const scoreLabel    = scorePercent >= 75 ? 'Excellent' : scorePercent >= 50 ? 'Moyen' : 'Faible';
+
+  return (
+    <div className="space-y-6">
+
+      {/* ── Score sécurité ───────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8"
+        style={{ background: `linear-gradient(135deg, #0F172A 0%, #1E293B 100%)` }}>
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-5"
+          style={{ background: '#fff', transform: 'translate(30%, -30%)' }} />
+
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          {/* Score ring */}
+          <div className="relative w-24 h-24 shrink-0">
+            <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
+              <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" />
+              <circle cx="48" cy="48" r="40" fill="none" stroke={scoreColor} strokeWidth="8"
+                strokeDasharray={`${2 * Math.PI * 40}`}
+                strokeDashoffset={`${2 * Math.PI * 40 * (1 - scorePercent / 100)}`}
+                strokeLinecap="round" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-xl font-extrabold text-white">{scorePercent}%</span>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-1">Score de sécurité</p>
+            <h2 className="text-2xl font-extrabold text-white mb-2">{scoreLabel}</h2>
+            <p className="text-white/60 text-sm">
+              {scorePercent < 100
+                ? 'Activez la 2FA pour maximiser la protection de votre compte.'
+                : 'Votre compte est parfaitement protégé.'}
+            </p>
+          </div>
+
+          {/* Checklist */}
+          <div className="sm:ml-auto space-y-2">
+            {[
+              { label: 'Email vérifié',        done: hasEmail },
+              { label: 'Téléphone renseigné',  done: hasPhone },
+              { label: 'Mot de passe fort',     done: true },
+              { label: 'Double auth. (2FA)',    done: has2FA },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2.5">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: item.done ? '#10B981' : 'rgba(255,255,255,0.1)' }}>
+                  {item.done
+                    ? <CheckCircle className="w-3 h-3 text-white" />
+                    : <X className="w-3 h-3 text-white/40" />}
+                </div>
+                <span className="text-xs font-medium" style={{ color: item.done ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)' }}>
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Info rapide sécurité ─────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: 'Appareils connectés', value: '1', icon: Smartphone, color: '#3B82F6', bg: '#EFF6FF' },
+          { label: 'Dernière connexion',   value: 'Aujourd\'hui', icon: Globe, color: '#10B981', bg: '#ECFDF5' },
+          { label: 'Sessions actives',     value: '1 session',   icon: Zap,       color: ACCENT,   bg: ACCENT_LIGHT },
+        ].map((s, i) => (
+          <div key={i} className="bg-white rounded-2xl border p-5 flex items-center gap-4" style={{ borderColor: BORDER }}>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: s.bg }}>
+              <s.icon className="w-5 h-5" style={{ color: s.color }} />
+            </div>
+            <div>
+              <p className="text-base font-extrabold text-[#111827]">{s.value}</p>
+              <p className="text-xs text-[#9CA3AF]">{s.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── SecurityPanel (mot de passe + 2FA) ─────────────────────── */}
+      <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+        <div className="px-6 py-5 border-b flex items-center gap-3" style={{ borderColor: BORDER }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
+            <Shield className="w-4 h-4" style={{ color: ACCENT }} />
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-[#111827]">Authentification & protection</h3>
+            <p className="text-xs text-[#9CA3AF]">Gérez votre mot de passe et la double authentification</p>
+          </div>
+        </div>
+        <div className="p-6">
+          <SecurityPanel user={user} accentColor={ACCENT} />
+        </div>
+      </div>
+
+      {/* ── Conseils sécurité ─────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+        <div className="px-6 py-5 border-b flex items-center gap-3" style={{ borderColor: BORDER }}>
+          <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+            <AlertCircle className="w-4 h-4 text-amber-500" />
+          </div>
+          <h3 className="text-sm font-extrabold text-[#111827]">Bonnes pratiques</h3>
+        </div>
+        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[
+            { icon: Key,        title: 'Mot de passe fort',      desc: 'Utilisez 12 caractères minimum avec chiffres et symboles.' },
+            { icon: Smartphone, title: 'Activez la 2FA',         desc: 'La double authentification bloque 99% des intrusions.' },
+            { icon: Globe,      title: 'Connexions suspectes',    desc: 'Déconnectez-vous sur les appareils partagés.' },
+            { icon: Lock,       title: 'Ne partagez jamais',      desc: 'Restodici ne vous demandera jamais votre mot de passe.' },
+          ].map((tip, i) => (
+            <div key={i} className="flex items-start gap-4 p-4 rounded-2xl" style={{ background: SURFACE }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: ACCENT_LIGHT }}>
+                <tip.icon className="w-4 h-4" style={{ color: ACCENT }} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-[#111827] mb-0.5">{tip.title}</p>
+                <p className="text-xs text-[#6B7280] leading-relaxed">{tip.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ──  COMPOSANT PRINCIPAL  ───────────────────────────────────────
+   ════════════════════════════════════════════════════════════════ */
 export default function ClientDashboard() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
   const [tab, setTab] = useState('overview');
   const [orders, setOrders] = useState(() => loadCachedOrders(user?.id));
-  const [loadingOrders, setLoadingOrders] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [ordersError, setOrdersError] = useState('');
-  const [trackOrder, setTrackOrder]   = useState(null);
-  const [receiptOrder, setReceiptOrder] = useState(null);
-  const [avisOrder, setAvisOrder]     = useState(null);
-  const [avisGiven, setAvisGiven]     = useState(() => loadAvisGiven(user?.id));
-  const [profileForm, setProfileForm] = useState({ nom: user?.nom || '', email: user?.email || '', telephone: user?.telephone || '' });
-  const [profileMsg, setProfileMsg]   = useState('');
-  const [orderFilter, setOrderFilter] = useState('all');
-  const [savedPM, setSavedPM] = useState(() => loadSavedPM(user?.id));
-  const [pmForm, setPmForm]   = useState({ type: 'ORANGE_MONEY', label: '', numero: '' });
-  const [pmMsg, setPmMsg]     = useState('');
+  const [loadingOrders, setLoadingOrders]   = useState(true);
+  const [refreshing, setRefreshing]         = useState(false);
+  const [ordersError, setOrdersError]       = useState('');
+  const [trackOrder, setTrackOrder]         = useState(null);
+  const [receiptOrder, setReceiptOrder]     = useState(null);
+  const [avisOrder, setAvisOrder]           = useState(null);
+  const [avisGiven, setAvisGiven]           = useState(() => loadAvisGiven(user?.id));
+  const [profileForm, setProfileForm]       = useState({ nom: user?.nom || '', email: user?.email || '', telephone: user?.telephone || '' });
+  const [profileMsg, setProfileMsg]         = useState('');
+  const [orderFilter, setOrderFilter]       = useState('all');
+  const [savedPM, setSavedPM]               = useState(() => loadSavedPM(user?.id));
+  const [pmForm, setPmForm]                 = useState({ type: 'ORANGE_MONEY', label: '', numero: '' });
+  const [pmMsg, setPmMsg]                   = useState('');
 
   const userId = user?.id;
 
-  /* ── Chargement des commandes depuis l'API (silent=true = pas d'indicateur de chargement) ── */
   const loadOrders = useCallback(async (silent = false) => {
     if (!silent) setLoadingOrders(true); else setRefreshing(true);
     setOrdersError('');
     try {
-      const res = await svcTs.getMyOrders();
+      const res  = await svcTs.getMyOrders();
       const data = Array.isArray(res.data) ? res.data : [];
       setOrders(data);
       saveOrdersCache(userId, data);
@@ -526,7 +1355,7 @@ export default function ClientDashboard() {
     try {
       const res = await svcTs.getReceiptPdf(orderId);
       const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      const a = document.createElement('a');
+      const a   = document.createElement('a');
       a.href = url; a.download = `recu-${orderId}.pdf`; a.click();
       setTimeout(() => URL.revokeObjectURL(url), 3000);
     } catch { alert('Reçu PDF non disponible'); }
@@ -534,7 +1363,6 @@ export default function ClientDashboard() {
 
   const canAvis = (o) => o.statut === 'LIVREE' && !avisGiven.has(o.id) && !o.avis;
 
-  /* ── Renouveler une commande : copie les articles dans le pendingOrder et redirige vers le checkout ── */
   const handleReorder = (order) => {
     const items = (order.lignes || []).map(l => ({
       articleId: l.article?.id || l.articleId,
@@ -543,19 +1371,15 @@ export default function ClientDashboard() {
       quantite: l.quantite || 1,
       restaurantId: order.restaurant?.id || order.restaurantId,
     }));
-    if (!items.length) {
-      alert('Impossible de renouveler : détail des articles indisponible');
-      return;
-    }
-    const pendingOrder = {
+    if (!items.length) { alert('Impossible de renouveler : détail des articles indisponible'); return; }
+    localStorage.setItem('pendingOrder', JSON.stringify({
       restaurantId: order.restaurant?.id || order.restaurantId,
       restaurantName: order.restaurant?.nom || 'Restaurant',
       orderMode: order.modeLivraison || 'SUR_PLACE',
       deliveryAddress: order.adresseLivraison || '',
       items,
       total: items.reduce((s, i) => s + i.prix * i.quantite, 0),
-    };
-    localStorage.setItem('pendingOrder', JSON.stringify(pendingOrder));
+    }));
     navigate('/checkout');
   };
 
@@ -563,7 +1387,7 @@ export default function ClientDashboard() {
     e.preventDefault();
     if (!pmForm.label.trim()) { setPmMsg('Ajoutez un libellé.'); return; }
     const entry = { id: `${Date.now()}`, type: pmForm.type, label: pmForm.label.trim(), numero: pmForm.numero.trim(), isDefault: savedPM.length === 0 };
-    const next = [...savedPM, entry];
+    const next  = [...savedPM, entry];
     setSavedPM(next);
     savePM(userId, next);
     setPmForm({ type: 'ORANGE_MONEY', label: '', numero: '' });
@@ -597,46 +1421,57 @@ export default function ClientDashboard() {
 
   const TABS = [
     { key: 'overview', label: 'Vue d\'ensemble', icon: ShoppingBag },
-    { key: 'orders',   label: 'Commandes', icon: Package, badge: activeOrders.length || undefined },
-    { key: 'payment',  label: 'Paiement', icon: CreditCard },
-    { key: 'profile',  label: 'Profil', icon: User },
-    { key: 'security', label: 'Sécurité', icon: Shield },
+    { key: 'orders',   label: 'Commandes',       icon: Package, badge: activeOrders.length || undefined },
+    { key: 'payment',  label: 'Paiement',         icon: CreditCard },
+    { key: 'profile',  label: 'Profil',           icon: User },
+    { key: 'security', label: 'Sécurité',         icon: Shield },
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: SURFACE }}>
-      {/* ── Top bar ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 bg-white border-b" style={{ borderColor: BORDER }}>
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: ACCENT }}>Espace client</p>
-            <h1 className="text-base font-extrabold text-[#111827] leading-none">
-              Bonjour, {user?.prenom || user?.nom || 'Vous'}
-            </h1>
+    <div className="min-h-screen" style={{ background: '#F4F5F7' }}>
+
+      {/* ── Top bar ─────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-30 bg-white"
+        style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 8px rgba(0,0,0,0.05)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 2px 10px ${ACCENT}44`, flexShrink: 0 }}>
+              <UtensilsCrossed className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: ACCENT, textTransform: 'uppercase', margin: 0, lineHeight: 1 }}>Espace client</p>
+              <h1 style={{ fontSize: 15, fontWeight: 800, color: '#111827', margin: 0, lineHeight: 1.3, letterSpacing: '-0.01em' }}>
+                {user?.prenom || user?.nom || 'Mon compte'}
+              </h1>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => loadOrders(true)} disabled={refreshing}
-              className="w-9 h-9 rounded-xl flex items-center justify-center border text-[#6B7280] hover:text-[#111827] transition"
-              style={{ borderColor: BORDER }}>
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors hover:bg-gray-50"
+              style={{ border: '1px solid rgba(0,0,0,0.08)', background: '#fff' }}>
+              <RefreshCw className={`w-4 h-4 text-gray-400 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
             <NotificationBell accentColor={ACCENT} />
           </div>
         </div>
-        {/* Tab nav */}
-        <div className="max-w-7xl mx-auto px-4 flex gap-1 pb-2 overflow-x-auto">
+
+        {/* Tab bar */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex gap-0 pb-0 overflow-x-auto"
+          style={{ borderTop: '1px solid rgba(0,0,0,0.04)' }}>
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition shrink-0"
+              className="flex items-center gap-1.5 px-4 py-3 text-sm font-semibold whitespace-nowrap transition shrink-0 border-b-2"
               style={{
-                background: tab === t.key ? ACCENT : 'transparent',
-                color: tab === t.key ? '#fff' : '#6B7280',
+                borderBottomColor: tab === t.key ? ACCENT : 'transparent',
+                color: tab === t.key ? ACCENT : '#6B7280',
+                background: 'transparent',
+                marginBottom: -1,
               }}>
               <t.icon className="w-3.5 h-3.5" />
               {t.label}
               {t.badge > 0 && (
-                <span className="w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
-                  style={{ background: tab === t.key ? 'rgba(255,255,255,0.3)' : ACCENT, color: '#fff' }}>
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold text-white"
+                  style={{ background: ACCENT }}>
                   {t.badge}
                 </span>
               )}
@@ -645,219 +1480,33 @@ export default function ClientDashboard() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* ── Content ──────────────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
-        {/* Global error banner */}
         {ordersError && (
-          <div className="mb-4 flex items-center gap-3 px-4 py-3 rounded-2xl border"
+          <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-2xl border"
             style={{ background: '#FFF1F2', borderColor: '#FECDD3' }}>
             <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
             <p className="text-sm text-red-700 flex-1">{ordersError}</p>
-            <button onClick={() => loadOrders(false)}
-              className="text-xs font-bold text-red-700 underline shrink-0">Réessayer</button>
+            <button onClick={() => loadOrders(false)} className="text-xs font-bold text-red-700 underline shrink-0">
+              Réessayer
+            </button>
           </div>
         )}
 
-        {/* ── OVERVIEW ───────────────────────────────────────────────────────── */}
         {tab === 'overview' && (
-          <div className="space-y-5">
-            <div className="bg-white rounded-[28px] border p-6 shadow-sm"
-              style={{ borderColor: BORDER }}>
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em]" style={{ color: ACCENT }}>
-                    Vue d'ensemble client
-                  </p>
-                  <h2 className="mt-3 text-2xl lg:text-3xl font-extrabold text-[#111827]">
-                    Suivez votre historique de commandes et commandez en un clic.
-                  </h2>
-                  <p className="mt-2 text-sm text-[#6B7280] max-w-2xl">
-                    Toutes vos commandes récentes, vos avis et votre profil sont regroupés ici pour une expérience plus fluide.
-                  </p>
-                </div>
-                <Link to="/menu"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold"
-                  style={{ background: ACCENT, color: '#fff' }}>
-                  <ChefHat className="w-4 h-4" /> Commander maintenant
-                </Link>
-              </div>
-            </div>
-
-            {/* KPI row */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Active */}
-              <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BORDER }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-3"
-                  style={{ background: ACCENT_LIGHT }}>
-                  <Clock className="w-4 h-4" style={{ color: ACCENT }} />
-                </div>
-                <p className="text-xs text-[#6B7280] mb-1">En cours</p>
-                <p className="text-3xl font-extrabold text-[#111827]">
-                  {loadingOrders ? '—' : activeOrders.length}
-                </p>
-                {activeOrders.length > 0 && (
-                  <p className="text-xs font-semibold mt-1" style={{ color: ACCENT }}>En traitement</p>
-                )}
-              </div>
-              {/* Spent */}
-              <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BORDER }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-3 bg-green-50">
-                  <Wallet className="w-4 h-4 text-green-600" />
-                </div>
-                <p className="text-xs text-[#6B7280] mb-1">Total dépensé</p>
-                <p className="text-xl font-extrabold text-[#111827]">
-                  {loadingOrders ? '—' : `${formatFCFA(totalSpent)} CFA`}
-                </p>
-                {avgOrder > 0 && (
-                  <p className="text-xs text-[#9CA3AF] mt-1">Ticket moyen : {formatFCFA(avgOrder)} CFA</p>
-                )}
-              </div>
-              {/* Delivered */}
-              <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BORDER }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-3 bg-blue-50">
-                  <CheckCircle className="w-4 h-4 text-blue-600" />
-                </div>
-                <p className="text-xs text-[#6B7280] mb-1">Livrées</p>
-                <p className="text-3xl font-extrabold text-[#111827]">
-                  {loadingOrders ? '—' : delivered.length}
-                </p>
-                <p className="text-xs text-[#9CA3AF] mt-1">{orders.length} au total</p>
-              </div>
-            </div>
-
-            {/* Avis pending — prominent CTA */}
-            {!loadingOrders && pendingAvis.length > 0 && (
-              <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
-                <div className="px-5 py-3.5 border-b flex items-center gap-2" style={{ borderColor: BORDER }}>
-                  <Star className="w-4 h-4" style={{ color: ACCENT }} />
-                  <span className="text-sm font-bold text-[#111827]">
-                    Vos avis nous intéressent
-                  </span>
-                  <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full text-white"
-                    style={{ background: ACCENT }}>
-                    {pendingAvis.length} en attente
-                  </span>
-                </div>
-                <div className="p-4 space-y-3">
-                  {pendingAvis.slice(0, 3).map(o => (
-                    <AvisPromptCard key={o.id} order={o} onAvis={() => setAvisOrder(o)} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 2-col: active orders + CTA */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Active orders */}
-              <div className="lg:col-span-2 bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
-                <div className="px-5 py-3.5 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-[#111827]">Commandes en cours</span>
-                    {activeOrders.length > 0 && (
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: ACCENT_LIGHT, color: ACCENT }}>
-                        {activeOrders.length}
-                      </span>
-                    )}
-                  </div>
-                  <button onClick={() => setTab('orders')}
-                    className="flex items-center gap-1 text-xs font-semibold"
-                    style={{ color: ACCENT }}>
-                    Voir tout <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
-                {loadingOrders ? (
-                  <div className="p-5 space-y-3">
-                    {[1, 2].map(i => <div key={i} className="h-20 rounded-xl bg-[#F3F4F6] animate-pulse" />)}
-                  </div>
-                ) : activeOrders.length === 0 ? (
-                  <div className="py-10 text-center">
-                    <ShoppingBag className="w-9 h-9 text-[#D1D5DB] mx-auto mb-2" />
-                    <p className="text-sm text-[#9CA3AF]">Aucune commande en cours</p>
-                    <Link to="/menu"
-                      className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-                      style={{ background: ACCENT }}>
-                      Commander maintenant
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="p-4 space-y-3">
-                    {activeOrders.slice(0, 3).map(o => (
-                      <ActiveOrderCard key={o.id} order={o}
-                        onTrack={() => setTrackOrder(o)}
-                        onReceipt={() => setReceiptOrder(o)} />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Right column */}
-              <div className="space-y-4">
-                {/* Order CTA */}
-                <div className="rounded-2xl p-5 text-white space-y-3"
-                  style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_DARK} 100%)` }}>
-                  <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
-                    <ChefHat className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-extrabold text-base">Commander maintenant</p>
-                    <p className="text-sm text-white/75">Plats frais disponibles</p>
-                  </div>
-                  <Link to="/menu"
-                    className="flex items-center justify-center gap-2 bg-white rounded-xl py-2.5 text-sm font-bold"
-                    style={{ color: ACCENT }}>
-                    Parcourir le menu <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-
-                {/* Last delivered */}
-                {delivered.length > 0 && (
-                  <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BORDER }}>
-                    <p className="text-xs text-[#9CA3AF] mb-2">Dernière commande livrée</p>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-[#111827]">#{delivered[0].numero}</p>
-                        <p className="text-xs text-[#9CA3AF]">
-                          {formatFCFA(delivered[0].montantTotal || 0)} CFA
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Recent delivered with avis */}
-            {delivered.length > 0 && (
-              <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
-                <div className="px-5 py-3.5 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
-                  <span className="text-sm font-bold text-[#111827]">Historique des livraisons</span>
-                  <button onClick={() => setTab('orders')}
-                    className="text-xs font-semibold flex items-center gap-1"
-                    style={{ color: ACCENT }}>
-                    Historique complet <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
-                {delivered.slice(0, 5).map(o => (
-                  <PastOrderRow key={o.id} order={o}
-                    onReceipt={() => setReceiptOrder(o)}
-                    onDownload={() => downloadPdf(o.id)}
-                    onAvis={() => setAvisOrder(o)}
-                    canAvis={canAvis(o)}
-                    onReorder={handleReorder} />
-                ))}
-              </div>
-            )}
-          </div>
+          <OverviewTab
+            user={user} orders={orders} activeOrders={activeOrders}
+            delivered={delivered} cancelled={cancelled} pendingAvis={pendingAvis}
+            totalSpent={totalSpent} avgOrder={avgOrder} loadingOrders={loadingOrders}
+            canAvis={canAvis} setTab={setTab}
+            setTrackOrder={setTrackOrder} setReceiptOrder={setReceiptOrder} setAvisOrder={setAvisOrder}
+            downloadPdf={downloadPdf} handleReorder={handleReorder}
+          />
         )}
 
-        {/* ── ORDERS ─────────────────────────────────────────────────────────── */}
         {tab === 'orders' && (
           <div className="space-y-4">
-            {/* Filter pills */}
             <div className="flex gap-2 flex-wrap">
               {[
                 { k: 'all',      label: `Toutes (${orders.length})` },
@@ -878,16 +1527,14 @@ export default function ClientDashboard() {
             </div>
 
             <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
-              <div className="px-5 py-3.5 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
+              <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-[#111827]">Mes commandes</span>
                   <span className="text-xs text-[#9CA3AF]">
                     {filteredOrders.length} résultat{filteredOrders.length !== 1 ? 's' : ''}
                   </span>
                 </div>
-                <Link to="/menu"
-                  className="flex items-center gap-1.5 text-xs font-semibold"
-                  style={{ color: ACCENT }}>
+                <Link to="/menu" className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: ACCENT }}>
                   <ShoppingBag className="w-3.5 h-3.5" /> Commander
                 </Link>
               </div>
@@ -903,7 +1550,7 @@ export default function ClientDashboard() {
                   <p className="text-sm text-[#9CA3AF] mb-4">Aucune commande dans cette catégorie</p>
                   <Link to="/menu"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-                    style={{ background: ACCENT }}>
+                    style={{ background: ACCENT, textDecoration: 'none' }}>
                     Commander maintenant
                   </Link>
                 </div>
@@ -929,161 +1576,29 @@ export default function ClientDashboard() {
           </div>
         )}
 
-        {/* ── PROFILE ─────────────────────────────────────────────────────────── */}
-        {/* ── PAIEMENT ─────────────────────────────────────────────────────────── */}
         {tab === 'payment' && (
-          <div className="max-w-lg space-y-5">
-            {/* Moyens sauvegardés */}
-            <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
-              <div className="px-5 py-3.5 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
-                <span className="text-sm font-bold text-[#111827]">Moyens de paiement enregistrés</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: ACCENT_LIGHT, color: ACCENT_DARK }}>
-                  {savedPM.length} enregistré{savedPM.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-              {savedPM.length === 0 ? (
-                <div className="px-5 py-8 text-center">
-                  <CreditCard className="w-8 h-8 mx-auto mb-3" style={{ color: ACCENT }} />
-                  <p className="text-sm font-semibold text-[#111827] mb-1">Aucun moyen enregistré</p>
-                  <p className="text-xs text-[#6B7280]">Ajoutez un moyen pour payer plus vite à la prochaine commande.</p>
-                </div>
-              ) : (
-                <ul className="divide-y" style={{ borderColor: BORDER }}>
-                  {savedPM.map(m => {
-                    const type = PAYMENT_TYPES.find(t => t.id === m.type) || PAYMENT_TYPES[0];
-                    return (
-                      <li key={m.id} className="flex items-center gap-3 px-5 py-3.5">
-                        <span className="text-xl shrink-0">{type.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-[#111827] truncate">{m.label}</p>
-                          <p className="text-xs text-[#6B7280]">{type.label}{m.numero ? ` · ${m.numero}` : ''}</p>
-                        </div>
-                        {m.isDefault ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: ACCENT_LIGHT, color: ACCENT_DARK }}>Par défaut</span>
-                        ) : (
-                          <button onClick={() => setDefaultPM(m.id)} className="text-xs font-semibold shrink-0" style={{ color: ACCENT }}>
-                            Définir par défaut
-                          </button>
-                        )}
-                        <button onClick={() => removePM(m.id)} className="p-1.5 rounded-lg hover:bg-red-50 shrink-0" title="Supprimer">
-                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-
-            {/* Formulaire ajout */}
-            <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
-              <div className="px-5 py-3.5 border-b text-sm font-bold text-[#111827]" style={{ borderColor: BORDER }}>
-                Ajouter un moyen de paiement
-              </div>
-              <form onSubmit={addPM} className="p-5 space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#374151] mb-1.5">Type</label>
-                  <select
-                    value={pmForm.type}
-                    onChange={e => setPmForm(p => ({ ...p, type: e.target.value }))}
-                    className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                    style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
-                  >
-                    {PAYMENT_TYPES.map(t => (
-                      <option key={t.id} value={t.id}>{t.icon} {t.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#374151] mb-1.5">Libellé <span className="text-red-400">*</span></label>
-                  <input
-                    type="text" required
-                    placeholder="ex: Mon Orange Money perso"
-                    value={pmForm.label}
-                    onChange={e => setPmForm(p => ({ ...p, label: e.target.value }))}
-                    className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                    style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                    Numéro <span className="text-[#9CA3AF]">(optionnel)</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={PAYMENT_TYPES.find(t => t.id === pmForm.type)?.placeholder || ''}
-                    value={pmForm.numero}
-                    onChange={e => setPmForm(p => ({ ...p, numero: e.target.value }))}
-                    className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                    style={{ background: SURFACE, border: `1px solid ${BORDER}` }}
-                  />
-                </div>
-                {pmMsg && (
-                  <p className="text-sm font-semibold" style={{ color: pmMsg.includes('Erreur') || pmMsg.includes('Ajoutez') ? '#EF4444' : '#16A34A' }}>
-                    {pmMsg}
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white"
-                  style={{ background: ACCENT }}
-                >
-                  <Plus className="w-4 h-4" /> Ajouter
-                </button>
-              </form>
-            </div>
-
-            <p className="text-xs text-[#9CA3AF] text-center px-4">
-              🔒 Vos informations sont stockées localement et ne sont jamais partagées avec des tiers.
-            </p>
-          </div>
+          <PaymentTab
+            savedPM={savedPM} setSavedPM={setSavedPM}
+            pmForm={pmForm} setPmForm={setPmForm}
+            pmMsg={pmMsg} setPmMsg={setPmMsg}
+            addPM={addPM} removePM={removePM} setDefaultPM={setDefaultPM}
+            userId={userId}
+          />
         )}
 
         {tab === 'profile' && (
-          <div className="max-w-md">
-            <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
-              <div className="px-5 py-3.5 border-b text-sm font-bold text-[#111827]" style={{ borderColor: BORDER }}>
-                Mon profil
-              </div>
-              <form onSubmit={handleProfileSave} className="p-5 space-y-4">
-                {[
-                  { k: 'nom', label: 'Nom complet', type: 'text' },
-                  { k: 'email', label: 'Email', type: 'email' },
-                  { k: 'telephone', label: 'Téléphone', type: 'tel' },
-                ].map(f => (
-                  <div key={f.k}>
-                    <label className="block text-xs font-semibold text-[#374151] mb-1.5">{f.label}</label>
-                    <input value={profileForm[f.k]} type={f.type}
-                      onChange={e => setProfileForm(p => ({ ...p, [f.k]: e.target.value }))}
-                      className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                      style={{ background: SURFACE, border: `1px solid ${BORDER}` }} />
-                  </div>
-                ))}
-                {profileMsg && (
-                  <p className="text-sm font-semibold"
-                    style={{ color: profileMsg.includes('Erreur') ? '#EF4444' : '#16A34A' }}>
-                    {profileMsg}
-                  </p>
-                )}
-                <button type="submit"
-                  className="w-full py-3 rounded-xl font-bold text-sm text-white"
-                  style={{ background: ACCENT }}>
-                  Enregistrer
-                </button>
-              </form>
-            </div>
-          </div>
+          <ProfileTab
+            user={user}
+            profileForm={profileForm} setProfileForm={setProfileForm}
+            profileMsg={profileMsg} handleProfileSave={handleProfileSave}
+            orders={orders} totalSpent={totalSpent} delivered={delivered}
+          />
         )}
 
-        {/* ── SECURITY ─────────────────────────────────────────────────────────── */}
-        {tab === 'security' && (
-          <div className="max-w-lg">
-            <SecurityPanel user={user} accentColor={ACCENT} />
-          </div>
-        )}
+        {tab === 'security' && <SecurityTab user={user} />}
       </div>
 
-      {/* ── Modals ──────────────────────────────────────────────────────────── */}
+      {/* ── Modals ──────────────────────────────────────────────────── */}
       {trackOrder   && <OrderTrackModal order={trackOrder}   onClose={() => setTrackOrder(null)}   onReceipt={o => { setTrackOrder(null); setReceiptOrder(o); }} />}
       {receiptOrder && <ReceiptModal    order={receiptOrder} onClose={() => setReceiptOrder(null)} onDownload={downloadPdf} />}
       {avisOrder    && <AvisModal       order={avisOrder}    onClose={() => setAvisOrder(null)}    onSubmit={handleAvisSubmit} />}

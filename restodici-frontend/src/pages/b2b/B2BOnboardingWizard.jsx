@@ -6,8 +6,8 @@ import {
 } from 'lucide-react';
 import { b2bAPI } from '../../services/api';
 
-const A = '#C05015';
-const AL = '#FBE8DC';
+const A = '#FF8C00';
+const AL = '#FFF0DF';
 const SF = '#F9F7F5';
 const BD = 'rgba(89,67,42,0.10)';
 

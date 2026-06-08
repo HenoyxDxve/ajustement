@@ -197,6 +197,7 @@ export const b2bAPI = {
   // Collaborateurs (new system with budget)
   getCollaborateurs: () => api.get("/b2b/collaborateurs"),
   createCollaborateur: (data) => api.post("/b2b/collaborateurs", data),
+  updateCollaborateur: (id, data) => api.patch(`/b2b/collaborateurs/${id}`, data),
   getCollaborateurSolde: (id) => api.get(`/b2b/collaborateurs/${id}/solde`),
   deleteCollaborateur: (id) => api.delete(`/b2b/collaborateurs/${id}`),
 

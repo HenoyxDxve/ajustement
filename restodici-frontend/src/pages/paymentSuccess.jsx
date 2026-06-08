@@ -1,7 +1,8 @@
 // src/pages/PaymentSuccess.jsx
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Check, Clock, Download, Loader2 } from 'lucide-react';
+import { Check, Clock, Download, Loader2, Mail } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import { commandesService } from '../services/api';
 
 function downloadAndOpenBlob(blob, fileName) {
@@ -18,6 +19,7 @@ function downloadAndOpenBlob(blob, fileName) {
 export default function PaymentSuccessPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useAuth();
   const orderId = id || 'R1234';
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
@@ -41,9 +43,9 @@ export default function PaymentSuccessPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDF5EF] flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="bg-white rounded-3xl shadow-xl max-w-md w-full p-8 sm:p-10 border border-stone-100">
-        
+    <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="bg-white rounded-3xl shadow-xl max-w-md w-full p-8 sm:p-10 border border-[rgba(0,0,0,0.07)]">
+
         {/* Icône succès - Cercle vert */}
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
@@ -52,20 +54,31 @@ export default function PaymentSuccessPage() {
         </div>
 
         {/* Message principal */}
-        <h1 className="text-3xl font-bold text-stone-900 text-center mb-2">
+        <h1 className="text-3xl font-bold text-[#111827] text-center mb-2">
           Paiement réussi !
         </h1>
-        <p className="text-stone-600 text-center mb-8">
-          Votre commande <span className="font-bold text-orange-700">#{orderId}</span> a été confirmée.
+        <p className="text-[#6B7280] text-center mb-8">
+          Votre commande <span className="font-bold text-[#FF8C00]">#{orderId}</span> a été confirmée.
         </p>
 
-        {/* Temps de livraison */}
-        <div className="bg-stone-100 rounded-2xl p-6 mb-8">
-          <div className="flex items-center justify-center mb-3">
-            <Clock className="w-5 h-5 text-orange-700 mr-2" />
-            <span className="text-stone-600 font-medium">Livraison prévue dans</span>
+        {/* Email receipt confirmation */}
+        {user?.email && (
+          <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 mb-6">
+            <Mail className="w-5 h-5 text-blue-500 shrink-0" />
+            <p className="text-sm text-blue-700">
+              Votre reçu a été envoyé à{' '}
+              <span className="font-bold">{user.email}</span>
+            </p>
           </div>
-          <p className="text-4xl font-bold text-orange-700 text-center">
+        )}
+
+        {/* Temps de livraison */}
+        <div className="bg-[#F5F6F8] rounded-2xl p-6 mb-8">
+          <div className="flex items-center justify-center mb-3">
+            <Clock className="w-5 h-5 text-[#FF8C00] mr-2" />
+            <span className="text-[#6B7280] font-medium">Livraison prévue dans</span>
+          </div>
+          <p className="text-4xl font-bold text-[#FF8C00] text-center">
             25-35 min
           </p>
         </div>
@@ -78,7 +91,8 @@ export default function PaymentSuccessPage() {
 
         <button
           onClick={() => navigate(`/suivi/${orderId}`)}
-          className="w-full bg-orange-700 hover:bg-orange-800 text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 mb-3 transform hover:-translate-y-0.5"
+          className="w-full text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition-all duration-300 mb-3 transform hover:-translate-y-0.5"
+          style={{ background: 'linear-gradient(135deg, #FF8C00, #E07A00)', boxShadow: '0 4px 16px rgba(255,140,0,0.35)' }}
         >
           SUIVRE MA COMMANDE
         </button>
@@ -86,15 +100,15 @@ export default function PaymentSuccessPage() {
         <button
           onClick={handleDownloadReceipt}
           disabled={downloading}
-          className="w-full inline-flex items-center justify-center gap-2 border border-orange-700 text-orange-700 font-bold py-4 px-6 rounded-2xl hover:bg-orange-50 transition-all duration-300 mb-3 disabled:opacity-70"
+          className="w-full inline-flex items-center justify-center gap-2 border border-[rgba(0,0,0,0.1)] text-[#111827] font-bold py-4 px-6 rounded-2xl hover:bg-[#FFF0DF] hover:border-[#FF8C00] hover:text-[#FF8C00] transition-all duration-300 mb-3 disabled:opacity-70"
         >
           {downloading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
           TÉLÉCHARGER MON REÇU
         </button>
-        
+
         <button
           onClick={() => navigate('/menu')}
-          className="w-full text-orange-700 font-semibold py-3 hover:bg-orange-50 rounded-xl transition-colors duration-200"
+          className="w-full text-[#6B7280] font-semibold py-3 hover:bg-[#FFF0DF] hover:text-[#FF8C00] rounded-xl transition-colors duration-200"
         >
           Retour à l'accueil
         </button>

@@ -5,7 +5,7 @@ import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
 import { formatFCFA } from '../../utils/formatters';
 
-const KENTE = ['#C05015', '#F97316', '#0F172A', '#9A3E10'];
+const KENTE = ['#FF8C00', '#FF8C00', '#0F172A', '#E07A00'];
 
 function KenteStrip() {
   return (
@@ -108,11 +108,11 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
         {/* Header */}
         <div style={{ background: '#0F172A', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#C05015', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 4px' }}>Mon panier</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#FF8C00', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 4px' }}>Mon panier</p>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', margin: 0, lineHeight: 1.2 }}>
               {restaurantName || 'Sélectionnez un restaurant'}
               {totalItems > 0 && (
-                <span style={{ marginLeft: 8, background: '#C05015', color: '#fff', borderRadius: 20, padding: '1px 8px', fontSize: 11, fontWeight: 800 }}>
+                <span style={{ marginLeft: 8, background: '#FF8C00', color: '#fff', borderRadius: 20, padding: '1px 8px', fontSize: 11, fontWeight: 800 }}>
                   {totalItems}
                 </span>
               )}
@@ -147,7 +147,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
                     </button>
                   </div>
                   {item.variantLabel && (
-                    <p style={{ fontSize: 11, fontWeight: 600, color: '#C05015', margin: '0 0 2px' }}>{item.variantLabel}</p>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: '#FF8C00', margin: '0 0 2px' }}>{item.variantLabel}</p>
                   )}
                   {item.instructions && (
                     <p style={{ fontSize: 11, color: '#9E8B7A', fontStyle: 'italic', margin: '0 0 8px' }}>{item.instructions}</p>
@@ -157,19 +157,19 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
                     <div style={{ display: 'inline-flex', alignItems: 'center', background: '#FDF5EF', borderRadius: 20, padding: '2px 4px', gap: 2 }}>
                       <button
                         onClick={() => updateQuantity(item.lineId, item.quantite - 1)}
-                        style={{ width: 26, height: 26, borderRadius: '50%', background: item.quantite <= 1 ? '#E8E0D6' : '#C05015', color: item.quantite <= 1 ? '#B0A090' : '#fff', border: 'none', cursor: item.quantite <= 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                        style={{ width: 26, height: 26, borderRadius: '50%', background: item.quantite <= 1 ? '#E8E0D6' : '#FF8C00', color: item.quantite <= 1 ? '#B0A090' : '#fff', border: 'none', cursor: item.quantite <= 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                       >
                         <Minus style={{ width: 10, height: 10 }} />
                       </button>
                       <span style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', minWidth: 24, textAlign: 'center' }}>{item.quantite}</span>
                       <button
                         onClick={() => updateQuantity(item.lineId, item.quantite + 1)}
-                        style={{ width: 26, height: 26, borderRadius: '50%', background: '#C05015', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                        style={{ width: 26, height: 26, borderRadius: '50%', background: '#FF8C00', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                       >
                         <Plus style={{ width: 10, height: 10 }} />
                       </button>
                     </div>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: '#C05015' }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: '#FF8C00' }}>
                       {formatFCFA(Number(item.prix) * item.quantite)}
                     </span>
                   </div>
@@ -193,15 +193,15 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
                     style={{
                       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                       padding: '10px 6px',
-                      border: `2px solid ${mode === id ? '#C05015' : 'rgba(89,67,42,0.12)'}`,
+                      border: `2px solid ${mode === id ? '#FF8C00' : 'rgba(89,67,42,0.12)'}`,
                       borderRadius: 12,
                       background: mode === id ? '#FFF4EE' : '#FDFAF7',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                     }}
                   >
-                    <Icon style={{ width: 15, height: 15, color: mode === id ? '#C05015' : '#9E8B7A' }} />
-                    <span style={{ fontSize: 10, fontWeight: 700, color: mode === id ? '#C05015' : '#9E8B7A' }}>{label}</span>
+                    <Icon style={{ width: 15, height: 15, color: mode === id ? '#FF8C00' : '#9E8B7A' }} />
+                    <span style={{ fontSize: 10, fontWeight: 700, color: mode === id ? '#FF8C00' : '#9E8B7A' }}>{label}</span>
                   </button>
                 ))}
               </div>
@@ -214,7 +214,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
                 value={address}
                 onChange={e => setAddress(e.target.value)}
                 style={{ border: '1.5px solid rgba(89,67,42,0.18)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#0F172A', outline: 'none', background: '#FDFAF7', boxSizing: 'border-box', width: '100%' }}
-                onFocus={e => e.target.style.borderColor = '#C05015'}
+                onFocus={e => e.target.style.borderColor = '#FF8C00'}
                 onBlur={e => e.target.style.borderColor = 'rgba(89,67,42,0.18)'}
               />
             )}
@@ -222,7 +222,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
             {/* Total */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid rgba(89,67,42,0.1)' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#64748B' }}>Total</span>
-              <span style={{ fontSize: 22, fontWeight: 900, color: '#C05015', fontFamily: 'Georgia, serif', letterSpacing: '-0.02em' }}>
+              <span style={{ fontSize: 22, fontWeight: 900, color: '#FF8C00', fontFamily: 'Georgia, serif', letterSpacing: '-0.02em' }}>
                 {formatFCFA(total())}
               </span>
             </div>
@@ -235,7 +235,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
               onClick={handleCheckout}
               disabled={!user}
               style={{
-                background: !user ? '#D0C4B8' : '#C05015',
+                background: !user ? '#D0C4B8' : '#FF8C00',
                 color: '#fff', border: 'none', borderRadius: 14,
                 padding: '15px 0', fontSize: 15, fontWeight: 800,
                 cursor: !user ? 'not-allowed' : 'pointer',
@@ -243,8 +243,8 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
                 boxShadow: !user ? 'none' : '0 6px 24px rgba(224,78,26,0.35)',
                 transition: 'all 0.2s',
               }}
-              onMouseEnter={e => { if (user) e.currentTarget.style.background = '#9A3E10'; }}
-              onMouseLeave={e => { if (user) e.currentTarget.style.background = '#C05015'; }}
+              onMouseEnter={e => { if (user) e.currentTarget.style.background = '#E07A00'; }}
+              onMouseLeave={e => { if (user) e.currentTarget.style.background = '#FF8C00'; }}
             >
               Commander · {formatFCFA(total())}
             </button>

@@ -1,6 +1,6 @@
 // src/pages/b2b/BulkOrder.jsx
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, MapPin, Clock, Search, CheckCircle,
   AlertCircle, Loader2, Navigation, Users,
@@ -22,8 +22,17 @@ const STEPS = ['Choisir les plats', 'Livraison & lieu', 'Confirmer'];
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 const getMinDatetime = () => {
-  const d = new Date(Date.now() + 4 * 60 * 60 * 1000);
+  // +1 min ensures the truncated HH:MM value always passes the strict "≥ 4h" backend check
+  const d = new Date(Date.now() + (4 * 60 + 1) * 60 * 1000);
   return { minDate: d.toISOString().slice(0, 10), minTime: d.toTimeString().slice(0, 5) };
+};
+
+const getDeliveryLabel = (dateStr, timeStr) => {
+  try {
+    return new Date(`${dateStr}T${timeStr}`).toLocaleString('fr-FR', {
+      weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+    });
+  } catch { return `${dateStr} à ${timeStr}`; }
 };
 
 function buildDynamicCategories(menuData, categoryList) {
@@ -65,10 +74,10 @@ function StepBar({ current }) {
           <div key={i} className="flex items-center flex-1">
             <div className="flex items-center gap-1.5">
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-all"
-                style={{ background: done ? '#16A34A' : active ? A : '#E5E7EB', color: (done || active) ? '#fff' : '#9CA3AF' }}>
+                style={{ background: done ? '#16A34A' : active ? A : '#E5E7EB', color: (done || active) ? '#fff' : '#6B7280' }}>
                 {done ? '✓' : i + 1}
               </div>
-              <span className="text-xs font-semibold hidden sm:block" style={{ color: active ? A : done ? '#16A34A' : '#9CA3AF' }}>
+              <span className="text-xs font-semibold hidden sm:block" style={{ color: active ? A : done ? '#16A34A' : '#6B7280' }}>
                 {label}
               </span>
             </div>
@@ -86,6 +95,8 @@ function StepBar({ current }) {
 // ── Main component ────────────────────────────────────────────────────────────
 export default function BulkOrder() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode') || 'schedule'; // 'instant' | 'schedule'
   const { user } = useAuth();
   const uid = user?.id;
 
@@ -124,8 +135,11 @@ export default function BulkOrder() {
   const [pickerMembers, setPickerMembers] = useState({}); // { [collabId|'libre']: qty }
 
   // ── Delivery state ────────────────────────────────────────────────────────
-  const { minDate, minTime } = getMinDatetime();
-  const [livraison, setLivraison] = useState({ dateLivraison: minDate, heureLivraison: minTime, lieuLivraison: '', adresseLivraison: '' });
+  const [livraison, setLivraison] = useState(() => {
+    const { minDate, minTime } = getMinDatetime();
+    return { dateLivraison: minDate, heureLivraison: minTime, lieuLivraison: '', adresseLivraison: '' };
+  });
+  const deliveryLabel = getDeliveryLabel(livraison.dateLivraison, livraison.heureLivraison);
   const [mapPos, setMapPos] = useState(null);
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState('');
@@ -135,6 +149,16 @@ export default function BulkOrder() {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(t);
   }, [search]);
+
+  // ── Auto-refresh delivery time in instant mode (handles slow form fill) ──
+  useEffect(() => {
+    if (mode !== 'instant') return;
+    const id = setInterval(() => {
+      const { minDate, minTime } = getMinDatetime();
+      setLivraison(prev => ({ ...prev, dateLivraison: minDate, heureLivraison: minTime }));
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [mode]);
 
   // ── Load restaurants + collabs ────────────────────────────────────────────
   useEffect(() => {
@@ -384,12 +408,14 @@ export default function BulkOrder() {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-[#9CA3AF]">Commande groupée</p>
+            <p className="text-xs text-[#6B7280]">
+              {mode === 'instant' ? '⚡ Commande express — livraison aujourd\'hui' : '📅 Commande planifiée'}
+            </p>
             <p className="text-sm font-extrabold text-[#111827] leading-none">{STEPS[step]}</p>
           </div>
           {totalCouverts > 0 && (
             <div className="shrink-0 text-right">
-              <p className="text-xs text-[#9CA3AF]">{totalCouverts} couvert{totalCouverts > 1 ? 's' : ''}</p>
+              <p className="text-xs text-[#6B7280]">{totalCouverts} couvert{totalCouverts > 1 ? 's' : ''}</p>
               <p className="text-sm font-extrabold" style={{ color: A }}>{totalEstime.toLocaleString('fr-FR')} FCFA</p>
             </div>
           )}
@@ -752,23 +778,51 @@ export default function BulkOrder() {
               {/* Date / heure */}
               <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
                 <h3 className="font-bold text-[#111827] mb-4 flex items-center gap-2">
-                  <Clock className="w-4 h-4" style={{ color: A }} /> Date et heure de livraison
+                  <Clock className="w-4 h-4" style={{ color: A }} />
+                  {mode === 'instant' ? 'Livraison aujourd\'hui' : 'Choisissez votre créneau'}
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#374151] mb-1.5">Date *</label>
-                    <input type="date" min={minDate} value={livraison.dateLivraison}
-                      onChange={e => setLivraison(p => ({ ...p, dateLivraison: e.target.value }))}
-                      className="w-full rounded-xl px-3 py-2.5 text-sm outline-none" style={{ background: SF, border: `1px solid ${BD}` }} />
+
+                {mode === 'instant' ? (
+                  /* Mode instant — date verrouillée, heure auto */
+                  <div className="rounded-xl p-4 flex items-center gap-3"
+                    style={{ background: '#FFF7ED', border: '1px solid #FDBA74' }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: A }}>
+                      <span className="text-white text-lg">⚡</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold" style={{ color: '#92400E' }}>Commande express</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#B45309' }}>
+                        Livraison prévue le <strong style={{ color: '#92400E' }}>{deliveryLabel}</strong>
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      <input type="hidden" value={livraison.dateLivraison} />
+                      <input type="hidden" value={livraison.heureLivraison} />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#374151] mb-1.5">Heure *</label>
-                    <input type="time" value={livraison.heureLivraison}
-                      onChange={e => setLivraison(p => ({ ...p, heureLivraison: e.target.value }))}
-                      className="w-full rounded-xl px-3 py-2.5 text-sm outline-none" style={{ background: SF, border: `1px solid ${BD}` }} />
+                ) : (
+                  /* Mode schedule — date et heure éditables */
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#374151] mb-1.5">📅 Date *</label>
+                      <input type="date" min={minDate} value={livraison.dateLivraison}
+                        onChange={e => setLivraison(p => ({ ...p, dateLivraison: e.target.value }))}
+                        className="w-full rounded-xl px-3 py-2.5 text-sm outline-none" style={{ background: SF, border: `1px solid ${BD}` }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#374151] mb-1.5">🕐 Heure *</label>
+                      <input type="time" value={livraison.heureLivraison}
+                        onChange={e => setLivraison(p => ({ ...p, heureLivraison: e.target.value }))}
+                        className="w-full rounded-xl px-3 py-2.5 text-sm outline-none" style={{ background: SF, border: `1px solid ${BD}` }} />
+                    </div>
                   </div>
-                </div>
-                <p className="text-[11px] text-[#9CA3AF] mt-2">Délai minimum 4 heures avant la livraison.</p>
+                )}
+                <p className="text-[11px] text-[#6B7280] mt-2">
+                  {mode === 'instant'
+                    ? 'Heure calculée automatiquement — délai minimum 4 heures.'
+                    : 'Délai minimum 4 heures entre la commande et la livraison.'}
+                </p>
               </div>
 
               {/* Lieu de livraison + map */}
@@ -804,7 +858,7 @@ export default function BulkOrder() {
                 {locError && <p className="text-xs text-red-500 mb-3">{locError}</p>}
 
                 <DeliveryMap value={mapPos} onChange={(pos) => { setMapPos(pos); if (pos?.address) setLivraison(p => ({ ...p, adresseLivraison: pos.address })); }} heightClassName="h-56" />
-                <p className="text-[11px] text-[#9CA3AF] mt-2 text-center">Cliquez ou déplacez le repère pour ajuster le point de livraison</p>
+                <p className="text-[11px] text-[#6B7280] mt-2 text-center">Cliquez ou déplacez le repère pour ajuster le point de livraison</p>
               </div>
 
               {/* Budget summary per member */}
@@ -813,7 +867,7 @@ export default function BulkOrder() {
                   <h3 className="font-bold text-[#111827] mb-1 flex items-center gap-2">
                     <Users className="w-4 h-4" style={{ color: A }} /> Impact budgétaire par membre
                   </h3>
-                  <p className="text-xs text-[#9CA3AF] mb-4">
+                  <p className="text-xs text-[#6B7280] mb-4">
                     Ces montants seront déduits du budget mensuel de chaque collaborateur.
                   </p>
                   <div className="space-y-3">
@@ -840,7 +894,7 @@ export default function BulkOrder() {
                                 +{cartSpend.toLocaleString('fr-FR')} FCFA
                               </p>
                               {budget > 0 && (
-                                <p className="text-[10px] text-[#9CA3AF]">
+                                <p className="text-[10px] text-[#6B7280]">
                                   {newTotal.toLocaleString('fr-FR')} / {budget.toLocaleString('fr-FR')}
                                 </p>
                               )}
@@ -897,9 +951,9 @@ export default function BulkOrder() {
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: A }}>{item.quantite}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-[#111827] truncate">{item.article.nom}</p>
-                        <p className="text-[11px] text-[#9CA3AF]">{(item.quantite * Number(item.article.prix || 0)).toLocaleString('fr-FR')} FCFA</p>
+                        <p className="text-[11px] text-[#6B7280]">{(item.quantite * Number(item.article.prix || 0)).toLocaleString('fr-FR')} FCFA</p>
                       </div>
-                      <button onClick={() => deleteFromCart(item.article.id)} className="text-[#9CA3AF] hover:text-red-400">
+                      <button onClick={() => deleteFromCart(item.article.id)} className="text-[#6B7280] hover:text-red-400">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -910,7 +964,7 @@ export default function BulkOrder() {
                     <span>Total estimé</span>
                     <span style={{ color: A }}>{totalEstime.toLocaleString('fr-FR')} FCFA</span>
                   </div>
-                  <p className="text-[11px] text-[#9CA3AF] mt-1">Facturation mensuelle SYSCOHADA</p>
+                  <p className="text-[11px] text-[#6B7280] mt-1">Facturation mensuelle SYSCOHADA</p>
                 </div>
               </div>
             </div>
@@ -945,7 +999,7 @@ export default function BulkOrder() {
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: A }}>{ligne.quantite}</div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-[#111827] truncate">{ligne.nomArticle}</p>
-                          <p className="text-[11px] text-[#9CA3AF]">
+                          <p className="text-[11px] text-[#6B7280]">
                             {collab ? `→ ${collab.nom}` : '→ Sans attribution'}
                           </p>
                         </div>
@@ -976,11 +1030,15 @@ export default function BulkOrder() {
 
                 {/* Delivery recap */}
                 <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
-                  <h3 className="font-bold text-[#111827] mb-3">Livraison</h3>
+                  <h3 className="font-bold text-[#111827] mb-3">
+                    {mode === 'instant' ? '⚡ Livraison express' : '📅 Livraison planifiée'}
+                  </h3>
                   <div className="space-y-2 text-sm text-[#6B7280]">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" style={{ color: A }} />
-                      <span>{livraison.dateLivraison} à {livraison.heureLivraison}</span>
+                      <span className="font-medium" style={{ color: '#111827' }}>
+                        {getDeliveryLabel(livraison.dateLivraison, livraison.heureLivraison)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" style={{ color: A }} />
@@ -1083,7 +1141,7 @@ export default function BulkOrder() {
                         return { ...p, [member.id]: next };
                       })}
                       className="w-8 h-8 rounded-xl flex items-center justify-center text-lg font-bold transition"
-                      style={{ background: qty > 0 ? '#FFF0DF' : '#F3F4F6', color: qty > 0 ? A : '#9CA3AF' }}>
+                      style={{ background: qty > 0 ? '#FFF0DF' : '#F3F4F6', color: qty > 0 ? A : '#6B7280' }}>
                       −
                     </button>
                     <span className="w-6 text-center text-sm font-bold text-[#111827]">{qty}</span>
@@ -1094,7 +1152,7 @@ export default function BulkOrder() {
                       }}
                       disabled={isOver}
                       className="w-8 h-8 rounded-xl flex items-center justify-center text-lg font-bold transition disabled:opacity-30"
-                      style={{ background: isOver ? '#F3F4F6' : AL, color: isOver ? '#9CA3AF' : A }}>
+                      style={{ background: isOver ? '#F3F4F6' : AL, color: isOver ? '#6B7280' : A }}>
                       +
                     </button>
                   </div>

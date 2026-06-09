@@ -162,7 +162,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                       <Icon className="w-4 h-4" style={{ color: A }} />
                     </div>
                     <p className="text-[11px] font-bold text-[#111827]">{label}</p>
-                    <p className="text-[10px] text-[#9CA3AF] mt-0.5">{desc}</p>
+                    <p className="text-[10px] text-[#6B7280] mt-0.5">{desc}</p>
                   </div>
                 ))}
               </div>
@@ -171,7 +171,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                 style={{ background: A }}>
                 Configurer mon compte entreprise <ArrowRight className="w-4 h-4" />
               </button>
-              <button onClick={onComplete} className="mt-3 w-full text-sm text-[#9CA3AF] hover:text-[#6B7280]">
+              <button onClick={onComplete} className="mt-3 w-full text-sm text-[#6B7280] hover:text-[#6B7280]">
                 Passer pour l'instant
               </button>
             </div>
@@ -212,7 +212,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                   <ArrowRight className="w-4 h-4" /> Continuer
                 </button>
               </div>
-              <p className="text-[11px] text-[#9CA3AF] text-center mt-3">
+              <p className="text-[11px] text-[#6B7280] text-center mt-3">
                 Format RCCM : CI-ABJ-2026-B-1234 · Téléphone : +22507070707
               </p>
             </div>
@@ -260,7 +260,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                 </button>
               </div>
               <button onClick={() => { setAdresse({ adresseSiege: '' }); handleAdresseSubmit(); }}
-                className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#6B7280]">
+                className="mt-2 w-full text-xs text-[#6B7280] hover:text-[#6B7280]">
                 Passer cette étape
               </button>
             </div>
@@ -308,7 +308,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                 </button>
               </div>
               <button onClick={() => setStep(4)}
-                className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#6B7280]">
+                className="mt-2 w-full text-xs text-[#6B7280] hover:text-[#6B7280]">
                 Passer — inviter plus tard depuis le tableau de bord
               </button>
             </div>
@@ -354,7 +354,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                 <Users className="w-4 h-4" />
                 Gérer mon équipe
               </button>
-              <button onClick={() => onComplete()} className="mt-3 w-full text-sm text-[#9CA3AF] hover:text-[#6B7280]">
+              <button onClick={() => onComplete()} className="mt-3 w-full text-sm text-[#6B7280] hover:text-[#6B7280]">
                 Explorer le tableau de bord
               </button>
             </div>

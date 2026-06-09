@@ -29,13 +29,18 @@ export enum ModeLivraison {
 }
 
 export enum ModePaiementCommande {
-  ESPECES = 'ESPECES',
-  LIVRAISON = 'LIVRAISON',
-  ORANGE_MONEY = 'ORANGE_MONEY',
-  MTN_MONEY = 'MTN_MONEY',
-  MOOV_MONEY = 'MOOV_MONEY',
+  ESPECES        = 'ESPECES',
+  LIVRAISON      = 'LIVRAISON',
+  WAVE           = 'WAVE',
+  NOVASEND       = 'NOVASEND',
+  ORANGE_MONEY   = 'ORANGE_MONEY',
+  MTN_MONEY      = 'MTN_MONEY',
+  MOOV_MONEY     = 'MOOV_MONEY',
   CARTE_BANCAIRE = 'CARTE_BANCAIRE',
 }
+// Note: si TypeORM synchronize ne met pas à jour l'enum PG, executer :
+// ALTER TYPE commandes_modepaiement_enum ADD VALUE IF NOT EXISTS 'WAVE';
+// ALTER TYPE commandes_modepaiement_enum ADD VALUE IF NOT EXISTS 'NOVASEND';
 
 @Entity('commandes')
 export class Commande {

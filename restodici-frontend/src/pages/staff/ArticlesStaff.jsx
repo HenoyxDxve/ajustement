@@ -2,21 +2,22 @@ import { useEffect, useState, useCallback } from 'react';
 import { Search, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { menuAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import { getArticleImage } from '../../utils/articleImage';
 
 const T = {
-  primary:          '#ab3500',
-  primaryLight:     'rgba(171,53,0,0.09)',
-  primaryGlow:      'rgba(171,53,0,0.28)',
-  secondary:        '#006d37',
-  secondaryLight:   'rgba(0,109,55,0.09)',
-  amber:            '#e07000',
-  red:              '#b91c1c',
-  redLight:         'rgba(185,28,28,0.09)',
-  surface:          '#faf9f8',
-  surfaceLow:       '#f2f1f0',
-  surfaceHigh:      '#e3e2e1',
-  onSurface:        '#1c1b1a',
-  onSurfaceVariant: '#4a4745',
+  primary:          '#FF8C00',
+  primaryLight:     'rgba(255,140,0,0.10)',
+  primaryGlow:      'rgba(255,140,0,0.22)',
+  secondary:        '#16A34A',
+  secondaryLight:   'rgba(22,163,74,0.09)',
+  amber:            '#D97706',
+  red:              '#DC2626',
+  redLight:         'rgba(220,38,38,0.09)',
+  surface:          '#F5F6F8',
+  surfaceLow:       '#F3F4F6',
+  surfaceHigh:      '#E5E7EB',
+  onSurface:        '#111827',
+  onSurfaceVariant: '#6B7280',
 };
 
 const CARD   = '#FFFFFF';
@@ -77,10 +78,11 @@ function ArticleRow({ art, onToggle }) {
     }}>
       {/* Image */}
       <div style={{ width: 60, height: 60, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: T.surfaceLow, position: 'relative' }}>
-        {art.photoUrl
-          ? <img src={art.photoUrl} alt={art.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <span style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>🍽️</span>
-        }
+        <img
+          src={getArticleImage(art, { width: 120, quality: 75 })}
+          alt={art.nom}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
         {!dispo && (
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(185,28,28,0.18)', borderRadius: 12 }} />
         )}
@@ -177,7 +179,7 @@ export default function ArticlesStaff() {
           fontSize: 13, fontWeight: 700,
           boxShadow: '0 8px 24px rgba(0,0,0,0.14)',
         }}>
-          {toast.ok ? '✓ ' : '⚠ '}{toast.msg}
+          {toast.msg}
         </div>
       )}
 

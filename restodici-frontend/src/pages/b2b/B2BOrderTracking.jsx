@@ -291,7 +291,7 @@ export default function B2BOrderTracking() {
                     <span className="font-semibold">{ligne.quantite}×</span> {ligne.nomArticle || 'Article'}
                   </span>
                   {ligne.collaborateur && (
-                    <span className="ml-2 text-[11px] text-[#9CA3AF]">
+                    <span className="ml-2 text-[11px] text-[#6B7280]">
                       → {ligne.collaborateur.nom || ligne.collaborateurNom}
                     </span>
                   )}
@@ -328,7 +328,7 @@ export default function B2BOrderTracking() {
               </div>
               {(order.lignes?.length > 0) && (
                 <div className="flex items-center gap-1 shrink-0">
-                  <Users className="w-3.5 h-3.5 text-[#9CA3AF]" />
+                  <Users className="w-3.5 h-3.5 text-[#6B7280]" />
                   <span className="text-xs text-[#64748B]">{order.lignes.length} repas</span>
                 </div>
               )}

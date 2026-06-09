@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    StaffLayout.jsx — Mise en page pour le personnel de restaurant
-   Sidebar : noir profond + orange clair — topbar blanc
+   Sidebar : blanc + orange clair — topbar blanc
    ═══════════════════════════════════════════════════════════════ */
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
@@ -8,19 +8,19 @@ import { useAuth } from '../hooks/useAuth';
 import {
   ChefHat, CreditCard, UtensilsCrossed, Package,
   Bell, LogOut, X, User, Shield, CheckCircle, AlertCircle,
-  LayoutDashboard, Flame, ChevronRight,
+  Flame, ChevronRight,
 } from 'lucide-react';
 import { createCommandesSocket } from '../services/commandes.service';
 import { authAPI } from '../services/api';
 import SecurityPanel from '../components/security/SecurityPanel';
 import OnboardingTour from '../components/onboarding/OnboardingTour';
 
-/* ── Tokens sidebar noir/blanc/orange ── */
-const SIDEBAR_BG   = '#0C0D10';   /* noir quasi-pur */
-const SIDEBAR_BG2  = '#141519';   /* section secondaire */
-const SIDEBAR_BOR  = 'rgba(255,255,255,0.06)';
-const SIDE_TEXT    = 'rgba(255,255,255,0.55)';
-const SIDE_TEXT_HI = '#FFFFFF';
+/* ── Tokens sidebar blanc/orange ── */
+const SIDEBAR_BG   = '#FFFFFF';       /* blanc pur */
+const SIDEBAR_BG2  = '#FFF8F0';       /* orange très clair pour avatar footer */
+const SIDEBAR_BOR  = 'rgba(255,140,0,0.12)';
+const SIDE_TEXT    = '#4B5563';       /* gris foncé — lisible sur fond blanc */
+const SIDE_TEXT_HI = '#111827';       /* texte actif — quasi noir */
 
 const OG     = '#FF8C00';
 const OG_D   = '#E07A00';
@@ -33,7 +33,7 @@ const CARD    = '#FFFFFF';
 const NAVY    = '#111827';
 const BORDER  = '#E5E7EB';
 const MUTED   = '#6B7280';
-const FAINT   = '#9CA3AF';
+const FAINT   = '#6B7280';
 const RED     = '#DC2626';
 const RED_L   = '#FEF2F2';
 const GREEN   = '#16A34A';
@@ -41,7 +41,6 @@ const SH      = '0 1px 4px rgba(0,0,0,0.07)';
 const SH3     = '0 24px 60px rgba(0,0,0,0.22),0 4px 12px rgba(0,0,0,0.08)';
 
 const NAV = [
-  { to: '/staff',          label: 'Tableau de bord', icon: LayoutDashboard, exact: true },
   { to: '/staff/kds',      label: 'KDS — Cuisine',   icon: ChefHat,         tourId: 'staff-kds'      },
   { to: '/staff/caisse',   label: 'Caisse',           icon: CreditCard,      tourId: 'staff-caisse'   },
   { to: '/staff/salle',    label: 'Salle',            icon: UtensilsCrossed, tourId: 'staff-salle'    },
@@ -162,11 +161,11 @@ function NotifPanel({ notifs, onMarkAllRead, onClear, onClose, anchorRef }) {
                   {isNew ? `Nouvelle commande CMD-${n.numero}` : `CMD-${n.numero} → ${STATUT_LABEL[n.statut] || n.statut}`}
                 </p>
                 {isNew && n.lieu && (
-                  <p style={{ margin: '2px 0 0', fontSize: 11, color: n.read ? FAINT : MUTED }}>
+                  <p style={{ margin: '2px 0 0', fontSize: 11, color: MUTED }}>
                     {n.lieu}{n.montant ? ` · ${Math.round(n.montant).toLocaleString('fr-FR')} FCFA` : ''}
                   </p>
                 )}
-                <p style={{ margin: '3px 0 0', fontSize: 10, color: FAINT, fontWeight: 600 }}>{timeAgo(n.ts)}</p>
+                <p style={{ margin: '3px 0 0', fontSize: 10, color: MUTED, fontWeight: 600 }}>{timeAgo(n.ts)}</p>
               </div>
               {!n.read && <div style={{ width: 8, height: 8, borderRadius: '50%', background: ac, flexShrink: 0, marginTop: 5 }} />}
             </div>
@@ -219,7 +218,7 @@ function ProfileDrawer({ user, onClose, syncUser }) {
       <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 201, width: 'min(440px, 100vw)', background: CARD, boxShadow: SH3, display: 'flex', flexDirection: 'column', fontFamily: 'inherit' }}>
 
         {/* Header */}
-        <div style={{ background: `linear-gradient(135deg, ${SIDEBAR_BG} 0%, #1F2937 100%)`, padding: '28px 24px 0', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: `linear-gradient(135deg, ${OG} 0%, ${OG_D} 100%)`, padding: '28px 24px 0', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: -20, right: -20, width: 120, height: 120, borderRadius: '50%', background: OG_L2 }} />
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, position: 'relative' }}>
@@ -350,6 +349,21 @@ export default function StaffLayout() {
         pushNotif({ type: 'statut', numero: p?.numero, statut: p?.statut });
     });
 
+    s.on('commande.b2b.nouvelle', p => {
+      const lieu = p?.entreprise ? `Entreprise : ${p.entreprise}` : 'Commande groupée B2B';
+      pushNotif({ type: 'nouvelle', numero: p?.numero, lieu, montant: p?.montantTotal });
+      try {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'triangle'; o.frequency.value = 660;
+        g.gain.setValueAtTime(0.001, ac.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.18, ac.currentTime + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.4);
+        o.connect(g); g.connect(ac.destination);
+        o.start(); o.stop(ac.currentTime + 0.4);
+      } catch (_) {}
+    });
+
     return () => s.disconnect();
   }, [user]);
 
@@ -361,13 +375,13 @@ export default function StaffLayout() {
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; }
-        .snav-item:hover { background: rgba(255,140,0,0.1) !important; color: rgba(255,255,255,0.9) !important; }
-        .snav-logout:hover { background: rgba(220,38,38,0.15) !important; color: #fca5a5 !important; }
+        .snav-item:hover { background: rgba(255,140,0,0.08) !important; color: #111827 !important; }
+        .snav-logout:hover { background: rgba(220,38,38,0.07) !important; color: #DC2626 !important; }
         .snav-bell:hover { background: rgba(255,140,0,0.1) !important; }
       `}</style>
 
       {/* ══════════════════════════════════════
-          SIDEBAR NOIRE
+          SIDEBAR BLANC / ORANGE
       ══════════════════════════════════════ */}
       <aside style={{ width: 240, flexShrink: 0, background: SIDEBAR_BG, display: 'flex', flexDirection: 'column', height: '100%', borderRight: `1px solid ${SIDEBAR_BOR}` }}>
 
@@ -378,8 +392,10 @@ export default function StaffLayout() {
               <UtensilsCrossed size={20} color="#fff" strokeWidth={2.3} />
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>Resto d'ici</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: SIDE_TEXT_HI, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                {user?.restaurant?.nom || "Resto d'ici"}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 8, fontWeight: 800, color: OG, background: OG_L, border: `1px solid ${OG}30`, padding: '3px 8px', borderRadius: 99, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
                   <Flame size={8} />STAFF
                 </span>
@@ -390,7 +406,7 @@ export default function StaffLayout() {
 
         {/* Section Navigation */}
         <div style={{ padding: '18px 16px 8px' }}>
-          <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.22)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Navigation</p>
+          <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: FAINT, textTransform: 'uppercase', letterSpacing: '0.2em' }}>Navigation</p>
         </div>
 
         <nav style={{ flex: 1, padding: '0 10px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
@@ -412,7 +428,7 @@ export default function StaffLayout() {
                 }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: 10, flexShrink: 0,
-                  background: active ? OG_G : 'rgba(255,255,255,0.06)',
+                  background: active ? OG_G : 'rgba(255,140,0,0.07)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all 0.13s',
                   boxShadow: active ? `0 3px 10px ${OG}55` : 'none',
@@ -448,7 +464,7 @@ export default function StaffLayout() {
               color: unreadCount > 0 ? OG : SIDE_TEXT,
               transition: 'all 0.13s',
             }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: notifOpen ? OG_G : 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', flexShrink: 0, boxShadow: notifOpen ? `0 3px 10px ${OG}55` : 'none' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: notifOpen ? OG_G : 'rgba(255,140,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', flexShrink: 0, boxShadow: notifOpen ? `0 3px 10px ${OG}55` : 'none' }}>
               <Bell size={14} color={notifOpen ? '#fff' : unreadCount > 0 ? OG : SIDE_TEXT} strokeWidth={1.8} />
               {unreadCount > 0 && (
                 <span style={{ position: 'absolute', top: -3, right: -3, background: RED, color: '#fff', fontSize: 7, fontWeight: 900, width: 14, height: 14, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `2px solid ${SIDEBAR_BG}` }}>
@@ -468,31 +484,14 @@ export default function StaffLayout() {
           <button
             onClick={() => setLogoutModal(true)}
             className="snav-logout"
-            style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 13px', borderRadius: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', width: '100%', transition: 'all 0.13s' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <LogOut size={14} color="rgba(255,255,255,0.3)" strokeWidth={1.8} />
+            style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 13px', borderRadius: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: SIDE_TEXT, width: '100%', transition: 'all 0.13s' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <LogOut size={14} color={SIDE_TEXT} strokeWidth={1.8} />
             </div>
             <span style={{ fontSize: 13, fontWeight: 500 }}>Se déconnecter</span>
           </button>
         </div>
 
-        {/* Avatar footer */}
-        <div style={{ padding: '0 12px 16px' }}>
-          <button
-            data-tour="staff-avatar"
-            onClick={() => setDrawer(true)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 14, border: `1px solid ${SIDEBAR_BOR}`, background: SIDEBAR_BG2, cursor: 'pointer', transition: 'all 0.15s' }}
-            onMouseEnter={e => { e.currentTarget.style.background = OG_L; e.currentTarget.style.borderColor = `${OG}30`; }}
-            onMouseLeave={e => { e.currentTarget.style.background = SIDEBAR_BG2; e.currentTarget.style.borderColor = SIDEBAR_BOR; }}
-          >
-            <Initials name={fullName} size={34} fontSize={12} style={{ flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: SIDE_TEXT_HI, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fullName}</p>
-              <p style={{ margin: '1px 0 0', fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>Mon compte</p>
-            </div>
-            <ChevronRight size={13} color="rgba(255,255,255,0.25)" style={{ flexShrink: 0 }} />
-          </button>
-        </div>
       </aside>
 
       {/* ══════════════════════════════════════
@@ -504,8 +503,8 @@ export default function StaffLayout() {
         <header style={{ height: 56, flexShrink: 0, background: CARD, borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', boxShadow: SH }}>
           {/* Fil d'ariane / page courante */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 11, color: FAINT, fontWeight: 600 }}>Staff</span>
-            <ChevronRight size={12} color={FAINT} />
+            <span style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>Staff</span>
+            <ChevronRight size={12} color={MUTED} />
             <span style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>{currentPage || 'Tableau de bord'}</span>
           </div>
 
@@ -519,16 +518,21 @@ export default function StaffLayout() {
             {/* Heure */}
             <Clock />
 
-            {/* Avatar topbar */}
+            {/* Profil topbar — cliquer pour ouvrir le tiroir */}
             <button
               data-tour="staff-avatar"
               onClick={() => setDrawer(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '5px 10px 5px 5px', borderRadius: 99, border: `1.5px solid ${BORDER}`, background: CARD, cursor: 'pointer', transition: 'all 0.13s', boxShadow: SH }}
+              style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '5px 12px 5px 5px', borderRadius: 12, border: `1.5px solid ${BORDER}`, background: CARD, cursor: 'pointer', transition: 'all 0.13s', boxShadow: SH }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = OG; e.currentTarget.style.boxShadow = `0 0 0 3px ${OG_L}`; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = SH; }}
             >
               <Initials name={fullName} size={30} fontSize={11} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>{fullName}</span>
+              <div style={{ textAlign: 'left' }}>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: NAVY, lineHeight: 1.3 }}>{fullName}</p>
+                {user?.restaurant?.nom && (
+                  <p style={{ margin: 0, fontSize: 10, color: MUTED, fontWeight: 500, lineHeight: 1 }}>{user.restaurant.nom}</p>
+                )}
+              </div>
             </button>
           </div>
         </header>

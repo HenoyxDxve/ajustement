@@ -7,7 +7,6 @@ import { formatFCFA } from '../../utils/formatters';
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const BG     = '#F8FAFC';
 const CARD   = '#FFFFFF';
-const NAVY   = '#0F172A';
 const TEXT   = '#0F172A';
 const MUTED  = '#64748B';
 const FAINT  = '#94A3B8';
@@ -122,25 +121,38 @@ export default function B2BInvoices() {
   return (
     <div className="min-h-screen" style={{ background: BG }}>
 
-      {/* Header dark */}
-      <div className="sticky top-0 z-10" style={{ background: NAVY, boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+      {/* Header — unified white/orange */}
+      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <Link to="/b2b" className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-70 transition"
-            style={{ color: 'rgba(255,255,255,0.55)' }}>
+            style={{ color: '#6B7280' }}>
             <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
           </Link>
-          <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
-          <p className="text-[13px] font-semibold text-white">Facturation</p>
-          <div className="flex-1" />
-          {/* Export global — vert (extraction PDF) */}
+          <span style={{ color: 'rgba(0,0,0,0.15)' }}>›</span>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #FF8C00, #E07A00)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <FileText className="w-3.5 h-3.5 text-white" />
+          </div>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0, flex: 1 }}>Facturation</p>
+          {/* Export SYSCOHADA CSV */}
+          <button
+            onClick={async () => {
+              if (factures.length === 0) return;
+              try {
+                const res = await b2bAPI.exportSyscohadaCsv(factures[0].id);
+                const { csv, filename } = res.data;
+                const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+                URL.revokeObjectURL(url);
+              } catch { /* ignore */ }
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-bold text-white transition hover:opacity-90"
+            style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, boxShadow: `0 2px 8px ${GREEN}50` }}>
+            <Download className="w-3.5 h-3.5" /> CSV SYSCOHADA
+          </button>
+          {/* Export global PDF */}
           <button
             onClick={() => {
-              const allData = factures.map(f => {
-                const m = f.montantTTC ?? f.amount ?? 0;
-                const ht = f.montantHT ?? (m / 1.18);
-                const t = f.tva ?? (m - ht);
-                return buildInvoicePdfBlob(f, ht, t, m);
-              });
               if (factures.length > 0) {
                 const f = factures[0];
                 const m = f.montantTTC ?? f.amount ?? 0;
@@ -150,8 +162,8 @@ export default function B2BInvoices() {
               }
             }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-bold text-white transition hover:opacity-90"
-            style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, boxShadow: `0 2px 8px ${GREEN}50` }}>
-            <Download className="w-3.5 h-3.5" /> Télécharger PDF
+            style={{ background: 'linear-gradient(135deg, #374151, #1F2937)', boxShadow: '0 2px 8px rgba(55,65,81,0.35)' }}>
+            <Download className="w-3.5 h-3.5" /> PDF
           </button>
         </div>
       </div>
@@ -224,9 +236,9 @@ export default function B2BInvoices() {
           {/* KPI summary */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Total factures', value: factures.length,                    bg: '#4F46E5' },
-              { label: 'Payées',         value: paidCount,                          bg: GREEN    },
-              { label: 'En attente',     value: factures.length - paidCount,        bg: AMBER    },
+              { label: 'Total factures', value: factures.length,             bg: '#111827' },
+              { label: 'Payées',         value: paidCount,                   bg: GREEN    },
+              { label: 'En attente',     value: factures.length - paidCount, bg: AMBER    },
             ].map(s => (
               <div key={s.label} className="rounded-2xl p-4 text-center text-white"
                 style={{ background: s.bg, boxShadow: `0 4px 14px ${s.bg}40` }}>
@@ -307,7 +319,7 @@ export default function B2BInvoices() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                         {/* Télécharger PDF — vert (extraction de données) */}
                         <button
                           onClick={() => downloadBlob(
@@ -335,6 +347,26 @@ export default function B2BInvoices() {
                             style={{ color: GREEN }}>
                             <CheckCircle className="w-4 h-4" /> Soldée
                           </div>
+                        )}
+
+                        {/* Contestation */}
+                        {!isPaid && (
+                          <button
+                            onClick={() => {
+                              const motif = prompt('Motif de la contestation :');
+                              if (!motif) return;
+                              b2bAPI.contesterFacture(facture.id, motif)
+                                .then(() => { setSuccess('Contestation soumise. Nous vous recontacterons.'); load(); })
+                                .catch(e => setError(e.response?.data?.message || 'Erreur'));
+                            }}
+                            className="text-[11px] font-semibold px-2 py-1 rounded-lg border transition hover:opacity-80"
+                            style={{ borderColor: '#FDE68A', color: '#D97706', background: '#FFFBEB' }}>
+                            Contester
+                          </button>
+                        )}
+                        {facture.statut === 'EN_CONTESTATION' && (
+                          <span className="text-[11px] font-bold px-2 py-1 rounded-lg"
+                            style={{ background: '#F5F3FF', color: '#7C3AED' }}>En contestation</span>
                         )}
                       </div>
                     </div>

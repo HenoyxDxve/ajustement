@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShoppingBag, Plus, ChevronRight, ArrowLeft, AlertCircle, Lock } from 'lucide-react';
+import { ShoppingBag, Plus, ChevronRight, ArrowLeft, AlertCircle, Lock, CalendarDays } from 'lucide-react';
 import { b2bAPI } from '../../services/api';
 import { commandesService } from '../../services/commandes.service';
 import { formatFCFA } from '../../utils/formatters';
 
 const BG = '#F5F6F8'; const CARD = '#FFFFFF'; const TEXT = '#111827';
-const MUTED = '#6B7280'; const FAINT = '#9CA3AF'; const BORDER = 'rgba(0,0,0,0.07)';
+const MUTED = '#6B7280'; const FAINT = '#6B7280'; const BORDER = 'rgba(0,0,0,0.07)';
 const ACC = '#FF8C00'; const ACL = '#FFF0DF';
 const SH = '0 1px 3px rgba(15,23,42,0.07),0 1px 2px rgba(15,23,42,0.04)';
 
@@ -64,28 +64,37 @@ export default function B2BOrders() {
   return (
     <div className="min-h-screen" style={{ background: BG }}>
 
-      {/* Page header */}
-      <div className="sticky top-0 z-10" style={{ background: '#0F172A' }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+      {/* Page header — unified white/orange */}
+      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <Link to="/b2b" className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-70 transition"
-            style={{ color: 'rgba(255,255,255,0.55)' }}>
+            style={{ color: '#6B7280' }}>
             <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
           </Link>
-          <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
-          <p className="text-[13px] font-semibold text-white">Commandes</p>
-          <div className="flex-1" />
+          <span style={{ color: 'rgba(0,0,0,0.15)' }}>›</span>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #FF8C00, #E07A00)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <ShoppingBag className="w-3.5 h-3.5 text-white" />
+          </div>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0, flex: 1 }}>Commandes</p>
           {isBlocked ? (
             <span className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold text-white"
-              style={{ background: '#9CA3AF', cursor: 'not-allowed' }}
+              style={{ background: '#6B7280', cursor: 'not-allowed' }}
               title="Compte bloqué — réglez votre facture mensuelle">
               <Lock className="w-3.5 h-3.5" /> Bloqué
             </span>
           ) : (
-            <Link to="/b2b/order"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold text-white"
-              style={{ background: ACC }}>
-              <Plus className="w-3.5 h-3.5" /> Nouvelle commande
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link to="/b2b/order?mode=schedule"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold transition hover:opacity-80"
+                style={{ background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE' }}>
+                <CalendarDays className="w-3.5 h-3.5" /> Planifier
+              </Link>
+              <Link to="/b2b/order?mode=instant"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold text-white transition hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #FF8C00, #E07A00)', boxShadow: '0 2px 8px rgba(255,140,0,0.40)' }}>
+                <Plus className="w-3.5 h-3.5" /> Nouvelle commande
+              </Link>
+            </div>
           )}
         </div>
       </div>
@@ -113,7 +122,7 @@ export default function B2BOrders() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Total',     value: orders.length, bg: '#4F46E5' },
+            { label: 'Total',     value: orders.length, bg: '#111827' },
             { label: 'En cours',  value: active.length, bg: '#FF8C00' },
             { label: 'Terminées', value: done.length,   bg: '#10B981' },
           ].map(s => (

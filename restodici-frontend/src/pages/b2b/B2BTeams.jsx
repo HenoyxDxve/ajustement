@@ -7,7 +7,6 @@ import { formatFCFA } from '../../utils/formatters';
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const BG     = '#F8FAFC';
 const CARD   = '#FFFFFF';
-const NAVY   = '#0F172A';
 const TEXT   = '#0F172A';
 const MUTED  = '#64748B';
 const FAINT  = '#94A3B8';
@@ -144,10 +143,11 @@ function InviteModal({ onClose, onDone }) {
 }
 
 export default function B2BTeams() {
-  const [collabs, setCollabs]       = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [showInvite, setShowInvite] = useState(false);
-  const [deleting, setDeleting]     = useState('');
+  const [collabs, setCollabs]           = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [showInvite, setShowInvite]     = useState(false);
+  const [deleting, setDeleting]         = useState('');
+  const [editingBudget, setEditingBudget] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -172,16 +172,18 @@ export default function B2BTeams() {
   return (
     <div className="min-h-screen" style={{ background: BG }}>
 
-      {/* Header dark */}
-      <div className="sticky top-0 z-10" style={{ background: NAVY, boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+      {/* Header — unified white/orange */}
+      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <Link to="/b2b" className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-70 transition"
-            style={{ color: 'rgba(255,255,255,0.55)' }}>
+            style={{ color: '#6B7280' }}>
             <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
           </Link>
-          <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
-          <p className="text-[13px] font-semibold text-white">Équipe</p>
-          <div className="flex-1" />
+          <span style={{ color: 'rgba(0,0,0,0.15)' }}>›</span>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #FF8C00, #E07A00)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Users className="w-3.5 h-3.5 text-white" />
+          </div>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0, flex: 1 }}>Équipe</p>
           {/* Inviter — orange (CTA principal) */}
           <button onClick={() => setShowInvite(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-bold text-white transition hover:opacity-90"
@@ -199,7 +201,7 @@ export default function B2BTeams() {
         {/* KPI summary */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Membres actifs',  value: collabs.length,          bg: '#4F46E5' },
+            { label: 'Membres actifs',  value: collabs.length,          bg: '#111827' },
             { label: 'Budget total',    value: formatFCFA(totalBudget),  bg: ORANGE    },
             { label: 'Dépenses mois',   value: formatFCFA(totalSpent),   bg: GREEN     },
           ].map(s => (
@@ -266,6 +268,38 @@ export default function B2BTeams() {
                   <p className="text-[10px] mt-0.5" style={{ color: pct >= 100 ? RED : GREEN }}>
                     Solde : {formatFCFA(Math.max(0, budget - spent))}
                   </p>
+                  {editingBudget?.id === c.id ? (
+                    <div className="flex items-center gap-1 mt-1">
+                      <input
+                        type="number"
+                        value={editingBudget.value}
+                        onChange={e => setEditingBudget(p => ({ ...p, value: e.target.value }))}
+                        className="w-24 rounded-lg px-2 py-1 text-xs font-medium"
+                        style={{ border: '1.5px solid #FF8C00', outline: 'none', background: '#FFF0DF', color: '#111827' }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={async () => {
+                          try {
+                            await b2bAPI.updateCollaborateur(c.id, { limiteBudget: parseFloat(editingBudget.value) });
+                            setEditingBudget(null);
+                            load();
+                          } catch { setEditingBudget(null); }
+                        }}
+                        className="rounded-lg px-2 py-1 text-[10px] font-bold text-white"
+                        style={{ background: '#16A34A' }}>OK</button>
+                      <button onClick={() => setEditingBudget(null)}
+                        className="rounded-lg px-2 py-1 text-[10px] font-medium"
+                        style={{ border: '1px solid rgba(0,0,0,0.1)', background: '#fff', color: '#6B7280' }}>✕</button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setEditingBudget({ id: c.id, value: String(budget) })}
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-md mt-1 transition hover:opacity-80"
+                      style={{ background: '#FFF0DF', color: '#FF8C00', border: 'none', cursor: 'pointer' }}>
+                      Modifier budget
+                    </button>
+                  )}
                 </div>
                 {/* Supprimer — rouge (action risquée / irréversible) */}
                 <button onClick={() => handleDelete(c.id, c.nom)}

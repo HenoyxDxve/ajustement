@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, Download, RefreshCw, Plus, Minus, Package } from 'lucide-react';
 import { stocksAPI } from '../../services/api';
 
-const SB     = '#5B2318';
+const SB     = '#FF8C00';
 const RED    = '#DC2626';
 const GREEN  = '#16A34A';
 const AMBER  = '#D97706';
@@ -25,17 +25,17 @@ function statutCell(ecart, stock) {
     return <span style={{ background: '#FEF3C7', color: AMBER, fontSize: 10, fontWeight: 800, padding: '3px 9px', borderRadius: 99 }}>Ajuster</span>;
   }
   return (
-    <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#D1FAE5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: 13 }}>
-      ✓
+    <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#D1FAE5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: 11, fontWeight: 800, color: '#16A34A' }}>
+      OK
     </div>
   );
 }
 
 const MVT_ICONS = {
-  ENTREE:     { e: '🚚', bg: '#D1FAE5' },
-  RECEPTION:  { e: '🚚', bg: '#D1FAE5' },
-  AJUSTEMENT: { e: '⚖️', bg: '#EDE9FE' },
-  DEDUCTION:  { e: '🧾', bg: '#FEF3C7' },
+  ENTREE:     { e: '+', bg: '#D1FAE5', color: '#16A34A' },
+  RECEPTION:  { e: '+', bg: '#D1FAE5', color: '#16A34A' },
+  AJUSTEMENT: { e: '~', bg: '#EDE9FE', color: '#6D28D9' },
+  DEDUCTION:  { e: '−', bg: '#FEF3C7', color: '#D97706' },
 };
 
 export default function StocksStaff() {
@@ -122,8 +122,8 @@ export default function StocksStaff() {
       {/* Header */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, marginBottom: 22 }}>
         <div>
-          <h1 style={{ margin: '0 0 3px', fontSize: 22, fontWeight: 800, color: '#1C1917' }}>Gestion des Stocks</h1>
-          <p style={{ margin: 0, fontSize: 13, color: '#78716C' }}>Supervision et réapprovisionnement logistique.</p>
+          <h1 style={{ margin: '0 0 3px', fontSize: 22, fontWeight: 800, color: '#111827' }}>Gestion des Stocks</h1>
+          <p style={{ margin: 0, fontSize: 13, color: '#6B7280' }}>Supervision et réapprovisionnement logistique.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {critCount > 0 && (
@@ -150,14 +150,14 @@ export default function StocksStaff() {
           <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${BORDER}`, overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', borderBottom: `1px solid ${BORDER}` }}>
               <Package size={15} color={SB} />
-              <span style={{ fontSize: 14, fontWeight: 800, color: '#1C1917' }}>État des Stocks Actuel</span>
-              <span style={{ marginLeft: 'auto', fontSize: 10, color: '#9CA3AF', background: '#F3F4F6', padding: '2px 8px', borderRadius: 5, fontWeight: 600 }}>TBL-STK-01</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: '#111827' }}>État des Stocks Actuel</span>
+              <span style={{ marginLeft: 'auto', fontSize: 10, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 5, fontWeight: 600 }}>TBL-STK-01</span>
             </div>
 
             {loading ? (
-              <div style={{ textAlign: 'center', padding: 40, color: '#9CA3AF' }}>Chargement…</div>
+              <div style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>Chargement…</div>
             ) : stocks.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 40, color: '#9CA3AF' }}>
+              <div style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>
                 <Package size={36} color="#D1D5DB" style={{ display: 'block', margin: '0 auto 10px' }} />
                 <p style={{ margin: 0, fontWeight: 600 }}>Aucun stock configuré</p>
               </div>
@@ -167,7 +167,7 @@ export default function StocksStaff() {
                   <thead>
                     <tr style={{ background: '#F9FAFB' }}>
                       {['ARTICLE', 'CATÉGORIE', 'QTÉ THÉORIQUE', 'QTÉ PHYSIQUE', 'ÉCART', 'STATUT'].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: ['QTÉ THÉORIQUE', 'QTÉ PHYSIQUE', 'ÉCART', 'STATUT'].includes(h) ? 'center' : 'left', borderBottom: `1px solid ${BORDER}`, whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '10px 14px', fontSize: 10, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: ['QTÉ THÉORIQUE', 'QTÉ PHYSIQUE', 'ÉCART', 'STATUT'].includes(h) ? 'center' : 'left', borderBottom: `1px solid ${BORDER}`, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -179,9 +179,9 @@ export default function StocksStaff() {
                       const isDirty = physVal !== Number(s.quantitePhysique ?? s.quantite ?? 0);
                       return (
                         <tr key={s.id} style={{ borderBottom: '1px solid #F9FAFB' }}>
-                          <td style={{ padding: '11px 14px', fontSize: 13, fontWeight: 700, color: '#1C1917', whiteSpace: 'nowrap' }}>{s.article?.nom || s.nom || 'Article'}</td>
+                          <td style={{ padding: '11px 14px', fontSize: 13, fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>{s.article?.nom || s.nom || 'Article'}</td>
                           <td style={{ padding: '11px 14px', fontSize: 12, color: '#6B7280' }}>{s.article?.categorie?.nom || s.categorie || '—'}</td>
-                          <td style={{ padding: '11px 14px', fontSize: 13, fontWeight: 700, color: '#1C1917', textAlign: 'center' }}>{fmt(theo)}</td>
+                          <td style={{ padding: '11px 14px', fontSize: 13, fontWeight: 700, color: '#111827', textAlign: 'center' }}>{fmt(theo)}</td>
                           <td style={{ padding: '8px 14px', textAlign: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                               <button onClick={() => setPhys(p => ({ ...p, [s.id]: Math.max(0, (p[s.id] ?? theo) - 1) }))} style={{ width: 22, height: 22, borderRadius: 5, border: `1px solid ${BORDER}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={10} color="#374151" /></button>
@@ -189,13 +189,13 @@ export default function StocksStaff() {
                                 type="number" min="0"
                                 value={physVal}
                                 onChange={e => setPhys(p => ({ ...p, [s.id]: Number(e.target.value) }))}
-                                style={{ width: 56, textAlign: 'center', border: `1px solid ${isDirty ? AMBER : BORDER}`, borderRadius: 7, padding: '5px 4px', fontSize: 13, fontWeight: 700, color: '#1C1917', outline: 'none', background: isDirty ? '#FFFBEB' : '#fff' }}
+                                style={{ width: 56, textAlign: 'center', border: `1px solid ${isDirty ? AMBER : BORDER}`, borderRadius: 7, padding: '5px 4px', fontSize: 13, fontWeight: 700, color: '#111827', outline: 'none', background: isDirty ? '#FFFBEB' : '#fff' }}
                               />
                               <button onClick={() => setPhys(p => ({ ...p, [s.id]: (p[s.id] ?? theo) + 1 }))} style={{ width: 22, height: 22, borderRadius: 5, border: `1px solid ${BORDER}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={10} color="#374151" /></button>
                             </div>
                           </td>
                           <td style={{ padding: '11px 14px', textAlign: 'center' }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: ecart < 0 ? RED : ecart > 0 ? GREEN : '#9CA3AF' }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: ecart < 0 ? RED : ecart > 0 ? GREEN : '#6B7280' }}>
                               {ecart > 0 ? '+' : ''}{ecart}
                             </span>
                           </td>
@@ -218,31 +218,31 @@ export default function StocksStaff() {
           {/* Journal mouvements */}
           <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${BORDER}`, overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: `1px solid ${BORDER}` }}>
-              <span style={{ fontSize: 14, fontWeight: 800, color: '#1C1917' }}>⏱ Journal des Mouvements</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: '#111827' }}>⏱ Journal des Mouvements</span>
               <button style={{ fontSize: 11, color: '#6B7280', border: `1px solid ${BORDER}`, background: '#fff', padding: '4px 10px', borderRadius: 7, cursor: 'pointer', fontWeight: 600 }}>Filtrer</button>
             </div>
             {mouvs.length === 0 ? (
-              <p style={{ textAlign: 'center', padding: 36, color: '#9CA3AF', fontSize: 13 }}>Aucun mouvement</p>
+              <p style={{ textAlign: 'center', padding: 36, color: '#6B7280', fontSize: 13 }}>Aucun mouvement</p>
             ) : (
               <div style={{ padding: '6px 14px 10px' }}>
                 {mouvs.map((m, i) => {
                   const delta = Number(m.quantite ?? m.delta ?? 0);
                   const type  = m.type || (delta > 0 ? 'ENTREE' : 'DEDUCTION');
-                  const { e: ico, bg } = MVT_ICONS[type] || { e: '📦', bg: '#F3F4F6' };
+                  const { e: ico, bg, color: icoColor } = MVT_ICONS[type] || { e: '·', bg: '#F3F4F6', color: '#6B7280' };
                   const label = type === 'ENTREE' || type === 'RECEPTION' ? 'Réception Fournisseur' : type === 'AJUSTEMENT' ? 'Ajustement Inventaire Manuel' : 'Déduction Automatique';
                   const dateStr = m.createdAt
                     ? `${new Date(m.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}, ${new Date(m.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
                     : '';
                   return (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', borderBottom: i < mouvs.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>{ico}</div>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: icoColor, flexShrink: 0 }}>{ico}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1C1917' }}>{label}</p>
-                        <p style={{ margin: '2px 0 0', fontSize: 11, color: '#9CA3AF' }}>{dateStr}{m.nomArt ? ` • ${m.nomArt}` : ''}</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#111827' }}>{label}</p>
+                        <p style={{ margin: '2px 0 0', fontSize: 11, color: '#6B7280' }}>{dateStr}{m.nomArt ? ` • ${m.nomArt}` : ''}</p>
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: delta >= 0 ? GREEN : RED }}>{delta >= 0 ? '+' : ''}{delta}</p>
-                        {m.quantiteRestante != null && <p style={{ margin: '1px 0 0', fontSize: 10, color: '#9CA3AF' }}>Restant: {m.quantiteRestante}</p>}
+                        {m.quantiteRestante != null && <p style={{ margin: '1px 0 0', fontSize: 10, color: '#6B7280' }}>Restant: {m.quantiteRestante}</p>}
                       </div>
                     </div>
                   );
@@ -257,10 +257,9 @@ export default function StocksStaff() {
           <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${BORDER}`, overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${BORDER}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 18 }}>🚚</span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: '#1C1917' }}>Réception Marchandises</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#111827' }}>Réception Marchandises</span>
               </div>
-              <span style={{ fontSize: 10, color: '#9CA3AF', background: '#F3F4F6', padding: '2px 7px', borderRadius: 5, fontWeight: 600 }}>FRM-REC</span>
+              <span style={{ fontSize: 10, color: '#6B7280', background: '#F3F4F6', padding: '2px 7px', borderRadius: 5, fontWeight: 600 }}>FRM-REC</span>
             </div>
             <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
               {/* Fournisseur */}
@@ -300,7 +299,7 @@ export default function StocksStaff() {
                 style={{
                   width: '100%', padding: '12px', borderRadius: 10, border: 'none',
                   background: !rec.article || !rec.quantite ? '#E5E7EB' : SB,
-                  color: !rec.article || !rec.quantite ? '#9CA3AF' : '#fff',
+                  color: !rec.article || !rec.quantite ? '#6B7280' : '#fff',
                   fontSize: 14, fontWeight: 700, cursor: (!rec.article || !rec.quantite || savingRec) ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
                 }}>

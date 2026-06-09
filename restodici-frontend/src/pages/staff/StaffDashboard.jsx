@@ -180,7 +180,7 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
               {order.modeLivraison && (
                 <StatusBadge label={formatDeliveryMode(order.modeLivraison)} bg={ACCENT_LIGHT} color={ACCENT} />
               )}
-              {isUrgent && <StatusBadge label="⚡ URGENT" bg="#FEE2E2" color="#DC2626" />}
+              {isUrgent && <StatusBadge label="URGENT" bg="#FEE2E2" color="#DC2626" />}
             </div>
             <p style={{ fontSize: 14, fontWeight: 700, color: TEXT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {(order.lignes || []).map(l => l.article?.nom).filter(Boolean).join(', ') || `Commande ${order.numero}`}
@@ -225,9 +225,9 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
               value={draft.modePaiement || 'ESPECES'}
               onChange={e => setPaymentDraft({ ...draft, modePaiement: e.target.value })}
               style={{ flex: 1, borderRadius: 10, border: `1px solid ${BORDER}`, padding: '8px 10px', fontSize: 12, outline: 'none', background: '#fff', color: TEXT }}>
-              <option value="ESPECES">💵 Espèces</option>
-              <option value="CARTE">💳 Carte</option>
-              <option value="MOBILE_MONEY">📱 Mobile Money</option>
+              <option value="ESPECES">Espèces</option>
+              <option value="CARTE">Carte</option>
+              <option value="MOBILE_MONEY">Mobile Money</option>
             </select>
             <input
               type="number" min="0"
@@ -303,7 +303,7 @@ function B2BOrderCard({ order, onAction, saving }) {
               <StatusBadge label={`#${order.numero}`} bg="#FEF3C7" color="#B45309" />
               <StatusBadge label="B2B" bg="#D97706" color="#fff" />
               <StatusBadge label={B2B_STATUS_LABELS[order.statut] || order.statut} bg={statBadge.bg} color={statBadge.text} />
-              {isUrgent && <StatusBadge label="⚡ URGENT" bg="#FEE2E2" color="#DC2626" />}
+              {isUrgent && <StatusBadge label="URGENT" bg="#FEE2E2" color="#DC2626" />}
             </div>
             <p style={{ fontSize: 14, fontWeight: 700, color: TEXT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {order.entreprise || 'Entreprise B2B'}
@@ -457,30 +457,29 @@ function ProfilePanel({ user, onClose, form, setForm, onSave, saving, error, suc
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 40, backdropFilter: 'blur(6px)' }} />
       <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 'min(480px,100vw)', background: '#fff', zIndex: 50, overflowY: 'auto', boxShadow: '-24px 0 80px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column' }}>
 
-        {/* Header gradient */}
-        <div style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_DARK} 100%)`, padding: '32px 28px 24px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, right: 0, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', transform: 'translate(40%, -40%)' }} />
-          <div className="flex items-start justify-between mb-6" style={{ position: 'relative' }}>
+        {/* Header */}
+        <div style={{ background: '#fff', padding: '28px 28px 20px', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+          <div className="flex items-start justify-between mb-5">
             <div className="flex items-center gap-4">
-              <div style={{ width: 64, height: 64, borderRadius: 20, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 900, color: '#fff', border: '3px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)' }}>
+              <div style={{ width: 56, height: 56, borderRadius: 18, background: ACCENT_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 900, color: ACCENT, border: `2px solid ${ACCENT}22` }}>
                 {initials}
               </div>
               <div>
-                <p style={{ fontSize: 18, fontWeight: 800, color: '#fff', margin: '0 0 3px', letterSpacing: '-0.01em' }}>{fullName}</p>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', margin: '0 0 6px' }}>{user?.email}</p>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.18)', borderRadius: 99, padding: '3px 12px', fontSize: 10, fontWeight: 800, color: '#fff', letterSpacing: '0.12em' }}>
+                <p style={{ fontSize: 17, fontWeight: 800, color: TEXT, margin: '0 0 3px', letterSpacing: '-0.01em' }}>{fullName}</p>
+                <p style={{ fontSize: 12, color: MUTED, margin: '0 0 6px' }}>{user?.email}</p>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: ACCENT_LIGHT, borderRadius: 99, padding: '3px 12px', fontSize: 10, fontWeight: 800, color: ACCENT, letterSpacing: '0.1em' }}>
                   <Zap style={{ width: 9, height: 9 }} /> STAFF
                 </span>
               </div>
             </div>
-            <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 12, padding: 10, cursor: 'pointer', lineHeight: 0, backdropFilter: 'blur(4px)' }}>
-              <X style={{ width: 16, height: 16, color: '#fff' }} />
+            <button onClick={onClose} style={{ background: SURFACE, border: 'none', borderRadius: 12, padding: 10, cursor: 'pointer', lineHeight: 0 }}>
+              <X style={{ width: 16, height: 16, color: MUTED }} />
             </button>
           </div>
-          <div className="flex gap-1" style={{ position: 'relative' }}>
+          <div className="flex gap-1.5">
             {[{ id: 'profil', label: 'Profil', icon: User }, { id: 'securite', label: 'Sécurité', icon: ShieldCheck }].map(({ id, label, icon: Icon }) => (
               <button key={id} onClick={() => setPanelTab(id)}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.15s', background: panelTab === id ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.07)', color: panelTab === id ? '#fff' : 'rgba(255,255,255,0.5)', backdropFilter: panelTab === id ? 'blur(8px)' : 'none' }}>
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', border: `1.5px solid ${panelTab === id ? ACCENT : BORDER}`, borderRadius: 12, cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.15s', background: panelTab === id ? ACCENT_LIGHT : '#fff', color: panelTab === id ? ACCENT : MUTED }}>
                 <Icon style={{ width: 13, height: 13 }} />{label}
               </button>
             ))}
@@ -794,17 +793,14 @@ export default function StaffDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-10">
 
         {/* ── HERO BANNER ─────────────────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-3xl mb-6"
-          style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, #FF6B00 50%, #FF4D00 100%)`, boxShadow: `0 8px 40px ${ACCENT}55` }}>
-          <div className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-10"
-            style={{ background: '#fff', transform: 'translate(30%, -30%)' }} />
-          <div className="absolute bottom-0 left-1/4 w-48 h-48 rounded-full opacity-10"
-            style={{ background: '#fff', transform: 'translate(-50%, 40%)' }} />
+        <div className="rounded-3xl mb-6 overflow-hidden"
+          style={{ background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
 
-          <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div className="p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6"
+            style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div style={{ width: 72, height: 72, borderRadius: 22, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 900, color: '#fff', border: '3px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)' }}>
+              <div style={{ width: 72, height: 72, borderRadius: 22, background: ACCENT_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 900, color: ACCENT, border: `2px solid ${ACCENT}22` }}>
                 {initials}
               </div>
               <div style={{ position: 'absolute', bottom: -3, right: -3, width: 18, height: 18, borderRadius: '50%', background: isAvailable ? '#4ADE80' : '#9CA3AF', border: '2.5px solid #fff' }} />
@@ -812,26 +808,26 @@ export default function StaffDashboard() {
 
             {/* Greeting */}
             <div className="flex-1">
-              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 4px' }}>
+              <p style={{ color: MUTED, fontSize: 12, fontWeight: 600, margin: '0 0 3px' }}>
                 {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
-              <h1 style={{ fontSize: 'clamp(20px,3vw,28px)', fontWeight: 900, color: '#fff', margin: '0 0 6px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              <h1 style={{ fontSize: 'clamp(18px,2.5vw,24px)', fontWeight: 900, color: TEXT, margin: '0 0 4px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
                 Bonjour, {firstName} !
               </h1>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', margin: 0 }}>
-                {allActive.length === 0 ? 'Aucune commande active pour l\'instant' : `${allActive.length} commande${allActive.length > 1 ? 's' : ''} active${allActive.length > 1 ? 's' : ''} · ${urgentOrders.length > 0 ? `⚡ ${urgentOrders.length} urgente${urgentOrders.length > 1 ? 's' : ''}` : 'Sous contrôle'}`}
+              <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>
+                {allActive.length === 0 ? 'Aucune commande active pour l\'instant' : `${allActive.length} commande${allActive.length > 1 ? 's' : ''} active${allActive.length > 1 ? 's' : ''} · ${urgentOrders.length > 0 ? `${urgentOrders.length} urgente${urgentOrders.length > 1 ? 's' : ''}` : 'Tout sous contrôle'}`}
               </p>
             </div>
 
             {/* Status toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(0,0,0,0.2)', borderRadius: 99, padding: '4px 5px', backdropFilter: 'blur(8px)', shrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: SURFACE, borderRadius: 99, padding: '4px 5px' }}>
               <button onClick={() => setIsAvailable(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s', background: isAvailable ? 'rgba(255,255,255,0.25)' : 'transparent', color: '#fff', backdropFilter: isAvailable ? 'blur(4px)' : 'none' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s', background: isAvailable ? ACCENT : 'transparent', color: isAvailable ? '#fff' : MUTED }}>
                 {isAvailable && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ADE80' }} />}
                 Disponible
               </button>
               <button onClick={() => setIsAvailable(false)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s', background: !isAvailable ? 'rgba(255,255,255,0.25)' : 'transparent', color: '#fff' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.2s', background: !isAvailable ? '#F3F4F6' : 'transparent', color: !isAvailable ? '#6B7280' : MUTED }}>
                 {!isAvailable && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#D1D5DB' }} />}
                 Occupé
               </button>
@@ -839,19 +835,18 @@ export default function StaffDashboard() {
           </div>
 
           {/* Stats strip */}
-          <div className="relative grid grid-cols-4 border-t"
-            style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+          <div className="grid grid-cols-4">
             {[
-              { label: 'Actives',   value: allActive.length,      icon: Clock },
-              { label: 'Livrées',   value: completedToday.length, icon: CheckCircle },
-              { label: 'Encaissé',  value: encaissementsToday > 0 ? `${Math.round(encaissementsToday/1000)}k` : '—', icon: Wallet },
-              { label: 'B2B actifs',value: activeB2B.length,      icon: Package },
+              { label: 'Actives',    value: allActive.length,      icon: Clock },
+              { label: 'Livrées',    value: completedToday.length, icon: CheckCircle },
+              { label: 'Encaissé',   value: encaissementsToday > 0 ? `${Math.round(encaissementsToday/1000)}k` : '—', icon: Wallet },
+              { label: 'B2B actifs', value: activeB2B.length,      icon: Package },
             ].map((s, i) => (
               <div key={i} className="px-3 sm:px-5 py-4 flex flex-col items-center text-center"
-                style={{ borderRight: i < 3 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
-                <s.icon style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 6 }} />
-                <p style={{ fontSize: 20, fontWeight: 900, color: '#fff', lineHeight: 1, margin: '0 0 4px' }}>{s.value}</p>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', margin: 0, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
+                style={{ borderRight: i < 3 ? '1px solid rgba(0,0,0,0.06)' : 'none', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                <s.icon style={{ width: 14, height: 14, color: ACCENT, marginBottom: 6 }} />
+                <p style={{ fontSize: 20, fontWeight: 900, color: TEXT, lineHeight: 1, margin: '0 0 4px' }}>{s.value}</p>
+                <p style={{ fontSize: 10, color: MUTED, margin: 0, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
               </div>
             ))}
           </div>
@@ -902,7 +897,7 @@ export default function StaffDashboard() {
                 icon={Clock} iconBg={ACCENT_LIGHT} iconColor={ACCENT}
                 label="Commandes actives"
                 value={allActive.length}
-                sub={urgentOrders.length > 0 ? `⚡ ${urgentOrders.length} urgente${urgentOrders.length > 1 ? 's' : ''}` : 'Tout sous contrôle'}
+                sub={urgentOrders.length > 0 ? `${urgentOrders.length} urgente${urgentOrders.length > 1 ? 's' : ''}` : 'Tout sous contrôle'}
                 subOk={urgentOrders.length === 0}
               />
               <KpiCard
@@ -1152,7 +1147,7 @@ export default function StaffDashboard() {
                 </p>
               </div>
               <div style={{ display: 'flex', background: '#F3F4F6', borderRadius: 12, padding: '3px', gap: 2 }}>
-                {[['all', 'Tous'], ['alerts', `⚠ Alertes (${stockAlerts.length})`]].map(([key, label]) => (
+                {[['all', 'Tous'], ['alerts', `Alertes (${stockAlerts.length})`]].map(([key, label]) => (
                   <button key={key} onClick={() => setStockFilter(key)}
                     style={{ padding: '8px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: stockFilter === key ? '#fff' : 'transparent', color: stockFilter === key ? TEXT : MUTED, boxShadow: stockFilter === key ? '0 1px 4px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s' }}>
                     {label}

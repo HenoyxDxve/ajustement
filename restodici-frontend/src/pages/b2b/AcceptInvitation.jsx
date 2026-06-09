@@ -167,7 +167,7 @@ export default function AcceptInvitation() {
                         style={{ background: '#F9F7F5', border: '1px solid rgba(89,67,42,0.10)' }}
                       />
                       <button type="button" onClick={() => setShowPwd(v => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]">
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]">
                         {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
@@ -206,7 +206,7 @@ export default function AcceptInvitation() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-[#9CA3AF] mt-6">
+        <p className="text-center text-xs text-[#6B7280] mt-6">
           Déjà un compte ?{' '}
           <Link to="/login" className="font-semibold underline" style={{ color: A }}>Se connecter</Link>
         </p>

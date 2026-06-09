@@ -242,6 +242,10 @@ export const b2bAPI = {
 
   // Reports
   getReports: () => api.get("/b2b/reports"),
+
+  // Facture — contestation & export SYSCOHADA détaillé
+  contesterFacture: (id, motif) => api.post(`/b2b/factures-mensuelles/${id}/contester`, { motif }),
+  exportSyscohadaCsv: (id) => api.get(`/b2b/factures-mensuelles/${id}/export-syscohada`),
 };
 
 export const authAPI = {
@@ -334,6 +338,14 @@ export const adminAPI = {
   // Backup DB
   getBackups:         ()           => api.get('/admin/backup/list'),
   runBackup:          ()           => api.post('/admin/backup/run'),
+};
+
+// ── Paiements digitaux (NovaSend / Wave / Orange Money / MTN / Moov) ──────────
+export const paiementsAPI = {
+  // Initier un paiement digital → { sessionId, paymentUrl?, simulated }
+  initier: (data) => api.post('/paiements/initier', data),
+  // Simuler la confirmation (dev — déclenche webhook en interne)
+  simuler: (data) => api.post('/paiements/simuler', data),
 };
 
 export const uploadsAPI = {

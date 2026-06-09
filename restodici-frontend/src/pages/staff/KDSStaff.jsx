@@ -6,19 +6,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Clock, ChefHat, CheckCircle2, RefreshCw, AlertCircle,
-  Zap, History, X, ChevronDown, ChevronUp,
-  CheckCheck, Ban, UtensilsCrossed, Package,
+  History, X, ChevronDown, ChevronUp,
+  CheckCheck, Ban, UtensilsCrossed,
 } from 'lucide-react';
 import { commandesService, createCommandesSocket } from '../../services/commandes.service';
 import { useAuth } from '../../hooks/useAuth';
 
 /* ── Palette ── */
-const BG     = '#F8FAFC';
+const BG     = '#F5F6F8';
 const CARD   = '#FFFFFF';
 const NAVY   = '#111827';
 const BORDER = '#E5E7EB';
 const MUTED  = '#6B7280';
-const FAINT  = '#9CA3AF';
+const FAINT  = '#6B7280';
 
 const OG     = '#FF8C00';            /* orange principal */
 const OG_D   = '#E07A00';
@@ -39,15 +39,35 @@ const NEXT_STATUT = {
 };
 const ACTION_LABELS = {
   CONFIRMEE: 'Accepter', EN_PREP: 'Démarrer',
-  PRETE: 'Prête ✓', EN_LIVRAISON: 'En livraison', LIVREE: 'Livré ✓',
+  PRETE: 'Prête', EN_LIVRAISON: 'En livraison', LIVREE: 'Livré',
 };
 
 const COLS = [
-  { id: 'todo',     label: 'À traiter',      icon: '📋', accent: OG,     accentL: OG_L,                   grad: OG_G,      statuts: ['RECUE','CONFIRMEE'] },
-  { id: 'prep',     label: 'En préparation', icon: '🔥', accent: AMBER,  accentL: 'rgba(217,119,6,0.08)', grad: AMBER_G,   statuts: ['EN_PREP'] },
-  { id: 'ready',    label: 'Prête',          icon: '✅', accent: GREEN,  accentL: 'rgba(22,163,74,0.08)', grad: GREEN_G,   statuts: ['PRETE'] },
-  { id: 'delivery', label: 'En livraison',   icon: '🚚', accent: PURPLE, accentL: 'rgba(124,58,237,0.08)',grad: PURPLE_G,  statuts: ['EN_LIVRAISON'] },
+  { id: 'todo',     label: 'À traiter',      accent: OG,     accentL: OG_L,                   grad: OG_G,      statuts: ['RECUE','CONFIRMEE'] },
+  { id: 'prep',     label: 'En préparation', accent: AMBER,  accentL: 'rgba(217,119,6,0.08)', grad: AMBER_G,   statuts: ['EN_PREP'] },
+  { id: 'ready',    label: 'Prête',          accent: GREEN,  accentL: 'rgba(22,163,74,0.08)', grad: GREEN_G,   statuts: ['PRETE'] },
+  { id: 'delivery', label: 'En livraison',   accent: PURPLE, accentL: 'rgba(124,58,237,0.08)',grad: PURPLE_G,  statuts: ['EN_LIVRAISON'] },
 ];
+
+/* ── Persistance historique localStorage ── */
+const HIST_KEY  = 'kds_history_v1';
+const HIST_TTL  = 7 * 24 * 60 * 60 * 1000; // 7 jours
+
+function loadPersistedHistory() {
+  try {
+    const raw = localStorage.getItem(HIST_KEY);
+    if (!raw) return [];
+    const cutoff = Date.now() - HIST_TTL;
+    return JSON.parse(raw).filter(o => new Date(o.updatedAt || o.createdAt).getTime() > cutoff);
+  } catch { return []; }
+}
+
+function persistHistory(orders) {
+  try {
+    const done = orders.filter(o => ['LIVREE','ANNULEE'].includes(o.statut));
+    if (done.length > 0) localStorage.setItem(HIST_KEY, JSON.stringify(done));
+  } catch {}
+}
 
 /* ── Tick global (pour les timers) ── */
 function useGlobalTick() {
@@ -141,8 +161,8 @@ function OrderCard({ order, onAction, saving, col }) {
                 {order.numero ? `CMD-${order.numero}` : `#${order.id?.slice(0, 6)}`}
               </p>
               {urgent && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 800, background: '#FEE2E2', color: RED, padding: '2px 7px', borderRadius: 99, letterSpacing: '0.08em' }}>
-                  <Zap size={8} /> URGENT
+                <span style={{ fontSize: 9, fontWeight: 800, background: '#FEE2E2', color: RED, padding: '2px 7px', borderRadius: 99, letterSpacing: '0.08em' }}>
+                  URGENT
                 </span>
               )}
             </div>
@@ -178,7 +198,7 @@ function OrderCard({ order, onAction, saving, col }) {
               </div>
               {l.instructions && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 3, marginLeft: 28, fontSize: 10, fontWeight: 700, color: OG, background: OG_L, padding: '2px 8px', borderRadius: 6 }}>
-                  ⚠ {l.instructions}
+                  {l.instructions}
                 </span>
               )}
             </div>
@@ -303,7 +323,6 @@ function KDSColumn({ col, orders, onAction, saving }) {
         marginBottom: 12, display: 'flex', alignItems: 'center', gap: 9,
         boxShadow: `0 4px 16px ${col.accent}33`,
       }}>
-        <span style={{ fontSize: 18 }}>{col.icon}</span>
         <span style={{ fontSize: 13, fontWeight: 800, color: '#fff', flex: 1, letterSpacing: '-0.01em' }}>
           {col.label}
         </span>
@@ -344,8 +363,11 @@ export default function KDSStaff() {
     if (!o?.id) return;
     setOrders(prev => {
       const i = prev.findIndex(x => x.id === o.id);
-      if (i === -1) return [o, ...prev];
-      const next = [...prev]; next[i] = { ...next[i], ...o }; return next;
+      let updated;
+      if (i === -1) updated = [o, ...prev];
+      else { updated = [...prev]; updated[i] = { ...updated[i], ...o }; }
+      if (['LIVREE','ANNULEE'].includes(o.statut)) persistHistory(updated);
+      return updated;
     });
   }, []);
 
@@ -353,8 +375,18 @@ export default function KDSStaff() {
     try {
       setError('');
       const r = await commandesService.getKDS();
-      setOrders(r.data || []);
+      const fresh = r.data || [];
+      const stored = loadPersistedHistory();
+      const freshIds = new Set(fresh.map(o => o.id));
+      const merged = [...fresh, ...stored.filter(o => !freshIds.has(o.id))];
+      setOrders(merged);
+      persistHistory(merged);
     } catch {
+      const stored = loadPersistedHistory();
+      if (stored.length > 0) setOrders(prev => {
+        const activeIds = new Set(prev.filter(o => !['LIVREE','ANNULEE'].includes(o.statut)).map(o => o.id));
+        return [...prev, ...stored.filter(o => !activeIds.has(o.id))];
+      });
       setError('Impossible de charger les commandes.');
     } finally {
       setLoading(false);
@@ -366,10 +398,11 @@ export default function KDSStaff() {
   useEffect(() => {
     if (!user?.id) return;
     const s = createCommandesSocket(user);
-    s.on('commande.nouvelle', p => { beep(); setLastEvent(`Nouvelle · CMD-${p?.numero || ''}`); load(); });
-    s.on('commande.statut',   p => { setLastEvent(`Statut · CMD-${p?.numero || ''}`); upsert(p); });
-    s.on('commande.paiement', p => upsert(p));
-    s.on('reconnect',         () => load());
+    s.on('commande.nouvelle',     p => { beep(); setLastEvent(`Nouvelle · CMD-${p?.numero || ''}`); load(); });
+    s.on('commande.b2b.nouvelle', p => { beep(); setLastEvent(`B2B · ${p?.entreprise || 'CMD-' + (p?.numero || '')}`); load(); });
+    s.on('commande.statut',       p => { setLastEvent(`Statut · CMD-${p?.numero || ''}`); upsert(p); });
+    s.on('commande.paiement',     p => upsert(p));
+    s.on('reconnect',             () => load());
     return () => s.disconnect();
   }, [load, upsert, user]);
 
@@ -380,10 +413,21 @@ export default function KDSStaff() {
   }, [load]);
 
   const onAction = async (id, statut) => {
+    if (statut === 'EN_PREP') {
+      const order = orders.find(o => o.id === id);
+      if (order && !order.estPaye) {
+        setError('💳 Paiement requis — Validez le paiement à la caisse avant de démarrer la préparation.');
+        return;
+      }
+    }
     setSaving(id);
     try {
       await commandesService.updateStatut(id, statut);
-      setOrders(prev => prev.map(o => o.id === id ? { ...o, statut } : o));
+      setOrders(prev => {
+        const updated = prev.map(o => o.id === id ? { ...o, statut } : o);
+        if (['LIVREE','ANNULEE'].includes(statut)) persistHistory(updated);
+        return updated;
+      });
     } catch {
       setError('Mise à jour impossible.');
     } finally {
@@ -422,73 +466,42 @@ export default function KDSStaff() {
         @keyframes kds-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
-      {/* ── HERO HEADER ── */}
+      {/* ── HEADER ── */}
       <div style={{
-        background: `linear-gradient(135deg, ${NAVY} 0%, #1F2937 100%)`,
-        borderRadius: 24, padding: '24px 28px', marginBottom: 24,
-        position: 'relative', overflow: 'hidden',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+        background: CARD, border: `1px solid ${BORDER}`, borderRadius: 20,
+        padding: '16px 20px', marginBottom: 20,
+        display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
       }}>
-        <div style={{ position: 'absolute', top: -30, right: -30, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,140,0,0.08)' }} />
-        <div style={{ position: 'absolute', bottom: -20, left: '40%', width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
-
-        <div style={{ position: 'relative', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: OG_G, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 14px ${OG}55` }}>
-                <ChefHat size={22} color="#fff" />
+        <div>
+          <h1 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: NAVY, letterSpacing: '-0.02em' }}>
+            KDS — Écran Cuisine
+          </h1>
+          <p style={{ margin: '3px 0 0', fontSize: 12, color: MUTED, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+            <span>{activeOrders.length} commande{activeOrders.length !== 1 ? 's' : ''} active{activeOrders.length !== 1 ? 's' : ''}</span>
+            {urgents > 0 && <span style={{ color: RED, fontWeight: 700 }}>· {urgents} en retard</span>}
+            {livreesToday > 0 && <span style={{ color: GREEN, fontWeight: 700 }}>· {livreesToday} livrée{livreesToday > 1 ? 's' : ''} auj.</span>}
+            {lastEvent && <span style={{ color: OG, fontWeight: 600 }}>· {lastEvent}</span>}
+          </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {COLS.map(col => {
+            const count = grouped.find(g => g.id === col.id)?.orders.length ?? 0;
+            return (
+              <div key={col.id} style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                padding: '7px 11px', borderRadius: 12, minWidth: 44,
+                background: count > 0 ? `${col.accent}10` : '#F9FAFB',
+                border: `1px solid ${count > 0 ? col.accent + '30' : BORDER}`,
+              }}>
+                <span style={{ fontSize: 15, fontWeight: 900, color: count > 0 ? col.accent : MUTED, lineHeight: 1 }}>{count}</span>
+                <span style={{ fontSize: 9, color: MUTED, fontWeight: 600 }}>{col.label.split(' ')[0]}</span>
               </div>
-              <div>
-                <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: OG, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-                  Cuisine en temps réel
-                </p>
-                <h1 style={{ margin: '2px 0 0', fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
-                  KDS — Écran Cuisine
-                </h1>
-              </div>
-            </div>
-
-            {/* Stats strip */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
-                {activeOrders.length} commande{activeOrders.length !== 1 ? 's' : ''} active{activeOrders.length !== 1 ? 's' : ''}
-              </span>
-              {urgents > 0 && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#FCA5A5', fontWeight: 700, background: 'rgba(220,38,38,0.18)', padding: '4px 11px', borderRadius: 99 }}>
-                  <Zap size={10} /> {urgents} en retard
-                </span>
-              )}
-              {livreesToday > 0 && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#6EE7B7', fontWeight: 700, background: 'rgba(22,163,74,0.18)', padding: '4px 11px', borderRadius: 99 }}>
-                  <CheckCheck size={10} /> {livreesToday} livrée{livreesToday > 1 ? 's' : ''} aujourd'hui
-                </span>
-              )}
-              {lastEvent && (
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', background: 'rgba(255,255,255,0.08)', padding: '4px 11px', borderRadius: 99, fontWeight: 600 }}>
-                  ⚡ {lastEvent}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {/* Statuts mini cards */}
-            {COLS.map(col => {
-              const count = grouped.find(g => g.id === col.id)?.orders.length ?? 0;
-              return (
-                <div key={col.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 14px', background: 'rgba(255,255,255,0.06)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', minWidth: 56 }}>
-                  <span style={{ fontSize: 16 }}>{col.icon}</span>
-                  <span style={{ fontSize: 18, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{count}</span>
-                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.45)', fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{col.label.split(' ')[0]}</span>
-                </div>
-              );
-            })}
-            <button
-              onClick={load}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '11px 16px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.09)', fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
-              <RefreshCw size={13} /> Actualiser
-            </button>
-          </div>
+            );
+          })}
+          <button onClick={load} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: 12, border: `1px solid ${BORDER}`, background: CARD, fontSize: 12, fontWeight: 700, color: MUTED, cursor: 'pointer' }}>
+            <RefreshCw size={12} /> Actualiser
+          </button>
         </div>
       </div>
 

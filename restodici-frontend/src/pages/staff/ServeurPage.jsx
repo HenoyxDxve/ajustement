@@ -10,15 +10,16 @@ import {
 } from 'lucide-react';
 import { menuAPI, commandesService } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import { getArticleImage } from '../../utils/articleImage';
 
 /* ── Palette ── */
-const TER     = '#ab3500';
-const TER_D   = '#8a2b00';
-const TER_L   = 'rgba(171,53,0,0.10)';
-const TER_G   = 'linear-gradient(135deg, #ab3500 0%, #ff6b35 100%)';
-const NAVY    = '#0F172A';
-const MUTED   = '#64748B';
-const FAINT   = '#94A3B8';
+const TER     = '#FF8C00';
+const TER_D   = '#E07A00';
+const TER_L   = 'rgba(255,140,0,0.10)';
+const TER_G   = 'linear-gradient(135deg, #FF8C00 0%, #E07A00 100%)';
+const NAVY    = '#111827';
+const MUTED   = '#6B7280';
+const FAINT   = '#6B7280';
 const BORDER  = '#E2E8F0';
 const SURFACE = '#F8FAFC';
 const CARD    = '#FFFFFF';
@@ -30,7 +31,7 @@ const STATUS_META = {
   RECUE:        { bg: '#dbeafe', color: '#1d4ed8', label: 'Reçue'       },
   CONFIRMEE:    { bg: '#ede9fe', color: '#6d28d9', label: 'Confirmée'   },
   EN_PREP:      { bg: '#fef3c7', color: '#b45309', label: 'En prép.'    },
-  PRETE:        { bg: '#d1fae5', color: '#065f46', label: 'Prête !'     },
+  PRETE:        { bg: '#d1fae5', color: '#065f46', label: 'Prête'       },
   EN_LIVRAISON: { bg: '#fce7f3', color: '#9d174d', label: 'Livraison'   },
 };
 
@@ -45,25 +46,21 @@ function ArticleCard({ art, qty, onAdd, onRemove }) {
       style={{
         background: CARD, borderRadius: 20, overflow: 'hidden',
         border: qty > 0 ? `2px solid ${TER}` : `1px solid ${BORDER}`,
-        boxShadow: qty > 0 ? `0 4px 20px rgba(171,53,0,0.18)` : '0 2px 10px rgba(15,23,42,0.06)',
+        boxShadow: qty > 0 ? `0 4px 20px rgba(255,140,0,0.18)` : '0 2px 10px rgba(15,23,42,0.06)',
         opacity: dispo ? 1 : 0.5, position: 'relative',
         transition: 'transform 0.12s, box-shadow 0.12s, border-color 0.15s',
         cursor: dispo ? 'default' : 'not-allowed',
       }}
-      onMouseEnter={e => { if (dispo) { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = qty > 0 ? `0 8px 28px rgba(171,53,0,0.25)` : '0 8px 24px rgba(15,23,42,0.1)'; } }}
-      onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = qty > 0 ? `0 4px 20px rgba(171,53,0,0.18)` : '0 2px 10px rgba(15,23,42,0.06)'; }}
+      onMouseEnter={e => { if (dispo) { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = qty > 0 ? `0 8px 28px rgba(255,140,0,0.22)` : '0 8px 24px rgba(15,23,42,0.1)'; } }}
+      onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = qty > 0 ? `0 4px 20px rgba(255,140,0,0.18)` : '0 2px 10px rgba(15,23,42,0.06)'; }}
     >
       {/* Image zone */}
       <div style={{ position: 'relative', width: '100%', height: 160, overflow: 'hidden', background: '#F1F5F9', flexShrink: 0 }}>
-        {art.photoUrl ? (
-          <img src={art.photoUrl} alt={art.nom}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.3s' }} />
-        ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'linear-gradient(135deg,#FFF5F0,#FFE8D6)' }}>
-            <span style={{ fontSize: 40 }}>🍽️</span>
-            <span style={{ fontSize: 8, fontWeight: 700, color: '#D1A89A', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Photo à venir</span>
-          </div>
-        )}
+        <img
+          src={getArticleImage(art, { width: 320, quality: 75 })}
+          alt={art.nom}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.3s' }}
+        />
 
         {/* Overlay rupture */}
         {!dispo && (
@@ -110,7 +107,7 @@ function ArticleCard({ art, qty, onAdd, onRemove }) {
               </>
             )}
             <button onClick={() => onAdd(art)}
-              style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: TER_G, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 3px 10px rgba(171,53,0,0.35)`, transition: 'transform 0.1s' }}
+              style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: TER_G, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 3px 10px rgba(255,140,0,0.22)`, transition: 'transform 0.1s' }}
               onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.1)')}
               onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}>
               <Plus size={13} color="#fff" />
@@ -239,7 +236,7 @@ export default function ServeurPage() {
       <div style={{
         background: TER_G, position: 'relative', overflow: 'hidden',
         padding: '20px 24px 18px',
-        boxShadow: '0 4px 20px rgba(171,53,0,0.3)',
+        boxShadow: '0 4px 20px rgba(255,140,0,0.22)',
       }}>
         <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
         <div style={{ position: 'absolute', bottom: -30, left: '35%', width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
@@ -264,7 +261,6 @@ export default function ServeurPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {/* Table select */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.18)', borderRadius: 14, padding: '10px 14px', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>
-              <span style={{ fontSize: 16 }}>🍽️</span>
               <select
                 value={table}
                 onChange={e => setTable(Number(e.target.value))}
@@ -334,7 +330,7 @@ export default function ServeurPage() {
                     background: active ? TER_G : CARD,
                     color: active ? '#fff' : MUTED,
                     fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
-                    boxShadow: active ? '0 3px 12px rgba(171,53,0,0.35)' : '0 1px 4px rgba(0,0,0,0.05)',
+                    boxShadow: active ? '0 3px 12px rgba(255,140,0,0.22)' : '0 1px 4px rgba(0,0,0,0.05)',
                     transform: active ? 'scale(1.03)' : 'scale(1)',
                     transition: 'all 0.14s',
                   }}>
@@ -389,10 +385,10 @@ export default function ServeurPage() {
         <div style={{ position: 'sticky', top: 20 }}>
 
           {/* Cart card */}
-          <div style={{ background: CARD, border: entries.length > 0 ? `1.5px solid ${TER}22` : `1px solid ${BORDER}`, borderRadius: 24, overflow: 'hidden', boxShadow: entries.length > 0 ? '0 8px 32px rgba(171,53,0,0.12)' : '0 2px 12px rgba(0,0,0,0.07)' }}>
+          <div style={{ background: CARD, border: entries.length > 0 ? `1.5px solid ${TER}22` : `1px solid ${BORDER}`, borderRadius: 24, overflow: 'hidden', boxShadow: entries.length > 0 ? '0 8px 32px rgba(255,140,0,0.12)' : '0 2px 12px rgba(0,0,0,0.07)' }}>
 
             {/* En-tête panier */}
-            <div style={{ background: entries.length > 0 ? TER_G : `linear-gradient(135deg, #1E293B, #0F172A)`, padding: '18px 20px' }}>
+            <div style={{ background: entries.length > 0 ? TER_G : `linear-gradient(135deg, #1F2937, #111827)`, padding: '18px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justify: 'space-between', gap: 10, marginBottom: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -429,10 +425,11 @@ export default function ServeurPage() {
                     <div key={e.art.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: SURFACE, borderRadius: 14, border: `1px solid ${BORDER}` }}>
                       {/* Thumb */}
                       <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F1F5F9', overflow: 'hidden', flexShrink: 0 }}>
-                        {e.art.photoUrl
-                          ? <img src={e.art.photoUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                          : <span style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🍽️</span>
-                        }
+                        <img
+                          src={getArticleImage(e.art, { width: 80, quality: 70 })}
+                          alt={e.art.nom}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
                       </div>
 
                       {/* Nom + prix */}
@@ -453,7 +450,7 @@ export default function ServeurPage() {
                         </button>
                         <span style={{ fontSize: 14, fontWeight: 900, color: NAVY, minWidth: 16, textAlign: 'center' }}>{e.qty}</span>
                         <button onClick={() => addToCart(e.art)}
-                          style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: TER_G, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(171,53,0,0.3)' }}>
+                          style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: TER_G, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(255,140,0,0.22)' }}>
                           <Plus size={10} color="#fff" />
                         </button>
                       </div>
@@ -491,13 +488,13 @@ export default function ServeurPage() {
                   background: entries.length === 0
                     ? '#E2E8F0'
                     : sending
-                      ? 'linear-gradient(135deg, #8a2b00, #cc5522)'
+                      ? 'linear-gradient(135deg, #E07A00, #FF8C00)'
                       : TER_G,
                   color: entries.length === 0 ? MUTED : '#fff',
                   fontSize: 15, fontWeight: 800,
                   cursor: entries.length === 0 || sending ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                  boxShadow: entries.length > 0 ? '0 6px 22px rgba(171,53,0,0.42)' : 'none',
+                  boxShadow: entries.length > 0 ? '0 6px 22px rgba(255,140,0,0.30)' : 'none',
                   transition: 'all 0.15s', letterSpacing: '0.01em',
                 }}>
                 {sending ? (

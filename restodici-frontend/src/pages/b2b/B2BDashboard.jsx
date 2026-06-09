@@ -3,9 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, Users, FileText, Settings,
   Plus, X, RefreshCw, AlertCircle, UtensilsCrossed, Download,
-  CalendarDays, Bell, CheckCircle, Trash2, Send,
+  CalendarDays, Bell, CheckCircle, Trash2, Send, Search,
   Menu, LogOut, Star, MapPin, Activity, ChevronRight, Shield,
-  Package, CreditCard, UserPlus, TrendingUp, Clock, Pencil, Check,
+  Package, CreditCard, UserPlus, TrendingUp, Clock, Pencil, Check, Eye,
 } from 'lucide-react';
 import { b2bAPI, authAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
@@ -23,7 +23,7 @@ const NAVY     = '#0F172A';      // sidebar & header dark
 const NAVY2    = '#1E293B';      // secondary dark
 const TEXT     = '#111827';
 const MUTED    = '#6B7280';
-const FAINT    = '#9CA3AF';
+const FAINT    = '#6B7280';
 const BORDER   = 'rgba(0,0,0,0.07)';
 
 // Couleurs sémantiques
@@ -297,8 +297,6 @@ function ViewFactureModal({ facture, onClose, onDownload }) {
               : `linear-gradient(135deg, #0F172A 0%, #1E293B 100%)`,
             borderBottom: '1px solid rgba(255,255,255,0.08)',
           }}>
-          <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full"
-            style={{ background: 'rgba(255,255,255,0.07)' }} />
           <div className="relative">
             <p className="text-[10px] font-black uppercase tracking-widest"
               style={{ color: isPaid ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)' }}>
@@ -420,11 +418,7 @@ function PayModal({ facture, onClose, onPaid }) {
         {/* Header */}
         <div className="relative overflow-hidden px-6 py-8"
           style={{ background: `linear-gradient(135deg, ${ORANGE} 0%, ${ORANGE_D} 100%)` }}>
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full"
-            style={{ background: 'rgba(255,255,255,0.10)' }} />
-          <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full"
-            style={{ background: 'rgba(255,255,255,0.07)' }} />
-          <div className="relative flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">Paiement de facture</p>
               <p className="text-2xl font-bold text-white mt-1">{formatFCFA(montant)}</p>
@@ -604,6 +598,286 @@ function B2BProfileDrawer({ user, onClose, profileForm, setProfileForm, onSave, 
   );
 }
 
+// ── SYSCOHADA Viewer Modal ─────────────────────────────────────────────────────
+function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDayOfMonth, lastDayDisplay, onClose, onDownload, downloading, userEmail }) {
+  const [captureGuard, setCaptureGuard] = useState(false);
+  const mois = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const TVA = 0.18;
+  const totalHT  = Math.round((monthlyExp || 0) / (1 + TVA));
+  const totalTVA = Math.round((monthlyExp || 0) - totalHT);
+  const totalTTC = Math.round(monthlyExp || 0);
+  const fcfa = n => `${Math.round(Number(n) || 0).toLocaleString('fr-FR')} FCFA`;
+
+  useEffect(() => {
+    const hide = () => setCaptureGuard(true);
+    const show = () => setCaptureGuard(false);
+    const onVis = () => { if (document.hidden) hide(); else show(); };
+    const onKey = e => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) e.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['s','S','4','3'].includes(e.key)) e.preventDefault();
+    };
+    window.addEventListener('blur', hide);
+    window.addEventListener('focus', show);
+    document.addEventListener('visibilitychange', onVis);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('blur', hide);
+      window.removeEventListener('focus', show);
+      document.removeEventListener('visibilitychange', onVis);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
+  const WM = `CONFIDENTIEL · ${userEmail || 'B2B'}`;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+         onClick={e => e.target === e.currentTarget && onClose()}>
+      <style>{`@media print { .syscohada-viewer-modal { display: none !important; } }`}</style>
+      <div className="syscohada-viewer-modal rounded-2xl overflow-hidden w-full max-w-4xl max-h-[90vh] flex flex-col relative"
+           style={{ background: '#fff', boxShadow: '0 24px 64px rgba(0,0,0,0.45)' }}
+           onContextMenu={e => e.preventDefault()}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 shrink-0"
+             style={{ background: '#0F172A', borderBottom: '2.5px solid #FF8C00' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,140,0,0.20)' }}>
+              <FileText className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm">Rapport SYSCOHADA · {mois}</p>
+              <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                Confidentiel · TVA 18% · Lecture seule · Capture désactivée
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isLastDayOfMonth ? (
+              <button onClick={onDownload} disabled={downloading}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg,#16A34A,#15803D)', opacity: downloading ? 0.7 : 1 }}>
+                {downloading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                {downloading ? 'Génération…' : 'Télécharger PDF'}
+              </button>
+            ) : (
+              <span className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold"
+                    style={{ background: '#FFFBEB', color: '#D97706' }}>
+                <Clock className="w-3.5 h-3.5" /> Dispo le {lastDayDisplay}
+              </span>
+            )}
+            <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.08)', color: '#9CA3AF' }}>
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Blur guard */}
+        {captureGuard && (
+          <div className="absolute inset-0 z-[300] flex flex-col items-center justify-center rounded-2xl"
+               style={{ background: 'rgba(15,23,42,0.96)' }}>
+            <Shield className="w-12 h-12 mb-3" style={{ color: '#FF8C00' }} />
+            <p className="text-white font-bold text-base">Contenu masqué</p>
+            <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              Cliquez dans la fenêtre pour afficher le rapport
+            </p>
+          </div>
+        )}
+
+        {/* Scrollable content */}
+        <div className="overflow-y-auto flex-1 relative" style={{ userSelect: 'none' }}>
+
+          {/* Watermark overlay */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5, overflow: 'hidden', display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start' }}>
+            {Array.from({ length: 28 }).map((_, i) => (
+              <div key={i} style={{ width: '50%', height: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(-20deg)', color: 'rgba(0,0,0,0.04)', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', whiteSpace: 'nowrap', userSelect: 'none' }}>
+                {WM}
+              </div>
+            ))}
+          </div>
+
+          <div className="p-6 space-y-5" style={{ position: 'relative', zIndex: 1 }}>
+
+            {/* Report header */}
+            <div className="rounded-2xl p-5" style={{ background: '#0F172A' }}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#FF8C00' }}>Rapport Mensuel SYSCOHADA</p>
+                  <p className="text-white font-bold text-base">Resto d'ici · Plateforme B2B</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>contact@restodici.ci · Abidjan, Côte d'Ivoire</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="px-3 py-1.5 rounded-xl text-xs font-bold text-white" style={{ background: '#FF8C00' }}>SYSCOHADA</span>
+                  <p className="text-[11px] mt-1.5" style={{ color: 'rgba(255,255,255,0.45)' }}>Période : {mois}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {[
+                  { title: 'PRESTATAIRE', lines: ["Resto d'ici", 'NIF : CI-ABJ-2024-001', 'RCCM : CI-ABJ-2024-B-001', "Abidjan, Côte d'Ivoire"] },
+                  { title: 'CLIENT', lines: [compte?.raisonSociale || 'Entreprise', `NIF : ${compte?.numeroContribuable || '—'}`, `RCCM : ${compte?.numeroRCCM || '—'}`, compte?.secteurActivite ? `Secteur : ${compte.secteurActivite}` : ''] },
+                ].map(({ title, lines }) => (
+                  <div key={title} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: '#FF8C00' }}>{title}</p>
+                    {lines.filter(Boolean).map((l, i) => (
+                      <p key={i} className="text-[12px]" style={{ color: i === 0 ? '#fff' : 'rgba(255,255,255,0.5)', fontWeight: i === 0 ? 600 : 400 }}>{l}</p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 1 — Collaborateurs */}
+            <div>
+              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#0F172A' }}>
+                <p className="text-white font-bold text-[12px] uppercase tracking-wider">1. Synthèse budgétaire par collaborateur</p>
+              </div>
+              <div className="rounded-b-xl overflow-x-auto border border-t-0" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+                {collabs.length === 0 ? (
+                  <div className="py-8 text-center text-[13px]" style={{ color: '#6B7280' }}>Aucun collaborateur enregistré</div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead style={{ background: '#F8FAFC' }}>
+                      <tr>{['N°','Collaborateur','Poste','Budget','Dépensé','Solde','Taux'].map(h => (
+                        <th key={h} style={{ padding: '10px 12px', textAlign: ['Budget','Dépensé','Solde','Taux'].includes(h) ? 'right' : h === 'N°' ? 'center' : 'left', fontWeight: 700, color: '#374151', borderBottom: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}</tr>
+                    </thead>
+                    <tbody>
+                      {collabs.map((c, i) => {
+                        const bgt = Number(c.limiteBudget || c.budgetMax || 0);
+                        const dep = Number(c.depenseActuelle || c.depenses || 0);
+                        const sol = Math.max(0, bgt - dep);
+                        const pct = bgt > 0 ? Math.round((dep / bgt) * 100) : 0;
+                        return (
+                          <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFC' }}>
+                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#6B7280' }}>{i + 1}</td>
+                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#111827' }}>{c.nom || '—'}</td>
+                            <td style={{ padding: '9px 12px', color: '#6B7280' }}>{c.poste || '—'}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(bgt)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(dep)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 600, color: sol > 0 ? '#16A34A' : '#DC2626' }}>{fcfa(sol)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: pct >= 100 ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A' }}>{pct} %</td>
+                          </tr>
+                        );
+                      })}
+                      {(() => {
+                        const tb = collabs.reduce((s, c) => s + Number(c.limiteBudget || 0), 0);
+                        const td = collabs.reduce((s, c) => s + Number(c.depenseActuelle || 0), 0);
+                        const ts = Math.max(0, tb - td);
+                        const tp = tb > 0 ? Math.round((td / tb) * 100) : 0;
+                        return (
+                          <tr style={{ background: '#F1F5F9', fontWeight: 700 }}>
+                            <td style={{ padding: '9px 12px' }}></td>
+                            <td style={{ padding: '9px 12px', color: '#111827' }}>TOTAL</td>
+                            <td style={{ padding: '9px 12px' }}></td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(tb)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(td)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: ts > 0 ? '#16A34A' : '#DC2626' }}>{fcfa(ts)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{tp} %</td>
+                          </tr>
+                        );
+                      })()}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+
+            {/* Section 2 — Factures */}
+            <div>
+              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#0F172A' }}>
+                <p className="text-white font-bold text-[12px] uppercase tracking-wider">2. Détail des factures mensuelles</p>
+              </div>
+              <div className="rounded-b-xl overflow-x-auto border border-t-0" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+                {factures.length === 0 ? (
+                  <div className="py-8 text-center text-[13px]" style={{ color: '#6B7280' }}>Aucune facture émise</div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead style={{ background: '#F8FAFC' }}>
+                      <tr>{['N°','Référence','Période','Échéance','Montant HT','TVA 18%','TTC','Statut'].map(h => (
+                        <th key={h} style={{ padding: '10px 12px', textAlign: ['Montant HT','TVA 18%','TTC'].includes(h) ? 'right' : h === 'N°' ? 'center' : 'left', fontWeight: 700, color: '#374151', borderBottom: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}</tr>
+                    </thead>
+                    <tbody>
+                      {factures.map((f, i) => {
+                        const ttc = Number(f.montantTTC || f.montantTotal || 0);
+                        const ht = Math.round(ttc / (1 + TVA));
+                        const tva = ttc - ht;
+                        const paid = f.statut === 'PAYEE' || f.statut === 'paid';
+                        return (
+                          <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFC' }}>
+                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#6B7280' }}>{i + 1}</td>
+                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#111827' }}>{f.numeroFacture || `FAC-${String(i+1).padStart(3,'0')}`}</td>
+                            <td style={{ padding: '9px 12px', color: '#6B7280' }}>{f.periode || f.mois || '—'}</td>
+                            <td style={{ padding: '9px 12px', color: '#6B7280' }}>{f.echeance ? new Date(f.echeance).toLocaleDateString('fr-FR') : '—'}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(ht)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(tva)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#111827' }}>{fcfa(ttc)}</td>
+                            <td style={{ padding: '9px 12px' }}>
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold"
+                                    style={{ background: paid ? '#DCFCE7' : '#FFFBEB', color: paid ? '#15803D' : '#D97706' }}>
+                                {paid ? 'PAYÉE' : 'EN ATTENTE'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+
+            {/* Section 3 — Récapitulatif fiscal */}
+            <div>
+              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#0F172A' }}>
+                <p className="text-white font-bold text-[12px] uppercase tracking-wider">3. Récapitulatif fiscal (SYSCOHADA / DGI-CI)</p>
+              </div>
+              <div className="rounded-b-xl overflow-hidden border border-t-0" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <thead style={{ background: '#F8FAFC' }}>
+                    <tr>{['Désignation','Base HT','Taux TVA','Montant TVA','Total TTC'].map(h => (
+                      <th key={h} style={{ padding: '10px 12px', textAlign: h === 'Désignation' ? 'left' : 'right', fontWeight: 700, color: '#374151', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>{h}</th>
+                    ))}</tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ background: '#fff' }}>
+                      <td style={{ padding: '9px 12px', color: '#111827' }}>Restauration collective B2B</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalHT)}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#6B7280' }}>18 %</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalTVA)}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#111827' }}>{fcfa(totalTTC)}</td>
+                    </tr>
+                    <tr style={{ background: '#F1F5F9', fontWeight: 700 }}>
+                      <td style={{ padding: '9px 12px', color: '#111827' }}>TOTAL GÉNÉRAL</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalHT)}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#6B7280' }}>18 %</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalTVA)}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#FF8C00' }}>{fcfa(totalTTC)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Mentions légales */}
+            <div className="rounded-xl p-4" style={{ background: '#F8FAFC', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <p className="text-[11px] italic" style={{ color: '#6B7280' }}>
+                Conformément au Système Comptable OHADA (SYSCOHADA Révisé) · TVA collectée au taux de 18%
+                conformément au Code Général des Impôts de la Côte d'Ivoire — Article 339 CGI-CI.
+              </p>
+              <p className="text-[11px] mt-1.5 font-semibold" style={{ color: '#9CA3AF' }}>
+                Document confidentiel · {userEmail || 'Gestionnaire B2B'} · Généré le {new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main dashboard ─────────────────────────────────────────────────────────────
 export default function B2BDashboard() {
   const { user, logout, syncUser } = useAuth();
@@ -653,6 +927,7 @@ export default function B2BDashboard() {
   const [showSubForm, setShowSubForm]       = useState(false);
   const [subForm, setSubForm]               = useState({ nom: '', frequence: 'HEBDO', nbRepas: 1, budgetRepas: '', notes: '' });
   const [subFormErr, setSubFormErr]         = useState('');
+  const [viewingSyscohada, setViewingSyscohada] = useState(false);
 
   const loadData = useCallback(async (silent = false) => {
     if (!silent) setLoading(true); else setRefreshing(true);
@@ -864,10 +1139,17 @@ export default function B2BDashboard() {
   const filteredOrders = orders.filter((o) => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return true;
-    const text = `${o.numero || ''} ${o.restaurantNom || ''} ${o.centreDeCout || o.centre || o.costCenter || ''}`.toLowerCase();
+    const text = [
+      o.numero, o.restaurantNom, o.centreDeCout, o.centre, o.costCenter,
+      o.statut, o.status,
+    ].filter(Boolean).join(' ').toLowerCase();
     return text.includes(q);
   });
-  const displayed     = orderFilter === 'active' ? activeOrders : orderFilter === 'done' ? doneOrders : orders;
+  const displayed = orderFilter === 'active'
+    ? filteredOrders.filter(o => ACTIVE.includes(o.statut ?? o.status ?? ''))
+    : orderFilter === 'done'
+      ? filteredOrders.filter(o => ['LIVREE','ANNULEE'].includes(o.statut ?? o.status ?? ''))
+      : filteredOrders;
   const monthlyExp    = dashboard?.monthlyExpenses || 0;
   const budgetTotal   = compte?.budgetMensuel || dashboard?.budgetMensuel || 0;
   const budgetPct     = budgetTotal > 0 ? Math.min(100, Math.round((monthlyExp / budgetTotal) * 100)) : 0;
@@ -886,6 +1168,13 @@ export default function B2BDashboard() {
   }, {});
   const unreadCount   = notifications.filter(n => !n.read).length;
   const markAllRead   = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+
+  // Export SYSCOHADA uniquement le dernier jour du mois
+  const todayDate = new Date();
+  const lastDayOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0);
+  const isLastDayOfMonth = todayDate.getDate() === lastDayOfMonth.getDate();
+  const daysUntilExport = lastDayOfMonth.getDate() - todayDate.getDate();
+  const lastDayDisplay = lastDayOfMonth.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
 
   const handleNotifClick = (notif) => {
     setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
@@ -1057,11 +1346,22 @@ export default function B2BDashboard() {
             </div>
 
             {/* Search */}
-            <div className="hidden md:flex flex-1 max-w-sm">
-              <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Rechercher une commande, centre de coûts…"
-                className="w-full rounded-xl border px-4 py-2 text-sm outline-none transition"
-                style={{ borderColor: BORDER, background: BG, color: TEXT }} />
+            <div className="hidden md:flex flex-1 max-w-sm relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: MUTED }} />
+              <input
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Rechercher commande, centre de coûts…"
+                className="w-full rounded-xl border pl-9 pr-8 py-2 text-sm outline-none transition"
+                style={{ borderColor: searchQuery ? ORANGE : BORDER, background: BG, color: TEXT, boxShadow: searchQuery ? `0 0 0 3px ${ORANGE}18` : 'none' }}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full flex items-center justify-center transition hover:opacity-70"
+                  style={{ background: MUTED + '33', color: MUTED }}>
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              )}
             </div>
 
 
@@ -1081,17 +1381,6 @@ export default function B2BDashboard() {
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
-              </button>
-              {/* Nouvelle commande — orange (CTA principal) */}
-              <button onClick={() => !isBlocked && navigate('/b2b/order')}
-                disabled={isBlocked}
-                className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition hover:opacity-90"
-                style={{
-                  background: isBlocked ? '#9CA3AF' : `linear-gradient(135deg, ${ORANGE}, ${ORANGE_D})`,
-                  cursor: isBlocked ? 'not-allowed' : 'pointer',
-                  boxShadow: isBlocked ? 'none' : `0 2px 8px ${ORANGE}50`,
-                }}>
-                <Plus className="w-3.5 h-3.5" /> Nouvelle commande
               </button>
               {/* Avatar profil — avec indicateur visuel pour inviter au clic */}
               <div className="relative group">
@@ -1186,12 +1475,26 @@ export default function B2BDashboard() {
                       : `Bonjour, ${user?.prenom || user?.nom?.split(' ')[0] || 'Gestionnaire'} 👋`}
                   </h3>
                 </div>
-                <button onClick={downloadSyscohadaReport} disabled={downloading}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                  style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, boxShadow: `0 3px 12px ${GREEN}40`, opacity: downloading ? 0.7 : 1 }}>
-                  {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                  {downloading ? 'Génération…' : 'Exporter SYSCOHADA'}
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button onClick={() => setViewingSyscohada(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition hover:opacity-80"
+                    style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }}>
+                    <Eye className="w-4 h-4" /> Voir rapport
+                  </button>
+                  {isLastDayOfMonth ? (
+                    <button onClick={downloadSyscohadaReport} disabled={downloading}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+                      style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, boxShadow: `0 3px 12px ${GREEN}40`, opacity: downloading ? 0.7 : 1 }}>
+                      {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                      {downloading ? 'Génération…' : 'Télécharger SYSCOHADA'}
+                    </button>
+                  ) : (
+                    <span className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                      style={{ background: AMBER_L, color: AMBER }}>
+                      <Clock className="w-4 h-4" /> Export le {lastDayDisplay}
+                    </span>
+                  )}
+                </div>
               </section>
 
               {/* Blocked banner */}
@@ -1318,12 +1621,7 @@ export default function B2BDashboard() {
                     background: `linear-gradient(135deg, ${ORANGE} 0%, #FF6B00 50%, ${ORANGE_D} 100%)`,
                     boxShadow: `0 8px 28px ${ORANGE}50`,
                   }}>
-                  <div className="absolute -bottom-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
-                    style={{ background: 'rgba(255,255,255,0.10)' }} />
-                  <div className="absolute top-4 right-4 opacity-20 pointer-events-none">
-                    <UtensilsCrossed className="w-12 h-12 text-white" />
-                  </div>
-                  <div className="relative space-y-3">
+                  <div className="space-y-3">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
                       style={{ background: 'rgba(255,255,255,0.20)' }}>
                       <Users className="w-6 h-6 text-white" />
@@ -1333,18 +1631,28 @@ export default function B2BDashboard() {
                       Planifiez les repas groupés de la semaine pour vos {collabs.length > 0 ? `${collabs.length} collaborateur${collabs.length > 1 ? 's' : ''}` : 'équipes'}.
                     </p>
                   </div>
-                  <button
-                    onClick={() => !isBlocked && navigate('/b2b/order')}
-                    disabled={isBlocked}
-                    className="relative mt-8 w-full py-3.5 rounded-xl font-bold text-sm transition hover:opacity-90"
-                    style={{
-                      background: isBlocked ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.22)',
-                      color: '#fff',
-                      border: '1px solid rgba(255,255,255,0.30)',
-                      cursor: isBlocked ? 'not-allowed' : 'pointer',
-                    }}>
-                    {isBlocked ? 'Commandes désactivées' : 'Planifier une commande'}
-                  </button>
+                  {isBlocked ? (
+                    <button disabled
+                      className="relative mt-8 w-full py-3.5 rounded-xl font-bold text-sm"
+                      style={{ background: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.5)', cursor: 'not-allowed' }}>
+                      Commandes désactivées
+                    </button>
+                  ) : (
+                    <div className="mt-8 flex flex-col gap-2">
+                      <button onClick={() => navigate('/b2b/order?mode=instant')}
+                        className="w-full py-3 rounded-xl font-bold text-sm transition hover:opacity-90"
+                        style={{ background: 'rgba(255,255,255,0.22)', color: '#fff', border: '1px solid rgba(255,255,255,0.30)' }}>
+                        ⚡ Commander maintenant
+                      </button>
+                      <button onClick={() => navigate('/b2b/order?mode=schedule')}
+                        className="w-full py-2.5 rounded-xl font-semibold text-sm transition hover:opacity-80"
+                        style={{ background: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.20)' }}>
+                        <span className="flex items-center justify-center gap-1.5">
+                          <CalendarDays className="w-4 h-4" /> Planifier pour plus tard
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* ── Historique commandes — col 12 ─────────────────────────── */}
@@ -1482,12 +1790,32 @@ export default function B2BDashboard() {
                       </div>
                     )}
                   </div>
-                  <button onClick={downloadSyscohadaReport} disabled={downloading}
-                    className="mt-8 w-full py-4 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 transition hover:opacity-90"
-                    style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, boxShadow: `0 4px 16px ${GREEN}40`, opacity: downloading ? 0.7 : 1 }}>
-                    {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                    {downloading ? 'Génération…' : 'Télécharger Rapport Mensuel'}
-                  </button>
+                  <div className="mt-8 space-y-2.5">
+                    <button onClick={() => setViewingSyscohada(true)}
+                      className="w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition hover:opacity-80"
+                      style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }}>
+                      <Eye className="w-4 h-4" /> Voir le rapport
+                    </button>
+                    {isLastDayOfMonth ? (
+                      <button onClick={downloadSyscohadaReport} disabled={downloading}
+                        className="w-full py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 transition hover:opacity-90"
+                        style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, boxShadow: `0 4px 16px ${GREEN}40`, opacity: downloading ? 0.7 : 1 }}>
+                        {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                        {downloading ? 'Génération…' : 'Télécharger Rapport Mensuel'}
+                      </button>
+                    ) : (
+                      <div className="rounded-2xl p-3.5 flex items-center gap-3"
+                        style={{ background: AMBER_L, border: `1px solid #FDE68A` }}>
+                        <Clock className="w-4 h-4 shrink-0" style={{ color: AMBER }} />
+                        <div>
+                          <p className="text-[12px] font-bold" style={{ color: AMBER }}>Téléchargement le {lastDayDisplay}</p>
+                          <p className="text-[11px]" style={{ color: '#92400E' }}>
+                            {daysUntilExport > 1 ? `encore ${daysUntilExport} jours` : 'demain'} · OHADA · TVA 18%
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* ── Centres de coûts — bar chart — col 7 ─────────────────── */}
@@ -1554,11 +1882,18 @@ export default function B2BDashboard() {
                     {activeOrders.length} active{activeOrders.length !== 1 ? 's' : ''} · {orders.length} au total
                   </p>
                 </div>
-                <Link to="/b2b/order"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                  style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_D})`, boxShadow: `0 2px 8px ${ORANGE}40` }}>
-                  <Plus className="w-4 h-4" /> Nouvelle commande
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link to="/b2b/order?mode=schedule"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition hover:opacity-80"
+                    style={{ background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE' }}>
+                    <CalendarDays className="w-4 h-4" /> Planifier
+                  </Link>
+                  <Link to="/b2b/order?mode=instant"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+                    style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_D})`, boxShadow: `0 2px 8px ${ORANGE}40` }}>
+                    <Plus className="w-4 h-4" /> Nouvelle commande
+                  </Link>
+                </div>
               </div>
 
               <div className="flex gap-2 flex-wrap">
@@ -1593,7 +1928,7 @@ export default function B2BDashboard() {
                     </div>
                     <p className="text-sm font-bold mb-1" style={{ color: TEXT }}>Aucune commande</p>
                     <p className="text-xs mb-5" style={{ color: FAINT }}>Passez votre première commande d'équipe</p>
-                    <Link to="/b2b/order"
+                    <Link to="/b2b/order?mode=instant"
                       className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
                       style={{ background: ORANGE }}>
                       <Plus className="w-4 h-4" /> Commander maintenant
@@ -1963,12 +2298,26 @@ export default function B2BDashboard() {
                     Factures mensuelles consolidées · SYSCOHADA TVA 18%
                   </p>
                 </div>
-                <button onClick={downloadSyscohadaReport} disabled={downloading}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                  style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, boxShadow: `0 2px 8px ${GREEN}40`, opacity: downloading ? 0.7 : 1 }}>
-                  {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                  {downloading ? 'Génération…' : 'Rapport SYSCOHADA PDF'}
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button onClick={() => setViewingSyscohada(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition hover:opacity-80"
+                    style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }}>
+                    <Eye className="w-4 h-4" /> Voir SYSCOHADA
+                  </button>
+                  {isLastDayOfMonth ? (
+                    <button onClick={downloadSyscohadaReport} disabled={downloading}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+                      style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, boxShadow: `0 2px 8px ${GREEN}40`, opacity: downloading ? 0.7 : 1 }}>
+                      {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                      {downloading ? 'Génération…' : 'Télécharger PDF'}
+                    </button>
+                  ) : (
+                    <span className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                      style={{ background: AMBER_L, color: AMBER }}>
+                      <Clock className="w-4 h-4" /> Export le {lastDayDisplay}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* KPI factures */}
@@ -2311,86 +2660,92 @@ export default function B2BDashboard() {
 
           {/* ══ PARAMÈTRES ═══════════════════════════════════════════════════════ */}
           {tab === 'settings' && (
-            <div className="space-y-5 max-w-3xl">
-              <div>
-                <h2 className="text-lg font-bold" style={{ color: TEXT }}>Paramètres</h2>
-                <p className="text-[12px] mt-0.5" style={{ color: FAINT }}>Profil et sécurité de votre compte</p>
+            <div className="space-y-6 max-w-4xl">
+
+              {/* ── En-tête */}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold" style={{ color: TEXT }}>Paramètres</h2>
+                  <p className="text-[12px] mt-0.5" style={{ color: FAINT }}>Gérez votre profil, votre entreprise et vos accès</p>
+                </div>
+                <button onClick={() => setShowLogoutModal(true)}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[12px] font-semibold border transition hover:opacity-80"
+                  style={{ borderColor: BORDER, color: MUTED, background: CARD }}>
+                  <LogOut className="w-3.5 h-3.5" /> Déconnexion
+                </button>
               </div>
 
-              <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-                {/* Left — profil form */}
-                <div className="rounded-2xl overflow-hidden" style={{ background: CARD, boxShadow: SH2 }}>
-                  <div className="flex items-center justify-between gap-4 px-6 py-5"
-                    style={{ borderBottom: `1px solid ${BORDER}` }}>
-                    <div className="flex items-center gap-4">
+              <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
+
+                {/* ── Colonne gauche */}
+                <div className="space-y-5">
+
+                  {/* Profil */}
+                  <div className="rounded-2xl overflow-hidden" style={{ background: CARD, boxShadow: SH2 }}>
+                    <div className="flex items-center gap-4 px-6 py-5" style={{ borderBottom: `1px solid ${BORDER}` }}>
                       <Avatar name={user?.nom || 'B2B'} size={52} />
                       <div>
-                        <p className="text-base font-bold" style={{ color: TEXT }}>{user?.nom || 'Gestionnaire'}</p>
-                        <p className="text-[12px] mt-0.5" style={{ color: FAINT }}>
-                          {compte?.raisonSociale || 'Responsable B2B'}
-                        </p>
+                        <p className="text-base font-bold" style={{ color: TEXT }}>{user?.prenom ? `${user.prenom} ${user.nom || ''}`.trim() : (user?.nom || 'Gestionnaire')}</p>
+                        <p className="text-[12px] mt-0.5" style={{ color: FAINT }}>{user?.email || ''}</p>
+                        <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                          style={{ background: `${ORANGE}18`, color: ORANGE }}>
+                          Gestionnaire B2B
+                        </span>
                       </div>
                     </div>
-                    {/* Déconnexion — neutre, discret */}
-                    <button onClick={() => setShowLogoutModal(true)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold border transition hover:opacity-80"
-                      style={{ borderColor: BORDER, color: MUTED, background: BG }}>
-                      <LogOut className="w-3.5 h-3.5" /> Se déconnecter
-                    </button>
+                    <form onSubmit={handleProfileSave} className="p-6 space-y-4">
+                      <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: FAINT }}>Informations personnelles</p>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {[
+                          { k: 'prenom',    label: 'Prénom',     type: 'text'  },
+                          { k: 'nom',       label: 'Nom',        type: 'text'  },
+                          { k: 'email',     label: 'Email',      type: 'email' },
+                          { k: 'telephone', label: 'Téléphone',  type: 'tel'   },
+                        ].map(f => (
+                          <div key={f.k} className={f.k === 'email' ? 'sm:col-span-2' : ''}>
+                            <label className="block text-[11px] font-bold mb-1.5" style={{ color: MUTED }}>{f.label}</label>
+                            <input value={profileForm[f.k] || ''} type={f.type}
+                              onChange={e => setProfileForm(p => ({ ...p, [f.k]: e.target.value }))}
+                              className="w-full rounded-xl px-3.5 py-3 text-sm outline-none transition"
+                              style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }} />
+                          </div>
+                        ))}
+                      </div>
+                      {profileMsg && (
+                        <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                          style={{ background: profileMsg.includes('Erreur') ? RED_L : GREEN_L, border: `1px solid ${profileMsg.includes('Erreur') ? '#FECACA' : '#BBF7D0'}` }}>
+                          {profileMsg.includes('Erreur')
+                            ? <AlertCircle className="w-3.5 h-3.5 shrink-0" style={{ color: RED }} />
+                            : <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color: GREEN }} />}
+                          <p className="text-xs font-semibold" style={{ color: profileMsg.includes('Erreur') ? RED : GREEN }}>{profileMsg}</p>
+                        </div>
+                      )}
+                      <button type="submit"
+                        className="w-full py-3.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+                        style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_D})`, boxShadow: `0 2px 8px ${ORANGE}40` }}>
+                        Enregistrer les modifications
+                      </button>
+                    </form>
                   </div>
 
-                  <form onSubmit={handleProfileSave} className="p-6 space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {[
-                        { k: 'nom',       label: 'Nom complet',  type: 'text'  },
-                        { k: 'email',     label: 'Email',        type: 'email' },
-                        { k: 'telephone', label: 'Téléphone',    type: 'tel'   },
-                      ].map(f => (
-                        <div key={f.k} className={f.k === 'email' ? 'sm:col-span-2' : ''}>
-                          <label className="block text-[11px] font-bold mb-1.5" style={{ color: MUTED }}>{f.label}</label>
-                          <input value={profileForm[f.k] || ''} type={f.type}
-                            onChange={e => setProfileForm(p => ({ ...p, [f.k]: e.target.value }))}
-                            className="w-full rounded-xl px-3.5 py-3 text-sm outline-none transition"
-                            style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }} />
-                        </div>
-                      ))}
-                    </div>
-                    {profileMsg && (
-                      <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
-                        style={{
-                          background: profileMsg.includes('Erreur') ? RED_L : GREEN_L,
-                          border: `1px solid ${profileMsg.includes('Erreur') ? '#FECACA' : '#BBF7D0'}`,
-                        }}>
-                        {profileMsg.includes('Erreur')
-                          ? <AlertCircle className="w-3.5 h-3.5 shrink-0" style={{ color: RED }} />
-                          : <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color: GREEN }} />}
-                        <p className="text-xs font-semibold"
-                          style={{ color: profileMsg.includes('Erreur') ? RED : GREEN }}>
-                          {profileMsg}
-                        </p>
-                      </div>
-                    )}
-                    {/* Enregistrer — orange */}
-                    <button type="submit"
-                      className="w-full py-3.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                      style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_D})`, boxShadow: `0 2px 8px ${ORANGE}40` }}>
-                      Enregistrer les modifications
-                    </button>
-                  </form>
+                  {/* Sécurité */}
+                  <SecurityPanel user={user} accentColor={ORANGE} />
                 </div>
 
-                {/* Right — info entreprise */}
-                <div className="space-y-4">
+                {/* ── Colonne droite */}
+                <div className="space-y-5">
+
+                  {/* Entreprise */}
                   {compte && (
                     <div className="rounded-2xl p-6" style={{ background: CARD, boxShadow: SH2 }}>
-                      <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: FAINT }}>
-                        Entreprise
-                      </p>
+                      <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: FAINT }}>Entreprise</p>
                       {[
                         { label: 'Raison sociale', value: compte.raisonSociale },
+                        { label: 'Secteur', value: compte.secteurActivite },
                         { label: 'RCCM', value: compte.numeroRCCM },
                         { label: 'NIF', value: compte.numeroContribuable },
                         { label: 'Budget mensuel', value: formatFCFA(compte.budgetMensuel || 0) },
+                        { label: 'Collaborateurs', value: collabs.length ? `${collabs.length} membre${collabs.length > 1 ? 's' : ''}` : null },
                       ].filter(r => r.value).map(r => (
                         <div key={r.label} className="flex items-center justify-between py-2.5"
                           style={{ borderBottom: `1px solid ${BORDER}` }}>
@@ -2404,31 +2759,67 @@ export default function B2BDashboard() {
                   {/* Rapport SYSCOHADA */}
                   <div className="rounded-2xl p-6" style={{ background: CARD, boxShadow: SH2 }}>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ background: GREEN_L }}>
-                        <Download className="w-5 h-5" style={{ color: GREEN }} />
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: GREEN_L }}>
+                        <FileText className="w-5 h-5" style={{ color: GREEN }} />
                       </div>
                       <div>
                         <p className="text-sm font-bold" style={{ color: TEXT }}>Rapport SYSCOHADA</p>
-                        <p className="text-[11px]" style={{ color: FAINT }}>TVA 18% · OHADA</p>
+                        <p className="text-[11px]" style={{ color: FAINT }}>TVA 18% · Norme OHADA · Côte d'Ivoire</p>
                       </div>
                     </div>
-                    <button onClick={downloadSyscohadaReport} disabled={downloading}
-                      className="w-full rounded-xl py-3 text-sm font-bold text-white flex items-center justify-center gap-2 transition hover:opacity-90"
-                      style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, opacity: downloading ? 0.7 : 1 }}>
-                      {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                      {downloading ? 'Génération…' : 'Télécharger le rapport'}
+
+                    {/* Voir — toujours disponible */}
+                    <button onClick={() => setViewingSyscohada(true)}
+                      className="w-full rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 transition hover:opacity-80 mb-3"
+                      style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }}>
+                      <Eye className="w-4 h-4" /> Consulter le rapport
                     </button>
+
+                    {/* Télécharger — fin de mois uniquement */}
+                    {isLastDayOfMonth ? (
+                      <button onClick={downloadSyscohadaReport} disabled={downloading}
+                        className="w-full rounded-xl py-3 text-sm font-bold text-white flex items-center justify-center gap-2 transition hover:opacity-90"
+                        style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, opacity: downloading ? 0.7 : 1 }}>
+                        {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                        {downloading ? 'Génération…' : 'Télécharger (PDF)'}
+                      </button>
+                    ) : (
+                      <div className="rounded-xl p-3.5 flex items-center gap-3"
+                        style={{ background: AMBER_L, border: `1px solid #FDE68A` }}>
+                        <Clock className="w-4 h-4 shrink-0" style={{ color: AMBER }} />
+                        <div>
+                          <p className="text-[12px] font-bold" style={{ color: AMBER }}>Téléchargement le {lastDayDisplay}</p>
+                          <p className="text-[11px]" style={{ color: '#92400E' }}>
+                            {daysUntilExport > 1 ? `encore ${daysUntilExport} jours` : 'disponible demain'} · Format PDF OHADA
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
                 </div>
               </div>
-
-              <SecurityPanel user={user} accentColor={ORANGE} />
             </div>
           )}
 
         </main>
       </div>
+
+      {/* ── SYSCOHADA Viewer */}
+      {viewingSyscohada && (
+        <SyscohadaViewerModal
+          collabs={collabs}
+          factures={factures}
+          compte={compte}
+          monthlyExp={monthlyExp}
+          isLastDayOfMonth={isLastDayOfMonth}
+          lastDayDisplay={lastDayDisplay}
+          onClose={() => setViewingSyscohada(false)}
+          onDownload={downloadSyscohadaReport}
+          downloading={downloading}
+          userEmail={user?.email}
+        />
+      )}
 
       {/* ── Invite modal */}
       {showInvite && <InviteModal onClose={() => setShowInvite(false)} onSave={handleInvite} />}

@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -12,18 +17,22 @@ import { CommandesGateway } from '../commandes/commandes.gateway';
 import { SmsService } from '../notifications/sms.service';
 import { FcmService } from '../notifications/fcm.service';
 import { RECEIPT_QUEUE } from '../receipt-queue/receipt-queue.constants';
-import { NovaSendService, NovaSendProvider, InitiatePaymentResult } from './novasend.service';
+import {
+  NovaSendService,
+  NovaSendProvider,
+  InitiatePaymentResult,
+} from './novasend.service';
 import { InitierPaiementDto } from './dto/initier-paiement.dto';
 
 // Correspondance provider NovaSend → enum ModePaiementCommande
 // CARTE sera actif dès que NovaSend supportera les paiements carte
 const PROVIDER_TO_MODE: Record<NovaSendProvider, ModePaiementCommande> = {
-  WAVE:     ModePaiementCommande.WAVE,
+  WAVE: ModePaiementCommande.WAVE,
   NOVASEND: ModePaiementCommande.NOVASEND,
-  ORANGE:   ModePaiementCommande.ORANGE_MONEY,
-  MOMO:     ModePaiementCommande.MTN_MONEY,
-  MOOV:     ModePaiementCommande.MOOV_MONEY,
-  CARTE:    ModePaiementCommande.CARTE_BANCAIRE,
+  ORANGE: ModePaiementCommande.ORANGE_MONEY,
+  MOMO: ModePaiementCommande.MTN_MONEY,
+  MOOV: ModePaiementCommande.MOOV_MONEY,
+  CARTE: ModePaiementCommande.CARTE_BANCAIRE,
 };
 
 @Injectable()
@@ -44,7 +53,9 @@ export class PaiementsService {
   ) {}
 
   // ── Initier un paiement digital ────────────────────────────────────────────
-  async initiatePayment(dto: InitierPaiementDto): Promise<InitiatePaymentResult> {
+  async initiatePayment(
+    dto: InitierPaiementDto,
+  ): Promise<InitiatePaymentResult> {
     const commande = await this.commandeRepo.findOne({
       where: { id: dto.commandeId },
       relations: ['client'],
@@ -53,19 +64,23 @@ export class PaiementsService {
     if (commande.estPaye) throw new BadRequestException('Commande déjà payée');
 
     return this.novaSend.initiate({
-      reference:    dto.commandeId,
-      amount:       dto.montant,
+      reference: dto.commandeId,
+      amount: dto.montant,
       customerName: dto.customerName || commande.client?.nom || 'Client',
-      telephone:    dto.telephone,
-      provider:     dto.provider,
+      telephone: dto.telephone,
+      provider: dto.provider,
+      otp: dto.otp,
     });
   }
 
   // ── Simulation : déclenche le webhook en interne (dev uniquement) ──────────
-  async confirmSimulation(commandeId: string, provider: NovaSendProvider): Promise<void> {
+  async confirmSimulation(
+    commandeId: string,
+    provider: NovaSendProvider,
+  ): Promise<void> {
     await this.handleNovasendWebhook({
       reference: commandeId,
-      status:    'success',
+      status: 'success',
       _provider: provider, // champ interne uniquement
     });
   }
@@ -74,14 +89,38 @@ export class PaiementsService {
   async handleNovasendWebhook(body: any): Promise<void> {
     const { reference, status, metadata, _provider } = body;
 
-    if (status !== 'SUCCESSFUL' && status !== 'success') return;
+    const FAILED_STATUSES  = ['FAILED', 'EXPIRED', 'CANCELLED', 'failed', 'expired', 'cancelled'];
+    const SUCCESS_STATUSES = ['SUCCESSFUL', 'success'];
+
+    // Paiement échoué / expiré → notifier via WebSocket sans valider la commande
+    if (FAILED_STATUSES.includes(status)) {
+      const commandeId = metadata?.commandeId || reference;
+      if (!commandeId) return;
+      const commande = await this.commandeRepo.findOne({
+        where: { id: commandeId },
+        relations: ['restaurant', 'client'],
+      });
+      if (!commande || commande.estPaye) return;
+      const payload = { id: commandeId, reason: status };
+      this.commandesGateway.emitToKitchen(commande.restaurant?.id, 'commande.paiement.echec', payload);
+      this.commandesGateway.emitToManagers('commande.paiement.echec', payload);
+      if (commande.client?.id) {
+        this.commandesGateway.emitToClient(commande.client.id, 'commande.paiement.echec', payload);
+      }
+      this.logger.warn(`Paiement échoué: CMD ${commandeId} — statut ${status}`);
+      return;
+    }
+
+    if (!SUCCESS_STATUSES.includes(status)) return;
 
     // ── Facture mensuelle B2B ──────────────────────────────────────────────
     const isB2BFacture = String(reference).startsWith('b2b-facture-');
     if (isB2BFacture || metadata?.factureId) {
       const factureId: string =
         metadata?.factureId || String(reference).replace('b2b-facture-', '');
-      const facture = await this.factureRepo.findOne({ where: { id: factureId } });
+      const facture = await this.factureRepo.findOne({
+        where: { id: factureId },
+      });
       if (!facture) {
         this.logger.warn(`FactureMensuelleB2B ${factureId} introuvable`);
         return;
@@ -116,16 +155,21 @@ export class PaiementsService {
     // Résoudre le mode de paiement (simulation → _provider, réel → Map pendingMap)
     const provider: NovaSendProvider | undefined =
       _provider ?? this.novaSend.getProvider(reference);
-    const modePaiement: ModePaiementCommande =
-      provider ? PROVIDER_TO_MODE[provider] : ModePaiementCommande.ORANGE_MONEY;
+    const modePaiement: ModePaiementCommande = provider
+      ? PROVIDER_TO_MODE[provider]
+      : ModePaiementCommande.ORANGE_MONEY;
 
     const payeAt = new Date();
-    await this.commandeRepo.update(commandeId, { estPaye: true, payeAt, modePaiement });
+    await this.commandeRepo.update(commandeId, {
+      estPaye: true,
+      payeAt,
+      modePaiement,
+    });
 
     const paymentPayload = {
-      id:           commandeId,
-      numero:       commande.numero,
-      estPaye:      true,
+      id: commandeId,
+      numero: commande.numero,
+      estPaye: true,
       modePaiement,
     };
 
@@ -163,10 +207,10 @@ export class PaiementsService {
       'send-receipt',
       { commandeId },
       {
-        attempts:         5,
-        backoff:          { type: 'exponential', delay: 30_000 },
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 30_000 },
         removeOnComplete: 100,
-        removeOnFail:     200,
+        removeOnFail: 200,
       },
     );
 
@@ -180,8 +224,8 @@ export class PaiementsService {
     if (cpm_result !== '00') return;
     await this.handleNovasendWebhook({
       reference: cpm_trans_id,
-      status:    'SUCCESSFUL',
-      metadata:  body.metadata,
+      status: 'SUCCESSFUL',
+      metadata: body.metadata,
     });
   }
 }

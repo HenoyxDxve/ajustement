@@ -155,13 +155,40 @@ function OrderItem({ order, selected, onClick }) {
   );
 }
 
+// ── CountdownRing — anneau SVG + secondes ─────────────────────────────────────
+function CountdownRing({ total: totalSecs, current }) {
+  const R   = 30;
+  const C   = 2 * Math.PI * R;
+  const pct = current / totalSecs;
+  const color = current > 30 ? TER : current > 10 ? AMBER : RED;
+  return (
+    <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
+      <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="40" cy="40" r={R} fill="none" stroke="#F3F4F6" strokeWidth="5" />
+        <circle cx="40" cy="40" r={R} fill="none"
+          stroke={color} strokeWidth="5" strokeLinecap="round"
+          strokeDasharray={C}
+          strokeDashoffset={C * (1 - pct)}
+          style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s' }}
+        />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: 18, fontWeight: 800, color, lineHeight: 1 }}>{current}</span>
+        <span style={{ fontSize: 9, color: MUTED, fontWeight: 600 }}>sec</span>
+      </div>
+    </div>
+  );
+}
+
 // ── DigitalPaymentModal ───────────────────────────────────────────────────────
-// Tous les providers passent par /v1/payin/sessions → paymentUrl + QR
-function DigitalPaymentModal({ commande, payMode: modeId, onClose, onSimConfirmed }) {
+const COUNTDOWN_SECS = 90;
+
+function DigitalPaymentModal({ commande, payMode: modeId, onClose, onSimConfirmed, externalFailed }) {
   const mode  = PAY_MODES.find(m => m.id === modeId);
   const total = Math.round(Number(commande?.montantTotal || 0));
 
-  const [step,       setStep]       = useState('form');  // form|sending|waiting|confirmed
+  // form | sending | waiting | confirmed | failed
+  const [step,       setStep]       = useState('form');
   const [phone,      setPhone]      = useState('');
   const [sessionId,  setSessionId]  = useState(null);
   const [paymentUrl, setPaymentUrl] = useState(null);
@@ -169,20 +196,44 @@ function DigitalPaymentModal({ commande, payMode: modeId, onClose, onSimConfirme
   const [simulated,  setSimulated]  = useState(false);
   const [errMsg,     setErrMsg]     = useState('');
   const [simulating, setSimulating] = useState(false);
+  const [countdown,  setCountdown]  = useState(COUNTDOWN_SECS);
+  const [canRetry,   setCanRetry]   = useState(false);
 
-  // Préfixes CI par opérateur — aide visuelle pour le caissier
+  // Aide saisie numéro par opérateur
   const PHONE_HINT = {
-    WAVE:          'Wave · 01/05/07 XXXXXXXX',
-    NOVASEND:      'Tous opérateurs · 07/05/01 XXXXXXXX',
-    ORANGE_MONEY:  'Orange · 07 XXXXXXXX',
-    MTN_MONEY:     'MTN · 05 XXXXXXXX',
-    MOOV_MONEY:    'Moov · 01 XXXXXXXX',
-    CARTE_BANCAIRE: null, // pas de numéro de téléphone pour une carte
+    WAVE:          '01 / 05 / 07 XXXXXXXX',
+    NOVASEND:      '07 / 05 / 01 XXXXXXXX',
+    ORANGE_MONEY:  '07 XXXXXXXX',
+    MTN_MONEY:     '05 XXXXXXXX',
+    MOOV_MONEY:    '01 XXXXXXXX',
+    CARTE_BANCAIRE: null,
+  };
+
+  // Instructions spécifiques par opérateur
+  const PROVIDER_NOTE = {
+    ORANGE_MONEY: 'Orange Money peut demander un code OTP généré via #144*46#.',
+    MOOV_MONEY:   'Assurez-vous que l\'écran du client est déverrouillé.',
+    WAVE:         'Si aucune invite, Wave peut ouvrir l\'app directement via le QR.',
   };
 
   const isCard = modeId === 'CARTE_BANCAIRE';
 
-  // Générer le QR localement depuis le paymentUrl retourné par NovaSend
+  // Countdown actif uniquement en état "waiting"
+  useEffect(() => {
+    if (step !== 'waiting') return;
+    if (countdown <= 0) { setCanRetry(true); return; }
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [step, countdown]);
+
+  // Écouter l'échec renvoyé par le parent (WebSocket)
+  useEffect(() => {
+    if (externalFailed && step === 'waiting') {
+      setStep('failed');
+    }
+  }, [externalFailed, step]);
+
+  // Générer le QR depuis le paymentUrl
   useEffect(() => {
     if (!paymentUrl) { setQrDataUrl(null); return; }
     QRCode.toDataURL(paymentUrl, { width: 200, margin: 1 })
@@ -202,13 +253,22 @@ function DigitalPaymentModal({ commande, payMode: modeId, onClose, onSimConfirme
         customerName: commande.client?.nom || 'Client',
       });
       setSessionId(r.data.sessionId);
-      setPaymentUrl(r.data.paymentUrl);
+      setPaymentUrl(r.data.paymentUrl || null);
       setSimulated(r.data.simulated);
+      setCountdown(COUNTDOWN_SECS);
+      setCanRetry(false);
       setStep('waiting');
     } catch (e) {
       setErrMsg(e?.response?.data?.message || 'Erreur de connexion. Réessayez.');
       setStep('form');
     }
+  };
+
+  const handleRetry = () => {
+    setStep('form');
+    setCountdown(COUNTDOWN_SECS);
+    setCanRetry(false);
+    setErrMsg('');
   };
 
   const handleSimulate = async () => {
@@ -221,6 +281,9 @@ function DigitalPaymentModal({ commande, payMode: modeId, onClose, onSimConfirme
       setErrMsg('Simulation impossible : ' + (e?.response?.data?.message || e.message));
     } finally { setSimulating(false); }
   };
+
+  const formattedPhone = phone.trim() ? `+225 ${phone.trim()}` : null;
+  const providerNote   = PROVIDER_NOTE[modeId];
 
   return (
     <div style={{
@@ -256,34 +319,42 @@ function DigitalPaymentModal({ commande, payMode: modeId, onClose, onSimConfirme
         {/* Corps */}
         <div style={{ padding: '24px 24px 28px' }}>
 
-          {/* ── ÉTAPE : formulaire ── */}
+          {/* ── FORMULAIRE ── */}
           {step === 'form' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ background: 'rgba(255,140,0,0.06)', border: '1px solid rgba(255,140,0,0.18)', borderRadius: 14, padding: '13px 16px', fontSize: 13, color: NAVY, lineHeight: 1.5 }}>
+              <div style={{ background: 'rgba(255,140,0,0.06)', border: '1px solid rgba(255,140,0,0.18)', borderRadius: 14, padding: '13px 16px', fontSize: 13, color: NAVY, lineHeight: 1.6 }}>
                 {isCard
-                  ? 'NovaSend génère un lien de paiement sécurisé par carte bancaire. Le client scanne le QR code ou ouvre le lien pour saisir ses informations carte.'
-                  : `NovaSend génère un lien de paiement sécurisé. Le client scanne le QR code avec son application ${mode?.label} pour valider.`
+                  ? 'NovaSend génère un lien de paiement sécurisé par carte. Le client scanne le QR ou ouvre le lien pour saisir ses données carte.'
+                  : `Saisissez le numéro ${mode?.label} du client. Une invitation de confirmation sera envoyée sur son téléphone.`
                 }
               </div>
+
+              {providerNote && !isCard && (
+                <div style={{ display: 'flex', gap: 8, padding: '10px 14px', background: AMBER_L, border: `1px solid rgba(217,119,6,0.2)`, borderRadius: 12, fontSize: 12, color: AMBER, fontWeight: 600 }}>
+                  <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                  {providerNote}
+                </div>
+              )}
 
               {!isCard && (
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
-                    Numéro de téléphone du client <span style={{ color: FAINT, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optionnel)</span>
+                    Numéro {mode?.label} du client
                   </label>
-                  <div style={{ display: 'flex', gap: 0, border: `1.5px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden', background: BG }}>
+                  <div style={{ display: 'flex', border: `1.5px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden', background: BG }}>
                     <span style={{ padding: '12px 14px', background: '#F3F4F6', borderRight: `1px solid ${BORDER}`, fontSize: 13, fontWeight: 700, color: MUTED, whiteSpace: 'nowrap' }}>+225</span>
                     <input
-                      type="tel"
+                      type="tel" autoFocus
                       placeholder={PHONE_HINT[modeId] || '07 00 00 00 00'}
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                       style={{ flex: 1, padding: '12px 14px', border: 'none', background: 'transparent', fontSize: 14, fontWeight: 600, color: NAVY, outline: 'none', fontFamily: 'inherit' }}
                       maxLength={15}
                     />
                   </div>
                   <p style={{ margin: '6px 0 0', fontSize: 11, color: FAINT }}>
-                    NovaSend détecte l'opérateur automatiquement depuis le numéro
+                    NovaSend détecte l'opérateur automatiquement depuis le préfixe
                   </p>
                 </div>
               )}
@@ -294,71 +365,130 @@ function DigitalPaymentModal({ commande, payMode: modeId, onClose, onSimConfirme
                 </div>
               )}
 
-              <button
-                onClick={handleSubmit}
+              <button onClick={handleSubmit}
                 style={{ width: '100%', padding: '15px', borderRadius: 99, border: 'none', background: TER_G, color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 20px rgba(255,140,0,0.25)', fontFamily: 'inherit' }}>
                 <QrCode size={15} />
-                {isCard ? 'Générer le lien de paiement carte' : 'Générer le lien de paiement'}
+                {isCard ? 'Générer le lien paiement carte' : `Envoyer l'invitation ${mode?.label}`}
               </button>
             </div>
           )}
 
-          {/* ── ÉTAPE : envoi ── */}
+          {/* ── ENVOI ── */}
           {step === 'sending' && (
-            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+            <div style={{ textAlign: 'center', padding: '36px 0' }}>
               <div style={{ width: 52, height: 52, borderRadius: '50%', border: `4px solid ${TER}`, borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: NAVY }}>Création de la session…</p>
-              <p style={{ margin: '6px 0 0', fontSize: 12, color: MUTED }}>Connexion avec NovaSend en cours</p>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: NAVY }}>Envoi de l'invitation…</p>
+              <p style={{ margin: '6px 0 0', fontSize: 12, color: MUTED }}>Connexion à NovaSend en cours</p>
             </div>
           )}
 
-          {/* ── ÉTAPE : en attente (QR + lien) ── */}
+          {/* ── EN ATTENTE (countdown + PIN) ── */}
           {step === 'waiting' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+              {/* Bloc "en attente du PIN" */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 20px', background: '#FFF8F0', border: '1px solid rgba(255,140,0,0.22)', borderRadius: 18 }}>
+                <CountdownRing total={COUNTDOWN_SECS} current={countdown} />
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: '0 0 5px', fontSize: 14, fontWeight: 800, color: NAVY }}>
+                    {countdown > 0 ? 'En attente de confirmation…' : 'Délai expiré'}
+                  </p>
+                  {formattedPhone && (
+                    <p style={{ margin: '0 0 4px', fontSize: 13, color: NAVY, fontWeight: 600 }}>
+                      📱 {formattedPhone} <span style={{ fontSize: 11, color: MUTED, fontWeight: 400 }}>({mode?.label})</span>
+                    </p>
+                  )}
+                  <p style={{ margin: 0, fontSize: 12, color: MUTED }}>
+                    {countdown > 0
+                      ? 'Le client doit saisir son code PIN sur son téléphone.'
+                      : 'Le client n\'a pas validé dans le délai imparti.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Instruction PIN */}
+              {countdown > 0 && !canRetry && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 16px', background: BG, border: `1px solid ${BORDER}`, borderRadius: 14 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: TER, animation: 'pulse 1.4s ease-in-out infinite', flexShrink: 0, marginTop: 4 }} />
+                  <div style={{ fontSize: 12, color: NAVY, lineHeight: 1.5 }}>
+                    <strong>Ne pas fermer cette fenêtre.</strong> Une invite de saisie du code PIN a été envoyée sur le téléphone du client.
+                    {PROVIDER_NOTE[modeId] && <span style={{ display: 'block', marginTop: 4, color: AMBER }}>{PROVIDER_NOTE[modeId]}</span>}
+                  </div>
+                </div>
+              )}
+
+              {/* QR Code (si session URL disponible) */}
               {paymentUrl && (
-                <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: MUTED, textAlign: 'center' }}>Ou montrez ce QR code au client</p>
                   <div style={{ textAlign: 'center' }}>
-                    <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 600, color: MUTED }}>Montrez ce QR code au client</p>
                     {qrDataUrl
-                      ? (
-                        <div style={{ display: 'inline-block', padding: 14, background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 18, boxShadow: SH }}>
-                          <img src={qrDataUrl} alt="QR paiement" style={{ display: 'block', width: 200, height: 200 }} />
+                      ? <div style={{ display: 'inline-block', padding: 12, background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16, boxShadow: SH }}>
+                          <img src={qrDataUrl} alt="QR paiement" style={{ display: 'block', width: 180, height: 180 }} />
                         </div>
-                      ) : (
-                        <div style={{ width: 200, height: 200, margin: '0 auto', borderRadius: 18, background: BG, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <div style={{ width: 28, height: 28, borderRadius: '50%', border: `3px solid ${TER}`, borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+                      : <div style={{ width: 180, height: 180, margin: '0 auto', borderRadius: 16, background: BG, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ width: 24, height: 24, borderRadius: '50%', border: `3px solid ${TER}`, borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
                         </div>
-                      )
                     }
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 12, padding: '10px 14px', border: `1px solid ${BORDER}` }}>
-                    <Link2 size={13} color={MUTED} style={{ flexShrink: 0 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 12, padding: '9px 13px', border: `1px solid ${BORDER}` }}>
+                    <Link2 size={12} color={MUTED} style={{ flexShrink: 0 }} />
                     <span style={{ fontSize: 11, color: MUTED, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{paymentUrl}</span>
-                    <button onClick={() => window.open(paymentUrl, '_blank')} style={{ flexShrink: 0, padding: '5px 10px', borderRadius: 8, border: `1px solid ${TER}`, background: 'rgba(255,140,0,0.08)', color: TER, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <button onClick={() => window.open(paymentUrl, '_blank')} style={{ flexShrink: 0, padding: '4px 10px', borderRadius: 7, border: `1px solid ${TER}`, background: 'rgba(255,140,0,0.08)', color: TER, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                       Ouvrir
                     </button>
                   </div>
-                </>
+                </div>
               )}
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: '#FFF8F0', border: '1px solid rgba(255,140,0,0.25)', borderRadius: 12 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: TER, animation: 'pulse 1.4s ease-in-out infinite', flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: NAVY, fontWeight: 600 }}>En attente de confirmation NovaSend…</span>
-              </div>
+              {/* Bouton retry après expiration */}
+              {canRetry && (
+                <button onClick={handleRetry}
+                  style={{ width: '100%', padding: '13px', borderRadius: 12, border: `1.5px solid ${TER}`, background: 'rgba(255,140,0,0.06)', color: TER, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+                  <AlertCircle size={14} />
+                  Aucune invite reçue — réessayer
+                </button>
+              )}
 
-              {simulated && (
-                <button
-                  onClick={handleSimulate}
-                  disabled={simulating}
-                  style={{ width: '100%', padding: '13px', borderRadius: 12, border: `2px dashed ${TER}`, background: 'rgba(255,140,0,0.06)', color: TER, fontSize: 13, fontWeight: 700, cursor: simulating ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit', opacity: simulating ? 0.65 : 1 }}>
-                  <CheckCircle2 size={15} />
-                  {simulating ? 'Simulation en cours…' : 'Simuler la confirmation du paiement'}
+              {/* Simulation (dev) */}
+              {simulated && !canRetry && (
+                <button onClick={handleSimulate} disabled={simulating}
+                  style={{ width: '100%', padding: '12px', borderRadius: 12, border: `2px dashed ${TER}`, background: 'rgba(255,140,0,0.06)', color: TER, fontSize: 13, fontWeight: 700, cursor: simulating ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit', opacity: simulating ? 0.65 : 1 }}>
+                  <CheckCircle2 size={14} />
+                  {simulating ? 'Simulation…' : 'Simuler la confirmation du paiement'}
                 </button>
               )}
             </div>
           )}
 
-          {/* ── ÉTAPE : confirmé ── */}
+          {/* ── ÉCHEC ── */}
+          {step === 'failed' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ textAlign: 'center', padding: '20px 0 10px' }}>
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: RED_L, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                  <AlertCircle size={30} color={RED} />
+                </div>
+                <p style={{ margin: '0 0 6px', fontSize: 17, fontWeight: 800, color: RED }}>
+                  {externalFailed === 'EXPIRED' ? 'Délai expiré' : 'Paiement refusé'}
+                </p>
+                <p style={{ margin: 0, fontSize: 13, color: MUTED }}>
+                  {externalFailed === 'EXPIRED'
+                    ? 'Le client n\'a pas validé son code PIN à temps.'
+                    : externalFailed === 'CANCELLED'
+                      ? 'Le paiement a été annulé par le client.'
+                      : 'Solde insuffisant ou code PIN incorrect.'
+                  }
+                </p>
+              </div>
+              <button onClick={handleRetry}
+                style={{ width: '100%', padding: '14px', borderRadius: 99, border: 'none', background: TER_G, color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 20px rgba(255,140,0,0.25)', fontFamily: 'inherit' }}>
+                <QrCode size={15} />
+                Réessayer avec un autre numéro
+              </button>
+            </div>
+          )}
+
+          {/* ── CONFIRMÉ ── */}
           {step === 'confirmed' && (
             <div style={{ textAlign: 'center', padding: '28px 0' }}>
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -370,7 +500,10 @@ function DigitalPaymentModal({ commande, payMode: modeId, onClose, onSimConfirme
           )}
         </div>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+      <style>{`
+        @keyframes spin  { to { transform: rotate(360deg) } }
+        @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+      `}</style>
     </div>
   );
 }
@@ -388,7 +521,8 @@ export default function CaissePage() {
   const [payHistory,   setPayHistory]   = useState(() => loadPayHistory());
   const [histLoading,  setHistLoading]  = useState(false);
   const [showHist,     setShowHist]     = useState(true);
-  const [digitalModal, setDigitalModal] = useState(null); // { payMode, commande }
+  const [digitalModal,  setDigitalModal]  = useState(null);  // { payMode, commande }
+  const [failedPayment, setFailedPayment] = useState(null);   // { commandeId, reason }
 
   // Refs anti-stale-closure pour le listener WebSocket
   const digitalModalRef = useRef(null);
@@ -454,7 +588,6 @@ export default function CaissePage() {
     s.on('commande.statut',   p => upsert(p));
     s.on('commande.paiement', p => {
       upsert(p);
-      // Si le modal digital est ouvert pour cette commande → fermer avec succès
       const modal = digitalModalRef.current;
       const sel   = selectedRef.current;
       if (modal?.commande?.id === p.id) {
@@ -469,9 +602,20 @@ export default function CaissePage() {
         loadHistoryFromAPI();
         showToast('ok', `Paiement ${modeLabel} confirmé — ${fmtF(amount)}`);
         setDigitalModal(null);
+        setFailedPayment(null);
         setSelected(null);
       }
     });
+
+    // Paiement refusé / expiré — afficher l'état d'échec dans le modal
+    s.on('commande.paiement.echec', p => {
+      const modal = digitalModalRef.current;
+      if (modal?.commande?.id === p.id) {
+        setFailedPayment({ commandeId: p.id, reason: p.reason || 'FAILED' });
+        showToast('err', `Paiement refusé — ${p.reason === 'EXPIRED' ? 'délai expiré' : 'transaction échouée'}`);
+      }
+    });
+
     return () => s.disconnect();
   }, [load, upsert, user]);
 
@@ -850,10 +994,9 @@ export default function CaissePage() {
         <DigitalPaymentModal
           commande={digitalModal.commande}
           payMode={digitalModal.payMode}
-          onClose={() => setDigitalModal(null)}
-          onSimConfirmed={() => {
-            /* le WebSocket confirmera et fermera le modal automatiquement */
-          }}
+          onClose={() => { setDigitalModal(null); setFailedPayment(null); }}
+          onSimConfirmed={() => { /* WebSocket confirmera et fermera */ }}
+          externalFailed={failedPayment?.commandeId === digitalModal.commande.id ? failedPayment.reason : null}
         />
       )}
     </div>

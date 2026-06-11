@@ -19,7 +19,9 @@ export class SmsService {
         this.logger.warn('Package twilio non installé — SMS désactivés');
       }
     } else {
-      this.logger.warn('TWILIO_ACCOUNT_SID/AUTH_TOKEN absents — SMS désactivés');
+      this.logger.warn(
+        'TWILIO_ACCOUNT_SID/AUTH_TOKEN absents — SMS désactivés',
+      );
     }
   }
 
@@ -37,12 +39,23 @@ export class SmsService {
     }
   }
 
-  async sendOrderConfirmation(telephone: string, numero: string, montant: number): Promise<void> {
+  async sendOrderConfirmation(
+    telephone: string,
+    numero: string,
+    montant: number,
+  ): Promise<void> {
     const fcfa = montant.toLocaleString('fr-FR');
-    await this.sendSms(telephone, `RestoDici ✓ Commande #${numero} confirmée. Montant: ${fcfa} FCFA. Suivez votre commande sur l'app.`);
+    await this.sendSms(
+      telephone,
+      `RestoDici ✓ Commande #${numero} confirmée. Montant: ${fcfa} FCFA. Suivez votre commande sur l'app.`,
+    );
   }
 
-  async sendStatusUpdate(telephone: string, numero: string, statut: string): Promise<void> {
+  async sendStatusUpdate(
+    telephone: string,
+    numero: string,
+    statut: string,
+  ): Promise<void> {
     const labels: Record<string, string> = {
       EN_PREP: 'En préparation 🍳',
       PRETE: 'Prête ! Venez récupérer votre commande 🎉',

@@ -19,7 +19,8 @@ export class ReceiptQueueProcessor extends WorkerHost {
   private readonly logger = new Logger(ReceiptQueueProcessor.name);
 
   constructor(
-    @InjectRepository(Commande) private readonly commandeRepo: Repository<Commande>,
+    @InjectRepository(Commande)
+    private readonly commandeRepo: Repository<Commande>,
     private readonly tresorerieService: TresorerieService,
     private readonly emailService: EmailService,
     private readonly storageService: StorageService,
@@ -29,14 +30,18 @@ export class ReceiptQueueProcessor extends WorkerHost {
 
   async process(job: Job<ReceiptJobData>): Promise<void> {
     const { commandeId } = job.data;
-    this.logger.log(`[ReceiptQueue] Tentative ${job.attemptsMade + 1} — commande ${commandeId}`);
+    this.logger.log(
+      `[ReceiptQueue] Tentative ${job.attemptsMade + 1} — commande ${commandeId}`,
+    );
 
     const commande = await this.commandeRepo.findOne({
       where: { id: commandeId },
       relations: ['client', 'restaurant', 'lignes', 'lignes.article'],
     });
     if (!commande) {
-      this.logger.warn(`[ReceiptQueue] Commande ${commandeId} introuvable — abandon`);
+      this.logger.warn(
+        `[ReceiptQueue] Commande ${commandeId} introuvable — abandon`,
+      );
       return;
     }
 
@@ -56,7 +61,9 @@ export class ReceiptQueueProcessor extends WorkerHost {
       restaurantNif: (commande.restaurant as any).nif,
       restaurantRccm: (commande.restaurant as any).rccm,
       clientNom:
-        [commande.client?.prenom, commande.client?.nom].filter(Boolean).join(' ') || 'Client',
+        [commande.client?.prenom, commande.client?.nom]
+          .filter(Boolean)
+          .join(' ') || 'Client',
       lignes,
       montantTotal: Number(commande.montantTotal),
       modePaiement: commande.modePaiement,
@@ -79,7 +86,9 @@ export class ReceiptQueueProcessor extends WorkerHost {
       await this.emailService.sendReceiptEmail({
         to: commande.client.email,
         clientNom:
-          [commande.client?.prenom, commande.client?.nom].filter(Boolean).join(' ') || 'Client',
+          [commande.client?.prenom, commande.client?.nom]
+            .filter(Boolean)
+            .join(' ') || 'Client',
         numero: commande.numero,
         montantTotal: Number(commande.montantTotal),
         modePaiement: commande.modePaiement,
@@ -91,6 +100,8 @@ export class ReceiptQueueProcessor extends WorkerHost {
       await this.commandeRepo.update(commandeId, { recuEmailSent: true });
     }
 
-    this.logger.log(`[ReceiptQueue] Reçu traité avec succès: ${commande.numero}`);
+    this.logger.log(
+      `[ReceiptQueue] Reçu traité avec succès: ${commande.numero}`,
+    );
   }
 }

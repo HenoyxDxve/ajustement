@@ -42,8 +42,14 @@ describe('B2BService realtime events', () => {
       providers: [
         B2BService,
         { provide: getRepositoryToken(Team), useValue: teamRepository },
-        { provide: getRepositoryToken(TeamMember), useValue: teamMemberRepository },
-        { provide: getRepositoryToken(BulkOrder), useValue: bulkOrderRepository },
+        {
+          provide: getRepositoryToken(TeamMember),
+          useValue: teamMemberRepository,
+        },
+        {
+          provide: getRepositoryToken(BulkOrder),
+          useValue: bulkOrderRepository,
+        },
         { provide: getRepositoryToken(Invoice), useValue: invoiceRepository },
         { provide: getRepositoryToken(User), useValue: userRepository },
         { provide: getRepositoryToken(CompteB2B), useValue: {} },
@@ -54,7 +60,10 @@ describe('B2BService realtime events', () => {
         { provide: getRepositoryToken(FactureMensuelleB2B), useValue: {} },
         { provide: getRepositoryToken(Article), useValue: {} },
         { provide: CommandesGateway, useValue: commandesGateway },
-        { provide: EmailService, useValue: { sendB2BOrderConfirmation: jest.fn() } },
+        {
+          provide: EmailService,
+          useValue: { sendB2BOrderConfirmation: jest.fn() },
+        },
         { provide: ConfigService, useValue: { get: jest.fn() } },
       ],
     }).compile();

@@ -54,11 +54,20 @@ const FACTURE_EN_ATTENTE = {
 describe('B2BService — contestFacture', () => {
   let service: B2BService;
   const compteRepo = { findOne: jest.fn() };
-  const factureRepo = { findOne: jest.fn(), save: jest.fn(), createQueryBuilder: jest.fn() };
+  const factureRepo = {
+    findOne: jest.fn(),
+    save: jest.fn(),
+    createQueryBuilder: jest.fn(),
+  };
   const auditRepo = { create: jest.fn(), save: jest.fn() };
   const userRepo = { findOne: jest.fn() };
-  const emailService = { sendMail: jest.fn().mockResolvedValue(undefined), sendB2BOrderConfirmation: jest.fn() };
-  const configService = { get: jest.fn().mockReturnValue('admin@restodici.ci') };
+  const emailService = {
+    sendMail: jest.fn().mockResolvedValue(undefined),
+    sendB2BOrderConfirmation: jest.fn(),
+  };
+  const configService = {
+    get: jest.fn().mockReturnValue('admin@restodici.ci'),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -75,7 +84,10 @@ describe('B2BService — contestFacture', () => {
         { provide: getRepositoryToken(CommandeGroupeeB2B), useValue: {} },
         { provide: getRepositoryToken(LigneCommandeGroupeeB2B), useValue: {} },
         { provide: getRepositoryToken(AuditLogB2B), useValue: auditRepo },
-        { provide: getRepositoryToken(FactureMensuelleB2B), useValue: factureRepo },
+        {
+          provide: getRepositoryToken(FactureMensuelleB2B),
+          useValue: factureRepo,
+        },
         { provide: getRepositoryToken(Article), useValue: {} },
         { provide: CommandesGateway, useValue: { emitToManagers: jest.fn() } },
         { provide: EmailService, useValue: emailService },
@@ -87,29 +99,39 @@ describe('B2BService — contestFacture', () => {
 
   it('throws NotFoundException when compte not found', async () => {
     compteRepo.findOne.mockResolvedValue(null);
-    await expect(service.contestFacture('f-1', 'user-1', 'Erreur de montant'))
-      .rejects.toThrow(NotFoundException);
+    await expect(
+      service.contestFacture('f-1', 'user-1', 'Erreur de montant'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('throws NotFoundException when facture not found', async () => {
     compteRepo.findOne.mockResolvedValue(COMPTE);
     factureRepo.findOne.mockResolvedValue(null);
-    await expect(service.contestFacture('f-1', 'user-1', 'Erreur de montant'))
-      .rejects.toThrow(NotFoundException);
+    await expect(
+      service.contestFacture('f-1', 'user-1', 'Erreur de montant'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('throws BadRequestException when facture already PAYEE', async () => {
     compteRepo.findOne.mockResolvedValue(COMPTE);
-    factureRepo.findOne.mockResolvedValue({ ...FACTURE_EN_ATTENTE, statut: 'PAYEE' });
-    await expect(service.contestFacture('facture-1', 'user-1', 'Motif'))
-      .rejects.toThrow(BadRequestException);
+    factureRepo.findOne.mockResolvedValue({
+      ...FACTURE_EN_ATTENTE,
+      statut: 'PAYEE',
+    });
+    await expect(
+      service.contestFacture('facture-1', 'user-1', 'Motif'),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('throws BadRequestException when facture already EN_CONTESTATION', async () => {
     compteRepo.findOne.mockResolvedValue(COMPTE);
-    factureRepo.findOne.mockResolvedValue({ ...FACTURE_EN_ATTENTE, statut: 'EN_CONTESTATION' });
-    await expect(service.contestFacture('facture-1', 'user-1', 'Motif'))
-      .rejects.toThrow(BadRequestException);
+    factureRepo.findOne.mockResolvedValue({
+      ...FACTURE_EN_ATTENTE,
+      statut: 'EN_CONTESTATION',
+    });
+    await expect(
+      service.contestFacture('facture-1', 'user-1', 'Motif'),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('sets statut to EN_CONTESTATION and emails admin', async () => {
@@ -121,7 +143,11 @@ describe('B2BService — contestFacture', () => {
     auditRepo.save.mockResolvedValue({});
     userRepo.findOne.mockResolvedValue({ email: 'user@test.ci' });
 
-    const result = await service.contestFacture('facture-1', 'user-1', 'Montant incorrect');
+    const result = await service.contestFacture(
+      'facture-1',
+      'user-1',
+      'Montant incorrect',
+    );
 
     expect(factureRepo.save).toHaveBeenCalledWith(
       expect.objectContaining({ statut: 'EN_CONTESTATION' }),
@@ -141,7 +167,11 @@ describe('B2BService — contestFacture', () => {
 describe('B2BService — exportSyscohadaCsv', () => {
   let service: B2BService;
   const compteRepo = { findOne: jest.fn() };
-  const factureRepo = { findOne: jest.fn(), save: jest.fn(), createQueryBuilder: jest.fn() };
+  const factureRepo = {
+    findOne: jest.fn(),
+    save: jest.fn(),
+    createQueryBuilder: jest.fn(),
+  };
   const auditRepo = { create: jest.fn(), save: jest.fn() };
   const userRepo = { findOne: jest.fn() };
 
@@ -160,10 +190,19 @@ describe('B2BService — exportSyscohadaCsv', () => {
         { provide: getRepositoryToken(CommandeGroupeeB2B), useValue: {} },
         { provide: getRepositoryToken(LigneCommandeGroupeeB2B), useValue: {} },
         { provide: getRepositoryToken(AuditLogB2B), useValue: auditRepo },
-        { provide: getRepositoryToken(FactureMensuelleB2B), useValue: factureRepo },
+        {
+          provide: getRepositoryToken(FactureMensuelleB2B),
+          useValue: factureRepo,
+        },
         { provide: getRepositoryToken(Article), useValue: {} },
         { provide: CommandesGateway, useValue: { emitToManagers: jest.fn() } },
-        { provide: EmailService, useValue: { sendMail: jest.fn(), sendB2BOrderConfirmation: jest.fn() } },
+        {
+          provide: EmailService,
+          useValue: {
+            sendMail: jest.fn(),
+            sendB2BOrderConfirmation: jest.fn(),
+          },
+        },
         { provide: ConfigService, useValue: { get: jest.fn() } },
       ],
     }).compile();
@@ -172,15 +211,17 @@ describe('B2BService — exportSyscohadaCsv', () => {
 
   it('throws NotFoundException when compte not found', async () => {
     compteRepo.findOne.mockResolvedValue(null);
-    await expect(service.exportSyscohadaCsv('f-1', 'user-1'))
-      .rejects.toThrow(NotFoundException);
+    await expect(service.exportSyscohadaCsv('f-1', 'user-1')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('throws NotFoundException when facture not found', async () => {
     compteRepo.findOne.mockResolvedValue(COMPTE);
     factureRepo.findOne.mockResolvedValue(null);
-    await expect(service.exportSyscohadaCsv('f-1', 'user-1'))
-      .rejects.toThrow(NotFoundException);
+    await expect(service.exportSyscohadaCsv('f-1', 'user-1')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('returns CSV with SYSCOHADA headers and 2 accounting rows', async () => {
@@ -199,7 +240,9 @@ describe('B2BService — exportSyscohadaCsv', () => {
     expect(lines).toHaveLength(3); // header + 2 rows
 
     // Header contains expected SYSCOHADA columns
-    expect(lines[0]).toBe('Date;Libelle;Compte_Debit;Montant_Debit;Compte_Credit;Montant_Credit;NIF;Reference');
+    expect(lines[0]).toBe(
+      'Date;Libelle;Compte_Debit;Montant_Debit;Compte_Credit;Montant_Credit;NIF;Reference',
+    );
 
     // Row 1: client receivable (411100) → revenue (701100)
     expect(lines[1]).toContain('411100');
@@ -217,14 +260,20 @@ describe('B2BService — exportSyscohadaCsv', () => {
   });
 
   it('uses factureId prefix when numeroFacture is missing', async () => {
-    const factureWithoutNum = { ...FACTURE_EN_ATTENTE, numeroFacture: undefined };
+    const factureWithoutNum = {
+      ...FACTURE_EN_ATTENTE,
+      numeroFacture: undefined,
+    };
     compteRepo.findOne.mockResolvedValue(COMPTE);
     factureRepo.findOne.mockResolvedValue(factureWithoutNum);
     auditRepo.create.mockImplementation((x: any) => x);
     auditRepo.save.mockResolvedValue({});
     userRepo.findOne.mockResolvedValue(null);
 
-    const result = await service.exportSyscohadaCsv('facture-abc12345', 'user-1');
+    const result = await service.exportSyscohadaCsv(
+      'facture-abc12345',
+      'user-1',
+    );
     expect(result.filename).toContain('facture-'); // first 8 chars of id
   });
 });
@@ -232,8 +281,13 @@ describe('B2BService — exportSyscohadaCsv', () => {
 describe('B2BService — checkOverdueInvoices relances', () => {
   let service: B2BService;
   const factureRepo = { save: jest.fn(), createQueryBuilder: jest.fn() };
-  const emailService = { sendMail: jest.fn().mockResolvedValue(undefined), sendB2BOrderConfirmation: jest.fn() };
-  const configService = { get: jest.fn().mockReturnValue('admin@restodici.ci') };
+  const emailService = {
+    sendMail: jest.fn().mockResolvedValue(undefined),
+    sendB2BOrderConfirmation: jest.fn(),
+  };
+  const configService = {
+    get: jest.fn().mockReturnValue('admin@restodici.ci'),
+  };
 
   async function buildService() {
     jest.clearAllMocks();
@@ -250,7 +304,10 @@ describe('B2BService — checkOverdueInvoices relances', () => {
         { provide: getRepositoryToken(CommandeGroupeeB2B), useValue: {} },
         { provide: getRepositoryToken(LigneCommandeGroupeeB2B), useValue: {} },
         { provide: getRepositoryToken(AuditLogB2B), useValue: {} },
-        { provide: getRepositoryToken(FactureMensuelleB2B), useValue: factureRepo },
+        {
+          provide: getRepositoryToken(FactureMensuelleB2B),
+          useValue: factureRepo,
+        },
         { provide: getRepositoryToken(Article), useValue: {} },
         { provide: CommandesGateway, useValue: { emitToManagers: jest.fn() } },
         { provide: EmailService, useValue: emailService },
@@ -267,10 +324,10 @@ describe('B2BService — checkOverdueInvoices relances', () => {
       compteB2B: { emailProfessionnel: 'rh@sankofa.ci' },
     };
     factureRepo.createQueryBuilder
-      .mockReturnValueOnce(makeQB([]))        // Step 1: overdue (empty)
+      .mockReturnValueOnce(makeQB([])) // Step 1: overdue (empty)
       .mockReturnValueOnce(makeQB([factureJ7])) // Step 2: J-7 match
-      .mockReturnValueOnce(makeQB([]))        // Step 3: J+3 (empty)
-      .mockReturnValueOnce(makeQB([]));       // Step 4: J+15 (empty)
+      .mockReturnValueOnce(makeQB([])) // Step 3: J+3 (empty)
+      .mockReturnValueOnce(makeQB([])); // Step 4: J+15 (empty)
 
     service = await buildService();
     await service.checkOverdueInvoices();
@@ -313,7 +370,10 @@ describe('B2BService — checkOverdueInvoices relances', () => {
     const factureJ15 = {
       ...FACTURE_EN_ATTENTE,
       statut: 'RETARDEE',
-      compteB2B: { raisonSociale: 'Mega Corp', emailProfessionnel: 'rh@mega.ci' },
+      compteB2B: {
+        raisonSociale: 'Mega Corp',
+        emailProfessionnel: 'rh@mega.ci',
+      },
     };
     factureRepo.createQueryBuilder
       .mockReturnValueOnce(makeQB([]))
@@ -336,7 +396,10 @@ describe('B2BService — checkOverdueInvoices relances', () => {
 
   it('marks overdue EN_ATTENTE invoices as RETARDEE', async () => {
     const overdueFacture = { ...FACTURE_EN_ATTENTE, statut: 'EN_ATTENTE' };
-    factureRepo.save.mockResolvedValue({ ...overdueFacture, statut: 'RETARDEE' });
+    factureRepo.save.mockResolvedValue({
+      ...overdueFacture,
+      statut: 'RETARDEE',
+    });
     factureRepo.createQueryBuilder
       .mockReturnValueOnce(makeQB([overdueFacture]))
       .mockReturnValueOnce(makeQB([]))

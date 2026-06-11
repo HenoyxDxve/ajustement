@@ -66,9 +66,9 @@ describe('PromosService', () => {
     it('throws BadRequestException when code is inactive', async () => {
       mockPromoRepo.findOne.mockResolvedValue(makePromo({ actif: false }));
 
-      await expect(
-        service.validate('TEST10', 'resto-1', 5000),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.validate('TEST10', 'resto-1', 5000)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws BadRequestException when code is expired', async () => {
@@ -77,9 +77,9 @@ describe('PromosService', () => {
         makePromo({ expiresAt: pastDate }),
       );
 
-      await expect(
-        service.validate('TEST10', 'resto-1', 5000),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.validate('TEST10', 'resto-1', 5000)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws BadRequestException when code is exhausted (maxUses reached)', async () => {
@@ -87,19 +87,17 @@ describe('PromosService', () => {
         makePromo({ maxUses: 10, usedCount: 10 }),
       );
 
-      await expect(
-        service.validate('TEST10', 'resto-1', 5000),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.validate('TEST10', 'resto-1', 5000)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws BadRequestException when montantCommande is below minMontant', async () => {
-      mockPromoRepo.findOne.mockResolvedValue(
-        makePromo({ minMontant: 10000 }),
-      );
+      mockPromoRepo.findOne.mockResolvedValue(makePromo({ minMontant: 10000 }));
 
-      await expect(
-        service.validate('TEST10', 'resto-1', 5000),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.validate('TEST10', 'resto-1', 5000)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('returns { valid: true, promo, remise } for a valid code', async () => {

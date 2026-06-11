@@ -11,16 +11,17 @@ dotenv.config({ path: join(__dirname, '../../.env') });
 
 async function seedAdmin() {
   const connection = await createConnection({
-    type:     'postgres',
-    host:     process.env.DB_HOST     || 'localhost',
-    port:     parseInt(process.env.DB_PORT || '5432', 10),
-    username: process.env.DB_USERNAME || process.env.DB_USER || 'restodici_user',
+    type: 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432', 10),
+    username:
+      process.env.DB_USERNAME || process.env.DB_USER || 'restodici_user',
     password: process.env.DB_PASSWORD || 'restodici_pass',
     database: process.env.DB_DATABASE || process.env.DB_NAME || 'restodici_db',
-    ssl:      process.env.DB_SSL === 'true',
+    ssl: process.env.DB_SSL === 'true',
   });
 
-  const ADMIN_EMAIL    = 'admin@restodici.ci';
+  const ADMIN_EMAIL = 'admin@restodici.ci';
   const ADMIN_PASSWORD = 'Admin@2025!';
 
   const existing = await connection.query(
@@ -50,7 +51,7 @@ async function seedAdmin() {
   await connection.close();
 }
 
-seedAdmin().catch(err => {
+seedAdmin().catch((err) => {
   console.error('❌ Erreur :', err.message);
   process.exit(1);
 });

@@ -33,10 +33,18 @@ export class PromosService {
   }
 
   async create(restaurantId: string, dto: CreatePromoDto): Promise<PromoCode> {
-    const code = (dto.code || '').toUpperCase().replace(/\s+/g, '').slice(0, 40);
+    const code = (dto.code || '')
+      .toUpperCase()
+      .replace(/\s+/g, '')
+      .slice(0, 40);
     if (!code) throw new BadRequestException('Code obligatoire');
-    const exists = await this.promoRepo.findOne({ where: { code, restaurantId } });
-    if (exists) throw new BadRequestException('Ce code existe déjà pour votre restaurant');
+    const exists = await this.promoRepo.findOne({
+      where: { code, restaurantId },
+    });
+    if (exists)
+      throw new BadRequestException(
+        'Ce code existe déjà pour votre restaurant',
+      );
 
     const promo = this.promoRepo.create({
       code,
@@ -52,15 +60,21 @@ export class PromosService {
     return this.promoRepo.save(promo);
   }
 
-  async update(id: string, restaurantId: string, dto: Partial<CreatePromoDto>): Promise<PromoCode> {
+  async update(
+    id: string,
+    restaurantId: string,
+    dto: Partial<CreatePromoDto>,
+  ): Promise<PromoCode> {
     const promo = await this.getOwned(id, restaurantId);
-    if (dto.code !== undefined) promo.code = dto.code.toUpperCase().replace(/\s+/g, '').slice(0, 40);
+    if (dto.code !== undefined)
+      promo.code = dto.code.toUpperCase().replace(/\s+/g, '').slice(0, 40);
     if (dto.type !== undefined) promo.type = dto.type;
     if (dto.valeur !== undefined) promo.valeur = dto.valeur;
     if (dto.description !== undefined) promo.description = dto.description;
     if (dto.minMontant !== undefined) promo.minMontant = dto.minMontant;
     if ('maxUses' in dto) promo.maxUses = dto.maxUses ?? undefined;
-    if ('expiresAt' in dto) promo.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : undefined;
+    if ('expiresAt' in dto)
+      promo.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : undefined;
     if (dto.actif !== undefined) promo.actif = dto.actif;
     return this.promoRepo.save(promo);
   }
@@ -107,7 +121,7 @@ export class PromosService {
   calcRemise(promo: PromoCode, montant: number): number {
     switch (promo.type) {
       case TypePromo.PERCENT:
-        return Math.round(montant * Number(promo.valeur) / 100);
+        return Math.round((montant * Number(promo.valeur)) / 100);
       case TypePromo.FIXED:
         return Math.min(Number(promo.valeur), montant);
       default:
@@ -122,7 +136,7 @@ export class PromosService {
       where: { restaurantId, actif: true },
       order: { createdAt: 'DESC' },
     });
-    return promos.filter(p => {
+    return promos.filter((p) => {
       if (p.expiresAt && new Date(p.expiresAt) < now) return false;
       if (p.maxUses != null && p.usedCount >= p.maxUses) return false;
       return true;
@@ -136,7 +150,8 @@ export class PromosService {
   private async getOwned(id: string, restaurantId: string): Promise<PromoCode> {
     const promo = await this.promoRepo.findOne({ where: { id } });
     if (!promo) throw new NotFoundException('Code promo introuvable');
-    if (promo.restaurantId !== restaurantId) throw new ForbiddenException('Accès refusé');
+    if (promo.restaurantId !== restaurantId)
+      throw new ForbiddenException('Accès refusé');
     return promo;
   }
 }

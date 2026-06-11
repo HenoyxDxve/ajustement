@@ -24,7 +24,10 @@ describe('CommandesController create', () => {
       providers: [
         { provide: CommandesService, useValue: commandesService },
         { provide: TresorerieService, useValue: tresorerieService },
-        { provide: getRepositoryToken(Restaurant), useValue: { findOne: jest.fn() } },
+        {
+          provide: getRepositoryToken(Restaurant),
+          useValue: { findOne: jest.fn() },
+        },
       ],
     }).compile();
 

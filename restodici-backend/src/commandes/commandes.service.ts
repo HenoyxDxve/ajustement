@@ -74,7 +74,9 @@ export class CommandesService {
 
     const year = new Date().getFullYear();
     const ts = Date.now().toString(36).toUpperCase().slice(-5);
-    const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const rand = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, '0');
     const numero = `CMD-${year}-${ts}${rand}`;
 
     const commande = await this.dataSource.transaction(async (manager) => {
@@ -115,7 +117,9 @@ export class CommandesService {
         }
 
         const prixBase =
-          article.promoActif && article.prixPromo != null && Number(article.prixPromo) > 0
+          article.promoActif &&
+          article.prixPromo != null &&
+          Number(article.prixPromo) > 0
             ? Number(article.prixPromo)
             : Number(article.prix);
         const supplement = Number(ligneDto.variantSupplement || 0);
@@ -137,7 +141,11 @@ export class CommandesService {
       let codePromoId: string | undefined;
       if (dto.codePromo && restaurantId) {
         try {
-          const res = await this.promosService.validate(dto.codePromo, restaurantId, montantTotal);
+          const res = await this.promosService.validate(
+            dto.codePromo,
+            restaurantId,
+            montantTotal,
+          );
           montantRemise = res.remise;
           codePromoId = res.promo.id;
           montantTotal = Math.max(0, montantTotal - montantRemise);
@@ -170,7 +178,9 @@ export class CommandesService {
     });
 
     if (commande.codePromoId) {
-      await this.promosService.apply(commande.codePromoId).catch(() => undefined);
+      await this.promosService
+        .apply(commande.codePromoId)
+        .catch(() => undefined);
     }
 
     await this.historyRepo.save(
@@ -207,7 +217,11 @@ export class CommandesService {
       statut: commande.statut,
     });
 
-    await this.fcmService.notifyNewOrder(restaurantId, commande.numero, Number(commande.montantTotal));
+    await this.fcmService.notifyNewOrder(
+      restaurantId,
+      commande.numero,
+      Number(commande.montantTotal),
+    );
 
     return commande;
   }
@@ -291,7 +305,7 @@ export class CommandesService {
   }
 
   async updateS3Key(id: string, s3Key: string): Promise<void> {
-    await this.commandeRepo.update(id, { recuPdfS3Key: s3Key } as any);
+    await this.commandeRepo.update(id, { recuPdfS3Key: s3Key });
   }
 
   async annulerByClient(id: string, clientId: string): Promise<Commande> {
@@ -301,7 +315,7 @@ export class CommandesService {
     });
     if (!commande) throw new NotFoundException('Commande introuvable');
 
-    if (!['RECUE', 'CONFIRMEE'].includes(commande.statut as string)) {
+    if (!['RECUE', 'CONFIRMEE'].includes(commande.statut)) {
       throw new BadRequestException(
         'Annulation impossible : la commande est déjà en préparation ou terminée',
       );
@@ -323,10 +337,21 @@ export class CommandesService {
       );
     }
 
-    const payload = { id: saved.id, numero: saved.numero, statut: saved.statut };
-    this.commandesGateway.emitToKitchen(commande.restaurant.id, 'commande.statut', payload);
+    const payload = {
+      id: saved.id,
+      numero: saved.numero,
+      statut: saved.statut,
+    };
+    this.commandesGateway.emitToKitchen(
+      commande.restaurant.id,
+      'commande.statut',
+      payload,
+    );
     this.commandesGateway.emitToManagers('commande.statut', payload);
-    this.commandesGateway.emitToClient(clientId, 'commande.statut', { id: saved.id, statut: saved.statut });
+    this.commandesGateway.emitToClient(clientId, 'commande.statut', {
+      id: saved.id,
+      statut: saved.statut,
+    });
 
     return saved;
   }
@@ -450,7 +475,11 @@ export class CommandesService {
 
     if (newStatut === StatutCommande.LIVREE) {
       if (commande.client?.telephone) {
-        await this.smsService.sendStatusUpdate(commande.client.telephone, commande.numero, 'LIVREE');
+        await this.smsService.sendStatusUpdate(
+          commande.client.telephone,
+          commande.numero,
+          'LIVREE',
+        );
       }
       const taux = Number(commande.restaurant.tauxCommission ?? 8);
       const montant = Number(commande.montantTotal);
@@ -714,7 +743,7 @@ export class CommandesService {
           ...e,
           commandeNumero: raw[i]?.c_numero,
         })),
-      ) as any;
+      );
   }
 
   async rembourser(id: string, motif: string, restaurantId?: string) {

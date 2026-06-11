@@ -118,7 +118,13 @@ export class AdminController {
   updateRestaurant(
     @Param('id') id: string,
     @Body()
-    dto: Partial<{ nom: string; telephone: string; adresse: string; email: string; actif: boolean }>,
+    dto: Partial<{
+      nom: string;
+      telephone: string;
+      adresse: string;
+      email: string;
+      actif: boolean;
+    }>,
   ) {
     return this.adminService.updateRestaurant(id, dto);
   }
@@ -154,7 +160,10 @@ export class AdminController {
     const date = new Date().toISOString().slice(0, 10);
     res
       .set('Content-Type', 'text/csv; charset=utf-8')
-      .set('Content-Disposition', `attachment; filename="syscohada-${date}.csv"`)
+      .set(
+        'Content-Disposition',
+        `attachment; filename="syscohada-${date}.csv"`,
+      )
       .send('﻿' + csv);
   }
 
@@ -165,7 +174,7 @@ export class AdminController {
     @Query('action') action?: string,
     @Res() res?: Response,
   ) {
-    const csv  = await this.adminService.exportAuditCsv({ from, to, action });
+    const csv = await this.adminService.exportAuditCsv({ from, to, action });
     const date = new Date().toISOString().slice(0, 10);
     res!
       .set('Content-Type', 'text/csv; charset=utf-8')
@@ -229,7 +238,8 @@ export class AdminController {
   @Post('integrations')
   @HttpCode(HttpStatus.CREATED)
   createIntegration(
-    @Body() dto: {
+    @Body()
+    dto: {
       name: string;
       description?: string;
       type: IntegrationType;
@@ -248,7 +258,8 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   updateIntegration(
     @Param('id') id: string,
-    @Body() dto: Partial<{
+    @Body()
+    dto: Partial<{
       name: string;
       description: string;
       type: IntegrationType;
@@ -294,9 +305,9 @@ export class AdminController {
     return {
       uptime: { seconds: Math.round(uptimeSec), label: `${h}h ${m}m` },
       memory: {
-        rss:      Math.round(mem.rss / 1024 / 1024),
+        rss: Math.round(mem.rss / 1024 / 1024),
         heapUsed: Math.round(mem.heapUsed / 1024 / 1024),
-        heapTotal:Math.round(mem.heapTotal / 1024 / 1024),
+        heapTotal: Math.round(mem.heapTotal / 1024 / 1024),
       },
       node: process.version,
       env: process.env.NODE_ENV ?? 'development',
@@ -310,10 +321,7 @@ export class AdminController {
   }
 
   @Patch('restaurants/:id/commission')
-  updateTauxCommission(
-    @Param('id') id: string,
-    @Body('taux') taux: number,
-  ) {
+  updateTauxCommission(@Param('id') id: string, @Body('taux') taux: number) {
     return this.adminService.updateTauxCommission(id, Number(taux));
   }
 }

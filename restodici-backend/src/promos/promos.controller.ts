@@ -17,7 +17,9 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { PromosService } from './promos.service';
 import { TypePromo } from './entities/promo-code.entity';
 
-type UserReq = { user: { id: string; restaurantId?: string; restaurant?: { id: string } } };
+type UserReq = {
+  user: { id: string; restaurantId?: string; restaurant?: { id: string } };
+};
 
 function getRestaurantId(req: UserReq): string {
   return req.user.restaurantId ?? req.user.restaurant?.id ?? '';
@@ -59,7 +61,8 @@ export class PromosController {
   update(
     @Param('id') id: string,
     @Req() req: UserReq,
-    @Body() dto: Partial<{
+    @Body()
+    dto: Partial<{
       code: string;
       type: TypePromo;
       valeur: number;
@@ -90,7 +93,12 @@ export class PromosController {
   @Post('validate')
   @HttpCode(HttpStatus.OK)
   validate(
-    @Body() body: { code: string; restaurantId: string; montantCommande: number },
+    @Body()
+    body: {
+      code: string;
+      restaurantId: string;
+      montantCommande: number;
+    },
   ) {
     return this.promosService.validate(
       body.code,

@@ -10,8 +10,8 @@ import {
 import { Restaurant } from '../../restaurants/entities/restaurant.entity';
 
 export enum TypePromo {
-  PERCENT  = 'PERCENT',   // % de réduction
-  FIXED    = 'FIXED',     // montant fixe en FCFA
+  PERCENT = 'PERCENT', // % de réduction
+  FIXED = 'FIXED', // montant fixe en FCFA
 }
 
 @Entity('promo_codes')

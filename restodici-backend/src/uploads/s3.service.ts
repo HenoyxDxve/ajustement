@@ -1,5 +1,13 @@
-import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  Injectable,
+  InternalServerErrorException,
+  BadRequestException,
+} from '@nestjs/common';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { extname } from 'path';
 
@@ -15,11 +23,11 @@ export class S3Service {
   }
 
   private init() {
-    const region    = process.env.AWS_REGION;
+    const region = process.env.AWS_REGION;
     const accessKey = process.env.AWS_ACCESS_KEY_ID;
     const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
-    const bucket    = process.env.AWS_S3_BUCKET;
-    const endpoint  = process.env.AWS_S3_ENDPOINT; // MinIO / Cloudflare R2 / etc.
+    const bucket = process.env.AWS_S3_BUCKET;
+    const endpoint = process.env.AWS_S3_ENDPOINT; // MinIO / Cloudflare R2 / etc.
     const publicBase = process.env.AWS_S3_PUBLIC_BASE; // URL publique (CDN ou direct)
 
     if (!region || !accessKey || !secretKey || !bucket) return; // not configured
@@ -79,7 +87,9 @@ export class S3Service {
   async deleteFile(key: string): Promise<void> {
     if (!this.client || !this.bucket) return;
     try {
-      await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+      await this.client.send(
+        new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
+      );
     } catch {
       // best-effort delete
     }

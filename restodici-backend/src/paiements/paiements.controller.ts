@@ -44,7 +44,10 @@ export class PaiementsController {
     if (this.config.get<string>('NODE_ENV') === 'production') {
       throw new ForbiddenException('Simulation non disponible en production');
     }
-    await this.paiementsService.confirmSimulation(body.commandeId, body.provider);
+    await this.paiementsService.confirmSimulation(
+      body.commandeId,
+      body.provider,
+    );
     return { status: 'ok', simulated: true };
   }
 
@@ -58,8 +61,11 @@ export class PaiementsController {
   ) {
     const secret = this.config.get<string>('NOVASEND_WEBHOOK_SECRET');
     if (secret && sigHeader) {
-      const raw      = req.rawBody?.toString() ?? JSON.stringify(body);
-      const expected = crypto.createHmac('sha256', secret).update(raw).digest('hex');
+      const raw = req.rawBody?.toString() ?? JSON.stringify(body);
+      const expected = crypto
+        .createHmac('sha256', secret)
+        .update(raw)
+        .digest('hex');
       if (sigHeader !== expected) {
         this.logger.warn('Novasend webhook: signature invalide');
         return { status: 'invalid_signature' };

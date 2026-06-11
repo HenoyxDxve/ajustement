@@ -30,10 +30,9 @@ export class B2BController {
   @Get('dashboard')
   getDashboard(@Req() req: any) {
     // TEMP DEBUG (à retirer après diagnostic)
-    // eslint-disable-next-line no-console
-    // eslint-disable-next-line no-console
+
     console.log('[DEBUG][b2b/dashboard] CALLED');
-    // eslint-disable-next-line no-console
+
     console.log(
       '[DEBUG][b2b/dashboard] hasUser=',
       !!req?.user,
@@ -45,7 +44,6 @@ export class B2BController {
 
     return this.b2bService.getDashboard(req?.user);
   }
-
 
   // GET /b2b/collaborators
   @Get('collaborators')

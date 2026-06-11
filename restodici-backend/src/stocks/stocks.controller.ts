@@ -75,6 +75,12 @@ export class StocksController {
     @Req() req,
   ) {
     const restaurantId = req.user?.restaurant?.id;
-    return this.stocksService.entreeStock(id, quantity, fournisseurId, restaurantId, motif);
+    return this.stocksService.entreeStock(
+      id,
+      quantity,
+      fournisseurId,
+      restaurantId,
+      motif,
+    );
   }
 }

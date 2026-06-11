@@ -148,7 +148,9 @@ export class CommandesController {
 
     // Servir depuis S3 si le PDF a déjà été persisté
     if ((commande as any).recuPdfS3Key) {
-      pdfBuffer = await this.storageService.downloadPdf((commande as any).recuPdfS3Key);
+      pdfBuffer = await this.storageService.downloadPdf(
+        (commande as any).recuPdfS3Key,
+      );
     }
 
     // Génération à la volée si absent de S3 (ou S3 non configuré)
@@ -232,7 +234,9 @@ export class CommandesController {
     const actor = {
       id: req.user.id,
       role: req.user.role,
-      nom: [req.user.prenom, req.user.nom].filter(Boolean).join(' ') || req.user.email,
+      nom:
+        [req.user.prenom, req.user.nom].filter(Boolean).join(' ') ||
+        req.user.email,
     };
     return this.commandesService.updateStatut(id, statut, restaurantId, actor);
   }
@@ -241,16 +245,22 @@ export class CommandesController {
   @UseGuards(AuthGuard('jwt'))
   async getCommandeHistory(@Param('id') id: string, @Req() req: any) {
     const userRole = req.user.role;
-    const clientId = userRole === 'CLIENT' || userRole === 'B2B' ? req.user.id : undefined;
+    const clientId =
+      userRole === 'CLIENT' || userRole === 'B2B' ? req.user.id : undefined;
     const restaurantId =
-      userRole === 'GERANT' || userRole === 'STAFF' ? req.user.restaurant?.id : undefined;
+      userRole === 'GERANT' || userRole === 'STAFF'
+        ? req.user.restaurant?.id
+        : undefined;
     return this.commandesService.getCommandeHistory(id, clientId, restaurantId);
   }
 
   @Get('activity/restaurant')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('GERANT', 'STAFF', 'ADMIN')
-  async getRestaurantActivity(@Req() req: any, @Query('limit') limitStr?: string) {
+  async getRestaurantActivity(
+    @Req() req: any,
+    @Query('limit') limitStr?: string,
+  ) {
     const restaurantId = req.user.restaurant?.id;
     if (!restaurantId) return [];
     const limit = Math.min(parseInt(limitStr ?? '50', 10) || 50, 200);

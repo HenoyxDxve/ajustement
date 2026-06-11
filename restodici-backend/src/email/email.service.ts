@@ -312,13 +312,28 @@ export class EmailService {
     restaurantNom?: string;
     pdfBuffer?: Buffer;
   }): Promise<void> {
-    const { to, clientNom, numero, montantTotal, modePaiement, lignes, payeAt, restaurantNom, pdfBuffer } = params;
+    const {
+      to,
+      clientNom,
+      numero,
+      montantTotal,
+      modePaiement,
+      lignes,
+      payeAt,
+      restaurantNom,
+      pdfBuffer,
+    } = params;
 
-    const fcfa = (n: number) => new Intl.NumberFormat('fr-FR').format(Math.round(n)) + ' FCFA';
+    const fcfa = (n: number) =>
+      new Intl.NumberFormat('fr-FR').format(Math.round(n)) + ' FCFA';
     const dateStr = payeAt
-      ? new Date(payeAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
+      ? new Date(payeAt).toLocaleString('fr-FR', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        })
       : '—';
-    const modeLabel = PAYMENT_LABELS[modePaiement ?? ''] ?? modePaiement ?? 'Non renseigné';
+    const modeLabel =
+      PAYMENT_LABELS[modePaiement ?? ''] ?? modePaiement ?? 'Non renseigné';
 
     const lignesRows = lignes
       .map(
@@ -388,11 +403,15 @@ export class EmailService {
           <span style="font-size:13px;color:#9a7060;margin-right:20px;">Total TTC</span>
           <span style="font-size:26px;font-weight:800;color:#C05015;">${fcfa(montantTotal)}</span>
         </td></tr>
-        ${pdfBuffer ? `<tr><td style="padding:0 40px 28px;">
+        ${
+          pdfBuffer
+            ? `<tr><td style="padding:0 40px 28px;">
           <p style="color:#64574A;font-size:13px;margin:0;background:#f8f5f0;border-radius:8px;padding:14px 16px;">
             📎 Votre reçu PDF est joint à cet email.
           </p>
-        </td></tr>` : ''}
+        </td></tr>`
+            : ''
+        }
         <!-- FOOTER -->
         <tr><td style="background:#FAF6F0;padding:20px 40px;text-align:center;border-top:1px solid #f0e8df;">
           <p style="color:#C58A55;font-size:12px;margin:0;">Merci de votre confiance ! · © ${new Date().getFullYear()} Resto d'ici</p>
@@ -404,7 +423,14 @@ export class EmailService {
 </html>`;
 
     if (!this.resend) {
-      this.logLink({ to, subject: `Votre reçu de commande #${numero} — Resto d'ici`, html }, 'log-only');
+      this.logLink(
+        {
+          to,
+          subject: `Votre reçu de commande #${numero} — Resto d'ici`,
+          html,
+        },
+        'log-only',
+      );
       return;
     }
 
@@ -414,12 +440,18 @@ export class EmailService {
       subject: `Votre reçu de commande #${numero} — Resto d'ici`,
       html,
       ...(pdfBuffer
-        ? { attachments: [{ filename: `recu-${numero}.pdf`, content: pdfBuffer }] }
+        ? {
+            attachments: [
+              { filename: `recu-${numero}.pdf`, content: pdfBuffer },
+            ],
+          }
         : {}),
     });
 
     if (error) {
-      this.logger.error(`Échec envoi reçu #${numero} à ${to}: ${error.message}`);
+      this.logger.error(
+        `Échec envoi reçu #${numero} à ${to}: ${error.message}`,
+      );
     } else {
       this.logger.log(`Reçu #${numero} envoyé à ${to}`);
     }
@@ -436,8 +468,19 @@ export class EmailService {
     montantTTC: number;
     echeance: string;
   }): Promise<void> {
-    const { to, raisonSociale, numeroFacture, mois, annee, montantHT, tva, montantTTC, echeance } = params;
-    const fcfa = (n: number) => new Intl.NumberFormat('fr-FR').format(Math.round(n)) + ' FCFA';
+    const {
+      to,
+      raisonSociale,
+      numeroFacture,
+      mois,
+      annee,
+      montantHT,
+      tva,
+      montantTTC,
+      echeance,
+    } = params;
+    const fcfa = (n: number) =>
+      new Intl.NumberFormat('fr-FR').format(Math.round(n)) + ' FCFA';
 
     const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -493,7 +536,10 @@ export class EmailService {
 </html>`;
 
     if (!this.resend) {
-      this.logLink({ to, subject: `Facture ${mois} ${annee} — ${numeroFacture}`, html }, 'log-only');
+      this.logLink(
+        { to, subject: `Facture ${mois} ${annee} — ${numeroFacture}`, html },
+        'log-only',
+      );
       return;
     }
 
@@ -505,7 +551,9 @@ export class EmailService {
     });
 
     if (error) {
-      this.logger.error(`Échec envoi facture ${numeroFacture} à ${to}: ${error.message}`);
+      this.logger.error(
+        `Échec envoi facture ${numeroFacture} à ${to}: ${error.message}`,
+      );
     } else {
       this.logger.log(`Facture ${numeroFacture} envoyée à ${to}`);
     }

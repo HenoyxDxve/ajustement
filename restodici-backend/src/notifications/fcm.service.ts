@@ -13,55 +13,100 @@ export class FcmService {
       this.serverKey = key;
       this.logger.log('Firebase FCM configuré');
     } else {
-      this.logger.warn('FIREBASE_SERVER_KEY absent — push notifications désactivées');
+      this.logger.warn(
+        'FIREBASE_SERVER_KEY absent — push notifications désactivées',
+      );
     }
   }
 
-  async sendToToken(token: string, title: string, body: string, data?: Record<string, string>): Promise<void> {
+  async sendToToken(
+    token: string,
+    title: string,
+    body: string,
+    data?: Record<string, string>,
+  ): Promise<void> {
     if (!this.serverKey) {
-      this.logger.log(`[FCM-LOG] Token: ${token.slice(0, 20)}… | ${title}: ${body}`);
+      this.logger.log(
+        `[FCM-LOG] Token: ${token.slice(0, 20)}… | ${title}: ${body}`,
+      );
       return;
     }
     try {
-      await axios.post('https://fcm.googleapis.com/fcm/send', {
-        to: token,
-        notification: { title, body, sound: 'default' },
-        data: data ?? {},
-        priority: 'high',
-      }, {
-        headers: { Authorization: `key=${this.serverKey}`, 'Content-Type': 'application/json' },
-        timeout: 5000,
-      });
+      await axios.post(
+        'https://fcm.googleapis.com/fcm/send',
+        {
+          to: token,
+          notification: { title, body, sound: 'default' },
+          data: data ?? {},
+          priority: 'high',
+        },
+        {
+          headers: {
+            Authorization: `key=${this.serverKey}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 5000,
+        },
+      );
     } catch (err: any) {
       this.logger.error(`FCM push failed: ${err.message}`);
     }
   }
 
-  async sendToTopic(topic: string, title: string, body: string, data?: Record<string, string>): Promise<void> {
+  async sendToTopic(
+    topic: string,
+    title: string,
+    body: string,
+    data?: Record<string, string>,
+  ): Promise<void> {
     if (!this.serverKey) {
       this.logger.log(`[FCM-LOG] Topic: ${topic} | ${title}: ${body}`);
       return;
     }
     try {
-      await axios.post('https://fcm.googleapis.com/fcm/send', {
-        to: `/topics/${topic}`,
-        notification: { title, body, sound: 'default' },
-        data: data ?? {},
-        priority: 'high',
-      }, {
-        headers: { Authorization: `key=${this.serverKey}`, 'Content-Type': 'application/json' },
-        timeout: 5000,
-      });
+      await axios.post(
+        'https://fcm.googleapis.com/fcm/send',
+        {
+          to: `/topics/${topic}`,
+          notification: { title, body, sound: 'default' },
+          data: data ?? {},
+          priority: 'high',
+        },
+        {
+          headers: {
+            Authorization: `key=${this.serverKey}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 5000,
+        },
+      );
     } catch (err: any) {
       this.logger.error(`FCM topic push failed: ${err.message}`);
     }
   }
 
-  async notifyNewOrder(restaurantId: string, numero: string, montant: number): Promise<void> {
-    await this.sendToTopic(`restaurant_${restaurantId}`, '🛎️ Nouvelle commande', `Commande #${numero} — ${montant.toLocaleString('fr-FR')} FCFA`, { type: 'nouvelle_commande', numero });
+  async notifyNewOrder(
+    restaurantId: string,
+    numero: string,
+    montant: number,
+  ): Promise<void> {
+    await this.sendToTopic(
+      `restaurant_${restaurantId}`,
+      '🛎️ Nouvelle commande',
+      `Commande #${numero} — ${montant.toLocaleString('fr-FR')} FCFA`,
+      { type: 'nouvelle_commande', numero },
+    );
   }
 
-  async notifyStockAlert(restaurantId: string, articleNom: string): Promise<void> {
-    await this.sendToTopic(`restaurant_${restaurantId}`, '⚠️ Alerte stock', `Stock faible : ${articleNom}`, { type: 'stock_alert' });
+  async notifyStockAlert(
+    restaurantId: string,
+    articleNom: string,
+  ): Promise<void> {
+    await this.sendToTopic(
+      `restaurant_${restaurantId}`,
+      '⚠️ Alerte stock',
+      `Stock faible : ${articleNom}`,
+      { type: 'stock_alert' },
+    );
   }
 }

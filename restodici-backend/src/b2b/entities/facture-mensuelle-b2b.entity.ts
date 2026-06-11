@@ -9,7 +9,11 @@ import {
 } from 'typeorm';
 import { CompteB2B } from './compte-b2b.entity';
 
-export type StatutFactureB2B = 'EN_ATTENTE' | 'PAYEE' | 'RETARDEE' | 'EN_CONTESTATION';
+export type StatutFactureB2B =
+  | 'EN_ATTENTE'
+  | 'PAYEE'
+  | 'RETARDEE'
+  | 'EN_CONTESTATION';
 
 @Entity('factures_mensuelles_b2b')
 export class FactureMensuelleB2B {

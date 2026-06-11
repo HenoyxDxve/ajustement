@@ -1,5 +1,10 @@
 import {
-  IsString, IsOptional, IsNumber, IsArray, ValidateNested, Min,
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  ValidateNested,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 

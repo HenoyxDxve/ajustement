@@ -73,9 +73,6 @@ import { ReceiptQueueModule } from './receipt-queue/receipt-queue.module';
     ReceiptQueueModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-  ],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

@@ -15,7 +15,7 @@ import { S3Service } from './s3.service';
 import type { Express } from 'express';
 
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_SIZE     = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 
 @Controller('uploads')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -30,7 +30,12 @@ export class UploadsController {
       limits: { fileSize: MAX_SIZE },
       fileFilter: (_, file, cb) => {
         if (!ALLOWED_MIME.includes(file.mimetype)) {
-          return cb(new BadRequestException('Format non supporté. Utilisez JPG, PNG, WebP ou GIF.'), false);
+          return cb(
+            new BadRequestException(
+              'Format non supporté. Utilisez JPG, PNG, WebP ou GIF.',
+            ),
+            false,
+          );
         }
         cb(null, true);
       },

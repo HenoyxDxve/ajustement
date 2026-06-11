@@ -214,7 +214,10 @@ export class B2BService {
         existing.invitationAccepted = false;
         await this.collaborateurRepository.save(existing);
         await this.sendInvitationEmail(existing, compte, userId);
-        return { ...this.formatCollaborateurResponse(existing, 0), invitationEnvoyee: true };
+        return {
+          ...this.formatCollaborateurResponse(existing, 0),
+          invitationEnvoyee: true,
+        };
       }
       throw new BadRequestException(
         'Ce collaborateur existe déjà dans votre entreprise',
@@ -246,7 +249,10 @@ export class B2BService {
 
     await this.sendInvitationEmail(saved, compte, userId);
 
-    return { ...this.formatCollaborateurResponse(saved, 0), invitationEnvoyee: true };
+    return {
+      ...this.formatCollaborateurResponse(saved, 0),
+      invitationEnvoyee: true,
+    };
   }
 
   async getCollaborateursB2B(userId: string): Promise<Record<string, any>[]> {
@@ -339,18 +345,24 @@ export class B2BService {
 
     const budget = dto.limiteBudget ?? dto.budgetMensuel;
     if (budget !== undefined) {
-      if (budget < 0) throw new BadRequestException('Le budget doit être positif');
+      if (budget < 0)
+        throw new BadRequestException('Le budget doit être positif');
       collab.limiteBudget = budget;
     }
     if (dto.nom) collab.nom = dto.nom.trim();
 
     const saved = await this.collaborateurRepository.save(collab);
-    await this.logAudit('MODIFICATION_COLLABORATEUR' as any, compte.id, userId, {
-      action: 'Mise à jour limite de dépense',
-      collaborateurId,
-      nom: collab.nom,
-      limiteBudget: collab.limiteBudget,
-    });
+    await this.logAudit(
+      'MODIFICATION_COLLABORATEUR' as any,
+      compte.id,
+      userId,
+      {
+        action: 'Mise à jour limite de dépense',
+        collaborateurId,
+        nom: collab.nom,
+        limiteBudget: collab.limiteBudget,
+      },
+    );
     return {
       id: saved.id,
       nom: saved.nom,
@@ -364,7 +376,9 @@ export class B2BService {
     compte: CompteB2B,
     inviteurId: string,
   ): Promise<void> {
-    const inviteur = await this.userRepository.findOne({ where: { id: inviteurId } });
+    const inviteur = await this.userRepository.findOne({
+      where: { id: inviteurId },
+    });
     const frontendUrl =
       this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
     try {
@@ -386,10 +400,14 @@ export class B2BService {
       where: { invitationToken: token },
       relations: ['compteB2B'],
     });
-    if (!collab) throw new NotFoundException('Invitation introuvable ou expirée');
-    if (collab.invitationAccepted) throw new BadRequestException('Invitation déjà acceptée');
+    if (!collab)
+      throw new NotFoundException('Invitation introuvable ou expirée');
+    if (collab.invitationAccepted)
+      throw new BadRequestException('Invitation déjà acceptée');
     if (collab.invitationExpiry && collab.invitationExpiry < new Date()) {
-      throw new BadRequestException("L'invitation a expiré. Demandez une nouvelle invitation.");
+      throw new BadRequestException(
+        "L'invitation a expiré. Demandez une nouvelle invitation.",
+      );
     }
     return {
       nom: collab.nom,
@@ -410,16 +428,21 @@ export class B2BService {
       relations: ['compteB2B'],
     });
     if (!collab) throw new NotFoundException('Invitation introuvable');
-    if (collab.invitationAccepted) throw new BadRequestException('Invitation déjà acceptée');
+    if (collab.invitationAccepted)
+      throw new BadRequestException('Invitation déjà acceptée');
     if (collab.invitationExpiry && collab.invitationExpiry < new Date()) {
       throw new BadRequestException("L'invitation a expiré");
     }
     if (!password || password.length < 8) {
-      throw new BadRequestException('Mot de passe requis (8 caractères minimum)');
+      throw new BadRequestException(
+        'Mot de passe requis (8 caractères minimum)',
+      );
     }
 
     // Create or reuse user account
-    let user = await this.userRepository.findOne({ where: { email: collab.email } });
+    let user = await this.userRepository.findOne({
+      where: { email: collab.email },
+    });
     if (!user) {
       user = this.userRepository.create({
         nom: collab.nom,
@@ -448,7 +471,10 @@ export class B2BService {
       email: collab.email,
     });
 
-    return { message: 'Invitation acceptée. Vous pouvez maintenant vous connecter.', email: collab.email };
+    return {
+      message: 'Invitation acceptée. Vous pouvez maintenant vous connecter.',
+      email: collab.email,
+    };
   }
 
   async submitAvis(
@@ -465,17 +491,25 @@ export class B2BService {
     });
     if (!commande) throw new NotFoundException('Commande introuvable');
     if (commande.statut !== 'LIVREE') {
-      throw new BadRequestException('Seules les commandes livrées peuvent être évaluées');
+      throw new BadRequestException(
+        'Seules les commandes livrées peuvent être évaluées',
+      );
     }
-    if (commande.avisNote) throw new BadRequestException('Un avis a déjà été soumis');
-    if (note < 1 || note > 5) throw new BadRequestException('Note invalide (1–5)');
+    if (commande.avisNote)
+      throw new BadRequestException('Un avis a déjà été soumis');
+    if (note < 1 || note > 5)
+      throw new BadRequestException('Note invalide (1–5)');
 
     commande.avisNote = note;
     commande.avisCommentaire = commentaire?.trim() || undefined;
     commande.avisAt = new Date();
     await this.commandeGroupeeRepository.save(commande);
 
-    return { id: commande.id, avisNote: note, avisCommentaire: commande.avisCommentaire };
+    return {
+      id: commande.id,
+      avisNote: note,
+      avisCommentaire: commande.avisCommentaire,
+    };
   }
 
   async getCommandeGroupeeDetail(
@@ -629,7 +663,9 @@ export class B2BService {
     }
 
     const nextPrelevementDate =
-      (await this.getPendingInvoiceEcheance(compte.id)) || compte.datePrelevement || undefined;
+      (await this.getPendingInvoiceEcheance(compte.id)) ||
+      compte.datePrelevement ||
+      undefined;
     const blocked = (await this.getOverdueInvoiceCount(compte.id)) > 0;
 
     // Last day of current month — date at which next invoice will be generated
@@ -637,7 +673,12 @@ export class B2BService {
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const prochainFacture = lastDay.toISOString().slice(0, 10);
 
-    return this.formatCompteForResponse(compte, nextPrelevementDate, blocked, prochainFacture);
+    return this.formatCompteForResponse(
+      compte,
+      nextPrelevementDate,
+      blocked,
+      prochainFacture,
+    );
   }
 
   // ============================================================
@@ -884,9 +925,18 @@ export class B2BService {
     commande.estPaye = true;
     const saved = await this.commandeGroupeeRepository.save(commande);
 
-    const payload = { id: saved.id, numero: saved.numero, statut: saved.statut, estPaye: true };
+    const payload = {
+      id: saved.id,
+      numero: saved.numero,
+      statut: saved.statut,
+      estPaye: true,
+    };
     if (commande.restaurantId) {
-      this.commandesGateway.emitToKitchen(commande.restaurantId, 'commande.b2b.statut', payload);
+      this.commandesGateway.emitToKitchen(
+        commande.restaurantId,
+        'commande.b2b.statut',
+        payload,
+      );
     }
     this.commandesGateway.emitToManagers('commande.b2b.statut', payload);
     return payload;
@@ -914,7 +964,11 @@ export class B2BService {
 
     const payload = { id: saved.id, numero: saved.numero, statut: 'ANNULEE' };
     if (commande.restaurantId) {
-      this.commandesGateway.emitToKitchen(commande.restaurantId, 'commande.b2b.statut', payload);
+      this.commandesGateway.emitToKitchen(
+        commande.restaurantId,
+        'commande.b2b.statut',
+        payload,
+      );
     }
     this.commandesGateway.emitToManagers('commande.b2b.statut', payload);
     return payload;
@@ -924,17 +978,31 @@ export class B2BService {
   async checkDeliveryReminders(): Promise<void> {
     const now = new Date();
     const windows = [
-      { label: '30min', from: new Date(now.getTime() + 25 * 60_000), to: new Date(now.getTime() + 35 * 60_000) },
-      { label: '2h',    from: new Date(now.getTime() + 115 * 60_000), to: new Date(now.getTime() + 125 * 60_000) },
+      {
+        label: '30min',
+        from: new Date(now.getTime() + 25 * 60_000),
+        to: new Date(now.getTime() + 35 * 60_000),
+      },
+      {
+        label: '2h',
+        from: new Date(now.getTime() + 115 * 60_000),
+        to: new Date(now.getTime() + 125 * 60_000),
+      },
     ];
     for (const { label, from, to } of windows) {
       const commandes = await this.commandeGroupeeRepository.find({
-        where: { dateLivraison: Between(from, to), statut: In(['EN_ATTENTE', 'CONFIRMEE', 'EN_PREPARATION']) },
+        where: {
+          dateLivraison: Between(from, to),
+          statut: In(['EN_ATTENTE', 'CONFIRMEE', 'EN_PREPARATION']),
+        },
         relations: ['compteB2B'],
       });
       for (const cmd of commandes) {
         const payload = {
-          id: cmd.id, numero: cmd.numero, statut: cmd.statut, estPaye: cmd.estPaye,
+          id: cmd.id,
+          numero: cmd.numero,
+          statut: cmd.statut,
+          estPaye: cmd.estPaye,
           entreprise: cmd.compteB2B?.raisonSociale ?? 'Entreprise',
           dateLivraison: cmd.dateLivraison,
           heureLivraison: cmd.heureLivraison,
@@ -942,7 +1010,11 @@ export class B2BService {
           urgence: label,
         };
         if (cmd.restaurantId) {
-          this.commandesGateway.emitToKitchen(cmd.restaurantId, 'commande.b2b.rappel', payload);
+          this.commandesGateway.emitToKitchen(
+            cmd.restaurantId,
+            'commande.b2b.rappel',
+            payload,
+          );
         }
         this.commandesGateway.emitToManagers('commande.b2b.rappel', payload);
       }
@@ -1076,8 +1148,12 @@ export class B2BService {
       where: { id: factureId, compteB2B: { id: compte.id } },
     });
     if (!facture) throw new NotFoundException('Facture introuvable');
-    if (facture.statut === 'PAYEE') throw new BadRequestException('Impossible de contester une facture déjà payée');
-    if (facture.statut === 'EN_CONTESTATION') throw new BadRequestException('Facture déjà en contestation');
+    if (facture.statut === 'PAYEE')
+      throw new BadRequestException(
+        'Impossible de contester une facture déjà payée',
+      );
+    if (facture.statut === 'EN_CONTESTATION')
+      throw new BadRequestException('Facture déjà en contestation');
 
     facture.statut = 'EN_CONTESTATION';
     const saved = await this.factureRepository.save(facture);
@@ -1089,12 +1165,15 @@ export class B2BService {
       numeroFacture: facture.numeroFacture,
     });
 
-    const adminEmail = this.configService.get<string>('ADMIN_EMAIL') || 'admin@restodici.ci';
-    void this.emailService.sendMail({
-      to: adminEmail,
-      subject: `RESTODICI — Contestation facture ${facture.numeroFacture} — ${compte.raisonSociale}`,
-      html: `<p>La facture <strong>${facture.numeroFacture}</strong> (${compte.raisonSociale}) est contestée.</p><p><strong>Motif :</strong> ${motif}</p><p>Montant TTC : ${Math.round(Number(facture.montantTTC)).toLocaleString('fr-FR')} FCFA</p>`,
-    }).catch(() => undefined);
+    const adminEmail =
+      this.configService.get<string>('ADMIN_EMAIL') || 'admin@restodici.ci';
+    void this.emailService
+      .sendMail({
+        to: adminEmail,
+        subject: `RESTODICI — Contestation facture ${facture.numeroFacture} — ${compte.raisonSociale}`,
+        html: `<p>La facture <strong>${facture.numeroFacture}</strong> (${compte.raisonSociale}) est contestée.</p><p><strong>Motif :</strong> ${motif}</p><p>Montant TTC : ${Math.round(Number(facture.montantTTC)).toLocaleString('fr-FR')} FCFA</p>`,
+      })
+      .catch(() => undefined);
 
     return this.formatFacture(saved, compte);
   }
@@ -1143,7 +1222,7 @@ export class B2BService {
     ];
 
     const headers = Object.keys(rows[0]).join(';');
-    const csvRows = rows.map(r => Object.values(r).join(';'));
+    const csvRows = rows.map((r) => Object.values(r).join(';'));
     const csv = [headers, ...csvRows].join('\n');
 
     await this.logAudit('GENERATION_FACTURE', compte.id, userId, {
@@ -1152,7 +1231,10 @@ export class B2BService {
       numeroFacture: facture.numeroFacture,
     });
 
-    return { csv, filename: `syscohada-${ref}-${periode.replace(' ', '-')}.csv` };
+    return {
+      csv,
+      filename: `syscohada-${ref}-${periode.replace(' ', '-')}.csv`,
+    };
   }
 
   // CRON: Last day of every month at 23:00 — generate invoices for all B2B accounts
@@ -1263,7 +1345,11 @@ export class B2BService {
           montantTTC,
           echeance: echeanceDate.toISOString().slice(0, 10),
         })
-        .catch((err) => console.error(`[B2BService] Erreur email facture ${numeroFacture}: ${(err as Error).message}`));
+        .catch((err) =>
+          console.error(
+            `[B2BService] Erreur email facture ${numeroFacture}: ${(err as Error).message}`,
+          ),
+        );
     }
 
     return saved;
@@ -1302,18 +1388,22 @@ export class B2BService {
     for (const facture of dueSoon) {
       const compte = facture.compteB2B;
       if (!compte?.emailProfessionnel) continue;
-      void this.emailService.sendMail({
-        to: compte.emailProfessionnel,
-        subject: `RESTODICI — Rappel : facture ${facture.numeroFacture} échéance dans 7 jours`,
-        html: `<p>Bonjour,</p><p>La facture <strong>${facture.numeroFacture}</strong> (${Math.round(Number(facture.montantTTC)).toLocaleString('fr-FR')} FCFA TTC) est due le <strong>${facture.echeance}</strong>, dans 7 jours.</p><p>Connectez-vous à votre espace B2B pour régler cette facture.</p>`,
-      }).catch(() => undefined);
+      void this.emailService
+        .sendMail({
+          to: compte.emailProfessionnel,
+          subject: `RESTODICI — Rappel : facture ${facture.numeroFacture} échéance dans 7 jours`,
+          html: `<p>Bonjour,</p><p>La facture <strong>${facture.numeroFacture}</strong> (${Math.round(Number(facture.montantTTC)).toLocaleString('fr-FR')} FCFA TTC) est due le <strong>${facture.echeance}</strong>, dans 7 jours.</p><p>Connectez-vous à votre espace B2B pour régler cette facture.</p>`,
+        })
+        .catch(() => undefined);
     }
 
     // Step 3: Block account at J+3 after due date (range: exactly 3 days overdue today)
     const dueJ3 = new Date(today);
     dueJ3.setDate(dueJ3.getDate() - 3);
     const dueJ3Str = dueJ3.toISOString().slice(0, 10);
-    const dueJ3PrevStr = new Date(dueJ3.getTime() - 86_400_000).toISOString().slice(0, 10);
+    const dueJ3PrevStr = new Date(dueJ3.getTime() - 86_400_000)
+      .toISOString()
+      .slice(0, 10);
 
     const overdueJ3 = await this.factureRepository
       .createQueryBuilder('f')
@@ -1327,11 +1417,13 @@ export class B2BService {
       const compte = facture.compteB2B;
       if (!compte) continue;
       if (compte.emailProfessionnel) {
-        void this.emailService.sendMail({
-          to: compte.emailProfessionnel,
-          subject: `RESTODICI — URGENT : facture impayée ${facture.numeroFacture} — compte suspendu`,
-          html: `<p>Bonjour,</p><p>Votre facture <strong>${facture.numeroFacture}</strong> (${Math.round(Number(facture.montantTTC)).toLocaleString('fr-FR')} FCFA TTC) est impayée depuis 3 jours.</p><p><strong>Vos nouvelles commandes sont désactivées jusqu'au règlement.</strong></p><p>Réglez cette facture immédiatement via votre espace B2B.</p>`,
-        }).catch(() => undefined);
+        void this.emailService
+          .sendMail({
+            to: compte.emailProfessionnel,
+            subject: `RESTODICI — URGENT : facture impayée ${facture.numeroFacture} — compte suspendu`,
+            html: `<p>Bonjour,</p><p>Votre facture <strong>${facture.numeroFacture}</strong> (${Math.round(Number(facture.montantTTC)).toLocaleString('fr-FR')} FCFA TTC) est impayée depuis 3 jours.</p><p><strong>Vos nouvelles commandes sont désactivées jusqu'au règlement.</strong></p><p>Réglez cette facture immédiatement via votre espace B2B.</p>`,
+          })
+          .catch(() => undefined);
       }
     }
 
@@ -1339,7 +1431,9 @@ export class B2BService {
     const dueJ15 = new Date(today);
     dueJ15.setDate(dueJ15.getDate() - 15);
     const dueJ15Str = dueJ15.toISOString().slice(0, 10);
-    const dueJ15PrevStr = new Date(dueJ15.getTime() - 86_400_000).toISOString().slice(0, 10);
+    const dueJ15PrevStr = new Date(dueJ15.getTime() - 86_400_000)
+      .toISOString()
+      .slice(0, 10);
 
     const overdueJ15 = await this.factureRepository
       .createQueryBuilder('f')
@@ -1352,12 +1446,15 @@ export class B2BService {
     for (const facture of overdueJ15) {
       const compte = facture.compteB2B;
       if (!compte) continue;
-      const adminEmail = this.configService.get<string>('ADMIN_EMAIL') || 'admin@restodici.ci';
-      void this.emailService.sendMail({
-        to: adminEmail,
-        subject: `RESTODICI ADMIN — Impayé J+15 : ${compte.raisonSociale} — ${facture.numeroFacture}`,
-        html: `<p>La facture <strong>${facture.numeroFacture}</strong> de l'entreprise <strong>${compte.raisonSociale}</strong> est impayée depuis 15 jours (${Math.round(Number(facture.montantTTC)).toLocaleString('fr-FR')} FCFA TTC). Intervention manuelle requise.</p>`,
-      }).catch(() => undefined);
+      const adminEmail =
+        this.configService.get<string>('ADMIN_EMAIL') || 'admin@restodici.ci';
+      void this.emailService
+        .sendMail({
+          to: adminEmail,
+          subject: `RESTODICI ADMIN — Impayé J+15 : ${compte.raisonSociale} — ${facture.numeroFacture}`,
+          html: `<p>La facture <strong>${facture.numeroFacture}</strong> de l'entreprise <strong>${compte.raisonSociale}</strong> est impayée depuis 15 jours (${Math.round(Number(facture.montantTTC)).toLocaleString('fr-FR')} FCFA TTC). Intervention manuelle requise.</p>`,
+        })
+        .catch(() => undefined);
     }
   }
 
@@ -2029,7 +2126,10 @@ export class B2BService {
     return statusMap[status] ?? status;
   }
 
-  async initierPaiementFacture(factureId: string, userId: string): Promise<{ paymentUrl: string; transactionId: string }> {
+  async initierPaiementFacture(
+    factureId: string,
+    userId: string,
+  ): Promise<{ paymentUrl: string; transactionId: string }> {
     const compte = await this.getCompteB2B(userId);
     if (!compte) throw new NotFoundException('Compte entreprise introuvable');
 
@@ -2037,17 +2137,23 @@ export class B2BService {
       where: { id: factureId, compteB2B: { id: compte.id } },
     });
     if (!facture) throw new NotFoundException('Facture introuvable');
-    if (facture.statut === 'PAYEE') throw new BadRequestException('Facture déjà payée');
+    if (facture.statut === 'PAYEE')
+      throw new BadRequestException('Facture déjà payée');
 
     const apiKey = this.configService.get<string>('NOVASEND_API_KEY');
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
-    const backendUrl  = this.configService.get<string>('BACKEND_URL')  || 'http://localhost:3000';
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    const backendUrl =
+      this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
 
     if (!apiKey) {
       // Fallback simulation: mark as paid directly if no API key configured
       facture.statut = 'PAYEE';
       await this.factureRepository.save(facture);
-      return { paymentUrl: `${frontendUrl}/b2b?payment=success&factureId=${factureId}`, transactionId: `SIM-${factureId.slice(0,8)}` };
+      return {
+        paymentUrl: `${frontendUrl}/b2b?payment=success&factureId=${factureId}`,
+        transactionId: `SIM-${factureId.slice(0, 8)}`,
+      };
     }
 
     const payload = {
@@ -2061,10 +2167,17 @@ export class B2BService {
       cancel_url: `${frontendUrl}/b2b?payment=cancelled&factureId=${factureId}`,
     };
 
-    const response = await axios.post('https://api.novasend.ci/v1/payments', payload, {
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      timeout: 10000,
-    });
+    const response = await axios.post(
+      'https://api.novasend.ci/v1/payments',
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      },
+    );
 
     const { payment_url, transaction_id } = response.data;
     return { paymentUrl: payment_url, transactionId: transaction_id };
@@ -2075,11 +2188,23 @@ export class B2BService {
     const compte = await this.getCompteB2B(userId);
     if (!compte) throw new NotFoundException('Compte entreprise introuvable');
 
-    const now       = new Date();
-    const moisNoms  = ['JANVIER','FEVRIER','MARS','AVRIL','MAI','JUIN',
-                       'JUILLET','AOUT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DECEMBRE'];
-    const mois      = moisNoms[now.getMonth()];
-    const annee     = now.getFullYear();
+    const now = new Date();
+    const moisNoms = [
+      'JANVIER',
+      'FEVRIER',
+      'MARS',
+      'AVRIL',
+      'MAI',
+      'JUIN',
+      'JUILLET',
+      'AOUT',
+      'SEPTEMBRE',
+      'OCTOBRE',
+      'NOVEMBRE',
+      'DECEMBRE',
+    ];
+    const mois = moisNoms[now.getMonth()];
+    const annee = now.getFullYear();
 
     // Remove any existing test facture for this month so it can be recreated
     const existing = await this.factureRepository.findOne({
@@ -2087,24 +2212,26 @@ export class B2BService {
     });
     if (existing) await this.factureRepository.remove(existing);
 
-    const montantHT  = 42_373;          // ~50 000 FCFA TTC
-    const tva        = Math.round(montantHT * 0.18);
+    const montantHT = 42_373; // ~50 000 FCFA TTC
+    const tva = Math.round(montantHT * 0.18);
     const montantTTC = montantHT + tva;
-    const seq        = String(Math.floor(Math.random() * 9000) + 1000);
-    const numeroFacture = `RDI-B2B-${annee}${String(now.getMonth() + 1).padStart(2,'0')}-TEST${seq}`;
-    const echeance   = new Date(annee, now.getMonth() + 1, 15).toISOString().slice(0,10);
+    const seq = String(Math.floor(Math.random() * 9000) + 1000);
+    const numeroFacture = `RDI-B2B-${annee}${String(now.getMonth() + 1).padStart(2, '0')}-TEST${seq}`;
+    const echeance = new Date(annee, now.getMonth() + 1, 15)
+      .toISOString()
+      .slice(0, 10);
 
     const facture = this.factureRepository.create({
-      compteB2B:     compte,
+      compteB2B: compte,
       annee,
       mois,
-      statut:        'EN_ATTENTE',
+      statut: 'EN_ATTENTE',
       montantHT,
       tva,
       montantTTC,
       numeroFacture,
-      nifClient:     compte.numeroContribuable,
-      rccmClient:    compte.numeroRCCM,
+      nifClient: compte.numeroContribuable,
+      rccmClient: compte.numeroRCCM,
       echeance,
     });
 

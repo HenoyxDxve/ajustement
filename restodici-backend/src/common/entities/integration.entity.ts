@@ -7,15 +7,15 @@ import {
 } from 'typeorm';
 
 export enum IntegrationType {
-  REST_API         = 'REST_API',
-  WEBHOOK          = 'WEBHOOK',
-  PAYMENT          = 'PAYMENT',
-  SMS              = 'SMS',
+  REST_API = 'REST_API',
+  WEBHOOK = 'WEBHOOK',
+  PAYMENT = 'PAYMENT',
+  SMS = 'SMS',
   PUSH_NOTIFICATION = 'PUSH_NOTIFICATION',
-  EMAIL            = 'EMAIL',
-  STORAGE          = 'STORAGE',
-  ANALYTICS        = 'ANALYTICS',
-  CUSTOM           = 'CUSTOM',
+  EMAIL = 'EMAIL',
+  STORAGE = 'STORAGE',
+  ANALYTICS = 'ANALYTICS',
+  CUSTOM = 'CUSTOM',
 }
 
 @Entity('integrations')
@@ -29,7 +29,11 @@ export class Integration {
   @Column({ nullable: true, type: 'text' })
   description?: string;
 
-  @Column({ type: 'enum', enum: IntegrationType, default: IntegrationType.CUSTOM })
+  @Column({
+    type: 'enum',
+    enum: IntegrationType,
+    default: IntegrationType.CUSTOM,
+  })
   type!: IntegrationType;
 
   @Column({ nullable: true })

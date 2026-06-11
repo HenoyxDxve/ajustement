@@ -27,7 +27,10 @@ export class BackupService {
 
   async performBackup(): Promise<{ file: string; sizeKb: number }> {
     const dbUrl = this.config.get<string>('DATABASE_URL');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[:.]/g, '-')
+      .slice(0, 19);
     const filename = `restodici-${timestamp}.sql`;
     const filepath = path.join(this.backupDir, filename);
 
@@ -37,7 +40,14 @@ export class BackupService {
     }
 
     try {
-      await execFileAsync('pg_dump', ['--no-owner', '--no-acl', '--clean', dbUrl, '-f', filepath]);
+      await execFileAsync('pg_dump', [
+        '--no-owner',
+        '--no-acl',
+        '--clean',
+        dbUrl,
+        '-f',
+        filepath,
+      ]);
       const stat = fs.statSync(filepath);
       const sizeKb = Math.round(stat.size / 1024);
       this.logger.log(`Backup OK: ${filename} (${sizeKb} Ko)`);
@@ -51,11 +61,16 @@ export class BackupService {
 
   listBackups() {
     if (!fs.existsSync(this.backupDir)) return [];
-    return fs.readdirSync(this.backupDir)
-      .filter(f => f.endsWith('.sql'))
-      .map(f => {
+    return fs
+      .readdirSync(this.backupDir)
+      .filter((f) => f.endsWith('.sql'))
+      .map((f) => {
         const stat = fs.statSync(path.join(this.backupDir, f));
-        return { file: f, sizeKb: Math.round(stat.size / 1024), createdAt: stat.mtime.toISOString() };
+        return {
+          file: f,
+          sizeKb: Math.round(stat.size / 1024),
+          createdAt: stat.mtime.toISOString(),
+        };
       })
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
@@ -63,8 +78,8 @@ export class BackupService {
   private pruneOldBackups(keepDays = 30) {
     const cutoff = Date.now() - keepDays * 24 * 3600 * 1000;
     fs.readdirSync(this.backupDir)
-      .filter(f => f.endsWith('.sql'))
-      .forEach(f => {
+      .filter((f) => f.endsWith('.sql'))
+      .forEach((f) => {
         const fp = path.join(this.backupDir, f);
         if (fs.statSync(fp).mtimeMs < cutoff) fs.unlinkSync(fp);
       });

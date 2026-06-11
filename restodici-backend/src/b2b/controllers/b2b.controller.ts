@@ -148,7 +148,10 @@ export class B2BController {
   }
 
   @Post('factures-mensuelles/:id/initier-paiement')
-  async initierPaiementFacture(@Req() req: RequestWithUser, @Param('id') id: string) {
+  async initierPaiementFacture(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ) {
     return this.b2bService.initierPaiementFacture(id, req.user.id);
   }
 
@@ -158,7 +161,11 @@ export class B2BController {
     @Param('id') id: string,
     @Body() body: { motif: string },
   ) {
-    return this.b2bService.contestFacture(id, req.user.id, body.motif || 'Motif non précisé');
+    return this.b2bService.contestFacture(
+      id,
+      req.user.id,
+      body.motif || 'Motif non précisé',
+    );
   }
 
   @Get('factures-mensuelles/:id/export-syscohada')
@@ -369,6 +376,11 @@ export class B2BController {
     @Param('id') id: string,
     @Body() body: { note: number; commentaire?: string },
   ) {
-    return this.b2bService.submitAvis(id, req.user.id, body.note, body.commentaire);
+    return this.b2bService.submitAvis(
+      id,
+      req.user.id,
+      body.note,
+      body.commentaire,
+    );
   }
 }

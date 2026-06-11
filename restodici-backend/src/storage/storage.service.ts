@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
 
 @Injectable()
 export class StorageService {
@@ -24,12 +28,17 @@ export class StorageService {
     if (region && !isPlaceholder && this.bucket) {
       this.s3 = new S3Client({
         region,
-        credentials: { accessKeyId: accessKeyId!, secretAccessKey: secretAccessKey! },
+        credentials: {
+          accessKeyId: accessKeyId,
+          secretAccessKey: secretAccessKey,
+        },
         ...(endpoint ? { endpoint, forcePathStyle: true } : {}),
       });
       this.logger.log(`StorageService S3 initialisé (bucket: ${this.bucket})`);
     } else {
-      this.logger.warn('StorageService: S3 non configuré — PDFs générés à la volée uniquement');
+      this.logger.warn(
+        'StorageService: S3 non configuré — PDFs générés à la volée uniquement',
+      );
     }
   }
 

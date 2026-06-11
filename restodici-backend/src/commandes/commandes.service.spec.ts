@@ -1,10 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import {
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CommandesService } from './commandes.service';
 import { Commande, StatutCommande } from './entities/commande.entity';
 import { LigneCommande } from './entities/ligne-commande.entity';
@@ -154,9 +151,9 @@ describe('CommandesService rembourser()', () => {
   it('throws NotFoundException when commande is not found', async () => {
     mockCommandeRepo.findOne.mockResolvedValue(null);
 
-    await expect(
-      service.rembourser('unknown-id', 'motif'),
-    ).rejects.toThrow(NotFoundException);
+    await expect(service.rembourser('unknown-id', 'motif')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('throws BadRequestException when commande is already rembourse', async () => {
@@ -206,12 +203,10 @@ describe('CommandesService updateStatut()', () => {
     mockCommandeRepo.findOne.mockResolvedValue(null);
 
     await expect(
-      service.updateStatut(
-        'unknown-id',
-        StatutCommande.CONFIRMEE,
-        'resto-1',
-        { id: 'actor-1', role: 'GERANT' },
-      ),
+      service.updateStatut('unknown-id', StatutCommande.CONFIRMEE, 'resto-1', {
+        id: 'actor-1',
+        role: 'GERANT',
+      }),
     ).rejects.toThrow(NotFoundException);
   });
 });

@@ -135,14 +135,17 @@ export class StocksService {
     motif?: string,
   ) {
     if (!fournisseurId) {
-      throw new BadRequestException('fournisseurId obligatoire pour une entrée de stock (RG-24)');
+      throw new BadRequestException(
+        'fournisseurId obligatoire pour une entrée de stock (RG-24)',
+      );
     }
     if (!Number.isFinite(Number(quantity)) || Number(quantity) <= 0) {
       throw new BadRequestException('La quantité doit être un entier positif');
     }
 
     // Valide que le fournisseur est référencé et actif (RG-24)
-    const fournisseur = await this.fournisseursService.findOneOrFail(fournisseurId);
+    const fournisseur =
+      await this.fournisseursService.findOneOrFail(fournisseurId);
 
     const article = await this.articleRepo.findOne({
       where: { id: articleId },
@@ -154,7 +157,10 @@ export class StocksService {
     }
 
     const newStock = (article.stock || 0) + Number(quantity);
-    await this.articleRepo.update(articleId, { stock: newStock, disponible: true });
+    await this.articleRepo.update(articleId, {
+      stock: newStock,
+      disponible: true,
+    });
 
     return {
       id: articleId,

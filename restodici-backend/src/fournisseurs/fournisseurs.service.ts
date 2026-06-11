@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Fournisseur } from './entities/fournisseur.entity';
@@ -19,7 +23,8 @@ export class FournisseursService {
 
   async findOneOrFail(id: string): Promise<Fournisseur> {
     const f = await this.repo.findOne({ where: { id, actif: true } });
-    if (!f) throw new NotFoundException(`Fournisseur introuvable ou inactif: ${id}`);
+    if (!f)
+      throw new NotFoundException(`Fournisseur introuvable ou inactif: ${id}`);
     return f;
   }
 

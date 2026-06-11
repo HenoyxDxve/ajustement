@@ -14,7 +14,15 @@ import { CommissionPlateforme } from '../commandes/entities/commission-plateform
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Restaurant, AuditLog, CompteB2B, SystemConfig, Integration, CommissionPlateforme]),
+    TypeOrmModule.forFeature([
+      User,
+      Restaurant,
+      AuditLog,
+      CompteB2B,
+      SystemConfig,
+      Integration,
+      CommissionPlateforme,
+    ]),
     AuthModule,
   ],
   controllers: [AdminController],

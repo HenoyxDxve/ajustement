@@ -24,7 +24,9 @@ const mockPasswordResetRepo = {
   create: jest.fn(),
 };
 const mockJwtService = { sign: jest.fn().mockReturnValue('mock-access-token') };
-const mockConfigService = { get: jest.fn().mockReturnValue('http://localhost:5173') };
+const mockConfigService = {
+  get: jest.fn().mockReturnValue('http://localhost:5173'),
+};
 const mockEmailService = {
   sendEmailVerification: jest.fn().mockResolvedValue(undefined),
   sendPasswordReset: jest.fn().mockResolvedValue(undefined),
@@ -46,7 +48,7 @@ function makeUser(overrides: Partial<User> = {}): User {
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
-  } as User;
+  };
 }
 
 async function buildModule(): Promise<TestingModule> {

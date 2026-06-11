@@ -15,7 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { PromosService } from './promos.service';
-import { TypePromo } from './entities/promo-code.entity';
+import { TypePromo, VisibilitePromo } from './entities/promo-code.entity';
 
 type UserReq = {
   user: { id: string; restaurantId?: string; restaurant?: { id: string } };
@@ -51,6 +51,7 @@ export class PromosController {
       maxUses?: number | null;
       expiresAt?: string | null;
       actif?: boolean;
+      visibilite?: VisibilitePromo;
     },
   ) {
     return this.promosService.create(getRestaurantId(req), dto);
@@ -71,6 +72,7 @@ export class PromosController {
       maxUses: number | null;
       expiresAt: string | null;
       actif: boolean;
+      visibilite: VisibilitePromo;
     }>,
   ) {
     return this.promosService.update(id, getRestaurantId(req), dto);

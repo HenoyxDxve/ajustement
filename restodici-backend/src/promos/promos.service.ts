@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PromoCode, TypePromo } from './entities/promo-code.entity';
+import { PromoCode, TypePromo, VisibilitePromo } from './entities/promo-code.entity';
 
 export interface CreatePromoDto {
   code: string;
@@ -17,6 +17,7 @@ export interface CreatePromoDto {
   maxUses?: number | null;
   expiresAt?: string | null;
   actif?: boolean;
+  visibilite?: VisibilitePromo;
 }
 
 @Injectable()
@@ -55,6 +56,7 @@ export class PromosService {
       maxUses: dto.maxUses ?? undefined,
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
       actif: dto.actif !== false,
+      visibilite: dto.visibilite ?? VisibilitePromo.TOUS,
       restaurantId,
     });
     return this.promoRepo.save(promo);
@@ -76,6 +78,7 @@ export class PromosService {
     if ('expiresAt' in dto)
       promo.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : undefined;
     if (dto.actif !== undefined) promo.actif = dto.actif;
+    if (dto.visibilite !== undefined) promo.visibilite = dto.visibilite;
     return this.promoRepo.save(promo);
   }
 

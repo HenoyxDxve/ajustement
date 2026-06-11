@@ -23,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PaiementsModule } from './paiements/paiements.module';
 import { FournisseursModule } from './fournisseurs/fournisseurs.module';
 import { ReceiptQueueModule } from './receipt-queue/receipt-queue.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { ReceiptQueueModule } from './receipt-queue/receipt-queue.module';
     PaiementsModule,
     FournisseursModule,
     ReceiptQueueModule,
+    NewsletterModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

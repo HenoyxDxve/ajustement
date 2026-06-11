@@ -328,6 +328,14 @@ export const promosAPI = {
     api.get("/menu/promos-actives", { params: { restaurantId } }),
 };
 
+// ── Newsletter ────────────────────────────────────────────────────────────────
+
+export const newsletterAPI = {
+  subscribe:    (email)  => api.post("/newsletter/subscribe", { email }),
+  getAll:       ()       => api.get("/newsletter"),
+  remove:       (id)     => api.delete(`/newsletter/${id}`),
+};
+
 // ── Staff ─────────────────────────────────────────────────────────────────────
 
 export const staffAPI = {

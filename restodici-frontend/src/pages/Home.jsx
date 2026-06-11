@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════════════════════ */
 import { useState, useEffect, useRef } from "react";
 import { UtensilsCrossed, ArrowRight, Check, Star, Search, ShoppingBag, Truck, Clock, Heart, Mail } from "lucide-react";
-import { menuAPI } from "../services/api";
+import { menuAPI, newsletterAPI } from "../services/api";
 
 /* ─── Palette de couleurs ─── */
 const T = {
@@ -888,6 +888,81 @@ function CTA() {
               Devenir Partenaire
             </a>
           </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Section Newsletter dédiée ─── */
+function NewsletterSection() {
+  const [email, setEmail]   = useState("");
+  const [state, setState]   = useState("idle"); // idle | loading | success | error
+  const [msg,   setMsg]     = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setState("loading");
+    try {
+      const res = await newsletterAPI.subscribe(email.trim());
+      setMsg(res.data?.message || "Inscription confirmée !");
+      setState("success");
+      setEmail("");
+    } catch (err) {
+      setMsg(err?.response?.data?.message || "Une erreur est survenue. Réessayez.");
+      setState("error");
+    }
+  };
+
+  return (
+    <section style={{ background: T.accent, padding: "80px 48px", position: "relative", overflow: "hidden" }}>
+      <Brush color="#fff" opacity={0.06} style={{ width: 600, top: "-20%", right: -100 }} />
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
+        <Reveal>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+            <Mail size={26} color="#fff" />
+          </div>
+          <h2 style={{ fontFamily: serif, fontSize: "clamp(28px,4vw,46px)", color: "#fff", fontWeight: 900, lineHeight: 1.08, margin: "0 0 14px", letterSpacing: "-0.025em" }}>
+            Restez dans la boucle
+          </h2>
+          <p style={{ fontFamily: sans, fontSize: 16, color: "rgba(255,255,255,0.75)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 480, fontWeight: 300 }}>
+            Offres exclusives, nouveaux restaurants partenaires, promotions — recevez l'actualité Resto d'ici directement dans votre boîte mail.
+          </p>
+
+          {state === "success" ? (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 50, padding: "14px 30px" }}>
+              <Check size={18} color="#fff" />
+              <span style={{ fontFamily: sans, fontSize: 15, fontWeight: 700, color: "#fff" }}>{msg}</span>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: "flex", gap: 0, maxWidth: 520, margin: "0 auto", borderRadius: 50, overflow: "hidden", boxShadow: "0 12px 48px rgba(0,0,0,0.18)", background: "#fff" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 20px", flex: 1 }}>
+                <Mail size={16} color={T.mutedL} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="votre@email.ci"
+                  required
+                  style={{ border: "none", outline: "none", fontFamily: sans, fontSize: 14, color: T.text, background: "transparent", width: "100%", padding: "15px 0" }}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={state === "loading"}
+                style={{ background: T.dark, color: "#fff", fontFamily: sans, fontSize: 13, fontWeight: 700, border: "none", cursor: state === "loading" ? "wait" : "pointer", padding: "0 28px", borderRadius: "0 50px 50px 0", whiteSpace: "nowrap", opacity: state === "loading" ? 0.7 : 1 }}
+              >
+                {state === "loading" ? "…" : "S'inscrire"}
+              </button>
+            </form>
+          )}
+          {state === "error" && (
+            <p style={{ fontFamily: sans, fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 12 }}>{msg}</p>
+          )}
+          <p style={{ fontFamily: sans, fontSize: 11, color: "rgba(255,255,255,0.45)", margin: "16px 0 0", letterSpacing: "0.04em" }}>
+            Pas de spam. Désabonnement en un clic.
+          </p>
         </Reveal>
       </div>
     </section>

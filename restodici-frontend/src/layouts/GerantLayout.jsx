@@ -8,7 +8,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   LayoutDashboard, Package, ClipboardList, AlertTriangle,
-  TrendingUp, Settings, LogOut, ChevronRight, UtensilsCrossed, Activity, Menu, X,
+  TrendingUp, Settings, LogOut, ChevronRight, UtensilsCrossed, Activity, Menu, X, Tag,
 } from 'lucide-react';
 
 /* ── Éléments de la navigation sidebar ── */
@@ -18,6 +18,7 @@ const MENU_ITEMS = [
   { id: 'orders', label: 'Commandes', icon: ClipboardList, path: '/gerant?tab=orders' },
   { id: 'stocks', label: 'Stocks', icon: AlertTriangle, path: '/gerant?tab=stocks' },
   { id: 'finance', label: 'Trésorerie', icon: TrendingUp, path: '/gerant?tab=finance' },
+  { id: 'promos', label: 'Promotions', icon: Tag, path: '/gerant?tab=promos' },
   { id: 'history', label: 'Historique', icon: Activity, path: '/gerant?tab=history' },
   { id: 'settings', label: 'Paramètres', icon: Settings, path: '/gerant?tab=settings' },
 ];
@@ -160,6 +161,7 @@ export default function GerantLayout() {
                       {item.id === 'orders' && 'Flux opérationnel'}
                       {item.id === 'stocks' && 'Inventaire & alertes'}
                       {item.id === 'finance' && 'CA & dépenses'}
+                      {item.id === 'promos' && 'Codes & réductions'}
                       {item.id === 'history' && 'Audit & traces'}
                       {item.id === 'settings' && 'Équipe & réglages'}
                     </span>

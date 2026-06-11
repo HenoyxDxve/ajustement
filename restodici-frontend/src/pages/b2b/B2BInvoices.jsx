@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, CheckCircle, Clock, AlertCircle, CreditCard, Download, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { FileText, CheckCircle, Clock, AlertCircle, CreditCard, Download, ArrowLeft, ShieldAlert, ExternalLink, X, RefreshCw } from 'lucide-react';
 import { b2bAPI } from '../../services/api';
 import { formatFCFA } from '../../utils/formatters';
 
@@ -76,12 +76,19 @@ function StatusPill({ statut }) {
   );
 }
 
+// Payment modal states: idle | initiating | redirect | polling | success | failed
 export default function B2BInvoices() {
   const [factures, setFactures] = useState([]);
   const [loading, setLoading]   = useState(true);
-  const [paying, setPaying]     = useState('');
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
+
+  // NovaSend payment modal
+  const [payModal, setPayModal]     = useState(null); // { factureId, montant, statut }
+  const [payState, setPayState]     = useState('idle'); // idle | initiating | redirect | polling | success | failed
+  const [payError, setPayError]     = useState('');
+  const [payUrl, setPayUrl]         = useState('');
+  const pollRef                     = useRef(null);
 
   const load = async () => {
     setLoading(true);
@@ -99,17 +106,53 @@ export default function B2BInvoices() {
   };
 
   useEffect(() => { void load(); }, []);
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
-  const handlePay = async (id) => {
-    setPaying(id); setError('');
+  const handlePay = (facture) => {
+    setPayModal({ factureId: facture.id, montant: facture.montantTTC ?? facture.amount ?? 0 });
+    setPayState('idle');
+    setPayError('');
+    setPayUrl('');
+  };
+
+  const startPayment = async () => {
+    if (!payModal) return;
+    setPayState('initiating');
+    setPayError('');
     try {
-      await b2bAPI.payerFacture(id);
-      setSuccess('Paiement enregistré avec succès');
-      await load();
-      setTimeout(() => setSuccess(''), 4000);
+      const res = await b2bAPI.initierPaiement(payModal.factureId);
+      const url = res.data?.paymentUrl || res.data?.payment_url || '';
+      setPayUrl(url);
+      setPayState('redirect');
+      // Poll facture status every 5s waiting for webhook to confirm PAYEE
+      if (pollRef.current) clearInterval(pollRef.current);
+      pollRef.current = setInterval(async () => {
+        try {
+          const fRes = await b2bAPI.getFacturesMensuelles();
+          const updated = (fRes.data || []).find(f => f.id === payModal.factureId);
+          if (updated?.statut === 'PAYEE') {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+            setFactures(fRes.data || []);
+            setPayState('success');
+            setTimeout(() => { setPayModal(null); setPayState('idle'); }, 2500);
+          }
+        } catch { /* ignore poll errors */ }
+      }, 5000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors du paiement');
-    } finally { setPaying(''); }
+      const raw = err?.response?.data?.message || err?.response?.data;
+      setPayError(typeof raw === 'string' ? raw : 'Impossible d\'initier le paiement');
+      setPayState('failed');
+    }
+  };
+
+  const closePayModal = () => {
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+    setPayModal(null);
+    setPayState('idle');
+    setPayError('');
+    setPayUrl('');
+    void load();
   };
 
   const totalDu = factures
@@ -335,12 +378,11 @@ export default function B2BInvoices() {
                         {!isPaid ? (
                           /* Payer — orange (CTA principal) */
                           <button
-                            onClick={() => handlePay(facture.id)}
-                            disabled={paying === facture.id}
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-bold text-white transition disabled:opacity-50 hover:opacity-90"
+                            onClick={() => handlePay(facture)}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-bold text-white transition hover:opacity-90"
                             style={{ background: isOverdue ? RED : ORANGE, boxShadow: `0 2px 8px ${isOverdue ? RED : ORANGE}40` }}>
                             <CreditCard className="w-3.5 h-3.5" />
-                            {paying === facture.id ? 'Traitement…' : 'Payer maintenant'}
+                            Payer maintenant
                           </button>
                         ) : (
                           <div className="flex items-center gap-1.5 text-[12px] font-bold"
@@ -379,6 +421,125 @@ export default function B2BInvoices() {
           <p className="text-center text-[11px]" style={{ color: FAINT }}>
             Factures conformes SYSCOHADA · TVA 18% · Génération automatique fin de mois
           </p>
+        </div>
+      )}
+
+      {/* ── NovaSend payment modal ─────────────────────────────────────────── */}
+      {payModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl">
+
+            <div className="px-6 py-5 flex items-center gap-3"
+              style={{ background: '#FFF0DF', borderBottom: '1px solid rgba(89,67,42,0.08)' }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: `linear-gradient(135deg, ${ORANGE}, #E07A00)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <CreditCard className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-[#0F172A] text-sm">Payer la facture</p>
+                <p className="text-xs" style={{ color: MUTED }}>{Math.round(payModal.montant).toLocaleString()} FCFA TTC</p>
+              </div>
+              {(payState === 'idle' || payState === 'failed') && (
+                <button onClick={closePayModal} style={{ color: MUTED }}>
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            <div className="px-6 py-6">
+
+              {payState === 'idle' && (
+                <div className="text-center">
+                  <p className="text-sm text-[#374151] mb-5 leading-relaxed">
+                    Vous allez être redirigé vers la page de paiement sécurisée <strong>NovaSend</strong>.
+                    Choisissez Orange Money, MTN MoMo, Moov Money ou Wave.
+                  </p>
+                  <button onClick={startPayment}
+                    className="w-full py-3 rounded-2xl text-white font-bold text-sm mb-3 hover:opacity-90 transition"
+                    style={{ background: `linear-gradient(135deg, ${ORANGE}, #E07A00)`, boxShadow: `0 4px 14px ${ORANGE}50` }}>
+                    Procéder au paiement
+                  </button>
+                  <button onClick={closePayModal}
+                    className="w-full py-2.5 rounded-xl border text-sm font-medium hover:bg-[#F8FAFC] transition"
+                    style={{ borderColor: 'rgba(89,67,42,0.12)', color: MUTED }}>
+                    Annuler
+                  </button>
+                </div>
+              )}
+
+              {payState === 'initiating' && (
+                <div className="text-center py-2">
+                  <div className="w-12 h-12 mx-auto mb-4 rounded-full animate-spin"
+                    style={{ border: `3px solid ${ORANGE}`, borderTopColor: 'transparent' }} />
+                  <p className="font-bold text-[#0F172A]">Connexion à NovaSend…</p>
+                  <p className="text-xs mt-1" style={{ color: MUTED }}>Veuillez patienter</p>
+                </div>
+              )}
+
+              {payState === 'redirect' && (
+                <div className="text-center">
+                  <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                    style={{ background: '#FFF0DF' }}>
+                    <ExternalLink className="w-7 h-7" style={{ color: ORANGE }} />
+                  </div>
+                  <p className="font-bold text-[#0F172A] mb-2">Page de paiement prête</p>
+                  <p className="text-xs mb-5 leading-relaxed" style={{ color: MUTED }}>
+                    Cliquez sur le bouton ci-dessous pour finaliser le paiement sur la plateforme NovaSend.
+                    Cette fenêtre se mettra à jour automatiquement une fois le paiement confirmé.
+                  </p>
+                  {payUrl && (
+                    <a href={payUrl} target="_blank" rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-white font-bold text-sm mb-3 hover:opacity-90 transition"
+                      style={{ background: `linear-gradient(135deg, ${ORANGE}, #E07A00)` }}>
+                      <ExternalLink className="w-4 h-4" />
+                      Ouvrir la page de paiement
+                    </a>
+                  )}
+                  <div className="flex items-center gap-2 justify-center mt-2">
+                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: ORANGE }} />
+                    <p className="text-xs" style={{ color: MUTED }}>En attente de confirmation…</p>
+                  </div>
+                  <button onClick={closePayModal}
+                    className="mt-4 text-xs font-medium hover:underline"
+                    style={{ color: MUTED }}>
+                    Fermer et vérifier plus tard
+                  </button>
+                </div>
+              )}
+
+              {payState === 'success' && (
+                <div className="text-center py-2">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ background: GREEN_L }}>
+                    <CheckCircle className="w-8 h-8" style={{ color: GREEN }} />
+                  </div>
+                  <p className="font-bold text-[#0F172A] text-lg mb-1">Facture soldée !</p>
+                  <p className="text-xs animate-pulse" style={{ color: MUTED }}>Mise à jour en cours…</p>
+                </div>
+              )}
+
+              {payState === 'failed' && (
+                <div className="text-center py-2">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ background: RED_L }}>
+                    <AlertCircle className="w-8 h-8" style={{ color: RED }} />
+                  </div>
+                  <p className="font-bold text-[#0F172A] mb-1">Échec de l'initiation</p>
+                  {payError && <p className="text-sm mb-4 leading-relaxed" style={{ color: RED }}>{payError}</p>}
+                  <button onClick={startPayment}
+                    className="w-full py-3 rounded-2xl text-white font-bold text-sm mb-3 flex items-center justify-center gap-2 hover:opacity-90 transition"
+                    style={{ background: ORANGE }}>
+                    <RefreshCw className="w-4 h-4" />
+                    Réessayer
+                  </button>
+                  <button onClick={closePayModal}
+                    className="w-full py-2.5 rounded-xl border text-sm font-medium hover:bg-[#F8FAFC] transition"
+                    style={{ borderColor: 'rgba(89,67,42,0.12)', color: MUTED }}>
+                    Retour
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

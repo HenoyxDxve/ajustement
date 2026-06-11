@@ -77,6 +77,7 @@ export default function OrderTrackingPage() {
   const [justUpdated, setJustUpdated] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [refundInfo, setRefundInfo] = useState(null);
+  const [paymentFailed, setPaymentFailed] = useState(false);
 
   // Delivery confirmation state
   const [receptionStatus, setReceptionStatus] = useState(null); // null | 'OUI' | 'NON'
@@ -140,7 +141,10 @@ export default function OrderTrackingPage() {
         }
       });
       socket.on('commande.paiement', (payload) => {
-        if (payload?.id === id) void fetchOrder();
+        if (payload?.id === id) { setPaymentFailed(false); void fetchOrder(); }
+      });
+      socket.on('commande.paiement.echec', (payload) => {
+        if (payload?.id === id) setPaymentFailed(true);
       });
     }
 
@@ -231,6 +235,17 @@ export default function OrderTrackingPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Payment failure banner */}
+      {paymentFailed && !isPaid && (
+        <div className="sticky top-0 z-40 bg-red-600 text-white px-4 py-3 flex items-center gap-3">
+          <XCircle className="w-5 h-5 shrink-0" />
+          <p className="text-sm font-semibold flex-1">Paiement refusé ou expiré. Retournez au panier pour réessayer.</p>
+          <button onClick={() => setPaymentFailed(false)} className="shrink-0 opacity-70 hover:opacity-100">
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[rgba(89,67,42,0.10)] shadow-sm">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">

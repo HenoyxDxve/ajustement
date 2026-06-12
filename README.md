@@ -209,54 +209,17 @@ Le frontend démarre sur **http://localhost:5173**
 
 ## Variables d'environnement
 
-### Backend — `restodici-backend/.env`
+Les variables requises sont listées dans les fichiers d'exemple fournis :
 
-```env
-# Base de données PostgreSQL
-DB_HOST=localhost
-DB_PORT=5433
-DB_USERNAME=restodici_user
-DB_PASSWORD=restodici_pass
-DB_DATABASE=restodici_db
+- Backend : `restodici-backend/.env.example`
+- Frontend : `restodici-frontend/.env.example`
 
-# JWT
-JWT_SECRET=change_me_en_production
-
-# Redis (BullMQ)
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# Emails (Resend)
-RESEND_API_KEY=re_xxxxxxxxxxxx
-MAIL_FROM=noreply@restodici.ci
-
-# URL du frontend (CORS)
-FRONTEND_URL=http://localhost:5173
-
-# Paiements NovaSend
-NOVASEND_API_URL=https://api.novasend.ci/v1
-NOVASEND_API_KEY=your_api_key
-
-# Stockage S3 (photos articles)
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_REGION=eu-west-3
-AWS_S3_BUCKET=restodici-uploads
-
-# Environnement
-NODE_ENV=development
-PORT=3000
+```bash
+cp restodici-backend/.env.example  restodici-backend/.env
+cp restodici-frontend/.env.example restodici-frontend/.env
 ```
 
-### Frontend — `restodici-frontend/.env`
-
-```env
-# URL du backend NestJS (avec le préfixe /api)
-VITE_API_URL=http://localhost:3000/api
-
-# Origine du backend pour les connexions WebSocket (Socket.IO)
-VITE_BACKEND_ORIGIN=http://localhost:3000
-```
+Remplissez ensuite chaque valeur dans vos fichiers `.env` locaux (ne les commitez jamais).
 
 ---
 
@@ -386,4 +349,4 @@ docker-compose down -v
 ## Auteur
 
 Développé par **BLE GAYE MARC-DAVID** — Étudiant L3 ESATIC, Abidjan, Côte d'Ivoire.  
-Projet réalisé en collaboration avec **Sankofa Lab**.
+Projet réalisé pour  **Sankofa Lab**.

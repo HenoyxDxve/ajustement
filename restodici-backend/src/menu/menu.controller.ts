@@ -45,10 +45,13 @@ export class MenuController {
     return this.menuService.getRestaurants();
   }
 
-  // GET /menu/promos-actives?restaurantId=xxx — Offres limitées actives (public)
+  // GET /menu/promos-actives?restaurantId=xxx&userId=yyy — Offres limitées actives (public)
   @Get('promos-actives')
-  getPromosActives(@Query('restaurantId') restaurantId: string) {
-    return this.promosService.getActives(restaurantId ?? '');
+  getPromosActives(
+    @Query('restaurantId') restaurantId: string,
+    @Query('userId') userId?: string,
+  ) {
+    return this.promosService.getActives(restaurantId ?? '', userId);
   }
 
   // GET /menu/categories — Liste catégories

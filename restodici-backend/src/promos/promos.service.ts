@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PromoCode, TypePromo, VisibilitePromo } from './entities/promo-code.entity';
+import { Commande } from '../commandes/entities/commande.entity';
 
 export interface CreatePromoDto {
   code: string;
@@ -24,6 +25,7 @@ export interface CreatePromoDto {
 export class PromosService {
   constructor(
     @InjectRepository(PromoCode) private promoRepo: Repository<PromoCode>,
+    @InjectRepository(Commande) private commandeRepo: Repository<Commande>,
   ) {}
 
   findByRestaurant(restaurantId: string): Promise<PromoCode[]> {
@@ -132,16 +134,26 @@ export class PromosService {
     }
   }
 
-  async getActives(restaurantId: string): Promise<PromoCode[]> {
+  async getActives(restaurantId: string, userId?: string): Promise<PromoCode[]> {
     if (!restaurantId) return [];
     const now = new Date();
     const promos = await this.promoRepo.find({
       where: { restaurantId, actif: true },
       order: { createdAt: 'DESC' },
     });
+
+    let commandesCount = 0;
+    if (userId) {
+      commandesCount = await this.commandeRepo.count({
+        where: { client: { id: userId } },
+      });
+    }
+
     return promos.filter((p) => {
       if (p.expiresAt && new Date(p.expiresAt) < now) return false;
       if (p.maxUses != null && p.usedCount >= p.maxUses) return false;
+      if (p.visibilite === VisibilitePromo.CONNECTES && !userId) return false;
+      if (p.visibilite === VisibilitePromo.NOUVEAUX && (!userId || commandesCount > 0)) return false;
       return true;
     });
   }

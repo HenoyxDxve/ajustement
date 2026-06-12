@@ -324,8 +324,8 @@ export const promosAPI = {
   remove:   (id)            => api.delete(`/promos/${id}`),
   validate: (code, restaurantId, montantCommande) =>
     api.post("/promos/validate", { code, restaurantId, montantCommande }),
-  getActives: (restaurantId) =>
-    api.get("/menu/promos-actives", { params: { restaurantId } }),
+  getActives: (restaurantId, userId) =>
+    api.get("/menu/promos-actives", { params: { restaurantId, ...(userId ? { userId } : {}) } }),
 };
 
 // ── Newsletter ────────────────────────────────────────────────────────────────

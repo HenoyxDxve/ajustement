@@ -11,6 +11,7 @@ import {
   ShoppingCart, Plus, Minus, Store, AlertCircle, MapPin, ChevronRight,
 } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
+import { useAuth } from '../hooks/useAuth';
 import { menuAPI, promosAPI } from '../services/api';
 import ProductCustomizationModal from '../components/menu/ProductCustomizationModal';
 import CartDrawer from '../components/cart/CartDrawer';
@@ -481,6 +482,7 @@ export default function MenuPage() {
   const [customModal,    setCustomModal]    = useState({ open: false, product: null });
   const [error,          setError]          = useState(null);
 
+  const { user } = useAuth();
   const { addItem, removeItem, updateQuantity, items, total, restaurantName } = useCart();
   const cartCount = items.reduce((s, i) => s + (i.quantite || 0), 0);
 
@@ -503,7 +505,7 @@ export default function MenuPage() {
     Promise.all([
       menuAPI.getByRestaurant(selectedResto.id),
       menuAPI.getCategories({ restaurantId: selectedResto.id }),
-      promosAPI.getActives(selectedResto.id).catch(() => ({ data: [] })),
+      promosAPI.getActives(selectedResto.id, user?.id).catch(() => ({ data: [] })),
     ])
       .then(([mr, cr, pr]) => {
         setMenuData(mr.data || []);

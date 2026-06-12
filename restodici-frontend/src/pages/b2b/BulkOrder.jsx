@@ -92,9 +92,11 @@ function B2BRestaurantCard({ restaurant, idx, isActive, onSelect }) {
               {restaurant.nbAvis > 0 && <span style={{ fontSize: 10, opacity: 0.8 }}>({restaurant.nbAvis})</span>}
             </span>
           ) : <span />}
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontFamily: sans, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
-            <Clock size={11} color="rgba(255,255,255,0.8)" /> 25–40 min
-          </span>
+          {restaurant.estimatedTime ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontFamily: sans, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+              <Clock size={11} color="rgba(255,255,255,0.8)" /> {restaurant.estimatedTime}
+            </span>
+          ) : <span />}
         </div>
       </div>
       {/* Card body */}
@@ -329,7 +331,7 @@ export default function BulkOrder() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [restaurantDetails, setRestaurantDetails] = useState({ nom: '', logoUrl: '', isOpen: true, estimatedTime: '25-35 min', rating: 4.8, address: '', phone: '' });
+  const [restaurantDetails, setRestaurantDetails] = useState({ nom: '', logoUrl: '', isOpen: true, estimatedTime: '', rating: 0, address: '', phone: '' });
   const [loadingRestaurants, setLoadingRestaurants] = useState(true);
   const [loadingMenu, setLoadingMenu] = useState(false);
 
@@ -414,7 +416,7 @@ export default function BulkOrder() {
           nom: info.nom || mData[0]?.restaurantNom || selectedR.nom || 'Restaurant',
           logoUrl: info.logoUrl || selectedR.logo || '',
           isOpen: typeof info.ouvert === 'boolean' ? info.ouvert : true,
-          estimatedTime: info.delaiLivraison || '25-35 min',
+          estimatedTime: info.delaiLivraison || '',
           rating: parseFloat(selectedR.noteMoyenne || info.noteMoyenne || 0) || 0,
           address: info.adresse || selectedR.adresse || '',
           phone: info.telephone || selectedR.telephone || '',
@@ -679,9 +681,10 @@ export default function BulkOrder() {
                 <div style={{ width: 36, height: 36, borderRadius: '50%', border: `4px solid ${C.accent}`, borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
               </div>
             ) : restaurants.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <UtensilsCrossed size={40} color={C.faint} style={{ marginBottom: 12 }} />
-                <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 700, color: C.dark, margin: '0 0 6px' }}>Aucun restaurant disponible</p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', textAlign: 'center', background: '#FFF7ED', borderRadius: 16 }}>
+                <UtensilsCrossed size={48} style={{ marginBottom: 12, color: '#FF8C00', opacity: 0.4 }} />
+                <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 700, color: '#0F172A', margin: '0 0 6px' }}>Aucun restaurant disponible</p>
+                <p style={{ fontFamily: sans, fontSize: 13, color: '#94A3B8', margin: 0 }}>Aucun restaurant partenaire n'est disponible pour le moment.</p>
               </div>
             ) : (
               <>
@@ -780,8 +783,10 @@ export default function BulkOrder() {
                           ))}
                         </div>
                       ) : filteredProducts.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                          <p style={{ fontFamily: sans, fontSize: 14, color: C.muted }}>Aucun plat trouvé</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', textAlign: 'center', background: '#FFF7ED', borderRadius: 12 }}>
+                          <ShoppingBag size={48} style={{ marginBottom: 12, color: '#FF8C00', opacity: 0.4 }} />
+                          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Aucun article disponible</p>
+                          <p style={{ fontFamily: sans, fontSize: 12, color: '#94A3B8', margin: 0 }}>Essayez une autre catégorie ou modifiez votre recherche.</p>
                         </div>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

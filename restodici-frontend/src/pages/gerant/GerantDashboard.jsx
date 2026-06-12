@@ -899,8 +899,10 @@ function MenuTab({ restaurantId, token }) {
             </div>
           ))
         ) : (
-          <div className="rounded-[24px] border border-dashed border-[#E2E8F0] bg-white px-4 py-10 text-center text-[#78716C]">
-            Aucun article trouvé
+          <div className="flex flex-col items-center justify-center py-12 text-center rounded-[24px] border border-dashed border-[#E2E8F0] bg-[#FFF7ED]">
+            <Package className="w-12 h-12 mb-3" style={{ color: '#FF8C00', opacity: 0.4 }} />
+            <p className="text-sm font-medium" style={{ color: '#0F172A' }}>Aucun article pour l'instant</p>
+            <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Ajoutez votre premier article au menu pour commencer.</p>
           </div>
         )}
       </div>
@@ -1320,9 +1322,10 @@ function OrdersTab({ restaurantId }) {
         </div>
       )}
       {orders.length === 0 && !error && (
-        <div className="text-center py-12 text-gray-600">
-          <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-          <p>Aucune commande récente</p>
+        <div className="flex flex-col items-center justify-center py-12 text-center rounded-2xl" style={{ background: '#FFF7ED' }}>
+          <ClipboardList className="w-12 h-12 mb-3" style={{ color: '#FF8C00', opacity: 0.4 }} />
+          <p className="text-sm font-medium" style={{ color: '#0F172A' }}>Aucune commande en cours</p>
+          <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Les nouvelles commandes arriveront ici en temps réel.</p>
         </div>
       )}
 
@@ -1567,9 +1570,10 @@ function StocksTab({ restaurantId }) {
           </button>
         </div>
         {stocks.length === 0 ? (
-          <div className="px-5 py-12 text-center text-[#6B7280] text-sm">
-            <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-[#E2E8F0]" />
-            Aucun article dans le stock
+          <div className="flex flex-col items-center justify-center py-12 text-center" style={{ background: '#FFF7ED' }}>
+            <Package className="w-12 h-12 mb-3" style={{ color: '#FF8C00', opacity: 0.4 }} />
+            <p className="text-sm font-medium" style={{ color: '#0F172A' }}>Aucun article en stock</p>
+            <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Le stock de vos articles apparaîtra ici dès qu'ils seront créés.</p>
           </div>
         ) : (
           <div className="divide-y divide-[#F4F6F8]">

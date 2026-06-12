@@ -7,4 +7,6 @@ export class InitierPaiementDto {
   telephone?: string;
   customerName?: string;
   otp?: string;
+  /** Nom de l'intégration de paiement à utiliser (ex: 'novasend'). Fallback sur NovaSendService direct si absent. */
+  integrationName?: string;
 }

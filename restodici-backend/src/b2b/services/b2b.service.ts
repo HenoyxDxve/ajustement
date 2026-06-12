@@ -23,6 +23,7 @@ import { AuditLogB2B, TypeAuditB2B } from '../entities/audit-log-b2b.entity';
 import { FactureMensuelleB2B } from '../entities/facture-mensuelle-b2b.entity';
 import { PlanRepasB2B, FrequencePlan } from '../entities/plan-repas-b2b.entity';
 import { Article } from '../../menu/entities/article.entity';
+import { SystemConfig } from '../../common/entities/system-config.entity';
 import { CreateTeamDto } from '../dto/create-team.dto';
 import { AddTeamMemberDto } from '../dto/add-team-member.dto';
 import { CreateBulkOrderDto } from '../dto/create-bulk-order.dto';
@@ -78,6 +79,8 @@ export class B2BService {
     private planRepasRepository: Repository<PlanRepasB2B>,
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
+    @InjectRepository(SystemConfig)
+    private systemConfigRepository: Repository<SystemConfig>,
     private commandesGateway: CommandesGateway,
     private emailService: EmailService,
     private configService: ConfigService,
@@ -1577,14 +1580,34 @@ export class B2BService {
 
     const auditLogs = await this.getAuditLogs(userId);
 
+    const platformConfigs = await this.systemConfigRepository.find({
+      where: [
+        { key: 'platform_nom' },
+        { key: 'platform_nif' },
+        { key: 'platform_rccm' },
+        { key: 'platform_adresse' },
+      ],
+    });
+    const cfg = Object.fromEntries(platformConfigs.map((c) => [c.key, c.value]));
+
     return {
       compte: compte
         ? {
             raisonSociale: compte.raisonSociale,
+            numeroContribuable: compte.numeroContribuable,
+            numeroRCCM: (compte as any).numeroRCCM ?? null,
+            adresseSiege: (compte as any).adresseSiege ?? null,
+            secteurActivite: (compte as any).secteurActivite ?? null,
             statut: compte.statutValidation,
             actif: compte.actif,
           }
         : null,
+      plateforme: {
+        nom: cfg['platform_nom'] ?? null,
+        nif: cfg['platform_nif'] ?? null,
+        rccm: cfg['platform_rccm'] ?? null,
+        adresse: cfg['platform_adresse'] ?? null,
+      },
       collaborateurs: expenses,
       moisEnCours: currentMois,
       anneeEnCours: currentAnnee,

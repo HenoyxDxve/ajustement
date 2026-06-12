@@ -967,7 +967,7 @@ function PaymentTab({ savedPM, setSavedPM, pmForm, setPmForm, pmMsg, setPmMsg, a
                 style={{ background: ACCENT_LIGHT }}>
                 <CreditCard className="w-7 h-7" style={{ color: ACCENT }} />
               </div>
-              <p className="text-sm font-bold text-[#374151] mb-1">Aucun moyen enregistré</p>
+              <p className="text-sm font-bold text-[#374151] mb-1">Aucun moyen de paiement enregistré</p>
               <p className="text-xs text-[#9CA3AF]">Ajoutez Orange Money, MTN MoMo ou une carte pour payer plus vite.</p>
             </div>
           ) : (
@@ -1534,9 +1534,12 @@ export default function ClientDashboard() {
                     style={{ borderColor: ACCENT, borderTopColor: 'transparent' }} />
                 </div>
               ) : filteredOrders.length === 0 ? (
-                <div className="py-12 text-center">
-                  <ShoppingBag className="w-10 h-10 text-[#D1D5DB] mx-auto mb-3" />
-                  <p className="text-sm text-[#9CA3AF] mb-4">Aucune commande dans cette catégorie</p>
+                <div className="flex flex-col items-center justify-center py-12 text-center" style={{ background: '#FFF7ED' }}>
+                  <ShoppingBag className="w-12 h-12 mb-3" style={{ color: '#FF8C00', opacity: 0.4 }} />
+                  <p className="text-sm font-medium mb-1" style={{ color: '#0F172A' }}>
+                    {orders.length === 0 ? "Vous n'avez pas encore passé de commande" : 'Aucune commande dans cette catégorie'}
+                  </p>
+                  <p className="text-xs mb-4" style={{ color: '#94A3B8' }}>Explorez notre menu et passez votre première commande.</p>
                   <Link to="/menu"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
                     style={{ background: ACCENT, textDecoration: 'none' }}>

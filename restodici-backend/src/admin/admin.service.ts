@@ -93,6 +93,31 @@ const CONFIG_DEFAULTS: Array<{
     description: "Activer l'intégration Twilio SMS",
     category: 'integration',
   },
+  // Plateforme (identité légale)
+  {
+    key: 'platform_nom',
+    value: null,
+    description: 'Nom commercial de la plateforme (ex: Resto d\'ici)',
+    category: 'platform',
+  },
+  {
+    key: 'platform_nif',
+    value: null,
+    description: 'Numéro d\'identification fiscale de la plateforme',
+    category: 'platform',
+  },
+  {
+    key: 'platform_rccm',
+    value: null,
+    description: 'Registre du commerce et du crédit mobilier',
+    category: 'platform',
+  },
+  {
+    key: 'platform_adresse',
+    value: null,
+    description: 'Adresse du siège social de la plateforme',
+    category: 'platform',
+  },
   // Système
   {
     key: 'timezone',

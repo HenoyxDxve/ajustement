@@ -23,6 +23,8 @@ import {
   InitiatePaymentResult,
 } from './novasend.service';
 import { InitierPaiementDto } from './dto/initier-paiement.dto';
+import { PaymentGatewayRegistry } from './gateways/payment-gateway.registry';
+import { NovaSendGateway } from './gateways/novasend.gateway';
 
 // Correspondance provider NovaSend → enum ModePaiementCommande
 // CARTE sera actif dès que NovaSend supportera les paiements carte
@@ -50,6 +52,7 @@ export class PaiementsService {
     private smsService: SmsService,
     private fcmService: FcmService,
     private novaSend: NovaSendService,
+    private gatewayRegistry: PaymentGatewayRegistry,
   ) {}
 
   // ── Initier un paiement digital ────────────────────────────────────────────
@@ -63,6 +66,29 @@ export class PaiementsService {
     if (!commande) throw new NotFoundException('Commande introuvable');
     if (commande.estPaye) throw new BadRequestException('Commande déjà payée');
 
+    // Si une intégration est spécifiée, passer par le registry (Strategy pattern)
+    if (dto.integrationName) {
+      const gateway = await this.gatewayRegistry.getGateway(dto.integrationName);
+      const result = await gateway.initiate({
+        amount: dto.montant,
+        provider: dto.provider,
+        phone: dto.telephone,
+        metadata: {
+          reference: dto.commandeId,
+          commandeId: dto.commandeId,
+          customerName: dto.customerName || commande.client?.nom || 'Client',
+          otp: dto.otp,
+        },
+      });
+      // Adapter le résultat au format InitiatePaymentResult attendu par le controller existant
+      return {
+        sessionId: result.transactionId,
+        paymentUrl: result.paymentUrl,
+        simulated: result.transactionId.startsWith('sim_'),
+      };
+    }
+
+    // Comportement par défaut : NovaSendService direct (rétrocompatibilité)
     return this.novaSend.initiate({
       reference: dto.commandeId,
       amount: dto.montant,
@@ -83,6 +109,37 @@ export class PaiementsService {
       status: 'success',
       _provider: provider, // champ interne uniquement
     });
+  }
+
+  // ── Dispatcher générique de webhook par intégration ───────────────────────
+  async handleWebhook(
+    integrationName: string,
+    payload: any,
+    signature?: string,
+  ): Promise<void> {
+    const gateway = await this.gatewayRegistry.getGateway(integrationName);
+
+    if (!gateway.verifyWebhook(payload, signature)) {
+      this.logger.warn(`Webhook ${integrationName}: signature invalide`);
+      return;
+    }
+
+    const result = await gateway.handleWebhook(payload);
+
+    // Enrichir le payload avec les infos normalisées et déléguer au handler interne
+    const enriched: any = {
+      reference: result.transactionId,
+      status: result.status === 'SUCCESS' ? 'SUCCESSFUL' : result.status,
+      metadata: result.metadata,
+    };
+
+    // Récupérer le provider tracké si c'est un NovaSendGateway
+    if (gateway instanceof NovaSendGateway) {
+      const tracked = gateway.getTrackedProvider(result.transactionId);
+      if (tracked) enriched._provider = tracked;
+    }
+
+    await this.handleNovasendWebhook(enriched);
   }
 
   // ── Webhook NovaSend (et simulation) ─────────────────────────────────────

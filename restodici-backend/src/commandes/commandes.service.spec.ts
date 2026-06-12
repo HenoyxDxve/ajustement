@@ -7,6 +7,7 @@ import { Commande, StatutCommande } from './entities/commande.entity';
 import { LigneCommande } from './entities/ligne-commande.entity';
 import { AvisCommande } from './entities/avis-commande.entity';
 import { CommandeStatusHistory } from './entities/commande-status-history.entity';
+import { CommissionPlateforme } from './entities/commission-plateforme.entity';
 import { Restaurant } from '../restaurants/entities/restaurant.entity';
 import { CommandesGateway } from './commandes.gateway';
 import { TresorerieService } from '../tresorerie/tresorerie.service';
@@ -55,6 +56,10 @@ function buildModule() {
       {
         provide: getRepositoryToken(Restaurant),
         useValue: mockRestaurantRepo,
+      },
+      {
+        provide: getRepositoryToken(CommissionPlateforme),
+        useValue: { save: jest.fn(), create: jest.fn() },
       },
       { provide: DataSource, useValue: mockDataSource },
       { provide: CommandesGateway, useValue: mockCommandesGateway },

@@ -478,9 +478,10 @@ function KDSBoard({ orders, b2bOrders, onAction, onB2BAction, onPayment, payment
                 <B2BOrderCard key={o.id} order={o} onAction={onB2BAction} saving={savingB2BId === o.id} />
               ))}
               {total === 0 && (
-                <div style={{ textAlign: 'center', padding: '32px 10px', color: MUTED, fontSize: 13 }}>
-                  <span style={{ fontSize: 28, display: 'block', marginBottom: 8, opacity: 0.4 }}>👌</span>
-                  Rien pour l'instant
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 10px', textAlign: 'center', background: '#FFF7ED', borderRadius: 12 }}>
+                  <ChefHat style={{ width: 32, height: 32, marginBottom: 8, color: '#FF8C00', opacity: 0.4 }} />
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', margin: '0 0 2px' }}>Aucune commande en attente</p>
+                  <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>Cette colonne est vide pour l'instant.</p>
                 </div>
               )}
             </div>
@@ -1320,15 +1321,11 @@ export default function StaffDashboard() {
             </div>
 
             {displayedStocks.length === 0 ? (
-              <div style={{ background: '#fff', borderRadius: 24, padding: '56px 20px', textAlign: 'center', border: '1px solid rgba(0,0,0,0.07)' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 18, background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                  <CheckCircle2 style={{ width: 24, height: 24, color: '#16A34A' }} />
-                </div>
-                <p style={{ fontSize: 14, fontWeight: 700, color: TEXT, margin: '0 0 4px' }}>
-                  {stockFilter === 'alerts' ? 'Aucune alerte stock' : 'Aucun article en stock'}
-                </p>
-                <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>
-                  {stockFilter === 'alerts' ? 'Tous les stocks sont suffisants.' : 'Configurez les stocks dans le panneau gérant.'}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#FFF7ED', borderRadius: 24, padding: '56px 20px', textAlign: 'center', border: '1px solid rgba(0,0,0,0.07)' }}>
+                <Package style={{ width: 48, height: 48, marginBottom: 12, color: '#FF8C00', opacity: 0.4 }} />
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Aucun article à gérer</p>
+                <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>
+                  {stockFilter === 'alerts' ? 'Tous les stocks sont à un niveau suffisant.' : 'Les articles configurés par le gérant apparaîtront ici.'}
                 </p>
               </div>
             ) : (

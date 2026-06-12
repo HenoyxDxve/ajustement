@@ -618,7 +618,15 @@ function UsersTab() {
               {loading ? (
                 <tr><td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#94A3B8' }}>Chargement…</td></tr>
               ) : users.length === 0 ? (
-                <tr><td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#94A3B8' }}>Aucun utilisateur</td></tr>
+                <tr>
+                  <td colSpan={7}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', textAlign: 'center', background: '#FFF7ED', borderRadius: 0 }}>
+                      <Users style={{ width: 48, height: 48, marginBottom: 12, color: '#FF8C00', opacity: 0.4 }} />
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Aucun utilisateur trouvé</p>
+                      <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Essayez de modifier les filtres ou créez un premier compte.</p>
+                    </div>
+                  </td>
+                </tr>
               ) : users.map(u => (
                 <tr key={u.id} style={{ borderBottom: '1px solid #E2E8F0' }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; }}
@@ -798,7 +806,15 @@ function RestaurantsTab() {
               {loading ? (
                 <tr><td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#94A3B8' }}>Chargement…</td></tr>
               ) : restaurants.length === 0 ? (
-                <tr><td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#94A3B8' }}>Aucun restaurant</td></tr>
+                <tr>
+                  <td colSpan={7}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', textAlign: 'center', background: '#FFF7ED' }}>
+                      <UtensilsCrossed style={{ width: 48, height: 48, marginBottom: 12, color: '#FF8C00', opacity: 0.4 }} />
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Aucun restaurant enregistré</p>
+                      <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Les restaurants créés sur la plateforme apparaîtront ici.</p>
+                    </div>
+                  </td>
+                </tr>
               ) : restaurants.map(r => (
                 <tr key={r.id} style={{ borderBottom: '1px solid #E2E8F0' }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; }}
@@ -1037,7 +1053,15 @@ function AuditTab() {
               {loading ? (
                 <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>Chargement…</td></tr>
               ) : logs.length === 0 ? (
-                <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>Aucun log pour ces critères</td></tr>
+                <tr>
+                  <td colSpan={7}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', textAlign: 'center', background: '#FFF7ED' }}>
+                      <ScrollText style={{ width: 48, height: 48, marginBottom: 12, color: '#FF8C00', opacity: 0.4 }} />
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Aucun log disponible</p>
+                      <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Aucune activité ne correspond aux filtres sélectionnés.</p>
+                    </div>
+                  </td>
+                </tr>
               ) : logs.map((log, i) => {
                 const { date, time } = fmt(log.createdAt);
                 const aStyle = ACTION_STYLE(log.action);
@@ -1626,167 +1650,212 @@ function ConfigTab() {
     } finally { setTwoFASaving(false); }
   };
 
-  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#94A3B8' }}>Chargement…</div>;
+  const [cfgTab, setCfgTab] = useState('plateforme');
+
+  if (loading) return (
+    <div style={{ padding: 60, textAlign: 'center' }}>
+      <div style={{ width: 28, height: 28, border: `3px solid ${ACCENT}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+      <p style={{ fontSize: 13, fontWeight: 600, color: '#64748B', margin: 0 }}>Chargement…</p>
+    </div>
+  );
+
+  const CFG_TABS = [
+    { id: 'plateforme',   label: 'Plateforme',    icon: Building2 },
+    { id: 'securite',     label: 'Sécurité',      icon: Lock },
+    { id: 'integrations', label: 'Intégrations',  icon: Zap },
+    { id: 'compte',       label: 'Compte admin',  icon: Shield },
+  ];
+
+  const Field = ({ label, children }) => (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#0F172A', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</label>
+      {children}
+    </div>
+  );
+
+  const Inp = ({ k, type = 'text', placeholder = '', suffix }) => (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <input type={type} placeholder={placeholder}
+        value={secEdits[k] ?? ''}
+        onChange={e => setSecEdits(s => ({ ...s, [k]: e.target.value }))}
+        style={{ ...inputStyle, flex: 1, color: '#0F172A', fontWeight: 500 }} />
+      {suffix && <span style={{ fontSize: 11, fontWeight: 700, color: '#475569', whiteSpace: 'nowrap' }}>{suffix}</span>}
+    </div>
+  );
+
+  const SaveBtn = ({ onClick, loading: l, label = 'Enregistrer', color = ACCENT }) => (
+    <button onClick={onClick} disabled={l}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', background: color, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 0', fontWeight: 700, fontSize: 12, cursor: l ? 'not-allowed' : 'pointer', opacity: l ? 0.65 : 1, marginTop: 4 }}>
+      <Save style={{ width: 13, height: 13 }} /> {l ? 'Enregistrement…' : label}
+    </button>
+  );
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
+    <div style={{ display: 'flex', gap: 0, ...card, overflow: 'hidden', minHeight: 480 }}>
 
-      {/* ── Colonne gauche : Sécurité + MDP ── */}
-      <div>
-        {/* Politiques de sécurité */}
-        <div style={{ ...card, marginBottom: 20 }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Lock style={{ width: 16, height: 16, color: ACCENT }} />
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', margin: 0 }}>Politiques de sécurité</p>
-          </div>
-          <div style={{ padding: '14px 20px' }}>
-            {[
-              { key: 'jwt_ttl_hours',     label: 'JWT TTL (heures)',              suffix: 'h',   note: 'RG-35' },
-              { key: 'rate_limit_auth',   label: 'Rate limit /auth (req/min/IP)',  suffix: 'req', note: '§6.6' },
-              { key: 'rate_limit_global', label: 'Rate limit global (req/min/IP)', suffix: 'req', note: '§6.6' },
-              { key: 'bcrypt_cost',       label: 'Coût bcrypt',                    suffix: '',    note: 'RG-06' },
-            ].map(f => (
-              <div key={f.key} style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <label style={{ ...labelStyle, marginBottom: 0 }}>{f.label}</label>
-                  <span style={{ fontSize: 10, background: 'rgba(37,99,235,0.10)', color: '#2563EB', borderRadius: 4, padding: '1px 6px', fontWeight: 700 }}>{f.note}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    type="number"
-                    min="1"
-                    value={secEdits[f.key] ?? ''}
-                    onChange={e => setSecEdits(s => ({ ...s, [f.key]: e.target.value }))}
-                    style={{ ...inputStyle, flex: 1 }}
-                  />
-                  {f.suffix && <span style={{ display: 'flex', alignItems: 'center', color: '#64748B', fontSize: 12, fontWeight: 600, paddingRight: 4 }}>{f.suffix}</span>}
-                </div>
-              </div>
-            ))}
-            <div style={{ marginTop: 4 }}>
-              {[
-                { key: 'timezone', label: 'Fuseau horaire' },
-                { key: 'currency', label: 'Devise' },
-              ].map(f => (
-                <div key={f.key} style={{ marginBottom: 12 }}>
-                  <label style={labelStyle}>{f.label}</label>
-                  <input
-                    value={secEdits[f.key] ?? getVal(f.key) ?? ''}
-                    onChange={e => setSecEdits(s => ({ ...s, [f.key]: e.target.value }))}
-                    style={inputStyle}
-                  />
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={saveSecurityFields}
-              disabled={saving.security}
-              style={{ width: '100%', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 0', cursor: saving.security ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: saving.security ? 0.7 : 1 }}>
-              <Save style={{ width: 13, height: 13 }} />
-              {saving.security ? 'Enregistrement…' : 'Enregistrer les politiques'}
+      {/* ── Sidebar navigation ── */}
+      <div style={{ width: 160, borderRight: '1px solid #E2E8F0', background: '#F8FAFC', padding: '8px 0', flexShrink: 0 }}>
+        {CFG_TABS.map(t => {
+          const Icon = t.icon;
+          const active = cfgTab === t.id;
+          return (
+            <button key={t.id} onClick={() => setCfgTab(t.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '10px 16px', border: 'none', background: active ? '#FFF7ED' : 'transparent', cursor: 'pointer', borderLeft: `3px solid ${active ? ACCENT : 'transparent'}`, transition: 'all 0.15s' }}>
+              <Icon style={{ width: 14, height: 14, color: active ? ACCENT : '#64748B', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? '#0F172A' : '#475569', textAlign: 'left' }}>{t.label}</span>
             </button>
-          </div>
-        </div>
+          );
+        })}
+      </div>
 
-        {/* Changement de mot de passe */}
-        <div style={{ ...card }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Shield style={{ width: 16, height: 16, color: '#059669' }} />
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', margin: 0 }}>Changer le mot de passe admin</p>
+      {/* ── Contenu ── */}
+      <div style={{ flex: 1, padding: '20px 24px', overflowY: 'auto' }}>
+
+        {/* ── PLATEFORME ── */}
+        {cfgTab === 'plateforme' && (
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', margin: '0 0 18px' }}>Identité légale</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 20px' }}>
+              <Field label="Nom commercial"><Inp k="platform_nom" placeholder="Resto d'ici" /></Field>
+              <Field label="Adresse siège"><Inp k="platform_adresse" placeholder="Abidjan, Côte d'Ivoire" /></Field>
+              <Field label="NIF"><Inp k="platform_nif" placeholder="NIF : CI-ABJ-XXXX-XXX" /></Field>
+              <Field label="RCCM"><Inp k="platform_rccm" placeholder="RCCM : CI-ABJ-XXXX-X-XXX" /></Field>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 20px' }}>
+              <Field label="Fuseau horaire"><Inp k="timezone" placeholder="Africa/Abidjan" /></Field>
+              <Field label="Devise"><Inp k="currency" placeholder="FCFA" /></Field>
+            </div>
+            <SaveBtn onClick={saveSecurityFields} loading={saving.security} label="Enregistrer" />
           </div>
-          <div style={{ padding: '14px 20px' }}>
-            {[
-              { field: 'current',  label: 'Mot de passe actuel',        placeholder: '••••••••' },
-              { field: 'next',     label: 'Nouveau mot de passe',        placeholder: 'Minimum 8 caractères' },
-              { field: 'confirm',  label: 'Confirmer le nouveau MDP',   placeholder: '••••••••' },
-            ].map(f => (
-              <div key={f.field} style={{ marginBottom: 12 }}>
-                <label style={labelStyle}>{f.label}</label>
-                <input
-                  type="password"
-                  placeholder={f.placeholder}
-                  value={pwForm[f.field]}
-                  onChange={e => setPwForm(p => ({ ...p, [f.field]: e.target.value }))}
-                  style={inputStyle}
-                />
+        )}
+
+        {/* ── SÉCURITÉ ── */}
+        {cfgTab === 'securite' && (
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', margin: '0 0 18px' }}>Politiques d'accès</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 20px' }}>
+              <Field label="JWT TTL"><Inp k="jwt_ttl_hours" type="number" placeholder="24" suffix="heures" /></Field>
+              <Field label="Coût bcrypt"><Inp k="bcrypt_cost" type="number" placeholder="12" /></Field>
+              <Field label="Rate limit /auth"><Inp k="rate_limit_auth" type="number" placeholder="10" suffix="req/min" /></Field>
+              <Field label="Rate limit global"><Inp k="rate_limit_global" type="number" placeholder="100" suffix="req/min" /></Field>
+              <Field label="Rétention backups"><Inp k="backup_retention_days" type="number" placeholder="90" suffix="jours" /></Field>
+            </div>
+            <SaveBtn onClick={saveSecurityFields} loading={saving.security} label="Enregistrer" />
+          </div>
+        )}
+
+        {/* ── INTÉGRATIONS ── */}
+        {cfgTab === 'integrations' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', margin: 0 }}>Services connectés</p>
+              <button onClick={() => setModal({})}
+                style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Plus style={{ width: 13, height: 13 }} /> Ajouter
+              </button>
+            </div>
+
+            {integrations.filter(i => CDC_NAMES.has(i.name)).length > 0 && (
+              <div style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 10, fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Requis</p>
+                {integrations.filter(i => CDC_NAMES.has(i.name)).map(i => (
+                  <IntegrationDynamicCard key={i.id} integration={i}
+                    onToggle={toggleIntegration} onEdit={(x) => setModal(x)}
+                    onDelete={deleteIntegration} onTest={testIntegration}
+                    testResult={testResults[i.id]} testing={testing[i.id]} />
+                ))}
               </div>
-            ))}
+            )}
+
+            {integrations.filter(i => !CDC_NAMES.has(i.name)).length > 0 && (
+              <div>
+                <p style={{ fontSize: 10, fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Personnalisés</p>
+                {integrations.filter(i => !CDC_NAMES.has(i.name)).map(i => (
+                  <IntegrationDynamicCard key={i.id} integration={i}
+                    onToggle={toggleIntegration} onEdit={(x) => setModal(x)}
+                    onDelete={deleteIntegration} onTest={testIntegration}
+                    testResult={testResults[i.id]} testing={testing[i.id]} />
+                ))}
+              </div>
+            )}
+
+            {integrations.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94A3B8' }}>
+                <Zap style={{ width: 32, height: 32, margin: '0 auto 10px', display: 'block', opacity: 0.3 }} />
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#475569', margin: 0 }}>Aucune intégration</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── COMPTE ADMIN ── */}
+        {cfgTab === 'compte' && (
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', margin: '0 0 18px' }}>Mot de passe</p>
+            <Field label="Mot de passe actuel">
+              <input type="password" placeholder="••••••••" value={pwForm.current}
+                onChange={e => setPwForm(p => ({ ...p, current: e.target.value }))}
+                style={{ ...inputStyle, color: '#0F172A', fontWeight: 500 }} />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 20px' }}>
+              <Field label="Nouveau mot de passe">
+                <input type="password" placeholder="Min. 8 caractères" value={pwForm.next}
+                  onChange={e => setPwForm(p => ({ ...p, next: e.target.value }))}
+                  style={{ ...inputStyle, color: '#0F172A', fontWeight: 500 }} />
+              </Field>
+              <Field label="Confirmer">
+                <input type="password" placeholder="••••••••" value={pwForm.confirm}
+                  onChange={e => setPwForm(p => ({ ...p, confirm: e.target.value }))}
+                  style={{ ...inputStyle, color: '#0F172A', fontWeight: 500 }} />
+              </Field>
+            </div>
             {pwMsg && (
-              <div style={{ padding: '8px 12px', borderRadius: 8, background: pwMsg.ok ? '#DCFCE7' : '#FEE2E2', color: pwMsg.ok ? '#166534' : '#991B1B', fontSize: 12, fontWeight: 600, marginBottom: 10 }}>
-                {pwMsg.ok ? <CheckCircle style={{ width: 12, height: 12, marginRight: 6, display: 'inline' }} /> : <XCircle style={{ width: 12, height: 12, marginRight: 6, display: 'inline' }} />}
+              <div style={{ padding: '8px 12px', borderRadius: 8, background: pwMsg.ok ? '#DCFCE7' : '#FEE2E2', color: pwMsg.ok ? '#166534' : '#991B1B', fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                {pwMsg.ok ? <CheckCircle style={{ width: 13, height: 13 }} /> : <XCircle style={{ width: 13, height: 13 }} />}
                 {pwMsg.text}
               </div>
             )}
-            <button
-              onClick={handleChangePassword}
-              disabled={pwSaving}
-              style={{ width: '100%', background: '#059669', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 0', cursor: pwSaving ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: pwSaving ? 0.7 : 1 }}>
-              <Shield style={{ width: 13, height: 13 }} />
-              {pwSaving ? 'Modification…' : 'Changer le mot de passe'}
-            </button>
-          </div>
-        </div>
+            <SaveBtn onClick={handleChangePassword} loading={pwSaving} label="Changer le mot de passe" color="#059669" />
 
-        {/* Double authentification (2FA) */}
-        <div style={{ ...card, marginTop: 20 }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Smartphone style={{ width: 16, height: 16, color: '#7C3AED' }} />
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', margin: 0 }}>Double authentification (2FA)</p>
-            <span style={{ marginLeft: 'auto', background: twoFAEnabled ? '#DCFCE7' : '#F1F5F9', color: twoFAEnabled ? '#166534' : '#64748B', borderRadius: 20, padding: '2px 10px', fontSize: 10, fontWeight: 700 }}>
-              {twoFAEnabled ? 'ACTIVÉ' : 'DÉSACTIVÉ'}
-            </span>
-          </div>
-          <div style={{ padding: '14px 20px' }}>
+            <div style={{ borderTop: '1px solid #E2E8F0', margin: '22px 0 18px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', margin: 0 }}>Double authentification</p>
+              <span style={{ background: twoFAEnabled ? '#DCFCE7' : '#F1F5F9', color: twoFAEnabled ? '#166534' : '#475569', borderRadius: 20, padding: '2px 10px', fontSize: 10, fontWeight: 800 }}>
+                {twoFAEnabled ? 'ACTIVÉ' : 'DÉSACTIVÉ'}
+              </span>
+            </div>
+
             {twoFAMsg && (
-              <div style={{ padding: '8px 12px', borderRadius: 8, background: twoFAMsg.ok ? '#DCFCE7' : '#FEE2E2', color: twoFAMsg.ok ? '#166534' : '#991B1B', fontSize: 12, fontWeight: 600, marginBottom: 12 }}>
-                {twoFAMsg.ok
-                  ? <CheckCircle style={{ width: 12, height: 12, marginRight: 6, display: 'inline' }} />
-                  : <XCircle    style={{ width: 12, height: 12, marginRight: 6, display: 'inline' }} />}
+              <div style={{ padding: '8px 12px', borderRadius: 8, background: twoFAMsg.ok ? '#DCFCE7' : '#FEE2E2', color: twoFAMsg.ok ? '#166534' : '#991B1B', fontSize: 12, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                {twoFAMsg.ok ? <CheckCircle style={{ width: 13, height: 13 }} /> : <XCircle style={{ width: 13, height: 13 }} />}
                 {twoFAMsg.text}
               </div>
             )}
 
             {twoFAStep === 0 && !twoFAEnabled && (
-              <>
-                <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 12px' }}>Protégez votre compte admin avec une application TOTP (Google Authenticator, Authy…).</p>
-                <button
-                  onClick={handleSetup2FA}
-                  disabled={twoFASaving}
-                  style={{ width: '100%', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 0', cursor: twoFASaving ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: twoFASaving ? 0.7 : 1 }}>
-                  <Smartphone style={{ width: 13, height: 13 }} />
-                  {twoFASaving ? 'Génération du QR…' : 'Configurer le 2FA'}
-                </button>
-              </>
+              <button onClick={handleSetup2FA} disabled={twoFASaving}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 0', fontWeight: 700, fontSize: 12, cursor: twoFASaving ? 'not-allowed' : 'pointer', opacity: twoFASaving ? 0.65 : 1 }}>
+                <Smartphone style={{ width: 13, height: 13 }} />
+                {twoFASaving ? 'Génération…' : 'Configurer le 2FA'}
+              </button>
             )}
 
             {twoFAStep === 1 && twoFAData && (
               <>
-                <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 10px' }}>Scannez ce QR code avec votre application TOTP :</p>
                 <div style={{ textAlign: 'center', marginBottom: 12 }}>
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(twoFAData.otpauthUrl)}`}
-                    alt="QR 2FA"
-                    style={{ borderRadius: 8, border: '1px solid #D1D9E6' }}
-                  />
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(twoFAData.otpauthUrl)}`}
+                    alt="QR 2FA" style={{ borderRadius: 8, border: '1px solid #D1D9E6' }} />
                 </div>
-                <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 4px' }}>Clé secrète (saisie manuelle) :</p>
-                <div style={{ fontFamily: 'monospace', fontSize: 11, background: '#EFF6FF', border: '1px solid rgba(37,99,235,0.20)', borderRadius: 6, padding: '6px 10px', marginBottom: 12, wordBreak: 'break-all', color: '#2563EB', letterSpacing: '0.1em' }}>
+                <div style={{ fontFamily: 'monospace', fontSize: 11, background: '#EFF6FF', border: '1px solid rgba(37,99,235,0.2)', borderRadius: 6, padding: '6px 10px', marginBottom: 12, wordBreak: 'break-all', color: '#2563EB', letterSpacing: '0.1em' }}>
                   {twoFAData.secret}
                 </div>
-                <label style={labelStyle}>Code de vérification (6 chiffres)</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  placeholder="000000"
-                  value={twoFACode}
-                  onChange={e => setTwoFACode(e.target.value.replace(/\D/g, ''))}
-                  style={{ ...inputStyle, letterSpacing: '0.4em', fontSize: 18, fontWeight: 700, textAlign: 'center', marginBottom: 10 }}
-                />
-                <button
-                  onClick={handleEnable2FA}
-                  disabled={twoFASaving || twoFACode.length !== 6}
-                  style={{ width: '100%', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 0', cursor: 'pointer', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: (twoFASaving || twoFACode.length !== 6) ? 0.55 : 1 }}>
+                <Field label="Code de vérification">
+                  <input type="text" inputMode="numeric" maxLength={6} placeholder="000000" value={twoFACode}
+                    onChange={e => setTwoFACode(e.target.value.replace(/\D/g, ''))}
+                    style={{ ...inputStyle, letterSpacing: '0.4em', fontSize: 18, fontWeight: 800, textAlign: 'center', color: '#0F172A' }} />
+                </Field>
+                <button onClick={handleEnable2FA} disabled={twoFASaving || twoFACode.length !== 6}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 0', fontWeight: 700, fontSize: 12, cursor: 'pointer', opacity: (twoFASaving || twoFACode.length !== 6) ? 0.55 : 1 }}>
                   <Check style={{ width: 13, height: 13 }} />
                   {twoFASaving ? 'Vérification…' : 'Activer le 2FA'}
                 </button>
@@ -1794,104 +1863,22 @@ function ConfigTab() {
             )}
 
             {twoFAEnabled && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <p style={{ fontSize: 12, color: '#166534', margin: 0, display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <CheckCircle style={{ width: 14, height: 14 }} /> Votre compte est protégé par le 2FA.
-                </p>
-                <button
-                  onClick={handleDisable2FA}
-                  disabled={twoFASaving}
-                  style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, padding: '10px 14px' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <CheckCircle style={{ width: 14, height: 14 }} /> Compte protégé par 2FA
+                </span>
+                <button onClick={handleDisable2FA} disabled={twoFASaving}
+                  style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <XCircle style={{ width: 12, height: 12 }} /> Désactiver
                 </button>
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* ── Colonne droite : Intégrations dynamiques ── */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 3px' }}>Intégrations tierces</h3>
-            <p style={{ fontSize: 11, color: '#64748B', margin: 0 }}>Connectez n'importe quel service externe (paiement, SMS, push, analytics, webhooks…)</p>
-          </div>
-          <button onClick={() => setModal({})}
-            style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <Plus style={{ width: 14, height: 14 }} /> Ajouter
-          </button>
-        </div>
-
-        {/* CDC — services requis par le CDC */}
-        {integrations.filter(i => CDC_NAMES.has(i.name)).length > 0 && (
-          <div style={{ marginBottom: 14 }}>
-            <p style={{ fontSize: 10, fontWeight: 800, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Shield style={{ width: 11, height: 11 }} /> Services requis · Cahier des charges
-            </p>
-            {integrations.filter(i => CDC_NAMES.has(i.name)).map(integration => (
-              <IntegrationDynamicCard
-                key={integration.id} integration={integration}
-                onToggle={toggleIntegration} onEdit={(i) => setModal(i)}
-                onDelete={deleteIntegration} onTest={testIntegration}
-                testResult={testResults[integration.id]} testing={testing[integration.id]}
-              />
-            ))}
-          </div>
         )}
-
-        {/* Services personnalisés */}
-        {integrations.filter(i => !CDC_NAMES.has(i.name)).length > 0 && (
-          <div style={{ marginBottom: 12 }}>
-            <p style={{ fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Services personnalisés</p>
-            {integrations.filter(i => !CDC_NAMES.has(i.name)).map(integration => (
-              <IntegrationDynamicCard
-                key={integration.id} integration={integration}
-                onToggle={toggleIntegration} onEdit={(i) => setModal(i)}
-                onDelete={deleteIntegration} onTest={testIntegration}
-                testResult={testResults[integration.id]} testing={testing[integration.id]}
-              />
-            ))}
-          </div>
-        )}
-
-        {integrations.length === 0 && (
-          <div style={{ ...card, padding: '32px 20px', textAlign: 'center', color: '#94A3B8' }}>
-            <Zap style={{ width: 28, height: 28, margin: '0 auto 8px', display: 'block', color: '#CBD5E1' }} />
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Chargement des intégrations…</p>
-          </div>
-        )}
-
-        {/* Rétention sauvegardes */}
-        <div style={{ ...card, marginTop: 16 }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Database style={{ width: 16, height: 16, color: '#6366F1' }} />
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', margin: 0 }}>Sauvegarde & rétention</p>
-          </div>
-          <div style={{ padding: '14px 20px' }}>
-            <label style={labelStyle}>Rétention des sauvegardes (jours)</label>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-              <input type="number" min="1"
-                value={secEdits['backup_retention_days'] ?? '90'}
-                onChange={e => setSecEdits(s => ({ ...s, backup_retention_days: e.target.value }))}
-                style={{ ...inputStyle, flex: 1 }} />
-              <span style={{ display: 'flex', alignItems: 'center', color: '#64748B', fontSize: 12, fontWeight: 600 }}>jours</span>
-            </div>
-            <button onClick={() => saveKey('backup_retention_days', secEdits['backup_retention_days'] ?? '90')}
-              disabled={saving['backup_retention_days']}
-              style={{ width: '100%', background: '#6366F1', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 0', cursor: 'pointer', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              <Save style={{ width: 13, height: 13 }} /> Enregistrer
-            </button>
-          </div>
-        </div>
       </div>
 
       {modal !== null && (
-        <IntegrationModal
-          initial={modal}
-          onClose={() => setModal(null)}
-          onSave={saveIntegration}
-        />
+        <IntegrationModal initial={modal} onClose={() => setModal(null)} onSave={saveIntegration} />
       )}
     </div>
   );

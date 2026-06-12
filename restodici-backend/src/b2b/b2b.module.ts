@@ -18,6 +18,7 @@ import { AuditLogB2B } from './entities/audit-log-b2b.entity';
 import { FactureMensuelleB2B } from './entities/facture-mensuelle-b2b.entity';
 import { PlanRepasB2B } from './entities/plan-repas-b2b.entity';
 import { Article } from '../menu/entities/article.entity';
+import { SystemConfig } from '../common/entities/system-config.entity';
 import { CommandesModule } from '../commandes/commandes.module';
 
 @Module({
@@ -36,6 +37,7 @@ import { CommandesModule } from '../commandes/commandes.module';
       FactureMensuelleB2B,
       PlanRepasB2B,
       Article,
+      SystemConfig,
     ]),
     AuthModule,
     EmailModule,

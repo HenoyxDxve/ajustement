@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   ForbiddenException,
+  Param,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
@@ -83,5 +84,20 @@ export class PaiementsController {
     this.logger.log(`CinetPay webhook: ${JSON.stringify(body).slice(0, 200)}`);
     await this.paiementsService.handleCinetpayWebhook(body);
     return { cpm_result: '00' };
+  }
+
+  // ── Webhook générique par intégration ────────────────────────────────────────
+  @Post('webhook/:integrationName')
+  @HttpCode(HttpStatus.OK)
+  async genericWebhook(
+    @Param('integrationName') integrationName: string,
+    @Body() body: any,
+    @Headers('x-signature-value') sigHeader: string,
+  ) {
+    this.logger.log(
+      `Webhook [${integrationName}]: ${JSON.stringify(body).slice(0, 200)}`,
+    );
+    await this.paiementsService.handleWebhook(integrationName, body, sigHeader);
+    return { status: 'ok' };
   }
 }

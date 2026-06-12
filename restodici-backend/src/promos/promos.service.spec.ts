@@ -3,6 +3,9 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PromosService } from './promos.service';
 import { PromoCode, TypePromo } from './entities/promo-code.entity';
+import { Commande } from '../commandes/entities/commande.entity';
+
+const mockCommandeRepo = { find: jest.fn(), findOne: jest.fn() };
 
 const mockPromoRepo = {
   findOne: jest.fn(),
@@ -45,6 +48,10 @@ describe('PromosService', () => {
         {
           provide: getRepositoryToken(PromoCode),
           useValue: mockPromoRepo,
+        },
+        {
+          provide: getRepositoryToken(Commande),
+          useValue: mockCommandeRepo,
         },
       ],
     }).compile();

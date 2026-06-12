@@ -13,6 +13,7 @@ import { CommandeGroupeeB2B } from '../entities/commande-groupee-b2b.entity';
 import { LigneCommandeGroupeeB2B } from '../entities/ligne-commande-groupee-b2b.entity';
 import { AuditLogB2B } from '../entities/audit-log-b2b.entity';
 import { FactureMensuelleB2B } from '../entities/facture-mensuelle-b2b.entity';
+import { PlanRepasB2B } from '../entities/plan-repas-b2b.entity';
 import { Article } from '../../menu/entities/article.entity';
 import { CommandesGateway } from '../../commandes/commandes.gateway';
 import { EmailService } from '../../email/email.service';
@@ -89,6 +90,7 @@ describe('B2BService — contestFacture', () => {
           useValue: factureRepo,
         },
         { provide: getRepositoryToken(Article), useValue: {} },
+        { provide: getRepositoryToken(PlanRepasB2B), useValue: {} },
         { provide: CommandesGateway, useValue: { emitToManagers: jest.fn() } },
         { provide: EmailService, useValue: emailService },
         { provide: ConfigService, useValue: configService },
@@ -195,6 +197,7 @@ describe('B2BService — exportSyscohadaCsv', () => {
           useValue: factureRepo,
         },
         { provide: getRepositoryToken(Article), useValue: {} },
+        { provide: getRepositoryToken(PlanRepasB2B), useValue: {} },
         { provide: CommandesGateway, useValue: { emitToManagers: jest.fn() } },
         {
           provide: EmailService,
@@ -309,6 +312,7 @@ describe('B2BService — checkOverdueInvoices relances', () => {
           useValue: factureRepo,
         },
         { provide: getRepositoryToken(Article), useValue: {} },
+        { provide: getRepositoryToken(PlanRepasB2B), useValue: {} },
         { provide: CommandesGateway, useValue: { emitToManagers: jest.fn() } },
         { provide: EmailService, useValue: emailService },
         { provide: ConfigService, useValue: configService },

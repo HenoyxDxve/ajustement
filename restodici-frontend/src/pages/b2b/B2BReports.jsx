@@ -153,8 +153,8 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#FF8C00' }}>Rapport Mensuel SYSCOHADA</p>
-                  <p className="text-white font-bold text-base">Resto d'ici · Plateforme B2B</p>
-                  <p className="text-[12px] mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>contact@restodici.ci · Abidjan, Côte d'Ivoire</p>
+                  <p className="text-white font-bold text-base">{reports?.plateforme?.nom || '—'} · Plateforme B2B</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>{reports?.plateforme?.adresse || '—'}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <span className="px-3 py-1.5 rounded-xl text-xs font-bold text-white" style={{ background: '#FF8C00' }}>SYSCOHADA</span>
@@ -163,7 +163,7 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 {[
-                  { title: 'PRESTATAIRE', lines: ["Resto d'ici", 'NIF : CI-ABJ-2024-001', 'RCCM : CI-ABJ-2024-B-001', "Abidjan, Côte d'Ivoire"] },
+                  { title: 'PRESTATAIRE', lines: [reports?.plateforme?.nom || '—', reports?.plateforme?.nif ? `NIF : ${reports.plateforme.nif}` : '—', reports?.plateforme?.rccm ? `RCCM : ${reports.plateforme.rccm}` : '—', reports?.plateforme?.adresse || '—'] },
                   { title: 'CLIENT', lines: [compte?.raisonSociale || 'Entreprise', `NIF : ${compte?.numeroContribuable || '—'}`, `RCCM : ${compte?.numeroRCCM || '—'}`, compte?.secteurActivite ? `Secteur : ${compte.secteurActivite}` : ''] },
                 ].map(({ title, lines }) => (
                   <div key={title} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.07)' }}>
@@ -546,9 +546,10 @@ export default function B2BReports() {
           {tab === 'audit' && (
             <div className="space-y-1.5">
               {auditLogs.length === 0 ? (
-                <div className="rounded-2xl py-16 text-center" style={{ background: CARD, boxShadow: SH }}>
-                  <Activity className="w-10 h-10 mx-auto mb-3" style={{ color: FAINT }} />
-                  <p className="text-sm font-medium" style={{ color: MUTED }}>Aucune action enregistrée</p>
+                <div className="flex flex-col items-center justify-center rounded-2xl py-16 text-center" style={{ background: '#FFF7ED', boxShadow: SH }}>
+                  <Activity className="w-12 h-12 mb-3" style={{ color: '#FF8C00', opacity: 0.4 }} />
+                  <p className="text-sm font-medium" style={{ color: '#0F172A' }}>Aucun log d'audit</p>
+                  <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Les actions de votre compte seront enregistrées ici.</p>
                 </div>
               ) : (
                 <div className="rounded-2xl overflow-hidden" style={{ background: CARD, boxShadow: SH2 }}>
@@ -595,9 +596,10 @@ export default function B2BReports() {
           {tab === 'factures' && (
             <div className="rounded-2xl overflow-hidden" style={{ background: CARD, boxShadow: SH2 }}>
               {factures.length === 0 ? (
-                <div className="py-16 text-center">
-                  <FileText className="w-10 h-10 mx-auto mb-3" style={{ color: FAINT }} />
-                  <p className="text-sm font-medium" style={{ color: MUTED }}>Aucune facture générée</p>
+                <div className="flex flex-col items-center justify-center py-16 text-center" style={{ background: '#FFF7ED' }}>
+                  <FileText className="w-12 h-12 mb-3" style={{ color: '#FF8C00', opacity: 0.4 }} />
+                  <p className="text-sm font-medium" style={{ color: '#0F172A' }}>Aucune facture ce mois-ci</p>
+                  <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Les factures mensuelles générées apparaîtront ici.</p>
                 </div>
               ) : factures.map((f, i, arr) => {
                 const isPaid = f.statut === 'PAYEE' || f.statut === 'paid';

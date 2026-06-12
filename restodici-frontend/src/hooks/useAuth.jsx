@@ -1,9 +1,12 @@
 // src/hooks/useAuth.jsx
+// Contexte d'authentification global — gère la session JWT et les opérations login/register/logout
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { authService } from "../services/auth.service";
 
+// Contexte partagé dans toute l'appli via AuthProvider
 const AuthContext = createContext(null);
 
+// Décode la partie payload d'un JWT (format base64url → JSON)
 function decodeToken(token) {
   const rawPayload = token.split(".")[1];
   const payload = rawPayload?.replace(/-/g, "+").replace(/_/g, "/");
@@ -15,10 +18,12 @@ function decodeToken(token) {
   return JSON.parse(atob(paddedPayload));
 }
 
+// Vérifie si le token est expiré (champ exp en secondes Unix)
 function isExpired(payload) {
   return payload?.exp ? payload.exp * 1000 <= Date.now() : false;
 }
 
+// Extrait le message d'erreur lisible depuis la réponse Axios
 function getErrorMessage(error, fallback) {
   const apiError = error?.response?.data;
   const message = apiError?.message || apiError?.error || apiError;
@@ -29,6 +34,7 @@ function getErrorMessage(error, fallback) {
   return error?.message || fallback;
 }
 
+// Restitue la session stockée dans localStorage au rechargement de la page
 function getStoredSession() {
   const token = localStorage.getItem("token");
   const storedUser = localStorage.getItem("user");
@@ -39,10 +45,12 @@ function getStoredSession() {
         throw new Error("Token expiré");
       }
       const userFromStorage = storedUser ? JSON.parse(storedUser) : null;
+      // Préfère les données complètes du profil plutôt que le seul contenu du JWT
       return userFromStorage
         ? { ...userFromStorage, token }
         : { ...payload, token };
     } catch {
+      // Token corrompu ou expiré → on nettoie
       localStorage.removeItem("token");
       localStorage.removeItem("user");
     }
@@ -51,10 +59,13 @@ function getStoredSession() {
   return null;
 }
 
+// Fournisseur du contexte d'authentification — à placer autour de <App>
 export function AuthProvider({ children }) {
+  // user = null si non connecté, sinon objet { id, role, nom, restaurant, ... }
   const [user, setUser] = useState(getStoredSession);
-  const loading = false;
+  const loading = false; // La session est restaurée de façon synchrone (localStorage)
 
+  // Met à jour le profil en mémoire ET dans localStorage
   const syncUser = useCallback((nextUser) => {
     const token = localStorage.getItem("token") || user?.token;
     localStorage.setItem("user", JSON.stringify(nextUser));

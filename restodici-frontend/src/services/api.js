@@ -1,4 +1,8 @@
 // src/services/api.js
+// Centralise tous les appels HTTP vers le backend NestJS.
+// Chaque section (menuAPI, authAPI, b2bAPI…) correspond à un module backend.
+// L'instance Axios partagée (`api`) injecte automatiquement le token JWT
+// et redirige vers /login en cas de session expirée (401).
 import axios from "axios";
 import { resolveFrontendApiAndSocketBase } from "./backend-endpoints.js";
 

@@ -1,4 +1,6 @@
-// src/App.jsx — Version corrigée ESM strict
+// src/App.jsx — Point d'entrée du routage React
+// Définit toutes les routes de l'application et protège les espaces privés
+// selon le rôle de l'utilisateur connecté (CLIENT, GERANT, STAFF, B2B, ADMIN)
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -53,7 +55,11 @@ import B2BOnboardingPage from './pages/b2b/B2BOnboardingPage';
 // ===== UTILITAIRES — Imports directs sans extension .jsx =====
 const queryClient = new QueryClient();
 
-// ─── Composant de protection des routes admin ───────────────────────────────
+// ── Composants de garde (route guards) ───────────────────────────────────────
+// Chaque garde vérifie le rôle de l'utilisateur avant d'afficher la page.
+// Si l'utilisateur n'a pas le bon rôle → redirection vers /login ou son espace.
+
+// Accès réservé aux administrateurs système
 function ProtectedAdminRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
@@ -61,7 +67,7 @@ function ProtectedAdminRoute({ children }) {
   return children;
 }
 
-// ─── Composant de protection des routes gérant ──────────────────────────────
+// Accès réservé aux gérants de restaurant
 function ProtectedGerantRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
@@ -69,7 +75,7 @@ function ProtectedGerantRoute({ children }) {
   return children;
 }
 
-// ─── Composant de protection des routes staff ───────────────────────────────
+// Accès réservé au staff (serveurs, cuisiniers) — le gérant peut aussi y accéder
 function ProtectedStaffRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
@@ -77,7 +83,7 @@ function ProtectedStaffRoute({ children }) {
   return children;
 }
 
-// ─── Checkout/panier — CLIENT + B2B autorisés ────────────────────────────
+// Checkout autorisé pour CLIENT et B2B — les autres rôles sont renvoyés vers leur espace
 function ProtectedCheckoutRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
@@ -85,11 +91,10 @@ function ProtectedCheckoutRoute({ children }) {
   if (user.role === 'STAFF')  return <Navigate to="/staff" replace />;
   if (user.role === 'GERANT') return <Navigate to="/gerant" replace />;
   if (user.role === 'ADMIN')  return <Navigate to="/admin" replace />;
-  // CLIENT and B2B can both use the cart/checkout/suivi flow
   return children;
 }
 
-// ─── Pages client uniquement — B2B redirigé vers son dashboard ───────────
+// Espace client (compte, commandes) — le B2B est renvoyé vers /b2b
 function ProtectedClientRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
@@ -101,7 +106,7 @@ function ProtectedClientRoute({ children }) {
   return children;
 }
 
-// ─── Composant de protection des routes entreprise ───────────────────────────
+// Accès réservé aux comptes entreprise (B2B)
 function ProtectedBusinessRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
@@ -109,13 +114,11 @@ function ProtectedBusinessRoute({ children }) {
   return children;
 }
 
-// ─── Wrapper pour le tableau de bord gérant avec props nécessaires ───────────
+// Injecte restaurantId et token dans le dashboard gérant (lus depuis le contexte)
 function GerantDashboardWrapper() {
   const { user } = useAuth();
   const token = localStorage.getItem('token');
-  
   const restaurantId = user?.restaurant?.id || user?.restaurantId;
-  
   return <GerantDashboard restaurantId={restaurantId} token={token} />;
 }
 

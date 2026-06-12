@@ -1,4 +1,9 @@
-// Curated Unsplash food photo IDs (stable permalinks, no API key needed)
+// src/utils/articleImage.js
+// Retourne l'image d'un article : photo réelle si disponible, sinon
+// une image Unsplash choisie selon le nom/catégorie du plat.
+// Les plats africains ont la priorité dans la correspondance.
+
+// Identifiants Unsplash stables (pas besoin de clé API)
 const FOOD_POOL = [
   '1476224203421-9ac39bcb3327', // colorful plated dishes
   '1504674900247-0877df9cc836', // food flatlay
@@ -46,6 +51,7 @@ const CATEGORY_MAP = [
   [['pâtes', 'pasta', 'spaghetti', 'macaroni'], '1563379926898-05f4575a45d8'],
 ];
 
+// Hash déterministe pour choisir toujours la même image par nom d'article
 function simpleHash(str) {
   let h = 5381;
   for (let i = 0; i < str.length; i++) {

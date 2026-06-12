@@ -418,7 +418,7 @@ export class MenuService {
   async getRestaurants(): Promise<Restaurant[]> {
     return this.restaurantRepo.find({
       where: { actif: true },
-      select: ['id', 'nom', 'logo', 'adresse', 'telephone'],
+      select: ['id', 'nom', 'logo', 'adresse', 'telephone', 'noteMoyenne', 'nbAvis'],
       order: { nom: 'ASC' },
     });
   }

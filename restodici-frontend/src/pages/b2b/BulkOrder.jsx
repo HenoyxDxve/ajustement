@@ -1,10 +1,10 @@
 // src/pages/b2b/BulkOrder.jsx
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, MapPin, Clock, Search, CheckCircle,
   AlertCircle, Loader2, Navigation, Users,
-  Star, Store, Phone, Trash2, ShoppingBag, X,
+  Star, Store, Phone, Trash2, ShoppingBag, X, Plus, Minus, UtensilsCrossed,
 } from 'lucide-react';
 import { menuAPI, b2bAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
@@ -17,6 +17,213 @@ const A  = '#FF8C00';
 const AL = '#FFF0DF';
 const SF = '#F9F7F5';
 const BD = 'rgba(89,67,42,0.10)';
+
+/* ── Tokens visuels partagés avec menu.jsx ─────────────────────────────────── */
+const C = {
+  bg: '#F4F4F4', card: '#FFFFFF', accent: '#FF8C00',
+  aD: '#E07A00', aL: '#FFF3E0', yellow: '#FFB800',
+  dark: '#1C1C1E', text: '#3D3D3D', muted: '#8A8A8A',
+  faint: '#C5C5C5', line: '#EBEBEB', green: '#22C55E',
+  sh: '0 1px 8px rgba(0,0,0,0.07)',
+  shL: '0 12px 40px rgba(0,0,0,0.14)',
+};
+const sans = "'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif";
+
+const FOOD_IMGS = [
+  'photo-1565299585323-38d6b0865b47','photo-1567620905732-2d1ec7ab7445',
+  'photo-1555939594-58d7cb561ad1','photo-1512058564366-18510be2db19',
+];
+const fallback = (i, w = 480) =>
+  `https://images.unsplash.com/${FOOD_IMGS[i % FOOD_IMGS.length]}?q=80&w=${w}&auto=format&fit=crop`;
+
+const catEmoji = (name = '') => {
+  const k = name.toLowerCase();
+  const MAP = { pizza:'🍕', burger:'🍔', sushi:'🍣', tacos:'🌮', poulet:'🍗',
+    poisson:'🐟', riz:'🍚', salade:'🥗', dessert:'🍰', boisson:'🥤',
+    brochette:'🥩', sandwich:'🥪', plat:'🍽️' };
+  for (const [w, e] of Object.entries(MAP)) if (k.includes(w)) return e;
+  return '🍽️';
+};
+
+/* ── Carte restaurant B2B — même visuel que menu.jsx ────────────────────────── */
+function B2BRestaurantCard({ restaurant, idx, isActive, onSelect }) {
+  const [hov, setHov] = useState(false);
+  const img = restaurant.logo || fallback(idx, 480);
+  const note = Number(restaurant.noteMoyenne);
+  const rating = note > 0 ? note.toFixed(1) : null;
+
+  return (
+    <div
+      onClick={() => onSelect(restaurant.id)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: C.card, borderRadius: 20,
+        boxShadow: isActive ? C.shL : hov ? C.shL : C.sh,
+        overflow: 'hidden', cursor: 'pointer',
+        transform: hov ? 'translateY(-4px)' : 'translateY(0)',
+        transition: 'all 0.22s cubic-bezier(.4,0,.2,1)',
+        outline: isActive ? `2.5px solid ${C.accent}` : 'none',
+        outlineOffset: 2,
+      }}
+    >
+      {/* Cover image */}
+      <div style={{ position: 'relative', height: 180, overflow: 'hidden' }}>
+        <img src={img} alt={restaurant.nom}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+            transform: hov ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s ease' }}
+          onError={e => { e.target.src = fallback(idx, 480); }}
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 55%)' }} />
+        <div style={{ position: 'absolute', top: 10, left: 10, right: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 800, background: 'rgba(255,255,255,0.95)', color: C.dark, borderRadius: 99, padding: '3px 8px', boxShadow: C.sh }}>
+            🤝 Partenaire B2B
+          </span>
+          {isActive && (
+            <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 800, background: C.accent, color: '#fff', borderRadius: 99, padding: '3px 8px' }}>
+              ✓ Sélectionné
+            </span>
+          )}
+        </div>
+        <div style={{ position: 'absolute', bottom: 10, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {rating ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontFamily: sans, fontSize: 12, fontWeight: 700, color: '#fff' }}>
+              <Star size={12} fill={C.yellow} color={C.yellow} /> {rating}
+              {restaurant.nbAvis > 0 && <span style={{ fontSize: 10, opacity: 0.8 }}>({restaurant.nbAvis})</span>}
+            </span>
+          ) : <span />}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontFamily: sans, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+            <Clock size={11} color="rgba(255,255,255,0.8)" /> 25–40 min
+          </span>
+        </div>
+      </div>
+      {/* Card body */}
+      <div style={{ padding: '12px 14px 14px' }}>
+        <p style={{ margin: '0 0 4px', fontFamily: sans, fontSize: 15, fontWeight: 800, color: C.dark, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {restaurant.nom}
+        </p>
+        <p style={{ margin: '0 0 10px', fontFamily: sans, fontSize: 12, color: C.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {restaurant.adresse || 'Restaurant partenaire'}
+        </p>
+        <button style={{
+          width: '100%', padding: '10px', borderRadius: 12, border: 'none',
+          background: isActive ? `linear-gradient(135deg,${C.aD},${C.accent})` : `linear-gradient(135deg,${C.accent},${C.aD})`,
+          color: '#fff', fontFamily: sans, fontSize: 13, fontWeight: 800,
+          cursor: 'pointer', boxShadow: `0 4px 14px ${C.accent}44`, transition: 'all 0.15s',
+        }}>
+          {isActive ? '✓ Menu affiché' : 'Voir le menu →'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Carte produit B2B — même layout horizontal que menu.jsx ────────────────── */
+function B2BProductCard({ product, idx, qty, assignedNames, onOpen, onRemove }) {
+  const img = getArticleImage(product) || fallback(idx, 200);
+  const isAvail = product.disponible !== false;
+
+  return (
+    <div style={{
+      background: C.card, borderRadius: 16, boxShadow: C.sh,
+      display: 'flex', alignItems: 'center', gap: 0,
+      opacity: isAvail ? 1 : 0.6, overflow: 'hidden',
+      outline: qty > 0 ? `2px solid ${C.accent}66` : 'none',
+    }}>
+      {/* Image */}
+      <div style={{ position: 'relative', width: 100, height: 100, flexShrink: 0 }}>
+        <img src={img} alt={product.nom}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          onError={e => { e.target.src = fallback(idx, 200); }}
+        />
+        {!isAvail && (
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.40)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: sans, fontSize: 9, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '3px 7px', borderRadius: 99 }}>Rupture</span>
+          </div>
+        )}
+        {qty > 0 && (
+          <div style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 900, color: '#fff' }}>{qty}</span>
+          </div>
+        )}
+      </div>
+      {/* Infos */}
+      <div style={{ flex: 1, padding: '10px 12px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <p style={{ margin: 0, fontFamily: sans, fontSize: 14, fontWeight: 800, color: C.dark, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {product.nom}
+        </p>
+        {product.description && (
+          <p style={{ margin: 0, fontFamily: sans, fontSize: 12, color: C.muted, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {product.description}
+          </p>
+        )}
+        <span style={{ fontFamily: sans, fontSize: 15, fontWeight: 900, color: C.accent }}>
+          {formatFCFA(product.prix)}
+        </span>
+        {assignedNames && (
+          <p style={{ margin: 0, fontFamily: sans, fontSize: 11, fontWeight: 600, color: C.aD, background: C.aL, borderRadius: 6, padding: '2px 6px' }}>
+            👥 {assignedNames}
+          </p>
+        )}
+      </div>
+      {/* Action B2B */}
+      <div style={{ padding: '0 12px', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+        <button
+          onClick={() => isAvail && onOpen()}
+          disabled={!isAvail}
+          style={{
+            width: qty > 0 ? 'auto' : 36, height: qty > 0 ? 'auto' : 36,
+            padding: qty > 0 ? '6px 10px' : 0,
+            borderRadius: qty > 0 ? 10 : '50%', border: 'none',
+            background: isAvail ? `linear-gradient(135deg,${C.accent},${C.aD})` : C.line,
+            color: isAvail ? '#fff' : C.muted,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: isAvail ? 'pointer' : 'not-allowed',
+            boxShadow: isAvail ? `0 3px 12px ${C.accent}55` : 'none',
+            fontFamily: sans, fontSize: 11, fontWeight: 700, gap: 4,
+          }}
+        >
+          {qty > 0 ? <><Users size={12} /> Modifier</> : <Users size={15} />}
+        </button>
+        {qty > 0 && (
+          <button onClick={onRemove}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: sans, fontSize: 10, color: '#EF4444', fontWeight: 600, padding: 0 }}>
+            Retirer
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Onglets de catégories B2B ───────────────────────────────────────────────── */
+function B2BCategoryTabs({ cats, active, onChange }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    const btn = ref.current.querySelector(`[data-cat="${active}"]`);
+    if (btn) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [active]);
+  return (
+    <div ref={ref} style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px', scrollbarWidth: 'none' }}>
+      {cats.map(cat => {
+        const isA = cat.id === active;
+        return (
+          <button key={cat.id} data-cat={cat.id} onClick={() => onChange(cat.id)}
+            style={{
+              flexShrink: 0, padding: '7px 16px', borderRadius: 99, border: 'none',
+              background: isA ? C.accent : C.card, color: isA ? '#fff' : C.text,
+              fontFamily: sans, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              boxShadow: C.sh, transition: 'all 0.15s', whiteSpace: 'nowrap',
+            }}>
+            {catEmoji(cat.nom)} {cat.nom}
+            {cat.articleCount > 0 && <span style={{ marginLeft: 5, fontSize: 11, fontWeight: 600, opacity: 0.75 }}>({cat.articleCount})</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 const STEPS = ['Choisir les plats', 'Livraison & lieu', 'Confirmer'];
 
@@ -208,7 +415,7 @@ export default function BulkOrder() {
           logoUrl: info.logoUrl || selectedR.logo || '',
           isOpen: typeof info.ouvert === 'boolean' ? info.ouvert : true,
           estimatedTime: info.delaiLivraison || '25-35 min',
-          rating: parseFloat(info.noteMoyenne || 4.8) || 4.8,
+          rating: parseFloat(selectedR.noteMoyenne || info.noteMoyenne || 0) || 0,
           address: info.adresse || selectedR.adresse || '',
           phone: info.telephone || selectedR.telephone || '',
         });
@@ -429,322 +636,188 @@ export default function BulkOrder() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         <StepBar current={step} />
 
-        {/* ── STEP 0 — Restaurant + menu explorer ──────────────────────── */}
+        {/* ── STEP 0 — Restaurant + menu explorer (même visuel que menu.jsx) ── */}
         {step === 0 && (
           <>
+            {/* Hero banner */}
+            <div style={{
+              background: `linear-gradient(135deg, ${C.accent} 0%, ${C.aD} 100%)`,
+              borderRadius: 20, padding: 'clamp(16px,4vw,28px)', marginBottom: 28,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              boxShadow: `0 8px 32px ${C.accent}44`, overflow: 'hidden', position: 'relative',
+            }}>
+              <div style={{ position: 'absolute', right: -20, top: -20, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+              <div style={{ position: 'relative' }}>
+                <p style={{ margin: '0 0 6px', fontFamily: sans, fontSize: 'clamp(15px,4vw,20px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>
+                  Commande groupée B2B
+                </p>
+                <p style={{ margin: 0, fontFamily: sans, fontSize: 13, color: 'rgba(255,255,255,0.82)' }}>
+                  {restaurants.length > 0 ? `${restaurants.length} partenaire${restaurants.length > 1 ? 's' : ''} disponible${restaurants.length > 1 ? 's' : ''}` : 'Chargement…'}
+                </p>
+              </div>
+              <div style={{ fontSize: 'clamp(32px,7vw,52px)', position: 'relative', flexShrink: 0 }}>🤝</div>
+            </div>
+
             {/* Search bar */}
-            <div className="mb-6 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-orange-400" />
+            <div style={{ position: 'relative', marginBottom: 24 }}>
+              <Search size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: C.accent, pointerEvents: 'none' }} />
               <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
+                type="text" value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Rechercher un plat, une catégorie…"
-                className="w-full rounded-2xl border pl-12 pr-10 py-3 text-sm outline-none transition"
-                style={{ background: '#fff', borderColor: '#F1D6C9' }}
+                style={{ width: '100%', boxSizing: 'border-box', borderRadius: 99, border: `1px solid ${C.line}`, paddingLeft: 44, paddingRight: search ? 40 : 16, paddingTop: 12, paddingBottom: 12, fontFamily: sans, fontSize: 14, background: C.card, outline: 'none', boxShadow: C.sh }}
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]">
-                  <X className="w-5 h-5" />
+                <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: C.muted, display: 'flex' }}>
+                  <X size={18} />
                 </button>
               )}
             </div>
 
-            {/* Restaurant cards */}
+            {/* Restaurant grid */}
             {loadingRestaurants ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-8 h-8 animate-spin" style={{ color: A }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0' }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', border: `4px solid ${C.accent}`, borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
               </div>
             ) : restaurants.length === 0 ? (
-              <div className="rounded-3xl border bg-white p-12 text-center" style={{ borderColor: BD }}>
-                <Store className="w-14 h-14 mx-auto text-gray-300 mb-4" />
-                <p className="font-bold text-[#111827]">Aucun restaurant disponible</p>
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <UtensilsCrossed size={40} color={C.faint} style={{ marginBottom: 12 }} />
+                <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 700, color: C.dark, margin: '0 0 6px' }}>Aucun restaurant disponible</p>
               </div>
             ) : (
               <>
-                {/* ── Restaurant selector section ── */}
-                <section className="mb-8 overflow-hidden rounded-[32px] border bg-white shadow-sm" style={{ borderColor: '#F3E4DA' }}>
-                  <div className="relative bg-gradient-to-r from-[#FFF9F5] to-[#FFF0E8] border-b px-6 py-5 flex items-center justify-between gap-4" style={{ borderColor: '#F3E4DA' }}>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-400 mb-0.5">Établissements</p>
-                      <h2 className="text-xl font-extrabold text-slate-900">Choisissez un restaurant</h2>
-                      <p className="mt-0.5 text-sm text-[#6B7280]">Parcourez les établissements disponibles puis explorez leur menu.</p>
-                    </div>
-                    <div className="shrink-0 rounded-2xl bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow-sm">
-                      {restaurants.length} restaurant{restaurants.length > 1 ? 's' : ''}
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-                      {restaurants.map(r => {
-                        const isActive = r.id === selectedRestaurantId;
-                        return (
-                          <button key={r.id} type="button"
-                            onClick={() => { setSelectedRestaurantId(r.id); setSearch(''); }}
-                            className={`group overflow-hidden rounded-[24px] border text-left transition-all hover:-translate-y-1.5 ${isActive ? 'border-orange-400 shadow-[0_20px_40px_rgba(224,78,26,0.18)] ring-2 ring-orange-400/20' : 'border-[#EEE2DA] bg-white hover:border-orange-200 hover:shadow-xl'}`}>
-                            <div className="relative h-44 overflow-hidden bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-50">
-                              {r.logo ? (
-                                <img src={r.logo} alt={r.nom} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center">
-                                  <span className="text-7xl opacity-20">🍽️</span>
-                                </div>
-                              )}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                              <div className="absolute left-3 top-3 rounded-full bg-emerald-500 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">● Ouvert</div>
-                              {isActive && (
-                                <div className="absolute right-3 top-3 rounded-full bg-orange-500 px-3 py-1 text-[11px] font-bold text-white shadow-md">✓ Sélectionné</div>
-                              )}
-                              <div className="absolute bottom-3 left-3 right-3">
-                                <h3 className="text-base font-extrabold text-white leading-tight drop-shadow">{r.nom}</h3>
-                              </div>
-                            </div>
-                            <div className={`p-4 ${isActive ? 'bg-gradient-to-br from-orange-50 via-white to-[#FFF7F2]' : 'bg-white'}`}>
-                              <p className="text-xs text-[#6B7280] line-clamp-1 flex items-center gap-1">
-                                <MapPin className="h-3 w-3 shrink-0 text-orange-400" />
-                                {r.adresse || "Abidjan, Côte d'Ivoire"}
-                              </p>
-                              <div className="mt-3 flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 font-semibold text-amber-700">
-                                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> 4.8
-                                  </span>
-                                  <span className="inline-flex items-center gap-1 text-[#6B7280]">
-                                    <Clock className="h-3 w-3" /> 25-35 min
-                                  </span>
-                                </div>
-                                {r.telephone && (
-                                  <span className="text-[11px] text-[#6B7280] flex items-center gap-1">
-                                    <Phone className="h-3 w-3" /> {r.telephone}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </section>
+                {/* Grille restaurants — même design que menu.jsx */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20, marginBottom: 32 }}>
+                  {restaurants.map((r, i) => (
+                    <B2BRestaurantCard key={r.id} restaurant={r} idx={i}
+                      isActive={r.id === selectedRestaurantId}
+                      onSelect={id => { setSelectedRestaurantId(id); setSearch(''); setActiveCategory('all'); }}
+                    />
+                  ))}
+                </div>
 
-                {/* ── Menu section (when restaurant selected) ── */}
+                {/* Menu du restaurant sélectionné */}
                 {selectedRestaurant && (
                   <>
-                    {/* Restaurant hero banner */}
-                    <section className="mb-8 overflow-hidden rounded-[32px] border shadow-md" style={{ borderColor: '#F3E4DA' }}>
-                      <div className="relative h-28 bg-gradient-to-r from-[#0F172A] via-[#2B1500] to-[#FF8C00]/80 overflow-hidden">
-                        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_50%,white,transparent_60%)]" />
-                        <div className="relative z-10 flex h-full items-center gap-5 px-6">
-                          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/10 backdrop-blur ring-2 ring-white/20">
-                            {restaurantDetails.logoUrl
-                              ? <img src={restaurantDetails.logoUrl} alt={restaurantDetails.nom} className="h-full w-full object-cover" />
-                              : <span className="text-3xl">🍽️</span>}
+                    {/* Bannière restaurant — même design que menu.jsx */}
+                    <div style={{ background: C.card, borderBottom: `1px solid ${C.line}`, boxShadow: C.sh, borderRadius: '16px 16px 0 0', marginBottom: 0 }}>
+                      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                          <div style={{ width: 60, height: 60, borderRadius: 14, overflow: 'hidden', flexShrink: 0, background: C.bg }}>
+                            <img src={restaurantDetails.logoUrl || fallback(0, 120)} alt={restaurantDetails.nom}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                              onError={e => { e.target.src = fallback(0, 120); }}
+                            />
                           </div>
-                          <div className="flex-1">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Menu sélectionné</p>
-                            <h2 className="text-2xl font-extrabold text-white leading-tight">{restaurantDetails.nom}</h2>
-                          </div>
-                          <div className="ml-auto hidden sm:flex flex-wrap gap-2">
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 text-white px-3 py-1.5 text-xs font-bold">● Ouvert</span>
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-xs font-semibold text-white">
-                              <Clock className="h-3.5 w-3.5" /> {restaurantDetails.estimatedTime}
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/90 px-3 py-1.5 text-xs font-bold text-amber-900">
-                              <Star className="h-3.5 w-3.5 fill-amber-800 text-amber-800" /> {restaurantDetails.rating.toFixed(1)}/5
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      {(restaurantDetails.address || restaurantDetails.phone) && (
-                        <div className="flex flex-wrap gap-2 px-6 py-3 bg-white border-t" style={{ borderColor: '#F3E4DA' }}>
-                          {restaurantDetails.address && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
-                              <MapPin className="h-3.5 w-3.5" /> {restaurantDetails.address}
-                            </span>
-                          )}
-                          {restaurantDetails.phone && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFF0DF] px-3 py-1 text-xs font-medium text-gray-600">
-                              <Phone className="h-3.5 w-3.5" /> {restaurantDetails.phone}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </section>
-
-                    {/* Error */}
-                    {error && (
-                      <div className="mb-4 flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-50 border border-red-200">
-                        <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-                        <p className="text-sm text-red-700">{error}</p>
-                      </div>
-                    )}
-
-                    {/* 2-col: categories + products */}
-                    <div className="flex flex-col gap-6 lg:flex-row">
-
-                      {/* Category sidebar */}
-                      <div className="lg:w-64 lg:flex-shrink-0">
-                        <div className="sticky top-20 rounded-[26px] border bg-white p-4 shadow-sm" style={{ borderColor: '#F3E4DA' }}>
-                          <h3 className="text-base font-bold text-slate-900">Catégories</h3>
-                          <p className="mt-0.5 text-xs text-[#6B7280]">{restaurantDetails.nom}</p>
-                          <div className="mt-4 space-y-1.5">
-                            <button onClick={() => setActiveCategory('all')}
-                              className={`w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition ${activeCategory === 'all' ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-[#FFF0DF]'}`}>
-                              Toutes les catégories
-                            </button>
-                            {categories.map(cat => (
-                              <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                                className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium transition ${activeCategory === cat.id ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-[#FFF0DF]'}`}>
-                                {cat.icone && <span>{cat.icone}</span>}
-                                <span className="flex-1 truncate">{cat.nom}</span>
-                                <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${activeCategory === cat.id ? 'bg-white/20 text-white' : 'bg-orange-50 text-orange-600'}`}>
-                                  {cat.articleCount || 0}
+                          <div style={{ flex: 1 }}>
+                            <p style={{ margin: '0 0 4px', fontFamily: sans, fontSize: 17, fontWeight: 900, color: C.dark, letterSpacing: '-0.02em' }}>
+                              {restaurantDetails.nom}
+                            </p>
+                            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                              {restaurantDetails.rating > 0 ? (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: sans, fontSize: 12, color: C.muted }}>
+                                  <Star size={12} fill={C.yellow} color={C.yellow} />
+                                  {restaurantDetails.rating.toFixed(1)}
+                                  {selectedRestaurant.nbAvis > 0 && <span style={{ fontSize: 11, opacity: 0.7 }}>({selectedRestaurant.nbAvis})</span>}
                                 </span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Products grid */}
-                      <div className="flex-1">
-                        {loadingMenu ? (
-                          <div className="flex min-h-[260px] items-center justify-center rounded-[28px] border bg-white" style={{ borderColor: '#F3E4DA' }}>
-                            <div className="text-center">
-                              <div className="mx-auto mb-4 h-10 w-10 rounded-full border-4 border-orange-500 border-t-transparent animate-spin" />
-                              <p className="text-sm text-gray-600">Chargement du menu…</p>
-                            </div>
-                          </div>
-                        ) : filteredProducts.length === 0 ? (
-                          <div className="rounded-[28px] border bg-white py-16 text-center shadow-sm" style={{ borderColor: '#F3E4DA' }}>
-                            <span className="mx-auto mb-4 block text-6xl">🍽️</span>
-                            <h3 className="text-lg font-medium text-gray-700">Aucun plat trouvé</h3>
-                            <p className="mt-1 text-sm text-[#6B7280]">Essayez de modifier votre recherche ou catégorie.</p>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="mb-4 flex items-center justify-between">
-                              <div>
-                                <h3 className="text-lg font-bold text-slate-900">Articles disponibles</h3>
-                                <p className="text-xs text-gray-600">{filteredProducts.length} article{filteredProducts.length > 1 ? 's' : ''}</p>
-                              </div>
-                              {totalCouverts > 0 && (
-                                <div className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ background: A }}>
-                                  {totalCouverts} ajouté{totalCouverts > 1 ? 's' : ''}
-                                </div>
+                              ) : null}
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: sans, fontSize: 12, color: C.muted }}>
+                                <Clock size={12} color={C.muted} /> {restaurantDetails.estimatedTime}
+                              </span>
+                              {restaurantDetails.address && (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: sans, fontSize: 12, color: C.muted }}>
+                                  <MapPin size={12} color={C.muted} /> {restaurantDetails.address}
+                                </span>
                               )}
                             </div>
-
-                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                              {filteredProducts.map(product => {
-                                const qty = getArticleQty(product.id);
-                                const allergens = getAllergenIcons(product);
-                                const isPromo = parseFloat(product.prix) < 2000;
-                                const assignedNames = qty > 0 && panier[product.id]
-                                  ? Object.entries(panier[product.id].members)
-                                      .filter(([, q]) => q > 0)
-                                      .map(([cid, q]) => {
-                                        const c = collaborateurs.find(x => x.id === cid);
-                                        return `${c ? c.nom.split(' ')[0] : 'Libre'} ×${q}`;
-                                      }).join(', ')
-                                  : '';
-                                return (
-                                  <div key={product.id}
-                                    className={`group overflow-hidden rounded-[28px] border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-orange-200 ${!product.disponible ? 'opacity-60' : ''} ${qty > 0 ? 'ring-2 ring-orange-400/30 border-orange-300' : ''}`}
-                                    style={{ borderColor: qty > 0 ? A + '60' : '#F1E6DE' }}>
-                                    {/* Image */}
-                                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-                                      <img
-                                        src={getArticleImage(product)}
-                                        alt={product.nom}
-                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                        loading="lazy"
-                                      />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                                      <div className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-bold backdrop-blur-sm shadow ${product.disponible ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
-                                        {product.disponible ? '● Disponible' : '● Rupture'}
-                                      </div>
-                                      {isPromo && product.disponible && (
-                                        <div className="absolute right-3 top-3 rounded-full bg-white/90 backdrop-blur-sm px-2.5 py-1 text-[11px] font-bold text-emerald-600 shadow">
-                                          🏷️ Promo
-                                        </div>
-                                      )}
-                                      {qty > 0 && (
-                                        <div className="absolute right-3 bottom-3 w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold text-white shadow-lg" style={{ background: A }}>
-                                          {qty}
-                                        </div>
-                                      )}
-                                      {product.categorie?.nom && (
-                                        <div className="absolute bottom-3 left-3 rounded-full bg-black/55 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-white">
-                                          {product.categorie.icone ? `${product.categorie.icone} ` : ''}{product.categorie.nom}
-                                        </div>
-                                      )}
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="flex flex-col gap-3 p-4">
-                                      <div>
-                                        <h4 className="text-sm font-extrabold text-slate-900 leading-snug">{product.nom}</h4>
-                                        <p className="mt-1 line-clamp-2 text-xs text-[#6B7280] leading-relaxed">
-                                          {product.description || 'Plat préparé avec soin par nos équipes.'}
-                                        </p>
-                                      </div>
-
-                                      {allergens.length > 0 && (
-                                        <div className="flex gap-1">{allergens.map((ic, i) => <span key={i} className="text-sm">{ic}</span>)}</div>
-                                      )}
-
-                                      {/* Assigned members summary */}
-                                      {assignedNames && (
-                                        <p className="text-[11px] font-medium rounded-lg px-2 py-1.5" style={{ background: AL, color: A }}>
-                                          👥 {assignedNames}
-                                        </p>
-                                      )}
-
-                                      {/* Price */}
-                                      <div className="flex items-center justify-between gap-2">
-                                        <span className={`text-lg font-extrabold ${isPromo ? 'text-emerald-600' : 'text-orange-500'}`}>
-                                          {formatFCFA(parseFloat(product.prix) || 0)}
-                                        </span>
-                                        {qty > 0 && (
-                                          <button type="button" onClick={() => deleteFromCart(product.id)}
-                                            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg text-red-500 bg-red-50 hover:bg-red-100 transition">
-                                            Retirer
-                                          </button>
-                                        )}
-                                      </div>
-
-                                      {/* Main CTA — opens member picker */}
-                                      <button type="button" onClick={() => openPicker(product)}
-                                        disabled={!product.disponible}
-                                        className={`w-full rounded-2xl py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2 ${product.disponible ? 'bg-gradient-to-r from-orange-500 to-[#FF8C00] text-white shadow-sm hover:shadow-lg' : 'cursor-not-allowed bg-[#FFF0DF] text-[#6B7280]'}`}>
-                                        <Users className="w-3.5 h-3.5" />
-                                        {!product.disponible ? 'Indisponible' : qty > 0 ? `Modifier l'affectation (${qty})` : 'Choisir qui veut ce plat'}
-                                      </button>
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                          </div>
+                          {totalCouverts > 0 && (
+                            <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                              <p style={{ margin: 0, fontFamily: sans, fontSize: 12, color: C.muted }}>Sélection</p>
+                              <p style={{ margin: 0, fontFamily: sans, fontSize: 15, fontWeight: 900, color: C.accent }}>{totalCouverts} plat{totalCouverts > 1 ? 's' : ''}</p>
                             </div>
-                          </>
+                          )}
+                        </div>
+                      </div>
+                      {/* Onglets catégories */}
+                      <div style={{ paddingBottom: 12, paddingTop: 4 }}>
+                        {loadingMenu ? (
+                          <div style={{ display: 'flex', gap: 8, padding: '0 20px' }}>
+                            {[...Array(4)].map((_, i) => (
+                              <div key={i} style={{ width: 80, height: 34, borderRadius: 99, background: 'linear-gradient(90deg,#EBEBEB 25%,#F5F5F5 50%,#EBEBEB 75%)', backgroundSize: '200% 100%' }} />
+                            ))}
+                          </div>
+                        ) : (
+                          <B2BCategoryTabs
+                            cats={[{ id: 'all', nom: 'Tout voir', articleCount: menuData.length }, ...categories]}
+                            active={activeCategory}
+                            onChange={setActiveCategory}
+                          />
                         )}
                       </div>
                     </div>
 
-                    {/* Floating cart bar (mobile / bottom) */}
+                    {/* Error */}
+                    {error && (
+                      <div style={{ margin: '12px 0', display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                        <AlertCircle size={16} color="#EF4444" style={{ flexShrink: 0 }} />
+                        <p style={{ margin: 0, fontFamily: sans, fontSize: 13, color: '#B91C1C' }}>{error}</p>
+                      </div>
+                    )}
+
+                    {/* Liste plats — même layout horizontal que menu.jsx */}
+                    <div style={{ background: C.bg, borderRadius: '0 0 16px 16px', padding: '20px clamp(12px,4vw,20px)', marginBottom: 90 }}>
+                      {loadingMenu ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          {[...Array(5)].map((_, i) => (
+                            <div key={i} style={{ background: C.card, borderRadius: 16, overflow: 'hidden', display: 'flex', height: 100 }}>
+                              <div style={{ width: 100, height: 100, background: '#EBEBEB', flexShrink: 0 }} />
+                              <div style={{ flex: 1, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, justifyContent: 'center' }}>
+                                <div style={{ width: '65%', height: 14, borderRadius: 4, background: '#EBEBEB' }} />
+                                <div style={{ width: '45%', height: 11, borderRadius: 4, background: '#EBEBEB' }} />
+                                <div style={{ width: '30%', height: 16, borderRadius: 6, background: '#EBEBEB' }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : filteredProducts.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                          <p style={{ fontFamily: sans, fontSize: 14, color: C.muted }}>Aucun plat trouvé</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          {filteredProducts.map((product, i) => {
+                            const qty = getArticleQty(product.id);
+                            const assignedNames = qty > 0 && panier[product.id]
+                              ? Object.entries(panier[product.id].members)
+                                  .filter(([, q]) => q > 0)
+                                  .map(([cid, q]) => {
+                                    const collab = collaborateurs.find(x => x.id === cid);
+                                    return `${collab ? collab.nom.split(' ')[0] : 'Libre'} ×${q}`;
+                                  }).join(', ')
+                              : '';
+                            return (
+                              <B2BProductCard key={product.id} product={product} idx={i}
+                                qty={qty} assignedNames={assignedNames}
+                                onOpen={() => openPicker(product)}
+                                onRemove={() => deleteFromCart(product.id)}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Barre flottante */}
                     {totalCouverts > 0 && (
-                      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 w-full max-w-sm px-4">
-                        <button
-                          onClick={() => { if (validateStep0()) setStep(1); }}
-                          className="w-full flex items-center justify-between gap-3 rounded-2xl px-5 py-4 text-white shadow-2xl font-bold text-sm"
-                          style={{ background: A }}>
-                          <div className="flex items-center gap-2">
-                            <ShoppingBag className="w-5 h-5" />
-                            <span>{totalCouverts} plat{totalCouverts > 1 ? 's' : ''} sélectionné{totalCouverts > 1 ? 's' : ''}</span>
+                      <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 30, width: '100%', maxWidth: 400, padding: '0 16px', boxSizing: 'border-box' }}>
+                        <button onClick={() => { if (validateStep0()) setStep(1); }}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderRadius: 20, padding: '14px 20px', background: C.accent, color: '#fff', border: 'none', cursor: 'pointer', boxShadow: `0 8px 32px ${C.accent}88`, fontFamily: sans, fontWeight: 800, fontSize: 14 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <ShoppingBag size={18} />
+                            <span>{totalCouverts} plat{totalCouverts > 1 ? 's' : ''} · {formatFCFA(totalEstime)}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span>{totalEstime.toLocaleString('fr-FR')} FCFA</span>
-                            <ArrowRight className="w-4 h-4" />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            Livraison <ArrowRight size={16} />
                           </div>
                         </button>
                       </div>
@@ -754,18 +827,17 @@ export default function BulkOrder() {
               </>
             )}
 
-            {/* Step 0 footer (when no floating bar) */}
-            {totalCouverts === 0 && (
-              <div className="mt-6 flex justify-end">
+            {/* Bouton continuer quand pas encore de sélection */}
+            {totalCouverts === 0 && selectedRestaurant && (
+              <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={() => { if (validateStep0()) setStep(1); }}
-                  className="px-6 py-3 rounded-2xl text-sm font-bold text-white flex items-center gap-2"
-                  style={{ background: A }}>
-                  Continuer <ArrowRight className="w-4 h-4" />
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 12, border: 'none', background: C.accent, color: '#fff', fontFamily: sans, fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
+                  Continuer <ArrowRight size={16} />
                 </button>
               </div>
             )}
             {error && totalCouverts === 0 && (
-              <p className="mt-2 text-sm text-red-500 font-semibold text-right">{error}</p>
+              <p style={{ marginTop: 8, fontFamily: sans, fontSize: 13, color: '#EF4444', fontWeight: 600, textAlign: 'right' }}>{error}</p>
             )}
           </>
         )}

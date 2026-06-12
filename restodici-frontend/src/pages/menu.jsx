@@ -120,7 +120,7 @@ function Logo() {
 function RestaurantCard({ restaurant, idx, onSelect, favorites, onFav }) {
   const [hov, setHov] = useState(false);
   const img = restaurant.logo || restaurant.coverImage || restaurant.photoUrl || fallback(idx, 480);
-  const rating = (restaurant.rating || (4.0 + (idx % 10) * 0.09)).toFixed(1);
+  const rating = (Number(restaurant.noteMoyenne) > 0 ? Number(restaurant.noteMoyenne) : 0).toFixed(1);
   const time   = restaurant.deliveryTime || `${20 + (idx % 4) * 5}–${30 + (idx % 4) * 5} min`;
   const isFav  = favorites?.includes(restaurant.id);
   const isOpen = restaurant.isOpen !== false;
@@ -813,7 +813,8 @@ export default function MenuPage() {
                   <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: sans, fontSize: 12, color: C.muted }}>
                       <Star size={12} fill={C.yellow} color={C.yellow} />
-                      {(selectedResto.rating || 4.5).toFixed(1)}
+                      {Number(selectedResto.noteMoyenne) > 0 ? Number(selectedResto.noteMoyenne).toFixed(1) : '–'}
+                      {selectedResto.nbAvis > 0 && <span style={{ fontSize: 11, opacity: 0.7, marginLeft: 2 }}>({selectedResto.nbAvis})</span>}
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: sans, fontSize: 12, color: C.muted }}>
                       <Clock size={12} color={C.muted} />

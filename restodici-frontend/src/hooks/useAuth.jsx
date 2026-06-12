@@ -119,17 +119,12 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (userData) => {
     try {
       const data = await authService.register(userData);
-      const { user: newUser, access_token, token } = data;
+      const { user: newUser } = data;
       if (!newUser) {
         return { success: false, error: "Réponse invalide du serveur" };
       }
-      const jwtToken = access_token ?? token;
-      if (jwtToken) {
-        localStorage.setItem("token", jwtToken);
-        localStorage.setItem("user", JSON.stringify(newUser));
-        setUser({ ...newUser, token: jwtToken });
-      }
-      return { success: true, user: newUser, token: jwtToken };
+      // On ne stocke jamais le token ici : l'utilisateur doit se connecter manuellement
+      return { success: true, user: newUser };
     } catch (error) {
       console.error("Register error:", error);
       return {

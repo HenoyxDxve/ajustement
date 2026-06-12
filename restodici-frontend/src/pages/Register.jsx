@@ -42,7 +42,7 @@ export default function Register() {
   const [searchParams] = useSearchParams();
   const location       = useLocation();
   const navigate       = useNavigate();
-  const { register: authRegister, login } = useAuth();
+  const { register: authRegister } = useAuth();
 
   const userType    = normalizeUserType(searchParams.get("type"));
   const isRestaurant = userType === "restaurant";
@@ -95,15 +95,8 @@ export default function Register() {
 
       const res = await authRegister(payload);
       if (res.success) {
-        if ((isRestaurant || isBusiness) && res.token) {
-          navigate(isRestaurant ? '/onboarding/gerant' : '/onboarding/b2b');
-        } else if (isRestaurant || isBusiness) {
-          const loginResult = await login(form.email, form.password);
-          if (loginResult.success) navigate(isRestaurant ? '/onboarding/gerant' : '/onboarding/b2b');
-          else navigate("/login?registered=1");
-        } else {
-          navigate("/login?registered=1");
-        }
+        // Toujours forcer la connexion manuelle après inscription, quel que soit le rôle
+        navigate("/login?registered=1");
       } else {
         setApiError(res.error || "Erreur lors de l'inscription");
       }

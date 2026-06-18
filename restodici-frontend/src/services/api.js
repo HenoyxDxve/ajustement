@@ -419,6 +419,18 @@ export const fournisseursAPI = {
   remove:   (id)        => api.delete(`/fournisseurs/${id}`),
 };
 
+// ── Livraisons externes ───────────────────────────────────────────────────────
+
+export const livraisonsExtAPI = {
+  getFournisseurs:       (restaurantId)  => api.get("/livraisons-externes/fournisseurs", { params: restaurantId ? { restaurantId } : undefined }),
+  getFournisseursAdmin:  ()              => api.get("/livraisons-externes/fournisseurs/admin"),
+  createFournisseur:     (data)          => api.post("/livraisons-externes/fournisseurs", data),
+  updateFournisseur:     (id, data)      => api.patch(`/livraisons-externes/fournisseurs/${id}`, data),
+  deleteFournisseur:     (id)            => api.delete(`/livraisons-externes/fournisseurs/${id}`),
+  dispatch:              (data)          => api.post("/livraisons-externes/dispatch", data),
+  getLivraisonCommande:  (commandeId)    => api.get(`/livraisons-externes/commande/${commandeId}`),
+};
+
 // ── Commandes — extras ────────────────────────────────────────────────────────
 
 export const commandesExtraAPI = {

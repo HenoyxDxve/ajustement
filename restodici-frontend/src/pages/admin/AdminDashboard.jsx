@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Chart from 'chart.js/auto';
-import { adminAPI, authAPI, fournisseursAPI } from '../../services/api';
+import { adminAPI, authAPI, fournisseursAPI, livraisonsExtAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import OnboardingWizard from '../../components/wizard/OnboardingWizard';
 import {
@@ -2781,6 +2781,206 @@ function NotificationsTab() {
   );
 }
 
+/* ══════════════════ LIVRAISONS EXTERNES TAB ══════════════════ */
+const TYPE_LIVRAISON = ['YANGO', 'GOZEM', 'KOOLI', 'JUMIA_FOOD', 'CUSTOM'];
+const EMPTY_LIV = { nom: '', type: 'CUSTOM', apiUrl: '', apiKey: '', webhookCallbackUrl: '', fraisLivraisonDefaut: '', actif: true };
+
+function LivraisonsExtTab() {
+  const [list, setList]       = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal]     = useState(null);
+  const [form, setForm]       = useState(EMPTY_LIV);
+  const [saving, setSaving]   = useState(false);
+  const [showKey, setShowKey] = useState({});
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { const r = await livraisonsExtAPI.getFournisseursAdmin(); setList(r.data); }
+    catch { setList([]); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openCreate = () => { setForm(EMPTY_LIV); setModal('create'); };
+  const openEdit   = (f)  => { setForm({ ...f, apiKey: '', fraisLivraisonDefaut: f.fraisLivraisonDefaut ?? '' }); setModal(f); };
+
+  const handleSave = async () => {
+    if (!form.nom.trim()) return;
+    setSaving(true);
+    try {
+      const payload = {
+        ...form,
+        fraisLivraisonDefaut: form.fraisLivraisonDefaut ? Number(form.fraisLivraisonDefaut) : undefined,
+      };
+      if (!payload.apiKey) delete payload.apiKey;
+      if (modal === 'create') await livraisonsExtAPI.createFournisseur(payload);
+      else await livraisonsExtAPI.updateFournisseur(modal.id, payload);
+      setModal(null); load();
+    } catch { /* keep modal open */ }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async (f) => {
+    if (!window.confirm(`Supprimer ${f.nom} ?`)) return;
+    await livraisonsExtAPI.deleteFournisseur(f.id); load();
+  };
+
+  const toggleActive = async (f) => {
+    await livraisonsExtAPI.updateFournisseur(f.id, { actif: !f.actif }); load();
+  };
+
+  const Field = ({ label, field, type = 'text', placeholder, full }) => (
+    <div style={full ? { gridColumn: '1 / -1' } : {}}>
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 4 }}>{label}</label>
+      <input
+        type={type} value={form[field] ?? ''}
+        onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
+        placeholder={placeholder}
+        style={{ width: '100%', border: '1px solid #D1D9E6', borderRadius: 8, padding: '8px 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+      />
+    </div>
+  );
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: 0 }}>Livraisons externes</h2>
+          <p style={{ fontSize: 12, color: '#94A3B8', margin: '2px 0 0' }}>Gestion des fournisseurs de livraison partenaires (Yango, Gozem, Kooli…)</p>
+        </div>
+        <button onClick={openCreate} style={{ display: 'flex', alignItems: 'center', gap: 7, background: ACCENT, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <Plus style={{ width: 14, height: 14 }} /> Ajouter
+        </button>
+      </div>
+
+      <div style={card}>
+        {loading ? (
+          <div style={{ padding: 40, textAlign: 'center', color: '#94A3B8' }}>Chargement…</div>
+        ) : list.length === 0 ? (
+          <div style={{ padding: 48, textAlign: 'center', color: '#94A3B8' }}>
+            <Truck style={{ width: 36, height: 36, marginBottom: 10, opacity: 0.3 }} />
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Aucun fournisseur de livraison configuré</p>
+            <p style={{ margin: '6px 0 0', fontSize: 12 }}>Ajoutez Yango, Gozem, Kooli ou un service custom.</p>
+          </div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                {['Fournisseur', 'Type', 'URL API', 'Frais défaut', 'Statut', 'Actions'].map(h => (
+                  <th key={h} style={{ padding: '10px 16px', fontSize: 11, fontWeight: 700, color: '#64748B', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {list.map(f => (
+                <tr key={f.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <td style={{ padding: '12px 16px' }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', margin: 0 }}>{f.nom}</p>
+                    {f.webhookCallbackUrl && <p style={{ fontSize: 11, color: '#94A3B8', margin: '2px 0 0', fontFamily: 'monospace' }}>{f.webhookCallbackUrl.slice(0, 40)}…</p>}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 6, padding: '3px 9px', background: '#EFF6FF', color: '#2563EB' }}>{f.type}</span>
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: 12, color: '#475569', fontFamily: 'monospace', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {f.apiUrl || '—'}
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, color: '#475569' }}>
+                    {f.fraisLivraisonDefaut != null ? `${Number(f.fraisLivraisonDefaut).toLocaleString('fr-FR')} FCFA` : '—'}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 6, padding: '3px 9px', background: f.actif ? '#D1FAE5' : '#FEE2E2', color: f.actif ? '#065F46' : '#991B1B' }}>
+                      {f.actif ? 'Actif' : 'Inactif'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => openEdit(f)} title="Modifier" style={{ border: '1px solid #D1D9E6', borderRadius: 7, padding: '5px 8px', background: '#fff', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center' }}>
+                        <Pencil style={{ width: 13, height: 13 }} />
+                      </button>
+                      <button onClick={() => toggleActive(f)} title={f.actif ? 'Désactiver' : 'Activer'} style={{ border: '1px solid #D1D9E6', borderRadius: 7, padding: '5px 8px', background: f.actif ? '#FEF3C7' : '#D1FAE5', cursor: 'pointer', color: f.actif ? '#92400E' : '#065F46', display: 'flex', alignItems: 'center' }}>
+                        {f.actif ? <ToggleRight style={{ width: 13, height: 13 }} /> : <ToggleLeft style={{ width: 13, height: 13 }} />}
+                      </button>
+                      <button onClick={() => handleDelete(f)} title="Supprimer" style={{ border: '1px solid #FEE2E2', borderRadius: 7, padding: '5px 8px', background: '#FFF5F5', cursor: 'pointer', color: '#DC2626', display: 'flex', alignItems: 'center' }}>
+                        <Trash2 style={{ width: 13, height: 13 }} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {modal !== null && (
+        <>
+          <div onClick={() => setModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(2px)', zIndex: 999, animation: 'fadeIn 0.2s ease' }} />
+          <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 540, maxWidth: '95vw', background: '#fff', zIndex: 1000, animation: 'slideInRight 0.28s cubic-bezier(0.32,0.72,0,1)', overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid #E2E8F0' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', margin: 0 }}>{modal === 'create' ? 'Nouveau fournisseur livraison' : `Modifier — ${modal.nom}`}</h3>
+              <button onClick={() => setModal(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94A3B8' }}><X style={{ width: 18, height: 18 }} /></button>
+            </div>
+            <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <Field label="Nom *" field="nom" placeholder="Yango Livraison" />
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 4 }}>Type *</label>
+                <select
+                  value={form.type}
+                  onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
+                  style={{ width: '100%', border: '1px solid #D1D9E6', borderRadius: 8, padding: '8px 12px', fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }}
+                >
+                  {TYPE_LIVRAISON.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <Field label="URL API" field="apiUrl" placeholder="https://api.yango.com/v1" full />
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 4 }}>
+                  Clé API {modal !== 'create' && <span style={{ color: '#94A3B8', fontWeight: 400 }}>(laisser vide pour conserver)</span>}
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showKey.apiKey ? 'text' : 'password'}
+                    value={form.apiKey ?? ''}
+                    onChange={e => setForm(p => ({ ...p, apiKey: e.target.value }))}
+                    placeholder={modal === 'create' ? 'sk_live_...' : '••••••••'}
+                    style={{ width: '100%', border: '1px solid #D1D9E6', borderRadius: 8, padding: '8px 40px 8px 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: showKey.apiKey ? 'inherit' : 'monospace' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowKey(p => ({ ...p, apiKey: !p.apiKey }))}
+                    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', color: '#94A3B8', display: 'flex', alignItems: 'center' }}
+                  >
+                    {showKey.apiKey ? <EyeOff style={{ width: 15, height: 15 }} /> : <Eye style={{ width: 15, height: 15 }} />}
+                  </button>
+                </div>
+              </div>
+              <Field label="URL callback webhook" field="webhookCallbackUrl" placeholder="https://restodici.ci/livraisons-externes/webhook/..." full />
+              <Field label="Frais par défaut (FCFA)" field="fraisLivraisonDefaut" type="number" placeholder="1500" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 18 }}>
+                <input
+                  type="checkbox"
+                  id="livActif"
+                  checked={form.actif ?? true}
+                  onChange={e => setForm(p => ({ ...p, actif: e.target.checked }))}
+                  style={{ width: 16, height: 16, cursor: 'pointer' }}
+                />
+                <label htmlFor="livActif" style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', cursor: 'pointer' }}>Actif</label>
+              </div>
+            </div>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button onClick={() => setModal(null)} style={{ border: '1px solid #D1D9E6', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, background: '#fff', cursor: 'pointer', color: '#64748B' }}>Annuler</button>
+              <button onClick={handleSave} disabled={saving || !form.nom} style={{ border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, background: ACCENT, color: '#fff', cursor: 'pointer', opacity: saving || !form.nom ? 0.6 : 1 }}>
+                {saving ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ══════════════════ TABS ══════════════════ */
 const TABS = [
   { id: 'overview',       label: "Vue d'ensemble", icon: LayoutDashboard },
@@ -2788,6 +2988,7 @@ const TABS = [
   { id: 'users',          label: 'Utilisateurs',   icon: Users },
   { id: 'restaurants',    label: 'Restaurants',    icon: UtensilsCrossed },
   { id: 'fournisseurs',   label: 'Fournisseurs',   icon: Truck },
+  { id: 'livraisons',    label: 'Livraisons ext.',  icon: Truck },
   { id: 'metriques',      label: 'Métriques',      icon: Activity },
   { id: 'audit',          label: 'Audit',          icon: ScrollText },
   { id: 'commissions',    label: 'Commissions',    icon: Percent },
@@ -2868,6 +3069,7 @@ export default function AdminDashboard() {
         {tab === 'users'          && <UsersTab />}
         {tab === 'restaurants'    && <RestaurantsTab />}
         {tab === 'fournisseurs'   && <FournisseursTab />}
+        {tab === 'livraisons'     && <LivraisonsExtTab />}
         {tab === 'metriques'      && <MetriquesTab />}
         {tab === 'audit'          && <AuditTab />}
         {tab === 'commissions'    && <CommissionsTab />}

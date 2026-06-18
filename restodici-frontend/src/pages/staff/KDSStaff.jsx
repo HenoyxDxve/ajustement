@@ -7,11 +7,12 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   Clock, ChefHat, CheckCircle2, RefreshCw, AlertCircle,
   History, X, ChevronDown, ChevronUp,
-  CheckCheck, Ban, UtensilsCrossed, Building2, Bell, CreditCard, CalendarClock,
+  CheckCheck, Ban, UtensilsCrossed, Building2, Bell, CreditCard, CalendarClock, Truck,
 } from 'lucide-react';
 import { commandesService, createCommandesSocket } from '../../services/commandes.service';
 import { b2bAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import DispatchModal from '../../components/livraison/DispatchModal';
 
 /* ── Palette ── */
 const BG     = '#F5F6F8';
@@ -139,7 +140,7 @@ function lieu(order) {
 /* ══════════════════════════════════════════════════════════════════
    OrderCard — Carte commande active
    ══════════════════════════════════════════════════════════════════ */
-function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd }) {
+function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd, onDispatch }) {
   useGlobalTick();
   const sec    = elapsed(order.createdAt);
   const urgent = sec >= 1200;
@@ -148,6 +149,7 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
   const next   = NEXT_STATUT[order.statut];
   const needsPayment = order.isB2B && next === 'EN_PREP' && !order.estPaye;
   const minsUntilDelivery = order._b2bDateLivraison ? minutesUntil(order._b2bDateLivraison) : null;
+  const showDispatch = order.modeLivraison === 'LIVRAISON' && ['PRETE', 'EN_LIVRAISON'].includes(order.statut);
 
   return (
     <div
@@ -324,6 +326,23 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
             }
           </div>
         )}
+
+        {showDispatch && onDispatch && (
+          <button
+            onClick={() => onDispatch(order)}
+            style={{
+              marginTop: 8, width: '100%', padding: '9px 12px', borderRadius: 12,
+              border: '1.5px solid #FF8C00', background: '#FF8C0010',
+              color: '#C05C00', fontSize: 12, fontWeight: 700,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#FF8C0020'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#FF8C0010'; }}
+          >
+            <Truck size={13} /> Dispatcher la livraison
+          </button>
+        )}
       </div>
     </div>
   );
@@ -398,7 +417,7 @@ function HistoryRow({ order }) {
 /* ══════════════════════════════════════════════════════════════════
    KDSColumn — Colonne Kanban
    ══════════════════════════════════════════════════════════════════ */
-function KDSColumn({ col, orders, onAction, onPay, saving, onDragStart, onDragEnd, onDropCard }) {
+function KDSColumn({ col, orders, onAction, onPay, saving, onDragStart, onDragEnd, onDropCard, onDispatch }) {
   const [dragOver, setDragOver] = useState(false);
 
   return (
@@ -441,7 +460,7 @@ function KDSColumn({ col, orders, onAction, onPay, saving, onDragStart, onDragEn
           </div>
         ) : orders.map(o => (
           <OrderCard key={o.id} order={o} onAction={onAction} onPay={onPay} saving={saving} col={col}
-            onDragStart={onDragStart} onDragEnd={onDragEnd} />
+            onDragStart={onDragStart} onDragEnd={onDragEnd} onDispatch={onDispatch} />
         ))}
       </div>
     </div>
@@ -462,6 +481,7 @@ export default function KDSStaff() {
   const [histFilter,   setHistFilter]   = useState('all');
   const [reminders,    setReminders]    = useState([]);
   const [draggedId,    setDraggedId]    = useState(null);
+  const [dispatchOrder, setDispatchOrder] = useState(null);
 
   const upsert = useCallback(o => {
     if (!o?.id) return;
@@ -728,6 +748,7 @@ export default function KDSStaff() {
               <KDSColumn key={col.id} col={col} orders={col.orders} onAction={onAction} onPay={onPay} saving={saving}
                 onDragStart={setDraggedId}
                 onDragEnd={() => setDraggedId(null)}
+                onDispatch={setDispatchOrder}
                 onDropCard={(targetStatut) => {
                   if (!draggedId) return;
                   const order = orders.find(o => o.id === draggedId);
@@ -851,6 +872,14 @@ export default function KDSStaff() {
             )}
           </div>
         </>
+      )}
+
+      {dispatchOrder && (
+        <DispatchModal
+          commande={dispatchOrder}
+          onClose={() => setDispatchOrder(null)}
+          onDispatched={() => { setDispatchOrder(null); load(); }}
+        />
       )}
     </div>
   );

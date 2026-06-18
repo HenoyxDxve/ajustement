@@ -476,7 +476,7 @@ export default function BulkOrder() {
   const getCartSpend = (collabId) => {
     return Object.values(panier).reduce((total, entry) => {
       if (!entry.members[collabId]) return total;
-      return total + entry.members[collabId] * Number(entry.article.prixClient ?? entry.article.prix || 0);
+      return total + entry.members[collabId] * Number(entry.article.prixClient ?? (entry.article.prix || 0));
     }, 0);
   };
 
@@ -490,7 +490,7 @@ export default function BulkOrder() {
           articleId: article.id,
           nomArticle: article.nom,
           quantite: qty,
-          prixUnitaire: Number(article.prixClient ?? article.prix || 0),
+          prixUnitaire: Number(article.prixClient ?? (article.prix || 0)),
           collaborateurId: collabId === 'libre' ? undefined : collabId,
         });
       });
@@ -503,7 +503,7 @@ export default function BulkOrder() {
   const totalCouverts = panierItems.reduce((s, i) =>
     s + Object.values(i.members).reduce((ms, q) => ms + q, 0), 0);
   const totalEstime = panierItems.reduce((s, i) =>
-    s + Object.values(i.members).reduce((ms, q) => ms + q, 0) * Number(i.article.prixClient ?? i.article.prix || 0), 0);
+    s + Object.values(i.members).reduce((ms, q) => ms + q, 0) * Number(i.article.prixClient ?? (i.article.prix || 0)), 0);
 
   // Per-member totals for recap
   const memberTotals = collaborateurs.reduce((acc, c) => {
@@ -602,7 +602,7 @@ export default function BulkOrder() {
     );
   }
 
-  const prix = Number(pickerArticle?.prixClient ?? pickerArticle?.prix || 0);
+  const prix = Number(pickerArticle?.prixClient ?? (pickerArticle?.prix || 0));
   const totalPickerQty = Object.values(pickerMembers).reduce((s, q) => s + q, 0);
   const activeCollabs = collaborateurs.filter(c => c.actif !== false);
   const pickerRows = pickerArticle ? [
@@ -1039,7 +1039,7 @@ export default function BulkOrder() {
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: A }}>{item.quantite}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-[#111827] truncate">{item.article.nom}</p>
-                        <p className="text-[11px] text-[#6B7280]">{(item.quantite * Number(item.article.prixClient ?? item.article.prix || 0)).toLocaleString('fr-FR')} FCFA</p>
+                        <p className="text-[11px] text-[#6B7280]">{(item.quantite * Number(item.article.prixClient ?? (item.article.prix || 0))).toLocaleString('fr-FR')} FCFA</p>
                       </div>
                       <button onClick={() => deleteFromCart(item.article.id)} className="text-[#6B7280] hover:text-red-400">
                         <Trash2 className="w-3.5 h-3.5" />

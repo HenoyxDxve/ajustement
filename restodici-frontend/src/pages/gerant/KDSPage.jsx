@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Truck } from 'lucide-react';
+import DispatchModal from '../../components/livraison/DispatchModal';
 import {
   commandesService,
   createCommandesSocket,
@@ -59,6 +60,7 @@ export default function KDSPage() {
   const [paymentState, setPaymentState] = useState({});
   const [paymentSavingId, setPaymentSavingId] = useState('');
   const [lastRealtimeEvent, setLastRealtimeEvent] = useState('');
+  const [dispatchOrder, setDispatchOrder] = useState(null);
 
   const upsertOrder = useCallback((orderLike) => {
     if (!orderLike?.id) return;
@@ -237,6 +239,7 @@ export default function KDSPage() {
                 setPaymentState={setPaymentState}
                 onStatusUpdate={updateStatus}
                 onRegisterPayment={registerPayment}
+                onDispatch={setDispatchOrder}
               />
             ))}
             {activeOrders.length === 0 && (
@@ -264,6 +267,14 @@ export default function KDSPage() {
           </div>
         </div>
       </div>
+
+      {dispatchOrder && (
+        <DispatchModal
+          commande={dispatchOrder}
+          onClose={() => setDispatchOrder(null)}
+          onDispatched={() => { setDispatchOrder(null); void fetchOrders(); }}
+        />
+      )}
     </div>
   );
 }
@@ -276,9 +287,11 @@ function OrderCard({
   setPaymentState,
   onStatusUpdate,
   onRegisterPayment,
+  onDispatch,
 }) {
   const nextStatuses = STATUS_FLOW[order.statut] || [];
   const allowPayment = ['SUR_PLACE', 'LIVRAISON'].includes(order.modeLivraison);
+  const showDispatch = order.modeLivraison === 'LIVRAISON' && ['PRETE', 'EN_LIVRAISON'].includes(order.statut);
   const modePaiementDefault = PAYMENT_MODES[order.modeLivraison] || 'ESPECES';
 
   return (
@@ -391,6 +404,15 @@ function OrderCard({
             </button>
           ))}
         </div>
+      )}
+
+      {showDispatch && onDispatch && (
+        <button
+          onClick={() => onDispatch(order)}
+          className="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-[#FF8C00] bg-[#FFF7ED] text-[#C05C00] text-sm font-bold hover:bg-[#FFEDD5] transition-colors"
+        >
+          <Truck className="w-4 h-4" /> Dispatcher la livraison
+        </button>
       )}
     </div>
   );

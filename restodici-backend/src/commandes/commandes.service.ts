@@ -82,6 +82,14 @@ export class CommandesService {
     const commande = await this.dataSource.transaction(async (manager) => {
       const ligneEntities: LigneCommande[] = [];
       let montantTotal = 0;
+      let montantBaseTotal = 0;
+
+      const restaurant = await manager.findOne(Restaurant, {
+        where: { id: restaurantId },
+        select: ['id', 'tauxCommission'],
+      });
+      const tauxPct = Math.min(5, Math.max(1, Number(restaurant?.tauxCommission ?? 2)));
+      const tauxFraction = tauxPct / 100;
 
       for (const ligneDto of dto.lignes) {
         const article = await manager.findOne(Article, {
@@ -100,7 +108,6 @@ export class CommandesService {
         if (!article.disponible) {
           throw new BadRequestException(`Article ${article.nom} indisponible`);
         }
-        // stock = 0 means made-to-order (unlimited); only enforce when restaurant tracks inventory
         if (article.stock > 0 && article.stock < ligneDto.quantite) {
           throw new BadRequestException(
             `Stock insuffisant pour ${article.nom}`,
@@ -116,20 +123,27 @@ export class CommandesService {
           );
         }
 
-        const prixBase =
+        const prixArticleBase =
           article.promoActif &&
           article.prixPromo != null &&
           Number(article.prixPromo) > 0
             ? Number(article.prixPromo)
             : Number(article.prix);
         const supplement = Number(ligneDto.variantSupplement || 0);
-        const prixEffectif = prixBase + supplement;
-        montantTotal += prixEffectif * ligneDto.quantite;
+        // Commission appliquée sur le prix de l'article uniquement (pas sur le supplément)
+        const prixAvecCommission = Math.ceil(prixArticleBase * (1 + tauxFraction));
+        const prixUnitaireClient = prixAvecCommission + supplement;
+        const prixBaseUnitaire = prixArticleBase + supplement;
+
+        montantTotal      += prixUnitaireClient * ligneDto.quantite;
+        montantBaseTotal  += prixBaseUnitaire   * ligneDto.quantite;
+
         ligneEntities.push(
           this.ligneRepo.create({
             article: { id: article.id },
             quantite: ligneDto.quantite,
-            prixUnitaire: prixEffectif,
+            prixUnitaire: prixUnitaireClient,
+            prixBase: prixBaseUnitaire,
             instructions: ligneDto.instructions || undefined,
             variantLabel: ligneDto.variantLabel || undefined,
             variantSupplement: supplement > 0 ? supplement : undefined,
@@ -154,6 +168,8 @@ export class CommandesService {
         }
       }
 
+      const montantCommissionPlateforme = Math.max(0, montantTotal - montantBaseTotal);
+
       const created = manager.create(Commande, {
         numero,
         modeLivraison: dto.modeLivraison,
@@ -166,6 +182,9 @@ export class CommandesService {
             ? dto.tableNumber
             : undefined,
         montantTotal,
+        montantNetRestaurant: montantBaseTotal,
+        tauxCommission: tauxPct,
+        montantCommissionPlateforme,
         montantRemise: montantRemise > 0 ? montantRemise : undefined,
         codePromoId,
         statut: StatutCommande.RECUE,
@@ -752,6 +771,17 @@ export class CommandesService {
     if (restaurantId && (commande as any).restaurantId !== restaurantId)
       throw new ForbiddenException();
     if (commande.rembourse) throw new BadRequestException('Déjà remboursée');
+
+    // RG-18 : remboursement uniquement dans les 5 minutes suivant le paiement
+    if (!commande.payeAt) {
+      throw new BadRequestException('La commande n\'a pas encore été payée');
+    }
+    const delaiMs = Date.now() - new Date(commande.payeAt).getTime();
+    if (delaiMs > 5 * 60 * 1000) {
+      throw new BadRequestException(
+        'Délai de remboursement dépassé — le remboursement doit intervenir dans les 5 minutes suivant le paiement (RG-18)',
+      );
+    }
 
     commande.rembourse = true;
     commande.rembourseLe = new Date();

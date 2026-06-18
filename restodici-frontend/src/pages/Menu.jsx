@@ -273,7 +273,7 @@ function ProductCard({ product, qty, onAdd, onRemove, onCustomize, idx }) {
           </p>
         )}
         <span style={{ fontFamily: sans, fontSize: 15, fontWeight: 900, color: C.accent, marginTop: 4 }}>
-          {formatFCFA(product.prix)}
+          {formatFCFA(product.prixClient ?? product.prix)}
         </span>
         {onCustomize && isAvail && (
           <button
@@ -539,9 +539,7 @@ export default function MenuPage() {
     addItem({
       articleId: product.id,
       nom: product.nom,
-      prix: product.promoActif && product.prixPromo
-        ? Number(product.prixPromo)
-        : Number(product.prix),
+      prix: Number(product.prixClient ?? (product.promoActif && product.prixPromo ? product.prixPromo : product.prix)),
       photoUrl: product.photoUrl || product.imageUrl,
       categorie: product.categorie,
       restaurantId: selectedResto.id,
@@ -953,9 +951,7 @@ export default function MenuPage() {
           restaurant={selectedResto}
           onClose={() => setCustomModal({ open: false, product: null })}
           onAdd={(product, qty, details, selectedVariant) => {
-            const basePrice = product.promoActif && product.prixPromo
-              ? Number(product.prixPromo)
-              : Number(product.prix);
+            const basePrice = Number(product.prixClient ?? (product.promoActif && product.prixPromo ? product.prixPromo : product.prix));
             const variantSupplement = selectedVariant
               ? Number(selectedVariant.prixSupplement || 0)
               : 0;

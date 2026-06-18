@@ -50,7 +50,7 @@ function ArticleCard({ article, qty, onAdd, onRemove, idx }) {
           {article.nom}
         </p>
         <p style={{ margin: '2px 0 0', fontFamily: sans, fontSize: 13, fontWeight: 800, color: ACCENT }}>
-          {formatFCFA(article.prix)}
+          {formatFCFA(article.prixClient ?? article.prix)}
         </p>
       </div>
       <div style={{ padding: '0 10px', flexShrink: 0 }}>
@@ -147,7 +147,7 @@ export default function NewOrderModal({ restaurantId, onClose, onSuccess }) {
   }), [articles, search, activeCat]);
 
   /* — cart totals — */
-  const cartTotal = cart.reduce((s, c) => s + c.article.prix * c.qty, 0);
+  const cartTotal = cart.reduce((s, c) => s + (c.article.prixClient ?? c.article.prix) * c.qty, 0);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
 
   /* — submit — */
@@ -339,7 +339,7 @@ export default function NewOrderModal({ restaurantId, onClose, onSuccess }) {
                             style={{ flex: 1, border: 'none', outline: 'none', fontFamily: sans, fontSize: 11, color: MUTED, background: 'transparent', marginRight: 8 }}
                           />
                           <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 800, color: ACCENT, flexShrink: 0 }}>
-                            {formatFCFA(article.prix * q)}
+                            {formatFCFA((article.prixClient ?? article.prix) * q)}
                           </span>
                         </div>
                       </div>

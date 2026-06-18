@@ -19,6 +19,9 @@ export class LigneCommande {
   @Column('decimal', { precision: 10, scale: 2 })
   prixUnitaire!: number;
 
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  prixBase?: number;
+
   @Column({ nullable: true })
   instructions!: string; // Personnalisation (RG-05 / EN-1917)
 

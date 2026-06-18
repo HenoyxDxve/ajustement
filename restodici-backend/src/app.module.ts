@@ -27,6 +27,7 @@ import { PaiementsModule } from './paiements/paiements.module';
 import { FournisseursModule } from './fournisseurs/fournisseurs.module';
 import { ReceiptQueueModule } from './receipt-queue/receipt-queue.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
+import { LivraisonsExternesModule } from './livraisons-externes/livraisons-externes.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { NewsletterModule } from './newsletter/newsletter.module';
     FournisseursModule,
     ReceiptQueueModule,
     NewsletterModule,
+    LivraisonsExternesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

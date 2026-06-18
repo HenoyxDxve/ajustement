@@ -65,6 +65,15 @@ export class Commande {
   @Column('decimal', { precision: 10, scale: 2 })
   montantTotal!: number;
 
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  montantNetRestaurant?: number;
+
+  @Column('decimal', { precision: 5, scale: 2, nullable: true })
+  tauxCommission?: number;
+
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  montantCommissionPlateforme?: number;
+
   @Column({ default: false })
   estPaye!: boolean;
 

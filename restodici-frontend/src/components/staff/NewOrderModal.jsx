@@ -18,9 +18,12 @@ const MUTED   = '#78716C';
 const sans    = "'Plus Jakarta Sans', system-ui, sans-serif";
 
 const FOOD_IMGS = [
-  'photo-1565299585323-38d6b0865b47','photo-1567620905732-2d1ec7ab7445',
-  'photo-1555939594-58d7cb561ad1','photo-1512058564366-18510be2db19',
-  'photo-1540189549336-e6e99c3679fe','photo-1565958011703-44f9829ba187',
+  'photo-1665332195309-9d75071138f0','photo-1665400808116-f0e6339b7e9a',
+  'photo-1664993101841-036f189719b6','photo-1664992960082-0ea299a9c53e',
+  'photo-1665333048952-a3ee97714c6b','photo-1665332305771-e49a5dd5ba80',
+  'photo-1665334217407-6688e6941a47','photo-1665332561290-cc6757172890',
+  'photo-1665401015549-712c0dc5ef85','photo-1603496987674-79600a000f55',
+  'photo-1773620494293-e9e075dd48fd','photo-1665833613236-7c1d087463b1',
 ];
 const fallback = (i) =>
   `https://images.unsplash.com/${FOOD_IMGS[i % FOOD_IMGS.length]}?q=80&w=300&auto=format&fit=crop`;

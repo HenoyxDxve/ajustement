@@ -49,14 +49,20 @@ const CSS = `
 
 /* ─── Images de substitution pour les plats sans photo ─── */
 const FOOD_IMGS = [
-  "photo-1565299585323-38d6b0865b47",
-  "photo-1567620905732-2d1ec7ab7445",
-  "photo-1555939594-58d7cb561ad1",
-  "photo-1512058564366-18510be2db19",
-  "photo-1540189549336-e6e99c3679fe",
-  "photo-1565958011703-44f9829ba187",
-  "photo-1568901346375-23c9450c58cd",
-  "photo-1504674900247-0877df9cc836",
+  "photo-1665332195309-9d75071138f0",
+  "photo-1665400808116-f0e6339b7e9a",
+  "photo-1664993101841-036f189719b6",
+  "photo-1664992960082-0ea299a9c53e",
+  "photo-1665333048952-a3ee97714c6b",
+  "photo-1665332305771-e49a5dd5ba80",
+  "photo-1665334217407-6688e6941a47",
+  "photo-1665332561290-cc6757172890",
+  "photo-1665401015549-712c0dc5ef85",
+  "photo-1603496987674-79600a000f55",
+  "photo-1773620494293-e9e075dd48fd",
+  "photo-1634324092526-91f5e878b72f",
+  "photo-1569058242252-623df46b5025",
+  "photo-1665833613236-7c1d087463b1",
 ];
 
 function getItemImg(item, idx) {
@@ -205,7 +211,7 @@ function Hero({ search, onSearch, menuRef, restaurantCount = 0 }) {
     <section style={{ position:"relative", minHeight:"100dvh", display:"flex", flexDirection:"column", justifyContent:"flex-end", overflow:"hidden" }}>
       {/* Image de fond */}
       <img
-        src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=85&w=1800&auto=format&fit=crop"
+        src="https://images.unsplash.com/photo-1665400808116-f0e6339b7e9a?q=85&w=1800&auto=format&fit=crop"
         alt="Plats d'Abidjan"
         style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 40%", display:"block" }}
       />
@@ -686,9 +692,9 @@ function MenuSection({ search, onSearch, sectionRef, activeCatId, onCategorySele
 /* ─── Bandeaux des avantages ─── */
 function Banners() {
   const banners=[
-    { img:"photo-1568901346375-23c9450c58cd", title:"Le plat du moment",   sub:"À ne pas manquer",  dark:true },
-    { img:"photo-1555939594-58d7cb561ad1", title:"Plaisir à partager",   sub:"Régalez-vous aujourd'hui", dark:false },
-    { img:"photo-1565299585323-38d6b0865b47", title:"Fraîcheur garantie",  sub:"Saison & terroir",  dark:false },
+    { img:"photo-1664993101841-036f189719b6", title:"Le plat du moment",   sub:"À ne pas manquer",  dark:true },
+    { img:"photo-1665401015549-712c0dc5ef85", title:"Poisson braisé",      sub:"Fraîcheur du jour",  dark:false },
+    { img:"photo-1665332305771-e49a5dd5ba80", title:"Saveurs d'ici",        sub:"Cuisine ivoirienne", dark:false },
   ];
   return (
     <section style={{ background:T.bgAlt,padding:"120px 0",position:"relative",overflow:"hidden" }}>
@@ -811,8 +817,8 @@ function Testimonials() {
 /* ─── Double offre — Client & Restaurant ─── */
 function DualOffer() {
   const cards=[
-    { tag:"GRAND PUBLIC", tagBg:T.accent, tagCol:"#fff", topCol:T.accent, title:"Pour toute la famille", sub:"Commandez, payez, profitez.", img:"photo-1567620905732-2d1ec7ab7445", perks:["Menu dynamique & QR Code table","Orange Money · MTN · Wave · Espèces","Suivi commande en temps réel","Reçu SYSCOHADA par email"], perkCol:T.accent, cta:"Commander maintenant", ctaBg:`linear-gradient(135deg,${T.accent},${T.accentD})`, ctaCol:"#fff", href:"/menu" },
-    { tag:"ENTREPRISE",   tagBg:T.yellow, tagCol:T.dark,  topCol:T.yellow, title:"Pour vos équipes",     sub:"Gérez, facturez, conformez.",  img:"photo-1573164574511-73c773193279", perks:["Commandes groupées 50+ repas","Facturation mensuelle consolidée","Budgets par collaborateur","Conformité TVA 18% & SYSCOHADA"], perkCol:T.yellow, cta:"Créer un compte Entreprise →", ctaBg:`linear-gradient(135deg,${T.yellow},#F8A020)`, ctaCol:T.dark, href:"/register?type=b2b" },
+    { tag:"GRAND PUBLIC", tagBg:T.accent, tagCol:"#fff", topCol:T.accent, title:"Pour toute la famille", sub:"Commandez, payez, profitez.", img:"photo-1773620494293-e9e075dd48fd", perks:["Menu dynamique & QR Code table","Orange Money · MTN · Wave · Espèces","Suivi commande en temps réel","Reçu SYSCOHADA par email"], perkCol:T.accent, cta:"Commander maintenant", ctaBg:`linear-gradient(135deg,${T.accent},${T.accentD})`, ctaCol:"#fff", href:"/menu" },
+    { tag:"ENTREPRISE",   tagBg:T.yellow, tagCol:T.dark,  topCol:T.yellow, title:"Pour vos équipes",     sub:"Gérez, facturez, conformez.",  img:"photo-1665333048952-a3ee97714c6b", perks:["Commandes groupées 50+ repas","Facturation mensuelle consolidée","Budgets par collaborateur","Conformité TVA 18% & SYSCOHADA"], perkCol:T.yellow, cta:"Créer un compte Entreprise →", ctaBg:`linear-gradient(135deg,${T.yellow},#F8A020)`, ctaCol:T.dark, href:"/register?type=b2b" },
   ];
   return (
     <section id="offres" style={{ background:T.bgAlt,padding:"120px 0",position:"relative",overflow:"hidden" }}>

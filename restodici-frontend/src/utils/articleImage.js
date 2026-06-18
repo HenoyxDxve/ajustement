@@ -3,52 +3,49 @@
 // une image Unsplash choisie selon le nom/catégorie du plat.
 // Les plats africains ont la priorité dans la correspondance.
 
-// Identifiants Unsplash stables (pas besoin de clé API)
+// Identifiants Unsplash — plats africains et ivoiriens
 const FOOD_POOL = [
-  '1476224203421-9ac39bcb3327', // colorful plated dishes
-  '1504674900247-0877df9cc836', // food flatlay
-  '1565299624946-b28f40a0ae38', // pizza
-  '1568901346375-23c9450c58cd', // burger
-  '1546793665-c74683f339c1',    // salad
-  '1544025162-d76694265947',    // BBQ / caramelized food
-  '1547592180-85f173990554',    // soup / stew
-  '1578985545062-69928b1d9587', // chocolate cake
-  '1514432324607-a09d9b4aefdd', // coffee
-  '1529193591184-b1d58069ecdd', // grilled chicken
-  '1482049016688-2d3e1b311543', // egg dish
-  '1519984388953-d2406bc725e1', // tacos
-  '1432139555190-58524dae6a55', // roast chicken
-  '1603360946369-dc9bb6258143', // steak
-  '1555396273-367ea4eb4db5',    // seafood / grilled fish
-  '1606851091851-e8c8c0fca5ba', // rice dish
-  '1563379926898-05f4575a45d8', // pasta
-  '1562967914-608f82629710',    // West African chicken stew
+  '1665332195309-9d75071138f0', // poisson frit + jollof rice africain
+  '1665400808116-f0e6339b7e9a', // table yassa poulet sénégalais
+  '1664993101841-036f189719b6', // jollof rice au poulet
+  '1664992960082-0ea299a9c53e', // jollof rice + brochettes de poulet
+  '1665333048952-a3ee97714c6b', // jollof rice présentation gastronomique
+  '1665332305771-e49a5dd5ba80', // thiéboudienne rouge sénégal
+  '1665334217407-6688e6941a47', // jollof rice assiette et bol
+  '1665332561290-cc6757172890', // soupe okra nigériane
+  '1665401015549-712c0dc5ef85', // poisson grillé africain au citron
+  '1603496987674-79600a000f55', // poulet frit sur riz jaune
+  '1773620494293-e9e075dd48fd', // poulet frit riz et légumes, Malawi
+  '1634324092526-91f5e878b72f', // pilaf — riz à la viande
+  '1569058242252-623df46b5025', // riz viande et oeuf frit
+  '1665833613236-7c1d087463b1', // puff puff dessert africain
 ];
 
-// African dishes are listed FIRST so they take priority over generic categories
+// Les plats africains sont en premier pour prendre la priorité
 const CATEGORY_MAP = [
-  // ── Plats africains spécifiques ──
-  [['alloco', 'banane plantain', 'plantain frit'], '1544025162-d76694265947'],          // alloco → plat doré caramélisé
-  [['poisson braisé', 'poisson grillé', 'tilapia', 'capitaine', 'carpe braisé'], '1555396273-367ea4eb4db5'], // poisson → plateau de poisson
-  [['kedjenou', 'yassa'], '1562967914-608f82629710'],                                   // kedjenou/yassa → poulet sauce africaine
-  [['mafé', 'maafe', 'sauce arachide'], '1547592180-85f173990554'],                    // mafé → sauce/ragoût
-  [['ndolé', 'egusi', 'sauce graine', 'sauce claire'], '1547592180-85f173990554'],      // sauces africaines → ragoût
-  [['thiébou', 'thiebou', 'jollof', 'riz sénégalais', 'riz wolof'], '1606851091851-e8c8c0fca5ba'], // thiéboudienne → riz
-  [['foutou', 'foufou', 'fufu', 'ablo'], '1606851091851-e8c8c0fca5ba'],                // foutou/fufu → plat féculant
-  [['attiéké', 'attieke'], '1606851091851-e8c8c0fca5ba'],                              // attiéké → couscous manioc
+  // ── Plats ivoiriens et africains spécifiques ──
+  [['alloco', 'banane plantain', 'plantain frit'], '1603496987674-79600a000f55'],        // alloco → fried plantain style
+  [['poisson braisé', 'poisson grillé', 'tilapia', 'capitaine', 'carpe braisé', 'poisson fumé'], '1665401015549-712c0dc5ef85'], // poisson africain
+  [['kedjenou', 'yassa'], '1664992960082-0ea299a9c53e'],                                  // kedjenou/yassa → poulet braisé
+  [['mafé', 'maafe', 'sauce arachide'], '1665332561290-cc6757172890'],                    // mafé → sauce ragoût
+  [['ndolé', 'egusi', 'sauce graine', 'sauce claire', 'okra', 'gombo'], '1665332561290-cc6757172890'], // sauces africaines
+  [['thiébou', 'thiebou', 'jollof', 'riz sénégalais', 'riz wolof'], '1665332305771-e49a5dd5ba80'], // thiéboudienne
+  [['foutou', 'foufou', 'fufu', 'ablo', 'placali'], '1664993101841-036f189719b6'],        // foutou/fufu
+  [['attiéké', 'attieke'], '1665332195309-9d75071138f0'],                                 // attiéké + poisson
+  [['riz gras', 'riz complet', 'riz sauce'], '1665334217407-6688e6941a47'],               // riz ivoirien
 
   // ── Catégories génériques ──
-  [['pizza'], '1565299624946-b28f40a0ae38'],
-  [['burger', 'hambur', 'sandwich', 'wrap'], '1568901346375-23c9450c58cd'],
-  [['salade', 'salad', 'crudité', 'légume', 'veggie'], '1546793665-c74683f339c1'],
-  [['viand', 'boeuf', 'bbq', 'grill', 'côte', 'cote', 'steak', 'filet'], '1544025162-d76694265947'],
-  [['soupe', 'bouill', 'pot-au'], '1547592180-85f173990554'],
-  [['dessert', 'gâteau', 'gateau', 'cake', 'glace', 'pâtisserie', 'patisserie', 'sucré'], '1578985545062-69928b1d9587'],
-  [['café', 'cafe', 'thé', 'boisson', 'jus', 'soda', 'drink', 'cocktail', 'smoothie'], '1514432324607-a09d9b4aefdd'],
-  [['poulet', 'volail', 'chicken', 'brochette'], '1529193591184-b1d58069ecdd'],
-  [['poisson', 'mer', 'seafood', 'crevette', 'thon', 'poissons'], '1555396273-367ea4eb4db5'],
-  [['riz'], '1606851091851-e8c8c0fca5ba'],
-  [['pâtes', 'pasta', 'spaghetti', 'macaroni'], '1563379926898-05f4575a45d8'],
+  [['pizza'], '1665333048952-a3ee97714c6b'],
+  [['burger', 'hambur', 'sandwich', 'wrap'], '1665333048952-a3ee97714c6b'],
+  [['salade', 'salad', 'crudité', 'légume', 'veggie'], '1665400808116-f0e6339b7e9a'],
+  [['viand', 'boeuf', 'bbq', 'grill', 'côte', 'cote', 'steak', 'filet'], '1634324092526-91f5e878b72f'],
+  [['soupe', 'bouill', 'pot-au'], '1665332561290-cc6757172890'],
+  [['dessert', 'gâteau', 'gateau', 'cake', 'glace', 'pâtisserie', 'patisserie', 'sucré', 'puff puff'], '1665833613236-7c1d087463b1'],
+  [['café', 'cafe', 'thé', 'boisson', 'jus', 'soda', 'drink', 'cocktail', 'smoothie'], '1665400808116-f0e6339b7e9a'],
+  [['poulet', 'volail', 'chicken', 'brochette'], '1773620494293-e9e075dd48fd'],
+  [['poisson', 'mer', 'seafood', 'crevette', 'thon', 'poissons'], '1665401015549-712c0dc5ef85'],
+  [['riz'], '1665334217407-6688e6941a47'],
+  [['pâtes', 'pasta', 'spaghetti', 'macaroni'], '1569058242252-623df46b5025'],
 ];
 
 // Hash déterministe pour choisir toujours la même image par nom d'article

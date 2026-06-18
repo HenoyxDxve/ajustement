@@ -41,10 +41,13 @@ const C = {
 const sans = "'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif";
 
 const FOOD_IMGS = [
-  'photo-1565299585323-38d6b0865b47','photo-1567620905732-2d1ec7ab7445',
-  'photo-1555939594-58d7cb561ad1','photo-1512058564366-18510be2db19',
-  'photo-1540189549336-e6e99c3679fe','photo-1565958011703-44f9829ba187',
-  'photo-1568901346375-23c9450c58cd','photo-1504674900247-0877df9cc836',
+  'photo-1665332195309-9d75071138f0','photo-1665400808116-f0e6339b7e9a',
+  'photo-1664993101841-036f189719b6','photo-1664992960082-0ea299a9c53e',
+  'photo-1665333048952-a3ee97714c6b','photo-1665332305771-e49a5dd5ba80',
+  'photo-1665334217407-6688e6941a47','photo-1665332561290-cc6757172890',
+  'photo-1665401015549-712c0dc5ef85','photo-1603496987674-79600a000f55',
+  'photo-1773620494293-e9e075dd48fd','photo-1634324092526-91f5e878b72f',
+  'photo-1569058242252-623df46b5025','photo-1665833613236-7c1d087463b1',
 ];
 const fallback = (i, w = 600) =>
   `https://images.unsplash.com/${FOOD_IMGS[i % FOOD_IMGS.length]}?q=80&w=${w}&auto=format&fit=crop`;

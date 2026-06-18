@@ -321,6 +321,15 @@ export class AdminService {
     return { id: user.id, actif: user.actif };
   }
 
+  async activerTousUtilisateurs() {
+    const result = await this.userRepo
+      .createQueryBuilder()
+      .update()
+      .set({ actif: true, emailVerified: true })
+      .execute();
+    return { updated: result.affected ?? 0 };
+  }
+
   async getRestaurants() {
     return this.restaurantRepo.find({
       relations: ['users'],

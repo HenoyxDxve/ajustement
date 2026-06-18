@@ -18,7 +18,7 @@ import {
   Zap, MessageSquare, Bell, Lock, Globe, Database,
   FileText, Calendar, ChevronRight, ExternalLink, Info,
   CreditCard, Smartphone, Mail, BarChart2, Webhook, Truck, Pencil, Trash2,
-  Percent, TrendingUp as TrendUp, MessageSquareWarning,
+  Percent, TrendingUp as TrendUp, MessageSquareWarning, UserCheck,
 } from 'lucide-react';
 
 /* ── Palette de couleurs et constantes ── */
@@ -532,6 +532,7 @@ function UsersTab() {
   const [editForm, setEditForm]     = useState({});
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError]   = useState('');
+  const [activating, setActivating] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -548,6 +549,17 @@ function UsersTab() {
   useEffect(() => { load(); }, [load]);
 
   const toggle = async (id) => { try { await adminAPI.toggleUser(id); load(); } catch { /* ignore */ } };
+
+  const activerTous = async () => {
+    if (!window.confirm('Activer tous les comptes (actif + email vérifié) ?')) return;
+    setActivating(true);
+    try {
+      const r = await adminAPI.activerTousUsers();
+      alert(`${r.data.updated} compte(s) activé(s).`);
+      load();
+    } catch { alert('Erreur lors de l\'activation.'); }
+    finally { setActivating(false); }
+  };
 
   const openEdit = (u) => {
     setEditUser(u);
@@ -601,6 +613,9 @@ function UsersTab() {
         </div>
         <button onClick={() => setShowModal(true)} style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}>
           <Plus style={{ width: 14, height: 14 }} /> Créer
+        </button>
+        <button onClick={activerTous} disabled={activating} style={{ background: '#10B981', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', cursor: activating ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, opacity: activating ? 0.7 : 1 }}>
+          <UserCheck style={{ width: 14, height: 14 }} /> {activating ? 'Activation…' : 'Tout activer'}
         </button>
       </div>
 

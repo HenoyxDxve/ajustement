@@ -328,6 +328,7 @@ export const adminAPI = {
   createUser:         (data)          => api.post("/admin/users", data),
   updateUser:         (id, data)      => api.patch(`/admin/users/${id}`, data),
   toggleUser:         (id)            => api.patch(`/admin/users/${id}/toggle`),
+  activerTousUsers:   ()              => api.post("/admin/users/activer-tous"),
   getRestaurants:     ()              => api.get("/admin/restaurants"),
   createRestaurant:   (data)          => api.post("/admin/restaurants", data),
   updateRestaurant:   (id, data)      => api.patch(`/admin/restaurants/${id}`, data),

@@ -93,6 +93,12 @@ export class AdminController {
     return this.adminService.toggleUser(id);
   }
 
+  @Post('users/activer-tous')
+  @HttpCode(HttpStatus.OK)
+  activerTousUtilisateurs() {
+    return this.adminService.activerTousUtilisateurs();
+  }
+
   /* ── Gestion restaurants ── */
   @Get('restaurants')
   getRestaurants() {

@@ -23,20 +23,28 @@ import {
 import DispatchModal from '../../components/livraison/DispatchModal';
 import EconomicReconciliation from '../../components/staff/EconomicReconciliation';
 
-// ─── Palette ──────────────────────────────────────────────────────────────────
-const BG        = '#F9F7F5';
-const SURFACE   = '#FFFFFF';
-const TEXT      = '#2D2720';
-const TEXT_LIGHT = '#8B7355';
-const BORDER    = '#E8E2D9';
-const ORANGE    = '#FF8C00';
-const GREEN     = '#16A34A';
-const GREEN_LIGHT = '#22C55E';
-const GREEN_BG  = '#F0FDF4';
-const GREEN_BORDER = '#BBF7D0';
-const DANGER    = '#EF4444';
-const SHADOW    = '0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04)';
-const RADIUS    = '12px';
+// ─── Palette — Mission Control Dark Cockpit ────────────────────────────────────
+const BG             = '#0D1117';           // fond principal
+const SIDEBAR_BG     = '#0F172A';           // sidebar
+const SURFACE        = '#161B27';           // cartes / panneaux
+const SURFACE_ELEVATED = '#1E2535';         // hover / éléments surélevés
+const TEXT           = '#F1F5F9';           // texte principal
+const TEXT_LIGHT     = '#64748B';           // texte secondaire (alias TEXT_MUTED)
+const TEXT_MUTED     = '#64748B';
+const BORDER         = 'rgba(255,255,255,0.07)';
+const ORANGE         = '#FF8C00';
+const ORANGE_GLOW    = 'rgba(255,140,0,0.15)';
+const GREEN          = '#10B981';
+const GREEN_LIGHT    = '#34D399';
+const GREEN_BG       = 'rgba(16,185,129,0.1)';
+const GREEN_BORDER   = 'rgba(16,185,129,0.25)';
+const GREEN_GLOW     = 'rgba(16,185,129,0.15)';
+const DANGER         = '#EF4444';
+const DANGER_GLOW    = 'rgba(239,68,68,0.15)';
+const BLUE           = '#3B82F6';
+const PURPLE         = '#8B5CF6';
+const AMBER          = '#F59E0B';
+const SHADOW         = '0 0 0 1px rgba(255,255,255,0.07), 0 8px 32px rgba(0,0,0,0.4)';
 
 // ─── Domain constants ─────────────────────────────────────────────────────────
 const STATUS_FLOW = {
@@ -80,22 +88,22 @@ const B2B_ACTION_LABELS = {
 };
 
 const STATUS_CONFIG = {
-  RECUE:        { bg: '#DBEAFE', text: '#1D4ED8', border: '#93C5FD', dot: '#2563EB', label: 'Reçue' },
-  CONFIRMEE:    { bg: '#EDE9FE', text: '#5B21B6', border: '#C4B5FD', dot: '#7C3AED', label: 'Confirmée' },
-  EN_PREP:      { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D', dot: '#D97706', label: 'En préparation' },
-  PRETE:        { bg: '#DCFCE7', text: '#15803D', border: '#86EFAC', dot: '#16A34A', label: 'Prête' },
-  EN_LIVRAISON: { bg: '#E0E7FF', text: '#3730A3', border: '#A5B4FC', dot: '#4F46E5', label: 'En livraison' },
-  LIVREE:       { bg: '#DCFCE7', text: '#15803D', border: '#86EFAC', dot: '#16A34A', label: 'Livrée' },
-  ANNULEE:      { bg: '#FFE4E6', text: '#BE123C', border: '#FCA5A5', dot: DANGER,    label: 'Annulée' },
-  EN_ATTENTE:   { bg: '#F1F5F9', text: '#475569', border: '#CBD5E1', dot: '#64748B', label: 'En attente' },
-  EN_PREPARATION: { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D', dot: '#D97706', label: 'En préparation' },
+  RECUE:        { bg: 'rgba(59,130,246,0.15)',  text: '#93C5FD', border: 'rgba(59,130,246,0.3)',  dot: '#3B82F6', label: 'Reçue' },
+  CONFIRMEE:    { bg: 'rgba(139,92,246,0.15)',  text: '#C4B5FD', border: 'rgba(139,92,246,0.3)',  dot: '#8B5CF6', label: 'Confirmée' },
+  EN_PREP:      { bg: 'rgba(245,158,11,0.15)',  text: '#FCD34D', border: 'rgba(245,158,11,0.3)',  dot: '#F59E0B', label: 'En préparation' },
+  PRETE:        { bg: 'rgba(16,185,129,0.15)',  text: '#6EE7B7', border: 'rgba(16,185,129,0.3)',  dot: '#10B981', label: 'Prête' },
+  EN_LIVRAISON: { bg: 'rgba(139,92,246,0.15)',  text: '#C4B5FD', border: 'rgba(139,92,246,0.3)',  dot: '#8B5CF6', label: 'En livraison' },
+  LIVREE:       { bg: 'rgba(16,185,129,0.15)',  text: '#6EE7B7', border: 'rgba(16,185,129,0.3)',  dot: '#10B981', label: 'Livrée' },
+  ANNULEE:      { bg: 'rgba(239,68,68,0.15)',   text: '#FCA5A5', border: 'rgba(239,68,68,0.3)',   dot: DANGER,    label: 'Annulée' },
+  EN_ATTENTE:   { bg: 'rgba(100,116,139,0.15)', text: '#94A3B8', border: 'rgba(100,116,139,0.3)', dot: '#64748B', label: 'En attente' },
+  EN_PREPARATION: { bg: 'rgba(245,158,11,0.15)', text: '#FCD34D', border: 'rgba(245,158,11,0.3)', dot: '#F59E0B', label: 'En préparation' },
 };
 
 const KDS_COLS = [
-  { key: 'new',   label: 'Nouvelles',      dot: '#3B82F6', statuses: ['RECUE', 'CONFIRMEE'] },
-  { key: 'prep',  label: 'En préparation', dot: '#F59E0B', statuses: ['EN_PREP'] },
-  { key: 'ready', label: 'Prêtes',         dot: GREEN_LIGHT, statuses: ['PRETE'] },
-  { key: 'deliv', label: 'En livraison',   dot: '#6366F1', statuses: ['EN_LIVRAISON'] },
+  { key: 'new',   label: 'Nouvelles',      dot: BLUE,        topColor: BLUE,   statuses: ['RECUE', 'CONFIRMEE'] },
+  { key: 'prep',  label: 'En préparation', dot: AMBER,       topColor: AMBER,  statuses: ['EN_PREP'] },
+  { key: 'ready', label: 'Prêtes',         dot: GREEN,       topColor: GREEN,  statuses: ['PRETE'] },
+  { key: 'deliv', label: 'En livraison',   dot: PURPLE,      topColor: PURPLE, statuses: ['EN_LIVRAISON'] },
 ];
 
 const PIPELINE_STEPS = ['RECUE', 'CONFIRMEE', 'EN_PREP', 'PRETE', 'EN_LIVRAISON', 'LIVREE'];
@@ -155,10 +163,10 @@ function TimerBadge({ minutesAgo }) {
       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${isLate ? 'animate-pulse' : ''}`}
       style={
         isLate
-          ? { background: '#FFF1F2', color: '#BE123C', borderColor: '#FECDD3' }
+          ? { background: DANGER_GLOW, color: '#FCA5A5', borderColor: 'rgba(239,68,68,0.3)' }
           : isWarn
-          ? { background: '#FFFBEB', color: '#B45309', borderColor: '#FDE68A' }
-          : { background: '#F9F7F5', color: TEXT_LIGHT, borderColor: BORDER }
+          ? { background: 'rgba(245,158,11,0.15)', color: '#FCD34D', borderColor: 'rgba(245,158,11,0.3)' }
+          : { background: SURFACE_ELEVATED, color: TEXT_MUTED, borderColor: BORDER }
       }
     >
       <Clock className="w-3 h-3" />
@@ -181,7 +189,7 @@ function PipelineBar({ status }) {
               flex: 1,
               height: 4,
               borderRadius: 2,
-              background: i < currentIdx ? GREEN : i === currentIdx ? ORANGE : BORDER,
+              background: i < currentIdx ? GREEN : i === currentIdx ? ORANGE : 'rgba(255,255,255,0.08)',
               transition: 'background 0.2s',
             }}
           />
@@ -198,19 +206,25 @@ function PipelineBar({ status }) {
 }
 
 // ─── StatCard ─────────────────────────────────────────────────────────────────
-function StatCard({ icon: Icon, value, label, color, bg, border }) {
+function StatCard({ icon: Icon, value, label, color, glow, subtitle }) {
   return (
     <div
-      className="relative flex flex-col rounded-2xl border overflow-hidden"
-      style={{ background: SURFACE, borderColor: BORDER, boxShadow: SHADOW }}
+      className="relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-200"
+      style={{
+        background: SURFACE,
+        borderColor: BORDER,
+        boxShadow: SHADOW,
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = SURFACE_ELEVATED; e.currentTarget.style.boxShadow = `0 0 0 1px ${color}30, 0 12px 40px rgba(0,0,0,0.5)`; }}
+      onMouseLeave={e => { e.currentTarget.style.background = SURFACE; e.currentTarget.style.boxShadow = SHADOW; }}
     >
-      {/* Bande couleur haut */}
-      <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${color}, ${color}99)` }} />
+      {/* Bande couleur accent haut */}
+      <div className="h-1" style={{ background: `linear-gradient(90deg, ${color}, ${color}55)` }} />
       <div className="p-5">
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between mb-2">
           <div
             className="w-11 h-11 rounded-xl flex items-center justify-center"
-            style={{ background: color + '15', border: `1px solid ${color}25` }}
+            style={{ background: glow || (color + '20'), border: `1px solid ${color}30` }}
           >
             <Icon className="w-5 h-5" style={{ color }} />
           </div>
@@ -218,8 +232,10 @@ function StatCard({ icon: Icon, value, label, color, bg, border }) {
             <p className="text-[2rem] font-black leading-none tracking-tight" style={{ color: TEXT }}>{value}</p>
           </div>
         </div>
-        <p className="text-[0.68rem] font-black uppercase tracking-widest mt-1" style={{ color: TEXT_LIGHT }}>{label}</p>
-        <div className="mt-2 h-0.5 rounded-full" style={{ background: `linear-gradient(90deg, ${color}40, transparent)`, width: '60%' }} />
+        {/* Secondary bridging line — anchors the value before the tiny label */}
+        <p className="text-xs font-semibold mb-1" style={{ color: color + 'BB' }}>{subtitle || 'aujourd\'hui'}</p>
+        <p className="text-[0.62rem] font-black uppercase tracking-widest" style={{ color: TEXT_MUTED }}>{label}</p>
+        <div className="mt-2 h-0.5 rounded-full" style={{ background: `linear-gradient(90deg, ${color}50, transparent)`, width: '60%' }} />
       </div>
     </div>
   );
@@ -242,53 +258,52 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
     <div
       className="rounded-xl border overflow-hidden transition-all duration-200"
       style={{
-        background: isUrgent ? '#FFF5F5' : SURFACE,
-        borderColor: isUrgent ? '#FECDD3' : BORDER,
+        background: isUrgent ? 'rgba(239,68,68,0.08)' : SURFACE_ELEVATED,
+        borderColor: isUrgent ? 'rgba(239,68,68,0.35)' : BORDER,
         boxShadow: SHADOW,
+        borderLeft: `3px solid ${leftBorderColor}`,
       }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 24px -6px rgba(0,0,0,0.14)'; }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5)'; }}
       onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = SHADOW; }}
     >
-      {/* Barre couleur statut en haut */}
-      <div className="h-1" style={{ background: `linear-gradient(90deg, ${leftBorderColor}, ${leftBorderColor}66)` }} />
-      <div className="p-4">
+      <div className="p-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 mb-3">
+      <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: isUrgent ? '#FECDD3' : statusCfg.bg }}
+            className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: isUrgent ? DANGER_GLOW : statusCfg.bg }}
           >
-            <ChefHat className="w-4 h-4" style={{ color: isUrgent ? '#BE123C' : statusCfg.dot }} />
+            <ChefHat className="w-5 h-5" style={{ color: isUrgent ? '#FCA5A5' : statusCfg.dot }} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-1.5 mb-1">
-              <span className="px-2 py-0.5 rounded-md text-xs font-bold" style={{ background: '#F9F7F5', color: TEXT }}>
+            <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+              <span className="px-2.5 py-1 rounded-md text-sm font-bold" style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER}` }}>
                 #{order.numero}
               </span>
               <StatusBadge status={order.statut} />
               {order.modeLivraison && (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold border" style={{ background: '#FFF7ED', color: ORANGE, borderColor: '#FDBA74' }}>
+                <span className="px-2.5 py-1 rounded-md text-xs font-bold border" style={{ background: ORANGE_GLOW, color: ORANGE, borderColor: 'rgba(255,140,0,0.3)' }}>
                   {formatDeliveryMode(order.modeLivraison)}
                 </span>
               )}
               {isUrgent && (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-black animate-pulse" style={{ background: DANGER, color: '#FFF' }}>
+                <span className="px-2.5 py-1 rounded-md text-xs font-black animate-pulse" style={{ background: DANGER, color: '#FFF' }}>
                   URGENT
                 </span>
               )}
             </div>
-            <p className="font-semibold text-sm truncate" style={{ color: TEXT }}>
+            <p className="font-bold text-base truncate" style={{ color: TEXT }}>
               {(order.lignes || []).map(l => l.article?.nom).filter(Boolean).join(', ') || `Commande ${order.numero}`}
             </p>
-            <p className="text-[11px] mt-0.5 flex items-center gap-1" style={{ color: TEXT_LIGHT }}>
-              <Clock className="w-3 h-3" /> {timeStr}
+            <p className="text-xs mt-1 flex items-center gap-1" style={{ color: TEXT_LIGHT }}>
+              <Clock className="w-3.5 h-3.5" /> {timeStr}
             </p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <TimerBadge minutesAgo={minutesAgo} />
-          <p className="text-base font-black" style={{ color: ORANGE }}>
+          <p className="text-lg font-black" style={{ color: ORANGE }}>
             {(Number(order.montantTotal) || 0).toLocaleString('fr-FR')}{' '}
             <span className="text-[10px] font-normal" style={{ color: TEXT_LIGHT }}>FCFA</span>
           </p>
@@ -299,13 +314,13 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
       {(order.lignes || []).length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {order.lignes.slice(0, 4).map((l, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border" style={{ background: BG, borderColor: BORDER, color: TEXT }}>
+            <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE, borderColor: BORDER, color: TEXT }}>
               <span className="font-black" style={{ color: ORANGE }}>{l.quantite}×</span>
               {l.article?.nom || 'Article'}
             </span>
           ))}
           {order.lignes.length > 4 && (
-            <span className="px-2 py-1 rounded-lg text-xs border" style={{ background: BG, borderColor: BORDER, color: TEXT_LIGHT }}>
+            <span className="px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE, borderColor: BORDER, color: TEXT_MUTED }}>
               +{order.lignes.length - 4}
             </span>
           )}
@@ -314,9 +329,9 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
 
       {/* Note */}
       {note && (
-        <div className="flex gap-2 rounded-xl p-2.5 mb-3 border" style={{ background: '#FFFBEB', borderColor: '#FDE68A' }}>
-          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#D97706' }} />
-          <span className="text-sm font-medium" style={{ color: '#92400E' }}>{note}</span>
+        <div className="flex gap-2 rounded-xl p-2.5 mb-3 border" style={{ background: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.3)' }}>
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: AMBER }} />
+          <span className="text-sm font-medium" style={{ color: '#FCD34D' }}>{note}</span>
         </div>
       )}
 
@@ -326,7 +341,7 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
       {/* Payment */}
       {!order.estPaye && (
         <div className="rounded-xl p-3 mb-3 border mt-3" style={{ background: BG, borderColor: BORDER }}>
-          <p className="text-xs font-bold mb-2 flex items-center gap-1.5" style={{ color: TEXT_LIGHT }}>
+          <p className="text-xs font-bold mb-2 flex items-center gap-1.5" style={{ color: TEXT_MUTED }}>
             <CircleDollarSign className="w-3.5 h-3.5" style={{ color: GREEN }} /> Encaissement
           </p>
           <div className="flex gap-2">
@@ -334,7 +349,7 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
               value={draft.modePaiement || 'ESPECES'}
               onChange={e => setPaymentDraft({ ...draft, modePaiement: e.target.value })}
               className="flex-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium focus:outline-none"
-              style={{ borderColor: BORDER, background: SURFACE, color: TEXT }}
+              style={{ borderColor: BORDER, background: SURFACE_ELEVATED, color: TEXT }}
             >
               <option value="ESPECES">Espèces</option>
               <option value="CARTE_BANCAIRE">Carte</option>
@@ -348,13 +363,13 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
               value={draft.montantRemis ?? Number(order.montantTotal)}
               onChange={e => setPaymentDraft({ ...draft, montantRemis: e.target.value })}
               className="w-24 rounded-lg border px-2.5 py-1.5 text-xs font-medium focus:outline-none"
-              style={{ borderColor: BORDER, background: SURFACE, color: TEXT }}
+              style={{ borderColor: BORDER, background: SURFACE_ELEVATED, color: TEXT }}
             />
             <button
               onClick={() => onPayment(order)}
               disabled={saving}
               className="px-3 py-1.5 rounded-lg text-xs font-black text-white transition-all disabled:opacity-50"
-              style={{ background: saving ? '#94A3B8' : GREEN }}
+              style={{ background: saving ? TEXT_MUTED : GREEN }}
             >
               {saving ? <Spinner size={14} /> : 'OK'}
             </button>
@@ -375,12 +390,14 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
               key={ns}
               onClick={() => onAction(order.id, ns)}
               disabled={saving}
-              className="flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2 px-3 rounded-lg text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={
                 i === 0
                   ? { background: GREEN, color: '#FFF', boxShadow: `0 4px 12px ${GREEN}40` }
-                  : { background: SURFACE, color: GREEN, border: `2px solid ${GREEN}` }
+                  : { background: GREEN_GLOW, color: GREEN, border: `1px solid ${GREEN_BORDER}` }
               }
+              onMouseEnter={e => { if (!saving && i === 1) { e.currentTarget.style.background = GREEN; e.currentTarget.style.color = '#FFF'; } }}
+              onMouseLeave={e => { if (i === 1) { e.currentTarget.style.background = GREEN_GLOW; e.currentTarget.style.color = GREEN; } }}
             >
               {ACTION_LABELS[ns] || ns}
             </button>
@@ -392,8 +409,8 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
         <button
           onClick={() => onAction(order.id, 'ANNULEE')}
           disabled={saving}
-          className="w-full mt-2 py-2 px-3 rounded-xl text-xs font-semibold border transition-colors disabled:opacity-50"
-          style={{ background: '#FFF5F5', color: '#BE123C', borderColor: '#FECDD3' }}
+          className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-50"
+          style={{ background: DANGER_GLOW, color: '#FCA5A5', borderColor: 'rgba(239,68,68,0.3)' }}
         >
           Annuler
         </button>
@@ -402,8 +419,8 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
       {order.modeLivraison === 'LIVRAISON' && ['PRETE', 'EN_LIVRAISON'].includes(order.statut) && onDispatch && (
         <button
           onClick={() => onDispatch(order)}
-          className="w-full mt-2 py-2 px-3 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-1.5"
-          style={{ background: '#EFF6FF', color: '#1D4ED8', borderColor: '#BFDBFE' }}
+          className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-bold border transition-colors flex items-center justify-center gap-1.5"
+          style={{ background: 'rgba(59,130,246,0.12)', color: '#93C5FD', borderColor: 'rgba(59,130,246,0.3)' }}
         >
           <Truck className="w-3 h-3" /> Dispatcher la livraison
         </button>
@@ -425,32 +442,32 @@ function B2BOrderCard({ order, onAction, saving }) {
     <div
       className="rounded-xl border p-4 transition-all duration-200"
       style={{
-        background: '#FFFBEB',
-        borderColor: isUrgent ? '#FCD34D' : '#FDE68A',
-        borderLeft: `3px solid ${isUrgent ? '#D97706' : '#F59E0B'}`,
+        background: SURFACE_ELEVATED,
+        borderColor: isUrgent ? 'rgba(245,158,11,0.4)' : BORDER,
+        borderLeft: `3px solid ${isUrgent ? AMBER : 'rgba(245,158,11,0.5)'}`,
         boxShadow: SHADOW,
       }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 16px -4px rgba(0,0,0,0.12)'; }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5)'; }}
       onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = SHADOW; }}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#FEF3C7' }}>
-            <Package className="w-4 h-4" style={{ color: '#D97706' }} />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,158,11,0.15)' }}>
+            <Package className="w-4 h-4" style={{ color: AMBER }} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 mb-1">
               <span className="px-2 py-0.5 rounded-md text-[10px] font-black" style={{ background: ORANGE, color: '#FFF' }}>B2B</span>
-              <span className="px-2 py-0.5 rounded-md text-xs font-bold" style={{ background: '#FEF3C7', color: '#92400E' }}>#{order.numero}</span>
+              <span className="px-2 py-0.5 rounded-md text-xs font-bold" style={{ background: 'rgba(245,158,11,0.15)', color: '#FCD34D', border: `1px solid rgba(245,158,11,0.3)` }}>#{order.numero}</span>
               <StatusBadge status={order.statut} />
               {isUrgent && <span className="px-2 py-0.5 rounded-md text-[10px] font-black animate-pulse" style={{ background: DANGER, color: '#FFF' }}>URGENT</span>}
             </div>
             <p className="font-semibold text-sm truncate" style={{ color: TEXT }}>{order.entreprise || 'Entreprise B2B'}</p>
-            <p className="text-[11px] mt-0.5 flex items-center gap-1" style={{ color: TEXT_LIGHT }}>
+            <p className="text-[11px] mt-0.5 flex items-center gap-1" style={{ color: TEXT_MUTED }}>
               <Clock className="w-3 h-3" /> {timeStr}
             </p>
             {(order.dateLivraison || order.heureLivraison) && (
-              <p className="text-[11px] mt-0.5 flex items-center gap-1 font-semibold" style={{ color: '#92400E' }}>
+              <p className="text-[11px] mt-0.5 flex items-center gap-1 font-semibold" style={{ color: '#FCD34D' }}>
                 <Truck className="w-3 h-3" />
                 {order.dateLivraison ? new Date(order.dateLivraison).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : ''}
                 {order.heureLivraison ? ` à ${order.heureLivraison}` : ''}
@@ -461,9 +478,9 @@ function B2BOrderCard({ order, onAction, saving }) {
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <TimerBadge minutesAgo={minutesAgo} />
           {order.totalEstime != null && (
-            <p className="text-base font-black" style={{ color: '#D97706' }}>
+            <p className="text-base font-black" style={{ color: AMBER }}>
               {(Number(order.totalEstime) || 0).toLocaleString('fr-FR')}{' '}
-              <span className="text-[10px] font-normal" style={{ color: TEXT_LIGHT }}>FCFA</span>
+              <span className="text-[10px] font-normal" style={{ color: TEXT_MUTED }}>FCFA</span>
             </p>
           )}
         </div>
@@ -472,12 +489,12 @@ function B2BOrderCard({ order, onAction, saving }) {
       {(order.lignes || []).length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {order.lignes.slice(0, 4).map((l, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE, borderColor: '#FDE68A', color: '#92400E' }}>
+            <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE, borderColor: 'rgba(245,158,11,0.25)', color: '#FCD34D' }}>
               <span className="font-black">{l.quantite}×</span> {l.nomArticle || 'Article'}
             </span>
           ))}
           {order.lignes.length > 4 && (
-            <span className="px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE, borderColor: '#FDE68A', color: TEXT_LIGHT }}>
+            <span className="px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE, borderColor: BORDER, color: TEXT_MUTED }}>
               +{order.lignes.length - 4}
             </span>
           )}
@@ -491,11 +508,11 @@ function B2BOrderCard({ order, onAction, saving }) {
               key={ns}
               onClick={() => onAction(order.id, ns)}
               disabled={saving}
-              className="flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2 px-3 rounded-lg text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={
                 i === 0
-                  ? { background: '#D97706', color: '#FFF', boxShadow: '0 4px 12px #D9770640' }
-                  : { background: SURFACE, color: '#D97706', border: '2px solid #D97706' }
+                  ? { background: AMBER, color: '#FFF', boxShadow: `0 4px 12px rgba(245,158,11,0.4)` }
+                  : { background: 'rgba(245,158,11,0.12)', color: AMBER, border: `1px solid rgba(245,158,11,0.3)` }
               }
             >
               {B2B_ACTION_LABELS[ns] || ns}
@@ -521,19 +538,19 @@ function KDSBoard({ orders, b2bOrders, onAction, onB2BAction, onPayment, payment
         const total = colOrders.length + colB2B.length;
 
         return (
-          <div key={col.key} className="rounded-xl overflow-hidden min-h-[400px]" style={{ background: BG, border: `1px solid ${BORDER}` }}>
-            {/* En-tête colonne avec barre couleur */}
-            <div className="h-1" style={{ background: col.dot }} />
+          <div key={col.key} className="rounded-xl overflow-hidden min-h-[400px]" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
+            {/* Bande couleur top */}
+            <div className="h-1" style={{ background: col.topColor }} />
             <div className="flex items-center justify-between px-4 py-3" style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}` }}>
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: col.dot, boxShadow: `0 0 6px ${col.dot}66` }} />
+                <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: col.dot, boxShadow: `0 0 8px ${col.dot}88` }} />
                 <span className="text-sm font-black" style={{ color: TEXT }}>{col.label}</span>
               </div>
               <span
                 className="text-xs font-black px-2.5 py-1 rounded-full"
                 style={total > 0
-                  ? { background: col.dot + '18', color: col.dot, border: `1px solid ${col.dot}33` }
-                  : { background: BG, color: TEXT_LIGHT, border: `1px solid ${BORDER}` }
+                  ? { background: col.dot + '22', color: col.dot, border: `1px solid ${col.dot}44` }
+                  : { background: SURFACE_ELEVATED, color: TEXT_MUTED, border: `1px solid ${BORDER}` }
                 }
               >
                 {total}
@@ -556,9 +573,9 @@ function KDSBoard({ orders, b2bOrders, onAction, onB2BAction, onPayment, payment
                 <B2BOrderCard key={o.id} order={o} onAction={onB2BAction} saving={savingB2BId === o.id} />
               ))}
               {total === 0 && (
-                <div className="text-center py-10 px-3 rounded-xl border-2 border-dashed" style={{ background: SURFACE, borderColor: BORDER }}>
-                  <ChefHat className="w-8 h-8 mx-auto mb-2" style={{ color: BORDER }} />
-                  <p className="text-xs font-semibold" style={{ color: TEXT_LIGHT }}>Aucune commande</p>
+                <div className="text-center py-10 px-3 rounded-xl border-2 border-dashed" style={{ background: BG, borderColor: BORDER }}>
+                  <ChefHat className="w-8 h-8 mx-auto mb-2" style={{ color: TEXT_MUTED }} />
+                  <p className="text-xs font-semibold" style={{ color: TEXT_MUTED }}>Aucune commande</p>
                 </div>
               )}
             </div>
@@ -581,14 +598,14 @@ function WeeklySchedule({ openingTime, closingTime }) {
         <div>
           <h3 className="text-sm font-black" style={{ color: TEXT }}>Planning semaine</h3>
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="w-2 h-2 rounded-full" style={{ background: inService ? GREEN_LIGHT : '#94A3B8' }} />
-            <span className="text-xs font-bold" style={{ color: inService ? GREEN : TEXT_LIGHT }}>
+            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: inService ? GREEN_LIGHT : TEXT_MUTED }} />
+            <span className="text-xs font-bold" style={{ color: inService ? GREEN_LIGHT : TEXT_MUTED }}>
               {inService ? 'En service' : 'Fermé'}
             </span>
           </div>
         </div>
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: BG }}>
-          <Calendar className="w-4 h-4" style={{ color: TEXT_LIGHT }} />
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: SURFACE_ELEVATED }}>
+          <Calendar className="w-4 h-4" style={{ color: TEXT_MUTED }} />
         </div>
       </div>
       <div className="space-y-1">
@@ -598,20 +615,20 @@ function WeeklySchedule({ openingTime, closingTime }) {
             <div
               key={i}
               className="flex items-center gap-3 p-2 rounded-xl transition-colors"
-              style={isToday ? { background: GREEN_BG, border: `1px solid ${GREEN_BORDER}` } : { border: '1px solid transparent' }}
+              style={isToday ? { background: GREEN_BG, border: `1px solid ${GREEN_BORDER}` } : { border: `1px solid transparent` }}
             >
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0"
-                style={isToday ? { background: GREEN, color: '#FFF' } : { background: BG, color: TEXT_LIGHT }}
+                style={isToday ? { background: GREEN, color: '#FFF' } : { background: SURFACE_ELEVATED, color: TEXT_MUTED }}
               >
                 {day.init}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold truncate" style={{ color: isToday ? '#14532D' : TEXT }}>{day.name}</p>
-                <p className="text-[10px] truncate" style={{ color: day.rest ? '#F43F5E' : TEXT_LIGHT }}>{day.hours}</p>
+                <p className="text-xs font-bold truncate" style={{ color: isToday ? '#86EFAC' : TEXT }}>{day.name}</p>
+                <p className="text-[10px] truncate" style={{ color: day.rest ? '#F87171' : TEXT_MUTED }}>{day.hours}</p>
               </div>
               {isToday && (
-                <span className="w-2 h-2 rounded-full" style={{ background: inService ? GREEN_LIGHT : '#F59E0B' }} />
+                <span className="w-2 h-2 rounded-full" style={{ background: inService ? GREEN_LIGHT : AMBER }} />
               )}
             </div>
           );
@@ -628,13 +645,13 @@ function ToastList({ toasts }) {
       {toasts.map(t => (
         <div
           key={t.id}
-          className="rounded-xl p-4 shadow-2xl min-w-[300px] max-w-md pointer-events-auto border animate-[slideIn_0.3s_ease-out]"
-          style={{ background: SURFACE, borderColor: BORDER }}
+          className="rounded-xl p-4 min-w-[300px] max-w-md pointer-events-auto border animate-[slideIn_0.3s_ease-out]"
+          style={{ background: SURFACE_ELEVATED, borderColor: BORDER, boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07)' }}
         >
           <div className="flex items-start gap-3">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: t.ok ? GREEN_BG : '#FFF7ED' }}
+              style={{ background: t.ok ? GREEN_GLOW : ORANGE_GLOW }}
             >
               {t.ok
                 ? <CheckCircle className="w-5 h-5" style={{ color: GREEN }} />
@@ -643,7 +660,7 @@ function ToastList({ toasts }) {
             </div>
             <div>
               <p className="text-sm font-black" style={{ color: TEXT }}>{t.title}</p>
-              <p className="text-xs mt-0.5" style={{ color: TEXT_LIGHT }}>{t.msg}</p>
+              <p className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>{t.msg}</p>
             </div>
           </div>
         </div>
@@ -654,7 +671,7 @@ function ToastList({ toasts }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function StaffDashboard() {
-  const { user, syncUser, refreshProfile } = useAuth();
+  const { user, syncUser, refreshProfile, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const activeTab = new URLSearchParams(location.search).get('tab') || 'dashboard';
@@ -870,11 +887,11 @@ export default function StaffDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
         <div className="text-center">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: `linear-gradient(135deg, ${GREEN}, #15803D)` }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)`, boxShadow: `0 0 30px ${ORANGE_GLOW}` }}>
             <UtensilsCrossed className="w-7 h-7 text-white" />
           </div>
-          <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: `${GREEN}40`, borderTopColor: 'transparent' }} />
-          <p className="text-sm font-semibold" style={{ color: TEXT_LIGHT }}>Chargement...</p>
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: `${ORANGE}40`, borderTopColor: ORANGE }} />
+          <p className="text-sm font-semibold" style={{ color: TEXT_MUTED }}>Chargement...</p>
         </div>
       </div>
     );
@@ -891,6 +908,7 @@ export default function StaffDashboard() {
           from { opacity: 0; }
           to { opacity: 1; }
         }
+        select option { background: #1E2535; color: #F1F5F9; }
       `}</style>
       <OnboardingWizard />
 
@@ -911,7 +929,7 @@ export default function StaffDashboard() {
           left: 0,
           width: 240,
           height: '100vh',
-          background: SURFACE,
+          background: SIDEBAR_BG,
           borderRight: `1px solid ${BORDER}`,
           flexDirection: 'column',
           zIndex: 50,
@@ -926,13 +944,13 @@ export default function StaffDashboard() {
           <div className="flex items-center gap-2.5">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: `linear-gradient(135deg, ${ORANGE}, #EA6C00)` }}
+              style={{ background: ORANGE, boxShadow: `0 0 16px ${ORANGE_GLOW}` }}
             >
               <UtensilsCrossed className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="font-black text-sm leading-tight" style={{ color: TEXT }}>Resto d'ici</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: TEXT_LIGHT }}>Espace Staff</p>
+              <p className="font-black text-sm leading-tight" style={{ color: TEXT }}>RESTODICI</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: ORANGE }}>Espace Staff</p>
             </div>
           </div>
         </div>
@@ -948,19 +966,19 @@ export default function StaffDashboard() {
                 className="flex items-center gap-2.5 w-full text-left text-sm font-semibold transition-all rounded-xl"
                 style={{
                   padding: '0.65rem 0.85rem',
-                  background: isActive ? '#FFF7ED' : 'transparent',
-                  color: isActive ? ORANGE : TEXT_LIGHT,
+                  background: isActive ? ORANGE_GLOW : 'transparent',
+                  color: isActive ? ORANGE : TEXT_MUTED,
                   borderLeft: isActive ? `3px solid ${ORANGE}` : '3px solid transparent',
                 }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = BG; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = TEXT; } }}
+                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TEXT_MUTED; } }}
               >
-                <Icon className="w-4 h-4 flex-shrink-0" />
+                <Icon className="w-4 h-4 flex-shrink-0" style={{ color: isActive ? ORANGE : TEXT_MUTED }} />
                 <span className="flex-1">{label}</span>
                 {badge != null && badge > 0 && (
                   <span
                     className="px-1.5 py-0.5 rounded-md text-[10px] font-black"
-                    style={badgeRed ? { background: DANGER, color: '#FFF' } : { background: GREEN, color: '#FFF' }}
+                    style={badgeRed ? { background: DANGER, color: '#FFF' } : { background: ORANGE, color: '#FFF' }}
                   >
                     {badge}
                   </span>
@@ -973,9 +991,9 @@ export default function StaffDashboard() {
           <button
             onClick={() => { setShowCloture(true); setSidebarOpen(false); }}
             className="flex items-center gap-2.5 w-full text-left text-sm font-semibold transition-all rounded-xl mt-1"
-            style={{ padding: '0.65rem 0.85rem', color: TEXT_LIGHT, borderLeft: '3px solid transparent' }}
-            onMouseEnter={e => { e.currentTarget.style.background = BG; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            style={{ padding: '0.65rem 0.85rem', color: TEXT_MUTED, borderLeft: '3px solid transparent' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = TEXT; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TEXT_MUTED; }}
           >
             <Wallet className="w-4 h-4 flex-shrink-0" />
             <span className="flex-1">Clôture caisse</span>
@@ -985,9 +1003,9 @@ export default function StaffDashboard() {
           <Link
             to="/staff/kds"
             className="flex items-center gap-2.5 w-full text-sm font-semibold transition-all rounded-xl"
-            style={{ padding: '0.65rem 0.85rem', color: TEXT_LIGHT, borderLeft: '3px solid transparent', textDecoration: 'none' }}
-            onMouseEnter={e => { e.currentTarget.style.background = BG; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            style={{ padding: '0.65rem 0.85rem', color: TEXT_MUTED, borderLeft: '3px solid transparent', textDecoration: 'none' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = TEXT; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TEXT_MUTED; }}
           >
             <ChefHat className="w-4 h-4 flex-shrink-0" />
             <span>Mode KDS</span>
@@ -999,7 +1017,7 @@ export default function StaffDashboard() {
           <button
             onClick={() => { setShowNewOrder(true); setSidebarOpen(false); }}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{ background: `linear-gradient(135deg, ${GREEN}, #15803D)`, boxShadow: `0 4px 12px ${GREEN}30` }}
+            style={{ background: ORANGE, boxShadow: `0 4px 20px ${ORANGE_GLOW}` }}
           >
             <Plus className="w-4 h-4" />
             Nouvelle commande
@@ -1010,18 +1028,31 @@ export default function StaffDashboard() {
         <div style={{ borderTop: `1px solid ${BORDER}`, padding: '0.85rem 1rem' }}>
           <button
             onClick={() => setShowPanel(true)}
-            className="flex items-center gap-2.5 w-full text-left transition-all rounded-xl hover:opacity-80"
+            className="flex items-center gap-2.5 w-full text-left transition-all rounded-xl mb-2"
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
           >
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm text-white flex-shrink-0"
-              style={{ background: `linear-gradient(135deg, ${ORANGE}, #EA6C00)` }}
+              style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)` }}
             >
               {initials}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold truncate" style={{ color: TEXT }}>{fullName}</p>
-              <p className="text-[11px] truncate" style={{ color: TEXT_LIGHT }}>{user?.email || 'staff@restodici.ci'}</p>
+              <p className="text-[11px] truncate" style={{ color: TEXT_MUTED }}>{user?.email || 'staff@restodici.ci'}</p>
             </div>
+          </button>
+          {/* Déconnexion */}
+          <button
+            onClick={() => logout()}
+            className="flex items-center gap-2.5 w-full text-left text-sm font-bold rounded-xl transition-all"
+            style={{ padding: '0.55rem 0.75rem', color: '#FCA5A5', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; e.currentTarget.style.color = '#F87171'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#FCA5A5'; }}
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            <span>Déconnexion</span>
           </button>
         </div>
       </aside>
@@ -1035,7 +1066,7 @@ export default function StaffDashboard() {
           style={{
             background: SURFACE,
             borderBottom: `1px solid ${BORDER}`,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
           }}
         >
           {/* Left: hamburger + title */}
@@ -1043,36 +1074,44 @@ export default function StaffDashboard() {
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 rounded-xl transition-colors"
-              style={{ color: TEXT_LIGHT }}
+              style={{ color: TEXT_MUTED }}
             >
               <Menu className="w-5 h-5" />
             </button>
             <div>
               <h1 className="text-base font-black" style={{ color: TEXT }}>{pageTitle}</h1>
-              {activeTab === 'dashboard' && (
-                <p className="text-[11px] hidden sm:block" style={{ color: TEXT_LIGHT }}>
-                  {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-[11px] hidden sm:block font-semibold" style={{ color: TEXT_MUTED }}>
+                  {user?.restaurant?.nom || 'Mon Restaurant'}
                 </p>
-              )}
+                <span className="hidden sm:flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: isInService(user?.restaurant?.openingTime, user?.restaurant?.closingTime) ? GREEN_LIGHT : TEXT_MUTED }} />
+                  <span className="text-[10px] font-bold" style={{ color: isInService(user?.restaurant?.openingTime, user?.restaurant?.closingTime) ? GREEN_LIGHT : TEXT_MUTED }}>
+                    {isInService(user?.restaurant?.openingTime, user?.restaurant?.closingTime) ? 'En service' : 'Fermé'}
+                  </span>
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Right: actions */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: isAvailable ? GREEN_LIGHT : '#94A3B8' }} />
-              <span className="text-xs font-semibold hidden sm:block" style={{ color: isAvailable ? GREEN : TEXT_LIGHT }}>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: SURFACE_ELEVATED, border: `1px solid ${BORDER}` }}>
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: isAvailable ? GREEN_LIGHT : TEXT_MUTED }} />
+              <span className="text-xs font-semibold hidden sm:block" style={{ color: isAvailable ? GREEN_LIGHT : TEXT_MUTED }}>
                 {isAvailable ? 'Disponible' : 'Occupé'}
               </span>
             </div>
 
-            <NotificationBell accentColor={GREEN} />
+            <NotificationBell accentColor={ORANGE} />
 
             <button
               onClick={() => void refresh()}
               className="p-2 rounded-xl transition-colors"
-              style={{ color: TEXT_LIGHT }}
+              style={{ color: TEXT_MUTED }}
               title="Rafraîchir"
+              onMouseEnter={e => { e.currentTarget.style.color = TEXT; e.currentTarget.style.background = SURFACE_ELEVATED; }}
+              onMouseLeave={e => { e.currentTarget.style.color = TEXT_MUTED; e.currentTarget.style.background = 'transparent'; }}
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -1081,7 +1120,7 @@ export default function StaffDashboard() {
             <button
               onClick={() => setShowPanel(true)}
               className="w-8 h-8 rounded-full font-black text-sm flex items-center justify-center text-white transition-all hover:scale-105"
-              style={{ background: `linear-gradient(135deg, ${ORANGE}, #EA6C00)` }}
+              style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)`, boxShadow: `0 0 12px ${ORANGE_GLOW}` }}
             >
               {initials}
             </button>
@@ -1098,7 +1137,7 @@ export default function StaffDashboard() {
               {/* Hero welcome card */}
               <div className="rounded-2xl overflow-hidden" style={{ background: SURFACE, boxShadow: SHADOW, border: `1px solid ${BORDER}` }}>
                 {/* Bande dégradé haut */}
-                <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${GREEN}, ${GREEN_LIGHT}, ${ORANGE})` }} />
+                <div className="h-1" style={{ background: `linear-gradient(90deg, ${ORANGE}, ${GREEN})` }} />
                 <div className="p-5 lg:p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center gap-5">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -1106,17 +1145,17 @@ export default function StaffDashboard() {
                       <div className="relative flex-shrink-0">
                         <div
                           className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg"
-                          style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)` }}
+                          style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)`, boxShadow: `0 0 20px ${ORANGE_GLOW}` }}
                         >
                           {initials}
                         </div>
                         <div
-                          className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white"
-                          style={{ background: isAvailable ? GREEN_LIGHT : '#94A3B8' }}
+                          className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2"
+                          style={{ background: isAvailable ? GREEN_LIGHT : TEXT_MUTED, borderColor: SURFACE }}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-black uppercase tracking-widest mb-1" style={{ color: GREEN }}>
+                        <p className="text-[11px] font-black uppercase tracking-widest mb-1" style={{ color: ORANGE }}>
                           {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </p>
                         <h2 className="text-xl font-black mb-1 truncate" style={{ color: TEXT }}>
@@ -1124,7 +1163,7 @@ export default function StaffDashboard() {
                         </h2>
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: allActive.length > 0 ? ORANGE : GREEN_LIGHT }} />
-                          <p className="text-sm truncate" style={{ color: TEXT_LIGHT }}>
+                          <p className="text-sm truncate" style={{ color: TEXT_MUTED }}>
                             {allActive.length === 0
                               ? 'Aucune commande active pour le moment'
                               : `${allActive.length} commande${allActive.length > 1 ? 's' : ''} active${allActive.length > 1 ? 's' : ''}${urgentOrders.length > 0 ? ` · ${urgentOrders.length} urgente${urgentOrders.length > 1 ? 's' : ''}` : ' · Tout sous contrôle'}`}
@@ -1139,8 +1178,8 @@ export default function StaffDashboard() {
                         onClick={() => setIsAvailable(true)}
                         className="px-4 py-2 rounded-lg text-sm font-black transition-all"
                         style={isAvailable
-                          ? { background: GREEN, color: '#FFF', boxShadow: `0 4px 12px ${GREEN}40` }
-                          : { color: TEXT_LIGHT }
+                          ? { background: GREEN, color: '#FFF', boxShadow: `0 4px 12px ${GREEN_GLOW}` }
+                          : { color: TEXT_MUTED }
                         }
                       >
                         Disponible
@@ -1149,8 +1188,8 @@ export default function StaffDashboard() {
                         onClick={() => setIsAvailable(false)}
                         className="px-4 py-2 rounded-lg text-sm font-black transition-all"
                         style={!isAvailable
-                          ? { background: SURFACE, color: TEXT, boxShadow: '0 2px 8px #0001' }
-                          : { color: TEXT_LIGHT }
+                          ? { background: SURFACE_ELEVATED, color: TEXT, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }
+                          : { color: TEXT_MUTED }
                         }
                       >
                         Occupé
@@ -1165,32 +1204,32 @@ export default function StaffDashboard() {
                       value={completedToday.length}
                       label="Livrées aujourd'hui"
                       color={GREEN}
-                      bg={GREEN_BG}
-                      border={GREEN_BORDER}
+                      glow={GREEN_GLOW}
+                      subtitle="commandes livrées"
                     />
                     <StatCard
                       icon={Wallet}
                       value={encaissementsToday > 0 ? formatFCFA(encaissementsToday) : '—'}
                       label="Encaissé aujourd'hui"
                       color={ORANGE}
-                      bg="#FFF7ED"
-                      border="#FED7AA"
+                      glow={ORANGE_GLOW}
+                      subtitle="total encaissé"
                     />
                     <StatCard
                       icon={Activity}
                       value={allActive.length}
                       label="En cours"
-                      color="#6366F1"
-                      bg="#EEF2FF"
-                      border="#C7D2FE"
+                      color={BLUE}
+                      glow="rgba(59,130,246,0.15)"
+                      subtitle="commandes actives"
                     />
                     <StatCard
                       icon={AlertTriangle}
                       value={urgentOrders.length}
                       label="Urgentes"
-                      color={urgentOrders.length > 0 ? '#DC2626' : GREEN}
-                      bg={urgentOrders.length > 0 ? '#FFF5F5' : GREEN_BG}
-                      border={urgentOrders.length > 0 ? '#FECDD3' : GREEN_BORDER}
+                      color={urgentOrders.length > 0 ? DANGER : GREEN}
+                      glow={urgentOrders.length > 0 ? DANGER_GLOW : GREEN_GLOW}
+                      subtitle={urgentOrders.length > 0 ? '+15 min sans traitement' : 'tout sous contrôle'}
                     />
                   </div>
                 </div>
@@ -1204,7 +1243,7 @@ export default function StaffDashboard() {
                   <div className="rounded-xl border overflow-hidden" style={{ background: SURFACE, borderColor: BORDER, boxShadow: SHADOW }}>
                     <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: BORDER }}>
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#FFF7ED' }}>
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: ORANGE_GLOW }}>
                           <ChefHat className="w-4 h-4" style={{ color: ORANGE }} />
                         </div>
                         <h3 className="font-black text-sm" style={{ color: TEXT }}>Commandes en cours</h3>
@@ -1212,7 +1251,9 @@ export default function StaffDashboard() {
                       <button
                         onClick={() => goTab('commandes')}
                         className="flex items-center gap-1 text-xs font-bold transition-colors"
-                        style={{ color: GREEN }}
+                        style={{ color: ORANGE }}
+                        onMouseEnter={e => e.currentTarget.style.color = TEXT}
+                        onMouseLeave={e => e.currentTarget.style.color = ORANGE}
                       >
                         Voir tout <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -1220,15 +1261,15 @@ export default function StaffDashboard() {
 
                     {allActive.length === 0 ? (
                       <div className="text-center py-12 px-6">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: GREEN_BG }}>
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: GREEN_GLOW, border: `1px solid ${GREEN_BORDER}` }}>
                           <Coffee className="w-7 h-7" style={{ color: GREEN }} />
                         </div>
                         <p className="font-black text-base mb-1" style={{ color: TEXT }}>Calme plat</p>
-                        <p className="text-sm mb-4" style={{ color: TEXT_LIGHT }}>Les nouvelles commandes apparaissent ici en temps réel.</p>
+                        <p className="text-sm mb-4" style={{ color: TEXT_MUTED }}>Les nouvelles commandes apparaissent ici en temps réel.</p>
                         <button
                           onClick={() => setShowNewOrder(true)}
                           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white transition-all hover:scale-105"
-                          style={{ background: `linear-gradient(135deg, ${GREEN}, #15803D)`, boxShadow: `0 4px 16px ${GREEN}40` }}
+                          style={{ background: ORANGE, boxShadow: `0 4px 16px ${ORANGE_GLOW}` }}
                         >
                           <Plus className="w-4 h-4" /> Nouvelle commande
                         </button>
@@ -1253,7 +1294,7 @@ export default function StaffDashboard() {
                           <button
                             onClick={() => goTab('commandes')}
                             className="w-full py-2.5 text-sm font-black rounded-xl transition-colors"
-                            style={{ background: GREEN_BG, color: GREEN }}
+                            style={{ background: ORANGE_GLOW, color: ORANGE, border: `1px solid rgba(255,140,0,0.25)` }}
                           >
                             Voir les {allActive.length - 4} autres commandes →
                           </button>
@@ -1267,20 +1308,20 @@ export default function StaffDashboard() {
                 <div className="space-y-4">
                   {urgentOrders.length > 0 && (
                     <div
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 border"
-                      style={{ background: '#FFF5F5', borderColor: '#FECDD3', boxShadow: SHADOW }}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 border animate-pulse"
+                      style={{ background: DANGER_GLOW, borderColor: 'rgba(239,68,68,0.35)', boxShadow: SHADOW }}
                     >
-                      <AlertTriangle className="w-5 h-5 flex-shrink-0" style={{ color: '#BE123C' }} />
+                      <AlertTriangle className="w-5 h-5 flex-shrink-0" style={{ color: '#FCA5A5' }} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-black" style={{ color: '#9F1239' }}>
+                        <p className="text-sm font-black" style={{ color: '#FCA5A5' }}>
                           {urgentOrders.length} urgente{urgentOrders.length > 1 ? 's' : ''}
                         </p>
-                        <p className="text-[11px]" style={{ color: '#BE123C' }}>+15 min sans traitement</p>
+                        <p className="text-[11px]" style={{ color: '#F87171' }}>+15 min sans traitement</p>
                       </div>
                       <button
                         onClick={() => goTab('commandes')}
                         className="px-3 py-1.5 rounded-xl text-xs font-black text-white flex-shrink-0"
-                        style={{ background: '#BE123C' }}
+                        style={{ background: DANGER }}
                       >
                         Traiter
                       </button>
@@ -1290,31 +1331,31 @@ export default function StaffDashboard() {
                   <WeeklySchedule openingTime={user?.restaurant?.openingTime} closingTime={user?.restaurant?.closingTime} />
 
                   {stockAlerts.length > 0 && (
-                    <div className="rounded-xl border p-4" style={{ background: SURFACE, borderColor: '#FECDD3', boxShadow: SHADOW }}>
+                    <div className="rounded-xl border p-4" style={{ background: SURFACE, borderColor: 'rgba(239,68,68,0.25)', boxShadow: SHADOW }}>
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-black text-sm flex items-center gap-2" style={{ color: '#BE123C' }}>
+                        <h3 className="font-black text-sm flex items-center gap-2" style={{ color: '#FCA5A5' }}>
                           <AlertTriangle className="w-4 h-4" /> Alertes stock
                         </h3>
-                        <button onClick={() => goTab('stocks')} className="text-xs font-bold" style={{ color: GREEN }}>Gérer →</button>
+                        <button onClick={() => goTab('stocks')} className="text-xs font-bold" style={{ color: ORANGE }}>Gérer →</button>
                       </div>
                       <div className="space-y-2">
                         {stockAlerts.slice(0, 3).map(item => (
                           <div key={item.id} className="p-3 rounded-xl border" style={
                             item.stock <= 0
-                              ? { background: '#FFF5F5', borderColor: '#FECDD3' }
-                              : { background: '#FFFBEB', borderColor: '#FDE68A' }
+                              ? { background: DANGER_GLOW, borderColor: 'rgba(239,68,68,0.3)' }
+                              : { background: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.3)' }
                           }>
                             <div className="flex items-center justify-between">
                               <p className="text-sm font-bold truncate flex-1" style={{ color: TEXT }}>{item.nom}</p>
                               <span className="px-2 py-0.5 rounded-md text-[10px] font-black ml-2" style={
                                 item.stock <= 0
-                                  ? { background: '#BE123C', color: '#FFF' }
-                                  : { background: '#D97706', color: '#FFF' }
+                                  ? { background: DANGER, color: '#FFF' }
+                                  : { background: AMBER, color: '#FFF' }
                               }>
                                 {item.stock <= 0 ? 'RUPTURE' : 'FAIBLE'}
                               </span>
                             </div>
-                            <p className="text-[11px] mt-1" style={{ color: TEXT_LIGHT }}>Stock: {item.stock} · Seuil: {item.seuil}</p>
+                            <p className="text-[11px] mt-1" style={{ color: TEXT_MUTED }}>Stock: {item.stock} · Seuil: {item.seuil}</p>
                           </div>
                         ))}
                       </div>
@@ -1325,7 +1366,7 @@ export default function StaffDashboard() {
                     <div className="rounded-xl border p-4" style={{ background: SURFACE, borderColor: BORDER, boxShadow: SHADOW }}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: GREEN_BG }}>
+                          <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: GREEN_GLOW }}>
                             <Activity className="w-3.5 h-3.5" style={{ color: GREEN }} />
                           </div>
                           <h3 className="font-black text-sm" style={{ color: TEXT }}>Activité récente</h3>
@@ -1336,11 +1377,11 @@ export default function StaffDashboard() {
                         {(serverActivity.length > 0 ? serverActivity.slice(0, 5) : actionHistory.slice(0, 4)).map((entry) => {
                           const isServer = serverActivity.length > 0;
                           const color = isServer
-                            ? (entry.statutNouvel === 'LIVREE' ? GREEN : entry.statutNouvel === 'ANNULEE' ? '#F43F5E' : entry.statutNouvel === 'EN_PREP' ? '#D97706' : ORANGE)
-                            : (entry.type === 'paiement' ? GREEN : entry.type === 'commande' ? ORANGE : entry.type === 'b2b' ? '#D97706' : TEXT_LIGHT);
+                            ? (entry.statutNouvel === 'LIVREE' ? GREEN : entry.statutNouvel === 'ANNULEE' ? DANGER : entry.statutNouvel === 'EN_PREP' ? AMBER : ORANGE)
+                            : (entry.type === 'paiement' ? GREEN : entry.type === 'commande' ? ORANGE : entry.type === 'b2b' ? AMBER : TEXT_MUTED);
                           return (
-                            <div key={entry.id} className="flex items-start gap-3 p-2 rounded-xl" style={{ background: BG }}>
-                              <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: color + '20' }}>
+                            <div key={entry.id} className="flex items-start gap-3 p-2 rounded-xl" style={{ background: SURFACE_ELEVATED }}>
+                              <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: color + '22' }}>
                                 <span className="w-2 h-2 rounded-full" style={{ background: color }} />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -1348,11 +1389,11 @@ export default function StaffDashboard() {
                                   {isServer ? `#${entry.commandeNumero || entry.commandeId?.slice(0, 8)}` : entry.title}
                                   {isServer && <span className="ml-1" style={{ color }}>→ {STATUS_LABELS[entry.statutNouvel] || entry.statutNouvel}</span>}
                                 </p>
-                                <p className="text-[10px]" style={{ color: TEXT_LIGHT }}>
+                                <p className="text-[10px]" style={{ color: TEXT_MUTED }}>
                                   {isServer ? (entry.actorNom ? `par ${entry.actorNom}` : '') : entry.desc}
                                 </p>
                               </div>
-                              <p className="text-[10px] flex-shrink-0" style={{ color: BORDER }}>
+                              <p className="text-[10px] flex-shrink-0" style={{ color: TEXT_MUTED }}>
                                 {timeAgo(isServer ? entry.createdAt : entry.at)}
                               </p>
                             </div>
@@ -1381,14 +1422,14 @@ export default function StaffDashboard() {
                     className="px-4 py-2 rounded-xl text-sm font-black transition-all"
                     style={
                       orderFilter === id
-                        ? { background: GREEN, color: '#FFF', boxShadow: `0 4px 12px ${GREEN}40` }
-                        : { background: SURFACE, color: TEXT, border: `1px solid ${BORDER}` }
+                        ? { background: ORANGE, color: '#FFF', boxShadow: `0 4px 12px ${ORANGE_GLOW}` }
+                        : { background: SURFACE, color: TEXT_MUTED, border: `1px solid ${BORDER}` }
                     }
                   >
                     {label}
                     {count != null && count > 0 && (
                       <span className="ml-2 px-1.5 py-0.5 rounded-md text-[10px] font-black" style={
-                        orderFilter === id ? { background: '#fff3', color: '#FFF' } : { background: BG, color: TEXT_LIGHT }
+                        orderFilter === id ? { background: 'rgba(0,0,0,0.2)', color: '#FFF' } : { background: SURFACE_ELEVATED, color: TEXT_MUTED }
                       }>
                         {count}
                       </span>
@@ -1404,15 +1445,15 @@ export default function StaffDashboard() {
               {orderFilter === 'board' && (
                 allActive.length === 0 ? (
                   <div className="text-center py-16 rounded-xl border" style={{ background: SURFACE, borderColor: BORDER }}>
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: GREEN_BG }}>
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: GREEN_GLOW, border: `1px solid ${GREEN_BORDER}` }}>
                       <ChefHat className="w-7 h-7" style={{ color: GREEN }} />
                     </div>
                     <p className="font-black text-base mb-1" style={{ color: TEXT }}>Le passe est calme</p>
-                    <p className="text-sm mb-4" style={{ color: TEXT_LIGHT }}>Aucune commande active.</p>
+                    <p className="text-sm mb-4" style={{ color: TEXT_MUTED }}>Aucune commande active.</p>
                     <button
                       onClick={() => setShowNewOrder(true)}
                       className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white transition-all hover:scale-105"
-                      style={{ background: `linear-gradient(135deg, ${GREEN}, #15803D)`, boxShadow: `0 4px 16px ${GREEN}40` }}
+                      style={{ background: ORANGE, boxShadow: `0 4px 16px ${ORANGE_GLOW}` }}
                     >
                       <Plus className="w-4 h-4" /> Nouvelle commande
                     </button>
@@ -1436,9 +1477,9 @@ export default function StaffDashboard() {
               {orderFilter === 'b2b' && (
                 activeB2B.length === 0 ? (
                   <div className="text-center py-16 rounded-xl border" style={{ background: SURFACE, borderColor: BORDER }}>
-                    <Package className="w-12 h-12 mx-auto mb-3" style={{ color: BORDER }} />
+                    <Package className="w-12 h-12 mx-auto mb-3" style={{ color: TEXT_MUTED }} />
                     <p className="font-black" style={{ color: TEXT }}>Aucune commande B2B active</p>
-                    <p className="text-sm mt-1" style={{ color: TEXT_LIGHT }}>Les commandes entreprise apparaissent ici.</p>
+                    <p className="text-sm mt-1" style={{ color: TEXT_MUTED }}>Les commandes entreprise apparaissent ici.</p>
                   </div>
                 ) : (
                   <div className="grid gap-4">
@@ -1452,7 +1493,7 @@ export default function StaffDashboard() {
               {orderFilter === 'all' && (
                 filteredOrders.length === 0 ? (
                   <div className="text-center py-16 rounded-xl border" style={{ background: SURFACE, borderColor: BORDER }}>
-                    <p className="font-black" style={{ color: TEXT }}>Aucune commande</p>
+                    <p className="font-black" style={{ color: TEXT_MUTED }}>Aucune commande</p>
                   </div>
                 ) : (
                   <div className="grid gap-4">
@@ -1481,13 +1522,13 @@ export default function StaffDashboard() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                  { label: 'Articles total',  value: stocks.length,                                color: ORANGE,    bg: '#FFF7ED', border: '#FED7AA' },
-                  { label: 'Disponibles',     value: stocks.filter(s => s.stock > s.seuil).length, color: GREEN,     bg: GREEN_BG,  border: GREEN_BORDER },
-                  { label: 'En alerte',       value: stockAlerts.length,                           color: '#BE123C', bg: '#FFF5F5', border: '#FECDD3' },
+                  { label: 'Articles total',  value: stocks.length,                                color: ORANGE, glow: ORANGE_GLOW },
+                  { label: 'Disponibles',     value: stocks.filter(s => s.stock > s.seuil).length, color: GREEN,  glow: GREEN_GLOW },
+                  { label: 'En alerte',       value: stockAlerts.length,                           color: DANGER, glow: DANGER_GLOW },
                 ].map((s, i) => (
-                  <div key={i} className="rounded-xl border p-5" style={{ background: s.bg, borderColor: s.border, boxShadow: SHADOW }}>
+                  <div key={i} className="rounded-xl border p-5" style={{ background: SURFACE, borderColor: BORDER, boxShadow: SHADOW }}>
                     <p className="text-3xl font-black mb-1" style={{ color: s.color }}>{s.value}</p>
-                    <p className="text-sm font-bold" style={{ color: TEXT_LIGHT }}>{s.label}</p>
+                    <p className="text-sm font-bold" style={{ color: TEXT_MUTED }}>{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -1496,9 +1537,9 @@ export default function StaffDashboard() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b" style={{ borderColor: BORDER }}>
                   <div>
                     <h2 className="text-lg font-black" style={{ color: TEXT }}>Inventaire</h2>
-                    <p className="text-sm" style={{ color: TEXT_LIGHT }}>
+                    <p className="text-sm" style={{ color: TEXT_MUTED }}>
                       {stocks.length} article{stocks.length > 1 ? 's' : ''} ·{' '}
-                      <span className="font-bold" style={{ color: stockAlerts.length > 0 ? '#BE123C' : GREEN }}>
+                      <span className="font-bold" style={{ color: stockAlerts.length > 0 ? DANGER : GREEN }}>
                         {stockAlerts.length} alerte{stockAlerts.length !== 1 ? 's' : ''}
                       </span>
                     </p>
@@ -1510,8 +1551,8 @@ export default function StaffDashboard() {
                         onClick={() => setStockFilter(key)}
                         className="px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
                         style={stockFilter === key
-                          ? { background: SURFACE, color: TEXT, boxShadow: '0 2px 8px #0001' }
-                          : { color: TEXT_LIGHT }
+                          ? { background: SURFACE_ELEVATED, color: TEXT, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }
+                          : { color: TEXT_MUTED }
                         }
                       >
                         {label}
@@ -1522,32 +1563,32 @@ export default function StaffDashboard() {
 
                 {displayedStocks.length === 0 ? (
                   <div className="text-center py-14 border-2 border-dashed m-4 rounded-xl" style={{ borderColor: BORDER }}>
-                    <Package className="w-12 h-12 mx-auto mb-3" style={{ color: BORDER }} />
+                    <Package className="w-12 h-12 mx-auto mb-3" style={{ color: TEXT_MUTED }} />
                     <p className="font-black" style={{ color: TEXT }}>Aucun article</p>
-                    <p className="text-sm mt-1" style={{ color: TEXT_LIGHT }}>
+                    <p className="text-sm mt-1" style={{ color: TEXT_MUTED }}>
                       {stockFilter === 'alerts' ? 'Tous les stocks sont OK.' : 'Les articles apparaîtront ici.'}
                     </p>
                   </div>
                 ) : (
-                  <div className="divide-y" style={{ borderColor: BORDER }}>
+                  <div>
                     {displayedStocks.map(item => {
                       const isRupture = item.stock <= 0;
                       const isLow = !isRupture && item.stock <= item.seuil;
                       const pct = item.seuil > 0 ? Math.min(100, Math.round((item.stock / (item.seuil * 3)) * 100)) : 50;
-                      const barColor = isRupture ? DANGER : isLow ? '#F59E0B' : GREEN;
+                      const barColor = isRupture ? DANGER : isLow ? AMBER : GREEN;
                       return (
-                        <div key={item.id} className="flex items-center gap-4 px-5 py-4 transition-colors" style={{ background: SURFACE }}
-                          onMouseEnter={e => { e.currentTarget.style.background = BG; }}
+                        <div key={item.id} className="flex items-center gap-4 px-5 py-4 transition-colors" style={{ background: SURFACE, borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = SURFACE_ELEVATED; }}
                           onMouseLeave={e => { e.currentTarget.style.background = SURFACE; }}
                         >
                           <div
                             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ background: isRupture ? '#FFF5F5' : isLow ? '#FFFBEB' : GREEN_BG }}
+                            style={{ background: isRupture ? DANGER_GLOW : isLow ? 'rgba(245,158,11,0.15)' : GREEN_GLOW }}
                           >
                             {isRupture
                               ? <AlertTriangle className="w-5 h-5" style={{ color: DANGER }} />
                               : isLow
-                              ? <AlertCircle className="w-5 h-5" style={{ color: '#F59E0B' }} />
+                              ? <AlertCircle className="w-5 h-5" style={{ color: AMBER }} />
                               : <CheckCircle className="w-5 h-5" style={{ color: GREEN }} />
                             }
                           </div>
@@ -1555,15 +1596,15 @@ export default function StaffDashboard() {
                             <div className="flex items-center gap-2 mb-1.5">
                               <p className="font-bold truncate" style={{ color: TEXT }}>{item.nom}</p>
                               {item.categorie && (
-                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold flex-shrink-0" style={{ background: BG, color: TEXT_LIGHT }}>
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold flex-shrink-0" style={{ background: SURFACE_ELEVATED, color: TEXT_MUTED }}>
                                   {item.categorie}
                                 </span>
                               )}
                             </div>
-                            <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: BORDER }}>
+                            <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: 'rgba(255,255,255,0.08)' }}>
                               <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
                             </div>
-                            <p className="text-xs" style={{ color: TEXT_LIGHT }}>
+                            <p className="text-xs" style={{ color: TEXT_MUTED }}>
                               <span className="font-black" style={{ color: barColor }}>{item.stock}</span>
                               {' '}{item.unite || ''} en stock · seuil {item.seuil}
                             </p>
@@ -1571,9 +1612,9 @@ export default function StaffDashboard() {
                           <span
                             className="px-2.5 py-1 rounded-lg text-xs font-black flex-shrink-0"
                             style={
-                              isRupture ? { background: '#FFF5F5', color: '#BE123C' }
-                              : isLow ? { background: '#FFFBEB', color: '#D97706' }
-                              : { background: GREEN_BG, color: GREEN }
+                              isRupture ? { background: DANGER_GLOW, color: '#FCA5A5' }
+                              : isLow ? { background: 'rgba(245,158,11,0.15)', color: '#FCD34D' }
+                              : { background: GREEN_GLOW, color: '#6EE7B7' }
                             }
                           >
                             {isRupture ? 'RUPTURE' : isLow ? 'FAIBLE' : 'OK'}
@@ -1583,7 +1624,7 @@ export default function StaffDashboard() {
                               onClick={() => void adjustStock(item.id, -1, 'Correction')}
                               disabled={savingStockId === item.id || item.stock <= 0}
                               className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors border disabled:opacity-40 disabled:cursor-not-allowed"
-                              style={{ background: '#FFF5F5', borderColor: '#FECDD3', color: DANGER }}
+                              style={{ background: DANGER_GLOW, borderColor: 'rgba(239,68,68,0.3)', color: '#FCA5A5' }}
                             >
                               <Minus className="w-4 h-4" />
                             </button>
@@ -1612,23 +1653,29 @@ export default function StaffDashboard() {
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowPanel(false)} />
           <div className="relative w-full max-w-md h-full overflow-y-auto shadow-2xl" style={{ background: SURFACE }}>
-            <div className="h-1" style={{ background: `linear-gradient(90deg, ${GREEN}, ${GREEN_LIGHT})` }} />
+            <div className="h-1" style={{ background: `linear-gradient(90deg, ${ORANGE}, ${GREEN})` }} />
             <div className="p-6 border-b" style={{ borderColor: BORDER }}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div
                     className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white"
-                    style={{ background: `linear-gradient(135deg, ${ORANGE}, #EA6C00)` }}
+                    style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)`, boxShadow: `0 0 20px ${ORANGE_GLOW}` }}
                   >
                     {initials}
                   </div>
                   <div>
                     <p className="font-black" style={{ color: TEXT }}>{fullName}</p>
-                    <p className="text-sm" style={{ color: TEXT_LIGHT }}>{user?.email}</p>
+                    <p className="text-sm" style={{ color: TEXT_MUTED }}>{user?.email}</p>
                   </div>
                 </div>
-                <button onClick={() => setShowPanel(false)} className="p-2 rounded-xl transition-colors hover:bg-slate-100">
-                  <X className="w-5 h-5" style={{ color: TEXT_LIGHT }} />
+                <button
+                  onClick={() => setShowPanel(false)}
+                  className="p-2 rounded-xl transition-colors"
+                  style={{ color: TEXT_MUTED }}
+                  onMouseEnter={e => { e.currentTarget.style.background = SURFACE_ELEVATED; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -1640,13 +1687,13 @@ export default function StaffDashboard() {
                     { label: 'Nom', key: 'nom', placeholder: 'Kouassi', type: 'text' },
                   ].map(f => (
                     <div key={f.key}>
-                      <label className="block text-xs font-bold mb-1.5" style={{ color: TEXT_LIGHT }}>{f.label}</label>
+                      <label className="block text-xs font-bold mb-1.5" style={{ color: TEXT_MUTED }}>{f.label}</label>
                       <input
                         type={f.type}
                         value={form[f.key]}
                         onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                         className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none transition-all"
-                        style={{ borderColor: BORDER, background: BG, color: TEXT }}
+                        style={{ borderColor: BORDER, background: SURFACE_ELEVATED, color: TEXT }}
                         placeholder={f.placeholder}
                       />
                     </div>
@@ -1657,25 +1704,25 @@ export default function StaffDashboard() {
                   { label: 'Téléphone', key: 'telephone', type: 'tel', placeholder: '+225 07 00 00 00' },
                 ].map(f => (
                   <div key={f.key}>
-                    <label className="block text-xs font-bold mb-1.5" style={{ color: TEXT_LIGHT }}>{f.label}</label>
+                    <label className="block text-xs font-bold mb-1.5" style={{ color: TEXT_MUTED }}>{f.label}</label>
                     <input
                       type={f.type}
                       value={form[f.key]}
                       onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                       className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none transition-all"
-                      style={{ borderColor: BORDER, background: BG, color: TEXT }}
+                      style={{ borderColor: BORDER, background: SURFACE_ELEVATED, color: TEXT }}
                       placeholder={f.placeholder}
                     />
                   </div>
                 ))}
 
                 {profileError && (
-                  <div className="p-3 rounded-xl border text-sm font-medium" style={{ background: '#FFF5F5', borderColor: '#FECDD3', color: '#BE123C' }}>
+                  <div className="p-3 rounded-xl border text-sm font-medium" style={{ background: DANGER_GLOW, borderColor: 'rgba(239,68,68,0.3)', color: '#FCA5A5' }}>
                     {profileError}
                   </div>
                 )}
                 {profileSuccess && (
-                  <div className="p-3 rounded-xl border text-sm font-medium" style={{ background: GREEN_BG, borderColor: GREEN_BORDER, color: '#15803D' }}>
+                  <div className="p-3 rounded-xl border text-sm font-medium" style={{ background: GREEN_GLOW, borderColor: GREEN_BORDER, color: '#6EE7B7' }}>
                     {profileSuccess}
                   </div>
                 )}
@@ -1684,7 +1731,7 @@ export default function StaffDashboard() {
                   type="submit"
                   disabled={savingProfile}
                   className="w-full py-3 rounded-xl text-sm font-black text-white transition-all hover:scale-[1.02] disabled:opacity-60 disabled:scale-100 flex items-center justify-center gap-2"
-                  style={{ background: `linear-gradient(135deg, ${GREEN}, #15803D)`, boxShadow: `0 4px 16px ${GREEN}40` }}
+                  style={{ background: ORANGE, boxShadow: `0 4px 16px ${ORANGE_GLOW}` }}
                 >
                   {savingProfile ? <><Spinner size={16} /> Enregistrement...</> : <><Save className="w-4 h-4" /> Enregistrer</>}
                 </button>

@@ -30,13 +30,13 @@ import carteBancaireLogo from '../../assets/payments/carte-bancaire.svg';
 
 /* ── Palette — alignée sur Home.jsx ── */
 const ACCENT       = '#FF8C00';
-const ACCENT_DARK  = '#E07A00';
-const ACCENT_LIGHT = '#FFF5E8';   /* Home.bgAlt */
-const SURFACE      = '#FFEFD8';   /* Home.surface */
-const BORDER       = 'rgba(255,140,0,0.14)'; /* Home.line */
-const NAVY         = '#1A0C00';   /* Home.dark */
-const NAVY2        = '#3B2409';   /* Home.text */
-const BG           = '#FFFAF3';   /* Home.bg — crème chaude */
+const ACCENT_DARK  = '#C96200';
+const ACCENT_LIGHT = '#FFF3E0';
+const SURFACE      = '#FFFFFF';
+const BORDER       = 'rgba(0,0,0,0.09)';
+const NAVY         = '#111827';
+const NAVY2        = '#374151';
+const BG           = '#F9FAFB';
 const RED          = '#EF4444';
 
 const ORDER_STATUS = {
@@ -464,7 +464,7 @@ function OrderTrackModal({ order, onClose, onReceipt }) {
 /* ════════════════════════════════════════════════════════════════
    ──  OVERVIEW TAB  ──────────────────────────────────────────────
    ════════════════════════════════════════════════════════════════ */
-function OverviewTab({ user, orders, activeOrders, delivered, cancelled, pendingAvis, totalSpent, avgOrder, loadingOrders, canAvis, setTab, setTrackOrder, setReceiptOrder, setAvisOrder, downloadPdf, handleReorder }) {
+function OverviewTab({ user, orders, activeOrders, delivered, cancelled, pendingAvis, totalSpent, avgOrder, loadingOrders, canAvis, setTab, setTrackOrder, setReceiptOrder, setAvisOrder, downloadPdf, handleReorder, handleConfirmReceipt }) {
   const initials = ((user?.prenom || user?.nom || 'U').charAt(0)).toUpperCase();
   const firstName = user?.prenom || user?.nom?.split(' ')[0] || 'Vous';
 
@@ -763,185 +763,168 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
   const completion = Math.round((filled / 3) * 100);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
 
-      {/* ── Hero profil ─────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-3xl bg-white border" style={{ borderColor: BORDER }}>
-        {/* Gradient top band */}
-        <div className="h-32 relative"
-          style={{ background: `linear-gradient(135deg, ${ACCENT}22 0%, ${ACCENT}08 100%)` }}>
-          <div className="absolute inset-0"
-            style={{ backgroundImage: `radial-gradient(circle at 80% 50%, ${ACCENT}15 0%, transparent 70%)` }} />
-        </div>
-
-        {/* Avatar overlay */}
-        <div className="px-6 sm:px-8 pb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5 -mt-12">
-            <div className="relative shrink-0">
-              <div className="w-24 h-24 rounded-3xl flex items-center justify-center text-white font-extrabold text-3xl border-4 border-white shadow-xl"
-                style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_DARK} 100%)` }}>
-                {initials}
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center cursor-pointer"
-                title="Changer la photo">
-                <Camera className="w-4 h-4 text-[#6B7280]" />
-              </div>
+      {/* ── Carte identité ─────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        {/* Bande orange haut */}
+        <div style={{ height: 4, background: ACCENT }} />
+        <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            <div
+              className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl"
+              style={{ background: ACCENT, boxShadow: `0 4px 16px ${ACCENT}44` }}
+            >
+              {initials}
             </div>
-
-            <div className="flex-1 pb-1">
-              <h2 className="text-2xl font-extrabold text-[#111827]" style={{ letterSpacing: '-0.02em' }}>
-                {user?.prenom || user?.nom || 'Mon profil'}
-              </h2>
-              <p className="text-sm text-[#6B7280] mt-0.5">{user?.email || ''}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: '#ECFDF5', color: '#059669' }}>
-                  <BadgeCheck className="w-3 h-3" /> Compte vérifié
-                </div>
-                <div className="px-3 py-1 rounded-full text-xs font-semibold text-[#6B7280] bg-[#F3F4F6]">
-                  Membre depuis {memberSince}
-                </div>
-              </div>
+            <div className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-white border border-gray-100 shadow flex items-center justify-center cursor-pointer">
+              <Camera className="w-3.5 h-3.5 text-gray-400" />
             </div>
+          </div>
 
-            {/* Completion */}
-            <div className="shrink-0 text-right">
-              <p className="text-xs font-semibold text-[#9CA3AF] mb-1.5">Profil complété</p>
-              <div className="flex items-center gap-2">
-                <div className="w-28 h-2 rounded-full bg-[#F3F4F6]">
-                  <div className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${completion}%`, background: completion === 100 ? '#10B981' : ACCENT }} />
-                </div>
-                <span className="text-sm font-extrabold" style={{ color: completion === 100 ? '#10B981' : ACCENT }}>
-                  {completion}%
-                </span>
+          {/* Infos */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-black text-[#111827] leading-tight">
+              {user?.prenom || user?.nom || 'Mon profil'}
+            </h2>
+            <p className="text-sm text-[#6B7280] mt-0.5 truncate">{user?.email || ''}</p>
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
+                <BadgeCheck className="w-3 h-3" /> Compte vérifié
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+                Membre depuis {memberSince}
+              </span>
+            </div>
+          </div>
+
+          {/* Complétion */}
+          <div className="shrink-0 sm:text-right">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Profil complété</p>
+            <div className="flex items-center gap-3 sm:justify-end">
+              <div className="w-32 h-1.5 rounded-full bg-gray-100">
+                <div className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${completion}%`, background: completion === 100 ? '#10B981' : ACCENT }} />
               </div>
+              <span className="text-base font-black" style={{ color: completion === 100 ? '#10B981' : ACCENT }}>
+                {completion}%
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Stats rapides ─────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* ── Stats ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Commandes', value: orders.length, icon: ShoppingBag, color: ACCENT, bg: ACCENT_LIGHT },
-          { label: 'Dépenses',  value: `${formatFCFA(totalSpent)}`, icon: Wallet, color: '#10B981', bg: '#ECFDF5' },
-          { label: 'Livrées',   value: delivered.length, icon: CheckCircle, color: '#3B82F6', bg: '#EFF6FF' },
+          { label: 'Commandes', value: orders.length, icon: ShoppingBag, accent: ACCENT },
+          { label: 'Total dépensé', value: formatFCFA(totalSpent), icon: Wallet, accent: '#111827' },
+          { label: 'Livrées', value: delivered.length, icon: CheckCircle, accent: '#10B981' },
         ].map((s, i) => (
-          <div key={i} className="bg-white rounded-2xl border p-4 text-center" style={{ borderColor: BORDER }}>
-            <div className="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: s.bg }}>
-              <s.icon className="w-5 h-5" style={{ color: s.color }} />
-            </div>
-            <p className="text-base font-extrabold text-[#111827]">{s.value}</p>
-            <p className="text-xs text-[#9CA3AF] mt-0.5">{s.label}</p>
+          <div key={i} className="bg-white rounded-xl border p-4 flex flex-col gap-2" style={{ borderColor: BORDER, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <s.icon className="w-5 h-5" style={{ color: s.accent }} />
+            <p className="text-xl font-black text-[#111827]">{s.value}</p>
+            <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">{s.label}</p>
           </div>
         ))}
       </div>
 
-      {/* ── Formulaire ─────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
-        <div className="px-6 py-5 border-b flex items-center gap-3" style={{ borderColor: BORDER }}>
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
-            <User className="w-4 h-4" style={{ color: ACCENT }} />
-          </div>
+      {/* ── Formulaire ─────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
           <div>
-            <h3 className="text-sm font-extrabold text-[#111827]">Informations personnelles</h3>
-            <p className="text-xs text-[#9CA3AF]">Modifiez vos informations de compte</p>
+            <h3 className="text-sm font-black text-[#111827]">Informations personnelles</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Gérez vos coordonnées de compte</p>
+          </div>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
+            <User className="w-4 h-4" style={{ color: ACCENT }} />
           </div>
         </div>
 
-        <form onSubmit={handleProfileSave} className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <form onSubmit={handleProfileSave} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Nom */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-[#374151] mb-2 uppercase tracking-wider">
-                Nom complet
-              </label>
+              <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Nom complet</label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <User className="w-4 h-4 text-[#9CA3AF]" />
-                </div>
+                <User className="w-4 h-4 text-gray-300 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   value={profileForm.nom}
                   onChange={e => setProfileForm(p => ({ ...p, nom: e.target.value }))}
                   placeholder="Votre nom complet"
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition"
-                  style={{ background: SURFACE, border: '1.5px solid rgba(0,0,0,0.08)' }}
-                  onFocus={e => e.target.style.borderColor = ACCENT}
-                  onBlur={e => e.target.style.borderColor = 'rgba(0,0,0,0.08)'}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#111827] placeholder-gray-300 outline-none border transition-colors"
+                  style={{ borderColor: 'rgba(0,0,0,0.1)', background: '#FAFAFA' }}
+                  onFocus={e => { e.target.style.borderColor = ACCENT; e.target.style.background = '#fff'; }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.background = '#FAFAFA'; }}
                 />
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-bold text-[#374151] mb-2 uppercase tracking-wider">
-                Email
-              </label>
+              <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Email</label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <Mail className="w-4 h-4 text-[#9CA3AF]" />
-                </div>
+                <Mail className="w-4 h-4 text-gray-300 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="email"
                   value={profileForm.email}
                   onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))}
                   placeholder="votre@email.com"
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition"
-                  style={{ background: SURFACE, border: '1.5px solid rgba(0,0,0,0.08)' }}
-                  onFocus={e => e.target.style.borderColor = ACCENT}
-                  onBlur={e => e.target.style.borderColor = 'rgba(0,0,0,0.08)'}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#111827] placeholder-gray-300 outline-none border transition-colors"
+                  style={{ borderColor: 'rgba(0,0,0,0.1)', background: '#FAFAFA' }}
+                  onFocus={e => { e.target.style.borderColor = ACCENT; e.target.style.background = '#fff'; }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.background = '#FAFAFA'; }}
                 />
               </div>
             </div>
 
             {/* Téléphone */}
             <div>
-              <label className="block text-xs font-bold text-[#374151] mb-2 uppercase tracking-wider">
-                Téléphone
-              </label>
+              <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Téléphone</label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <Phone className="w-4 h-4 text-[#9CA3AF]" />
-                </div>
+                <Phone className="w-4 h-4 text-gray-300 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="tel"
                   value={profileForm.telephone}
                   onChange={e => setProfileForm(p => ({ ...p, telephone: e.target.value }))}
                   placeholder="07 XX XX XX XX"
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition"
-                  style={{ background: SURFACE, border: '1.5px solid rgba(0,0,0,0.08)' }}
-                  onFocus={e => e.target.style.borderColor = ACCENT}
-                  onBlur={e => e.target.style.borderColor = 'rgba(0,0,0,0.08)'}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#111827] placeholder-gray-300 outline-none border transition-colors"
+                  style={{ borderColor: 'rgba(0,0,0,0.1)', background: '#FAFAFA' }}
+                  onFocus={e => { e.target.style.borderColor = ACCENT; e.target.style.background = '#fff'; }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.background = '#FAFAFA'; }}
                 />
               </div>
             </div>
           </div>
 
           {profileMsg && (
-            <div className="mt-5 flex items-center gap-3 px-4 py-3 rounded-xl"
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border"
               style={{
                 background: profileMsg.includes('Erreur') ? '#FFF1F2' : '#F0FDF4',
-                border: `1px solid ${profileMsg.includes('Erreur') ? '#FECDD3' : '#BBF7D0'}`,
+                borderColor: profileMsg.includes('Erreur') ? '#FECDD3' : '#BBF7D0',
               }}>
               {profileMsg.includes('Erreur')
                 ? <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                 : <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />}
-              <p className="text-sm font-semibold"
-                style={{ color: profileMsg.includes('Erreur') ? '#DC2626' : '#16A34A' }}>
+              <p className="text-sm font-semibold" style={{ color: profileMsg.includes('Erreur') ? '#DC2626' : '#16A34A' }}>
                 {profileMsg}
               </p>
             </div>
           )}
 
-          <div className="mt-6 flex items-center gap-3">
-            <button type="submit"
-              className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-extrabold text-sm text-white transition hover:opacity-90"
-              style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_DARK} 100%)`, boxShadow: `0 4px 20px ${ACCENT}44` }}>
-              <CheckCircle className="w-4 h-4" /> Enregistrer les modifications
+          <div className="flex items-center gap-4 pt-1">
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90 active:scale-95"
+              style={{ background: ACCENT, boxShadow: `0 2px 12px ${ACCENT}33` }}
+            >
+              <CheckCircle className="w-4 h-4" /> Enregistrer
             </button>
-            <p className="text-xs text-[#9CA3AF]">Vos données sont sécurisées</p>
+            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+              <Lock className="w-3 h-3" /> Données sécurisées
+            </div>
           </div>
         </form>
       </div>
@@ -1679,6 +1662,7 @@ export default function ClientDashboard() {
                 canAvis={canAvis} setTab={changeTab}
                 setTrackOrder={setTrackOrder} setReceiptOrder={setReceiptOrder} setAvisOrder={setAvisOrder}
                 downloadPdf={downloadPdf} handleReorder={handleReorder}
+                handleConfirmReceipt={handleConfirmReceipt}
               />
             )}
 

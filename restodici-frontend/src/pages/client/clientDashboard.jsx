@@ -29,7 +29,7 @@ import moovMoneyLogo    from '../../assets/payments/moov-money.svg';
 import carteBancaireLogo from '../../assets/payments/carte-bancaire.svg';
 
 /* ── Palette — alignée sur Home.jsx ── */
-const ACCENT       = '#FF8C00';
+const ACCENT       = '#973100';
 const ACCENT_DARK  = '#C96200';
 const ACCENT_LIGHT = '#FFF3E0';
 const SURFACE      = '#FFFFFF';
@@ -266,7 +266,7 @@ function ActiveOrderCard({ order, onTrack, onReceipt, onConfirmReceipt }) {
       </div>
       <div className="flex gap-2">
         <button onClick={onTrack}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-[#374151] border transition hover:border-[#FF8C00] hover:text-[#FF8C00]"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-[#374151] border transition hover:border-[#973100] hover:text-[#973100]"
           style={{ borderColor: BORDER }}>
           <Eye className="w-3.5 h-3.5" /> Suivre
         </button>
@@ -1209,7 +1209,7 @@ function SecurityTab({ user }) {
 
       {/* ── Score sécurité ───────────────────────────────────────────── */}
       <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8"
-        style={{ background: `linear-gradient(135deg, #0F172A 0%, #1E293B 100%)` }}>
+        style={{ background: `linear-gradient(135deg, #973100 0%, #C04000 100%)` }}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           {/* Score ring */}
           <div className="relative w-24 h-24 shrink-0">
@@ -1707,7 +1707,7 @@ export default function ClientDashboard() {
                     </div>
                   ) : filteredOrders.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center" style={{ background: '#FFF7ED' }}>
-                      <ShoppingBag className="w-12 h-12 mb-3" style={{ color: '#FF8C00', opacity: 0.4 }} />
+                      <ShoppingBag className="w-12 h-12 mb-3" style={{ color: '#973100', opacity: 0.4 }} />
                       <p className="text-sm font-medium mb-1" style={{ color: '#0F172A' }}>
                         {orders.length === 0 ? "Vous n'avez pas encore passé de commande" : 'Aucune commande dans cette catégorie'}
                       </p>

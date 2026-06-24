@@ -15,25 +15,25 @@ import { useAuth } from '../../hooks/useAuth';
 import DispatchModal from '../../components/livraison/DispatchModal';
 
 /* ── Palette ── */
-const BG     = '#F5F6F8';
+const BG     = '#F9F9FC';
 const CARD   = '#FFFFFF';
-const NAVY   = '#111827';
-const BORDER = '#E5E7EB';
-const MUTED  = '#6B7280';
-const FAINT  = '#6B7280';
+const NAVY   = '#1A1C1E';
+const BORDER = '#E1BFB4';
+const MUTED  = '#594139';
+const FAINT  = '#8D7167';
 
-const OG     = '#FF8C00';            /* orange principal */
-const OG_D   = '#E07A00';
-const OG_G   = 'linear-gradient(135deg, #FF8C00 0%, #E07A00 100%)';
-const OG_L   = 'rgba(255,140,0,0.09)';
-const GREEN  = '#16A34A';
-const GREEN_G= 'linear-gradient(135deg,#15803D,#22c55e)';
-const AMBER  = '#D97706';
-const AMBER_G= 'linear-gradient(135deg,#B45309,#f59e0b)';
-const RED    = '#DC2626';
-const RED_L  = '#FEF2F2';
-const PURPLE = '#7C3AED';
-const PURPLE_G='linear-gradient(135deg,#6D28D9,#a78bfa)';
+const OG     = '#973100';            /* terracotta principal */
+const OG_D   = '#C04000';
+const OG_G   = 'linear-gradient(135deg, #973100 0%, #C04000 100%)';
+const OG_L   = 'rgba(151,49,0,0.09)';
+const GREEN  = '#45664B';
+const GREEN_G= 'linear-gradient(135deg,#2E4E35,#45664B)';
+const AMBER  = '#735C00';
+const AMBER_G= 'linear-gradient(135deg,#574500,#CCA72F)';
+const RED    = '#BA1A1A';
+const RED_L  = '#FFDAD6';
+const PURPLE = '#6750A4';
+const PURPLE_G='linear-gradient(135deg,#4F378B,#7965AF)';
 
 const NEXT_STATUT = {
   RECUE: 'CONFIRMEE', CONFIRMEE: 'EN_PREP',
@@ -44,11 +44,18 @@ const ACTION_LABELS = {
   PRETE: 'Prête', EN_LIVRAISON: 'En livraison', LIVREE: 'Livré',
 };
 
+const BLUE   = '#3B82F6';
+const BLUE_L = 'rgba(59,130,246,0.09)';
+const BLUE_G = 'linear-gradient(135deg,#1D4ED8,#3B82F6)';
+const VIO    = '#8B5CF6';
+const VIO_L  = 'rgba(139,92,246,0.09)';
+const VIO_G  = 'linear-gradient(135deg,#6D28D9,#8B5CF6)';
+
 const COLS = [
-  { id: 'todo',     label: 'À confirmer',   accent: OG,     accentL: OG_L,                   grad: OG_G,      statuts: ['RECUE','CONFIRMEE'] },
-  { id: 'prep',     label: 'En Cuisine',    accent: AMBER,  accentL: 'rgba(217,119,6,0.08)', grad: AMBER_G,   statuts: ['EN_PREP'] },
-  { id: 'ready',    label: 'Prêt',          accent: GREEN,  accentL: 'rgba(22,163,74,0.08)', grad: GREEN_G,   statuts: ['PRETE'] },
-  { id: 'delivery', label: 'En livraison',  accent: PURPLE, accentL: 'rgba(124,58,237,0.08)',grad: PURPLE_G,  statuts: ['EN_LIVRAISON'] },
+  { id: 'todo',     label: 'À confirmer',   accent: BLUE,   accentL: BLUE_L,                  grad: OG_G,      statuts: ['RECUE','CONFIRMEE'] },
+  { id: 'prep',     label: 'En Cuisine',    accent: '#F59E0B', accentL: 'rgba(245,158,11,0.09)', grad: AMBER_G, statuts: ['EN_PREP'] },
+  { id: 'ready',    label: 'Prêt',          accent: '#22C55E', accentL: 'rgba(34,197,94,0.09)', grad: GREEN_G,  statuts: ['PRETE'] },
+  { id: 'delivery', label: 'En livraison',  accent: VIO,    accentL: VIO_L,                   grad: VIO_G,     statuts: ['EN_LIVRAISON'] },
 ];
 
 /* B2B statut ↔ KDS statut mapping */
@@ -233,7 +240,7 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
                 {l.servi && <CheckCircle2 size={12} color={GREEN} style={{ flexShrink: 0 }} />}
               </div>
               {l.instructions && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 3, marginLeft: 28, fontSize: 10, fontWeight: 700, color: OG, background: OG_L, padding: '2px 8px', borderRadius: 6 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 3, marginLeft: 28, fontSize: 10, fontWeight: 700, color: '#C04000', background: 'rgba(151,49,0,0.09)', padding: '2px 8px', borderRadius: 6 }}>
                   {l.instructions}
                 </span>
               )}
@@ -348,13 +355,13 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
             onClick={() => onDispatch(order)}
             style={{
               marginTop: 8, width: '100%', padding: '9px 12px', borderRadius: 12,
-              border: '1.5px solid #FF8C00', background: '#FF8C0010',
+              border: '1.5px solid #973100', background: 'rgba(151,49,0,0.06)',
               color: '#C05C00', fontSize: 12, fontWeight: 700,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               transition: 'background 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#FF8C0020'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#FF8C0010'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(151,49,0,0.12)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(151,49,0,0.06)'; }}
           >
             <Truck size={13} /> Dispatcher la livraison
           </button>
@@ -674,49 +681,11 @@ export default function KDSStaff() {
         @keyframes kds-spin { to { transform: rotate(360deg); } }
         @keyframes kds-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes kds-urgent-blink {
-          0%, 100% { border-color: #FCA5A5; box-shadow: 0 4px 20px rgba(220,38,38,0.12); }
-          50% { border-color: #EF4444; box-shadow: 0 4px 24px rgba(220,38,38,0.32); }
+          0%, 100% { border-color: #FFBDAD; box-shadow: 0 4px 20px rgba(186,26,26,0.12); }
+          50% { border-color: #BA1A1A; box-shadow: 0 4px 24px rgba(186,26,26,0.32); }
         }
       `}</style>
 
-      {/* ── HEADER ── */}
-      <div style={{
-        background: CARD, border: `1px solid ${BORDER}`, borderRadius: 20,
-        padding: '16px 20px', marginBottom: 20,
-        display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-      }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: NAVY, letterSpacing: '-0.02em' }}>
-            KDS — Écran Cuisine
-          </h1>
-          <p style={{ margin: '3px 0 0', fontSize: 12, color: MUTED, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
-            <span>{activeOrders.length} commande{activeOrders.length !== 1 ? 's' : ''} active{activeOrders.length !== 1 ? 's' : ''}</span>
-            {urgents > 0 && <span style={{ color: RED, fontWeight: 700 }}>· {urgents} en retard</span>}
-            {livreesToday > 0 && <span style={{ color: GREEN, fontWeight: 700 }}>· {livreesToday} livrée{livreesToday > 1 ? 's' : ''} auj.</span>}
-            {lastEvent && <span style={{ color: OG, fontWeight: 600 }}>· {lastEvent}</span>}
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {COLS.map(col => {
-            const count = grouped.find(g => g.id === col.id)?.orders.length ?? 0;
-            return (
-              <div key={col.id} style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                padding: '7px 11px', borderRadius: 12, minWidth: 44,
-                background: count > 0 ? `${col.accent}10` : '#F9FAFB',
-                border: `1px solid ${count > 0 ? col.accent + '30' : BORDER}`,
-              }}>
-                <span style={{ fontSize: 15, fontWeight: 900, color: count > 0 ? col.accent : MUTED, lineHeight: 1 }}>{count}</span>
-                <span style={{ fontSize: 9, color: MUTED, fontWeight: 600 }}>{col.label.split(' ')[0]}</span>
-              </div>
-            );
-          })}
-          <button onClick={load} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: 12, border: `1px solid ${BORDER}`, background: CARD, fontSize: 12, fontWeight: 700, color: MUTED, cursor: 'pointer' }}>
-            <RefreshCw size={12} /> Actualiser
-          </button>
-        </div>
-      </div>
 
       {/* Rappels livraison B2B */}
       {reminders.length > 0 && (
@@ -757,7 +726,7 @@ export default function KDSStaff() {
       {/* Loading */}
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '80px 0', gap: 14 }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', border: `4px solid ${OG_L}`, borderTopColor: OG, animation: 'kds-spin 0.8s linear infinite' }} />
+          <div style={{ width: 44, height: 44, borderRadius: '50%', border: '4px solid rgba(151,49,0,0.12)', borderTopColor: OG, animation: 'kds-spin 0.8s linear infinite' }} />
           <p style={{ margin: 0, fontSize: 13, color: MUTED, fontWeight: 600 }}>Chargement des commandes…</p>
         </div>
       ) : (

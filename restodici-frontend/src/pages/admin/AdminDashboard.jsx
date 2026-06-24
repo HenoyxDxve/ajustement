@@ -168,8 +168,8 @@ function BarComboChart({ usersByDay, auditByDay }) {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#1E293B',
-            titleColor: '#F8FAFC',
+            backgroundColor: '#973100',
+            titleColor: '#F9F9FC',
             bodyColor: '#CBD5E1',
             padding: 10,
             cornerRadius: 8,
@@ -224,8 +224,8 @@ function DonutRolesChart({ roleDist }) {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#1E293B',
-            titleColor: '#F8FAFC',
+            backgroundColor: '#973100',
+            titleColor: '#F9F9FC',
             bodyColor: '#CBD5E1',
             padding: 10,
             cornerRadius: 8,
@@ -665,7 +665,7 @@ function UsersTab() {
                 <tr>
                   <td colSpan={7}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', textAlign: 'center', background: '#FFF7ED', borderRadius: 0 }}>
-                      <Users style={{ width: 48, height: 48, marginBottom: 12, color: '#FF8C00', opacity: 0.4 }} />
+                      <Users style={{ width: 48, height: 48, marginBottom: 12, color: '#973100', opacity: 0.4 }} />
                       <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Aucun utilisateur trouvé</p>
                       <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Essayez de modifier les filtres ou créez un premier compte.</p>
                     </div>
@@ -673,7 +673,7 @@ function UsersTab() {
                 </tr>
               ) : users.map(u => (
                 <tr key={u.id} style={{ borderBottom: '1px solid #E2E8F0' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#F9F9FC'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#0F172A' }}>{[u.prenom, u.nom].filter(Boolean).join(' ') || '—'}</td>
@@ -859,7 +859,7 @@ function RestaurantsTab() {
                 <tr>
                   <td colSpan={7}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', textAlign: 'center', background: '#FFF7ED' }}>
-                      <UtensilsCrossed style={{ width: 48, height: 48, marginBottom: 12, color: '#FF8C00', opacity: 0.4 }} />
+                      <UtensilsCrossed style={{ width: 48, height: 48, marginBottom: 12, color: '#973100', opacity: 0.4 }} />
                       <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Aucun restaurant enregistré</p>
                       <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Les restaurants créés sur la plateforme apparaîtront ici.</p>
                     </div>
@@ -867,7 +867,7 @@ function RestaurantsTab() {
                 </tr>
               ) : restaurants.map(r => (
                 <tr key={r.id} style={{ borderBottom: '1px solid #E2E8F0' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#F9F9FC'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{r.nom}</td>
@@ -1115,7 +1115,7 @@ function AuditTab() {
                 <tr>
                   <td colSpan={7}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', textAlign: 'center', background: '#FFF7ED' }}>
-                      <ScrollText style={{ width: 48, height: 48, marginBottom: 12, color: '#FF8C00', opacity: 0.4 }} />
+                      <ScrollText style={{ width: 48, height: 48, marginBottom: 12, color: '#973100', opacity: 0.4 }} />
                       <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Aucun log disponible</p>
                       <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Aucune activité ne correspond aux filtres sélectionnés.</p>
                     </div>
@@ -1753,7 +1753,7 @@ function ConfigTab() {
     <div style={{ display: 'flex', gap: 0, ...card, overflow: 'hidden', minHeight: 480 }}>
 
       {/* ── Sidebar navigation ── */}
-      <div style={{ width: 160, borderRight: '1px solid #E2E8F0', background: '#F8FAFC', padding: '8px 0', flexShrink: 0 }}>
+      <div style={{ width: 160, borderRight: '1px solid #E2E8F0', background: '#F9F9FC', padding: '8px 0', flexShrink: 0 }}>
         {CFG_TABS.map(t => {
           const Icon = t.icon;
           const active = cfgTab === t.id;
@@ -2231,7 +2231,7 @@ function MetriquesTab() {
           </div>
           <button
             onClick={handleRunBackup} disabled={backupRunning}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, background: backupRunning ? '#94A3B8' : '#0F172A', color: '#fff', border: 'none', borderRadius: 9, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: backupRunning ? 'not-allowed' : 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, background: backupRunning ? '#94A3B8' : '#973100', color: '#fff', border: 'none', borderRadius: 9, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: backupRunning ? 'not-allowed' : 'pointer' }}
           >
             <Database style={{ width: 14, height: 14 }} />
             {backupRunning ? 'Backup en cours…' : 'Lancer un backup'}
@@ -2554,7 +2554,7 @@ function CommissionsTab() {
                     </div>
                   ) : (
                     <button onClick={() => { setEditing(r.restaurantId); setNewTaux(String(r.tauxCommission)); }}
-                      style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', background:'#F8FAFC', border:'1px solid #E2E8F0', borderRadius:7, fontSize:12, color:'#334155', cursor:'pointer', fontWeight:500 }}>
+                      style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', background:'#F9F9FC', border:'1px solid #E2E8F0', borderRadius:7, fontSize:12, color:'#334155', cursor:'pointer', fontWeight:500 }}>
                       <Pencil style={{ width:12, height:12 }} /> Modifier
                     </button>
                   )}

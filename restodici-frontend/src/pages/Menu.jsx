@@ -22,7 +22,7 @@ import { getArticleImage } from '../utils/articleImage';
 const C = {
   bg:     '#FFFAF3',
   card:   '#FFFFFF',
-  accent: '#973100',
+  accent: '#FF8C00',
   aD:     '#E07A00',
   aL:     '#FFF5E8',
   yellow: '#FFB800',
@@ -116,14 +116,14 @@ function Logo() {
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <div style={{
         width: 34, height: 34, borderRadius: 10,
-        background: 'linear-gradient(135deg, #973100, #FFB800)',
+        background: 'linear-gradient(135deg, #FF8C00, #FFB800)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 2px 8px #97310044',
+        boxShadow: '0 2px 8px #FF8C0044',
       }}>
         <UtensilsCrossed size={18} color="#fff" strokeWidth={2.5} />
       </div>
       <span style={{ fontFamily: sans, fontSize: 17, fontWeight: 900, letterSpacing: '-0.04em' }}>
-        <span style={{ color: '#973100' }}>Resto</span>
+        <span style={{ color: '#FF8C00' }}>Resto</span>
         <span style={{ color: '#1C1C1E' }}>&nbsp;d'ici</span>
       </span>
     </div>
@@ -263,11 +263,11 @@ function DeliveryMapModal({ onClose, onConfirm, initial }) {
             disabled={!loc}
             style={{
               width: '100%', padding: '14px', borderRadius: 14, border: 'none',
-              background: loc ? 'linear-gradient(135deg,#973100,#C04000)' : C.line,
+              background: loc ? 'linear-gradient(135deg,#FF8C00,#E07A00)' : C.line,
               color: loc ? '#fff' : C.muted,
               fontFamily: sans, fontSize: 14, fontWeight: 800,
               cursor: loc ? 'pointer' : 'not-allowed',
-              boxShadow: loc ? '0 6px 20px #97310055' : 'none',
+              boxShadow: loc ? '0 6px 20px #FF8C0055' : 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               transition: 'all 0.15s',
             }}
@@ -337,7 +337,7 @@ function RestaurantCard({ restaurant, idx, onSelect, favorites, onFav }) {
           {(restaurant.cuisines || restaurant.tags || []).slice(0, 3).map((t, i) => <span key={i} style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, background: C.aL, color: C.aD, borderRadius: 99, padding: '3px 8px' }}>{t}</span>)}
           {restaurant.fraisLivraison != null && <span style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, background: '#F0FFF4', color: C.green, borderRadius: 99, padding: '3px 8px' }}>{restaurant.fraisLivraison === 0 ? '🚴 Livraison offerte' : '🚴 ' + formatFCFA(restaurant.fraisLivraison)}</span>}
         </div>
-        <button onClick={e => { if (!isOpen) return; e.stopPropagation(); onSelect(restaurant); }} disabled={!isOpen} style={{ width: '100%', padding: '10px', borderRadius: 12, border: 'none', background: isOpen ? 'linear-gradient(135deg,#973100,#C04000)' : C.line, color: isOpen ? '#fff' : C.muted, fontFamily: sans, fontSize: 13, fontWeight: 800, cursor: isOpen ? 'pointer' : 'not-allowed', boxShadow: isOpen ? '0 4px 14px #97310044' : 'none', transition: 'all 0.15s' }}>
+        <button onClick={e => { if (!isOpen) return; e.stopPropagation(); onSelect(restaurant); }} disabled={!isOpen} style={{ width: '100%', padding: '10px', borderRadius: 12, border: 'none', background: isOpen ? 'linear-gradient(135deg,#FF8C00,#E07A00)' : C.line, color: isOpen ? '#fff' : C.muted, fontFamily: sans, fontSize: 13, fontWeight: 800, cursor: isOpen ? 'pointer' : 'not-allowed', boxShadow: isOpen ? '0 4px 14px #FF8C0044' : 'none', transition: 'all 0.15s' }}>
           {isOpen ? 'Voir le menu →' : 'Restaurant fermé'}
         </button>
       </div>
@@ -423,13 +423,13 @@ function ProductCard({ product, qty, onAdd, onRemove, onCustomize, idx, isFav, o
           ) : <span />}
           {/* Bouton ajouter */}
           {qty > 0 ? (
-            <div style={{ display: 'flex', alignItems: 'center', background: C.accent, borderRadius: 99, overflow: 'hidden', boxShadow: '0 3px 12px #97310055' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: C.accent, borderRadius: 99, overflow: 'hidden', boxShadow: '0 3px 12px #FF8C0055' }}>
               <button onClick={e => { e.stopPropagation(); onRemove(product); }} style={{ width: 28, height: 28, border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={11} /></button>
               <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 800, color: '#fff', minWidth: 18, textAlign: 'center' }}>{qty}</span>
               <button onClick={e => { e.stopPropagation(); onAdd(product); }} style={{ width: 28, height: 28, border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={11} /></button>
             </div>
           ) : (
-            <button onClick={e => { e.stopPropagation(); if (isAvail) onAdd(product); }} disabled={!isAvail} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: isAvail ? 'linear-gradient(135deg,#973100,#C04000)' : C.line, color: isAvail ? '#fff' : C.muted, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isAvail ? 'pointer' : 'not-allowed', boxShadow: isAvail ? '0 3px 12px #97310055' : 'none', flexShrink: 0, transition: 'all 0.15s' }}>
+            <button onClick={e => { e.stopPropagation(); if (isAvail) onAdd(product); }} disabled={!isAvail} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: isAvail ? 'linear-gradient(135deg,#FF8C00,#E07A00)' : C.line, color: isAvail ? '#fff' : C.muted, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isAvail ? 'pointer' : 'not-allowed', boxShadow: isAvail ? '0 3px 12px #FF8C0055' : 'none', flexShrink: 0, transition: 'all 0.15s' }}>
               <Plus size={15} />
             </button>
           )}
@@ -454,7 +454,7 @@ function CategoryTabs({ cats, active, onChange }) {
         const isActive = cat.id === active;
         return (
           <button key={cat.id} data-cat={cat.id} onClick={() => onChange(cat.id)} style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <div style={{ width: 60, height: 60, borderRadius: '50%', background: isActive ? 'linear-gradient(135deg,#973100,#C04000)' : C.card, border: isActive ? 'none' : '2px solid ' + C.line, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: isActive ? '0 6px 18px #97310044' : C.sh, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)', fontSize: 24 }}>
+            <div style={{ width: 60, height: 60, borderRadius: '50%', background: isActive ? 'linear-gradient(135deg,#FF8C00,#E07A00)' : C.card, border: isActive ? 'none' : '2px solid ' + C.line, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: isActive ? '0 6px 18px #FF8C0044' : C.sh, transition: 'all 0.2s cubic-bezier(.4,0,.2,1)', fontSize: 24 }}>
               {catEmoji(cat.nom)}
             </div>
             <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, color: isActive ? C.accent : C.muted, whiteSpace: 'nowrap', transition: 'color 0.15s' }}>{cat.nom}</span>
@@ -519,7 +519,7 @@ function CartPanel({ items, total, onUpdate, deliveryMode, onDeliveryMode, onChe
           {DELIVERY_MODES.map(({ key, label, Icon }) => {
             const isActive = deliveryMode === key;
             return (
-              <button key={key} onClick={() => onDeliveryMode(key)} title={label} style={{ flex: 1, padding: '8px 4px', borderRadius: 9, border: 'none', background: isActive ? C.accent : 'transparent', color: isActive ? '#fff' : C.muted, fontFamily: sans, fontSize: 10, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: isActive ? '0 2px 8px #97310044' : 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+              <button key={key} onClick={() => onDeliveryMode(key)} title={label} style={{ flex: 1, padding: '8px 4px', borderRadius: 9, border: 'none', background: isActive ? C.accent : 'transparent', color: isActive ? '#fff' : C.muted, fontFamily: sans, fontSize: 10, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: isActive ? '0 2px 8px #FF8C0044' : 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                 <Icon size={14} />
                 <span>{label}</span>
               </button>
@@ -597,7 +597,7 @@ function CartPanel({ items, total, onUpdate, deliveryMode, onDeliveryMode, onChe
               <span style={{ fontFamily: sans, fontSize: 16, fontWeight: 900, color: C.accent }}>{formatFCFA(grandTotal)}</span>
             </div>
           </div>
-          <button onClick={onCheckout} style={{ width: '100%', padding: '14px', borderRadius: 14, border: 'none', background: 'linear-gradient(135deg,#973100,#C04000)', color: '#fff', fontFamily: sans, fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 20px #97310055', transition: 'all 0.15s' }}
+          <button onClick={onCheckout} style={{ width: '100%', padding: '14px', borderRadius: 14, border: 'none', background: 'linear-gradient(135deg,#FF8C00,#E07A00)', color: '#fff', fontFamily: sans, fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 20px #FF8C0055', transition: 'all 0.15s' }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
           >
@@ -842,7 +842,7 @@ export default function MenuPage() {
                 <input type="text" placeholder="Rechercher un restaurant…" value={discoSearch} onChange={e => setDiscoSearch(e.target.value)} style={{ flex: 1, border: 'none', outline: 'none', fontFamily: sans, fontSize: 13, color: C.dark, background: 'transparent' }} />
                 {discoSearch && <button onClick={() => setDiscoSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}><X size={13} color={C.muted} /></button>}
               </div>
-              <button onClick={() => setCartOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, background: cartCount > 0 ? 'linear-gradient(135deg,#973100,#C04000)' : C.bg, border: '1.5px solid ' + (cartCount > 0 ? 'transparent' : C.line), color: cartCount > 0 ? '#fff' : C.muted, borderRadius: 12, padding: '7px 14px', fontFamily: sans, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: cartCount > 0 ? '0 3px 12px #97310044' : 'none', transition: 'all 0.2s' }}>
+              <button onClick={() => setCartOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, background: cartCount > 0 ? 'linear-gradient(135deg,#FF8C00,#E07A00)' : C.bg, border: '1.5px solid ' + (cartCount > 0 ? 'transparent' : C.line), color: cartCount > 0 ? '#fff' : C.muted, borderRadius: 12, padding: '7px 14px', fontFamily: sans, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: cartCount > 0 ? '0 3px 12px #FF8C0044' : 'none', transition: 'all 0.2s' }}>
                 <ShoppingCart size={15} />
                 {cartCount > 0 && <><span>{cartCount}</span><span style={{ opacity: 0.85 }}>·</span><span>{formatFCFA(total())}</span></>}
               </button>
@@ -851,7 +851,7 @@ export default function MenuPage() {
 
           <div style={{ padding: 'clamp(16px,3vw,24px) clamp(12px,4vw,28px) 40px' }}>
             {/* Hero */}
-            <div style={{ background: 'linear-gradient(135deg, #973100 0%, #E07A00 100%)', borderRadius: 20, padding: 'clamp(16px,4vw,28px)', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 8px 32px #97310044', overflow: 'hidden', position: 'relative' }}>
+            <div style={{ background: 'linear-gradient(135deg, #FF8C00 0%, #E07A00 100%)', borderRadius: 20, padding: 'clamp(16px,4vw,28px)', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 8px 32px #FF8C0044', overflow: 'hidden', position: 'relative' }}>
               <div style={{ position: 'absolute', right: -20, top: -20, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
               <div style={{ position: 'relative' }}>
                 <p style={{ margin: '0 0 6px', fontFamily: sans, fontSize: 'clamp(16px,4vw,22px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>Commandez chez <br />vos restaurants préférés</p>
@@ -906,8 +906,8 @@ export default function MenuPage() {
 
           {cartCount > 0 && (
             <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 200, animation: 'barIn 0.35s cubic-bezier(.4,0,.2,1) both' }}>
-              <button onClick={() => setCartOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'linear-gradient(135deg,#973100,#C04000)', color: '#fff', border: 'none', borderRadius: 99, padding: '14px 24px', cursor: 'pointer', fontFamily: sans, fontSize: 14, fontWeight: 800, boxShadow: '0 8px 32px #97310066', whiteSpace: 'nowrap' }}>
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ShoppingCart size={13} /></div>
+              <button onClick={() => setCartOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'linear-gradient(135deg,#FF8C00,#E07A00)', color: '#fff', border: 'none', borderRadius: 99, padding: '14px 24px', cursor: 'pointer', fontFamily: sans, fontSize: 14, fontWeight: 800, boxShadow: '0 8px 32px #FF8C0066', whiteSpace: 'nowrap' }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><ShoppingCart size={13} color="#EF4444" /></div>
                 Voir le panier ({cartCount}) · {formatFCFA(total())}
                 <ChevronRight size={15} />
               </button>
@@ -932,7 +932,7 @@ export default function MenuPage() {
                 <input type="text" placeholder={'Rechercher dans ' + selectedResto.nom + '…'} value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, border: 'none', outline: 'none', fontFamily: sans, fontSize: 13, color: C.dark, background: 'transparent' }} />
                 {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}><X size={13} color={C.muted} /></button>}
               </div>
-              <button onClick={() => setCartOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, background: cartCount > 0 ? 'linear-gradient(135deg,#973100,#C04000)' : C.bg, border: '1.5px solid ' + (cartCount > 0 ? 'transparent' : C.line), color: cartCount > 0 ? '#fff' : C.muted, borderRadius: 12, padding: '7px 14px', fontFamily: sans, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: cartCount > 0 ? '0 3px 12px #97310044' : 'none', transition: 'all 0.2s' }}>
+              <button onClick={() => setCartOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, background: cartCount > 0 ? 'linear-gradient(135deg,#FF8C00,#E07A00)' : C.bg, border: '1.5px solid ' + (cartCount > 0 ? 'transparent' : C.line), color: cartCount > 0 ? '#fff' : C.muted, borderRadius: 12, padding: '7px 14px', fontFamily: sans, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: cartCount > 0 ? '0 3px 12px #FF8C0044' : 'none', transition: 'all 0.2s' }}>
                 <ShoppingCart size={15} />
                 {cartCount > 0 && <><span>{cartCount}</span><span style={{ opacity: 0.85 }}>·</span><span>{formatFCFA(total())}</span></>}
               </button>
@@ -1002,7 +1002,7 @@ export default function MenuPage() {
           {/* Barre panier mobile */}
           {cartCount > 0 && (
             <div className="cart-mobile-bar" style={{ padding: '12px 16px 20px', background: C.card, borderTop: '1px solid ' + C.line, boxShadow: '0 -4px 20px rgba(0,0,0,0.08)', flexShrink: 0 }}>
-              <button onClick={handleCheckout} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(135deg,#973100,#C04000)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 20px', cursor: 'pointer', fontFamily: sans, fontSize: 14, fontWeight: 800, boxShadow: '0 4px 16px #97310055' }}>
+              <button onClick={handleCheckout} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(135deg,#FF8C00,#E07A00)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 20px', cursor: 'pointer', fontFamily: sans, fontSize: 14, fontWeight: 800, boxShadow: '0 4px 16px #FF8C0055' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ShoppingCart size={16} /> {cartCount} article{cartCount > 1 ? 's' : ''}</span>
                 <span>Payer · {formatFCFA(total())}</span>
               </button>
@@ -1024,7 +1024,7 @@ export default function MenuPage() {
       )}
 
       {/* ── Modals ── */}
-      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} initialMode={deliveryMode} />
       {customModal.open && (
         <ProductCustomizationModal
           product={customModal.product}

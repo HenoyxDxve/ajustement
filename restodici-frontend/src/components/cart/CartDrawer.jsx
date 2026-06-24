@@ -101,14 +101,14 @@ function SectionTitle({ children }) {
 /* ══════════════════════════════════════════════════════════════════════════
    CartDrawer — composant principal
 ══════════════════════════════════════════════════════════════════════════ */
-export default function CartDrawer({ isOpen, onClose, tableNumber }) {
+export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode }) {
   const { items, total, updateQuantity, removeItem, clearCart, restaurantId, restaurantName } = useCart();
   const { user } = useAuth();
   const navigate  = useNavigate();
 
   /* ── Step 1 state ── */
   const [step,    setStep]    = useState(1);
-  const [mode,    setMode]    = useState('SUR_PLACE');
+  const [mode,    setMode]    = useState(initialMode || 'SUR_PLACE');
   const [address, setAddress] = useState('');
 
   /* ── Step 2 — livraison ── */
@@ -155,12 +155,14 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
 
   const selectedMethod = paymentMethods.find(m => m.id === selectedPayment);
 
-  /* Reset step quand on ferme */
+  /* Reset step quand on ferme, sync mode à l'ouverture */
   useEffect(() => {
     if (!isOpen) {
       setTimeout(() => setStep(1), 300);
+    } else if (initialMode) {
+      setMode(initialMode);
     }
-  }, [isOpen]);
+  }, [isOpen, initialMode]);
 
   /* ── Handlers ── */
   const handleApplyPromo = () => {
@@ -321,7 +323,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
               <div style={{ display: 'flex', gap: 8 }}>
                 {items.length > 0 && (
                   <button onClick={clearCart}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '7px 10px', cursor: 'pointer', color: '#FCA5A5', fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,140,0,0.15)', border: '1px solid rgba(255,140,0,0.25)', borderRadius: 10, padding: '7px 10px', cursor: 'pointer', color: '#FFDCAA', fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
                     <Trash2 style={{ width: 12, height: 12 }} /> Vider
                   </button>
                 )}
@@ -522,7 +524,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
                           <CheckCircle style={{ width: 13, height: 13 }} /> Livreur confirmé
                         </span>
                         <button onClick={() => { setDriverStatus('idle'); setDriver(null); }}
-                          style={{ fontSize: 11, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                          style={{ fontSize: 11, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                           Changer
                         </button>
                       </div>
@@ -530,9 +532,9 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
                   )}
 
                   {driverStatus === 'error' && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 10, padding: '10px 14px' }}>
-                      <AlertCircle style={{ width: 14, height: 14, color: '#EF4444', flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, color: '#EF4444', fontWeight: 600 }}>Aucun livreur disponible. Réessayez dans quelques instants.</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFF4EE', border: '1px solid rgba(255,140,0,0.3)', borderRadius: 10, padding: '10px 14px' }}>
+                      <AlertCircle style={{ width: 14, height: 14, color: ORANGE, flexShrink: 0 }} />
+                      <span style={{ fontSize: 12, color: '#E07A00', fontWeight: 600 }}>Aucun livreur disponible. Réessayez dans quelques instants.</span>
                     </div>
                   )}
                 </div>
@@ -571,7 +573,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber }) {
                       </button>
                     </div>
                     {promoError && (
-                      <p style={{ fontSize: 11, color: '#EF4444', margin: '8px 0 0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <p style={{ fontSize: 11, color: '#E07A00', margin: '8px 0 0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <AlertCircle style={{ width: 12, height: 12 }} />{promoError}
                       </p>
                     )}

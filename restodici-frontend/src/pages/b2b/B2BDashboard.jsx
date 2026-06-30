@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, Users, FileText, Settings,
@@ -1363,51 +1364,51 @@ export default function B2BDashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Top bar */}
-        <header className="shrink-0" style={{ background: CARD, borderBottom: `1px solid ${BORDER}`, boxShadow: SH }}>
+        <header className="shrink-0 relative" style={{ background: NAVY, boxShadow: '0 1px 0 rgba(255,255,255,0.06), 0 2px 16px rgba(0,0,0,0.22)' }}>
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${ORANGE} 0%, ${ORANGE_D} 60%, transparent 100%)` }} />
           <div className="h-16 px-4 lg:px-6 flex items-center gap-4">
             <button className="lg:hidden p-1.5 rounded-lg" onClick={() => setSideOpen(true)}
-              style={{ color: MUTED, background: BG }}>
+              style={{ color: 'rgba(255,255,255,0.65)', background: 'rgba(255,255,255,0.08)' }}>
               <Menu className="w-5 h-5" />
             </button>
 
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: FAINT }}>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: 'rgba(255,255,255,0.45)' }}>
                 Tableau de bord entreprise
               </p>
-              <h1 className="text-base font-bold mt-0.5 leading-tight" style={{ color: TEXT }}>
+              <h1 className="text-base font-bold mt-0.5 leading-tight" style={{ color: '#fff' }}>
                 Bonjour, {user?.prenom || user?.nom?.split(' ')[0] || 'Gestionnaire'} 👋
               </h1>
             </div>
 
             {/* Search */}
             <div className="hidden md:flex flex-1 max-w-sm relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: MUTED }} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: 'rgba(255,255,255,0.4)' }} />
               <input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Rechercher commande, centre de coûts…"
                 className="w-full rounded-xl border pl-9 pr-8 py-2 text-sm outline-none transition"
-                style={{ borderColor: searchQuery ? ORANGE : BORDER, background: BG, color: TEXT, boxShadow: searchQuery ? `0 0 0 3px ${ORANGE}18` : 'none' }}
+                style={{ borderColor: searchQuery ? ORANGE : 'rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.08)', color: '#fff', boxShadow: searchQuery ? `0 0 0 3px ${ORANGE}30` : 'none' }}
               />
               {searchQuery && (
                 <button onClick={() => setSearchQuery('')}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full flex items-center justify-center transition hover:opacity-70"
-                  style={{ background: MUTED + '33', color: MUTED }}>
+                  style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)' }}>
                   <X className="w-2.5 h-2.5" />
                 </button>
               )}
             </div>
 
-
             <div className="flex items-center gap-2">
               <button onClick={() => loadData(true)} disabled={refreshing}
                 className="w-8 h-8 rounded-lg flex items-center justify-center transition hover:opacity-70"
-                style={{ background: BG, color: MUTED }}>
+                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.65)' }}>
                 <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               </button>
               <button onClick={() => goTo('notifications')}
                 className="relative w-8 h-8 rounded-lg flex items-center justify-center transition hover:opacity-70"
-                style={{ background: BG, color: MUTED }}>
+                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.65)' }}>
                 <Bell className="w-3.5 h-3.5" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[9px] font-bold text-white flex items-center justify-center"
@@ -1416,22 +1417,22 @@ export default function B2BDashboard() {
                   </span>
                 )}
               </button>
-              {/* Avatar profil — avec indicateur visuel pour inviter au clic */}
+              {/* Avatar profil */}
               <div className="relative group">
                 <button
                   onClick={() => setShowProfile(true)}
-                  className="flex items-center gap-2 rounded-full transition-all"
+                  className="flex items-center rounded-full transition-all"
                   style={{
                     padding: '4px 10px 4px 4px',
-                    border: `1.5px solid ${ORANGE}44`,
-                    background: `${ORANGE}08`,
+                    border: `1.5px solid rgba(255,140,0,0.45)`,
+                    background: `rgba(255,140,0,0.12)`,
                     cursor: 'pointer',
                     gap: 6,
                   }}
                 >
                   <Avatar name={[user?.prenom, user?.nom].filter(Boolean).join(' ') || user?.nom || 'B2B'} size={30} />
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1 }}>
-                    <span className="text-[10px] font-bold hidden sm:block" style={{ color: TEXT, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span className="text-[10px] font-bold hidden sm:block" style={{ color: 'rgba(255,255,255,0.9)', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {[user?.prenom, user?.nom].filter(Boolean).join(' ') || user?.nom || 'Gestionnaire'}
                     </span>
                     <span className="text-[9px] hidden sm:flex items-center gap-1" style={{ color: ORANGE }}>
@@ -1493,43 +1494,70 @@ export default function B2BDashboard() {
             </div>
           )}
 
+          {/* ══ CONTENU D'ONGLET ════════════════════════════════════════════ */}
+          <AnimatePresence mode="wait">
+          <motion.div
+            key={tab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
           {/* ══ VUE D'ENSEMBLE — BENTO GRID ════════════════════════════════════ */}
           {tab === 'overview' && (
             <div className="space-y-8">
 
               {/* Welcome bar */}
-              <section className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em]" style={{ color: ORANGE }}>
-                    TABLEAU DE BORD ENTREPRISE
-                  </p>
-                  <h3 className="text-2xl font-bold mt-1" style={{ color: TEXT }}>
-                    {compte?.raisonSociale
-                      ? compte.raisonSociale
-                      : `Bonjour, ${user?.prenom || user?.nom?.split(' ')[0] || 'Gestionnaire'} 👋`}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button onClick={() => setViewingSyscohada(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition hover:opacity-80"
-                    style={{ background: BG, border: `1.5px solid ${BORDER}`, color: TEXT }}>
-                    <Eye className="w-4 h-4" /> Voir rapport
-                  </button>
-                  {isLastDayOfMonth ? (
-                    <button onClick={downloadSyscohadaReport} disabled={downloading}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                      style={{ background: `linear-gradient(135deg, ${GREEN}, ${GREEN_D})`, boxShadow: `0 3px 12px ${GREEN}40`, opacity: downloading ? 0.7 : 1 }}>
-                      {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                      {downloading ? 'Génération…' : 'Télécharger SYSCOHADA'}
-                    </button>
-                  ) : (
-                    <span className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-                      style={{ background: AMBER_L, color: AMBER }}>
-                      <Clock className="w-4 h-4" /> Export le {lastDayDisplay}
-                    </span>
-                  )}
+              <section className="rounded-3xl overflow-hidden relative"
+                style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: SH }}>
+                <div style={{ height: 3, background: `linear-gradient(90deg, ${ORANGE} 0%, ${ORANGE_D} 55%, transparent 100%)` }} />
+                <div className="flex flex-wrap items-center justify-between gap-4 px-8 py-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_D})`, boxShadow: `0 4px 16px ${ORANGE}40` }}>
+                      <UtensilsCrossed className="w-7 h-7 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.28em]" style={{ color: ORANGE }}>
+                        TABLEAU DE BORD ENTREPRISE
+                      </p>
+                      <h3 className="text-2xl font-bold mt-1" style={{ color: TEXT }}>
+                        {compte?.raisonSociale
+                          ? compte.raisonSociale
+                          : `Bonjour, ${user?.prenom || user?.nom?.split(' ')[0] || 'Gestionnaire'} 👋`}
+                      </h3>
+                      {compte?.raisonSociale && (
+                        <p className="text-[12px] mt-0.5" style={{ color: MUTED }}>
+                          Bonjour, {user?.prenom || user?.nom?.split(' ')[0] || 'Gestionnaire'} 👋
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </section>
+
+              {/* ── KPI strip ─────────────────────────────────────────────────── */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: 'Dépenses du mois',  value: loading ? '—' : formatFCFA(monthlyExp),        sub: `${budgetPct}% du budget`,                                    color: ORANGE,                          bg: ORANGE_L,  Icon: TrendingUp  },
+                  { label: 'Commandes actives',  value: loading ? '—' : String(activeOrders.length),  sub: `${orders.length} au total`,                                  color: ORANGE,                          bg: ORANGE_L,  Icon: ShoppingBag },
+                  { label: 'Collaborateurs',     value: loading ? '—' : String(collabs.length),       sub: 'Budgets maîtrisés',                                           color: GREEN,                           bg: GREEN_L,   Icon: Users       },
+                  { label: 'Factures impayées',  value: loading ? '—' : String(unpaidInvoices),       sub: unpaidInvoices > 0 ? 'À régler rapidement' : 'Tout est à jour', color: unpaidInvoices > 0 ? RED : MUTED, bg: unpaidInvoices > 0 ? RED_L : BG, Icon: FileText },
+                ].map(({ label, value, sub, color, bg, Icon }) => (
+                  <div key={label}
+                    className="rounded-2xl px-5 py-4 flex items-center gap-4 transition-transform hover:-translate-y-0.5"
+                    style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: SH, cursor: 'default' }}>
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
+                      <Icon className="w-5 h-5" style={{ color }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xl font-black leading-none" style={{ color }}>{value}</p>
+                      <p className="text-[12px] font-semibold mt-1 truncate" style={{ color: TEXT }}>{label}</p>
+                      <p className="text-[10px] mt-0.5 truncate" style={{ color: FAINT }}>{sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               {/* Blocked banner */}
               {isBlocked && (
@@ -1575,9 +1603,6 @@ export default function B2BDashboard() {
                       <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: MUTED }}>
                         Montant cumulé en cours
                       </p>
-                      <h4 className="text-5xl font-black leading-none" style={{ color: ORANGE }}>
-                        {loading ? '—' : formatFCFA(monthlyExp)}
-                      </h4>
                     </div>
                     <div className="flex flex-wrap gap-3">
                       <span className="px-3 py-1.5 rounded-full text-[11px] font-bold"
@@ -1588,7 +1613,7 @@ export default function B2BDashboard() {
                         Budget utilisé : {budgetPct}%
                       </span>
                       <span className="px-3 py-1.5 rounded-full text-[11px] font-bold"
-                        style={{ background: '#EFF6FF', color: '#2563EB' }}>
+                        style={{ background: ORANGE_L, color: ORANGE }}>
                         {orders.length} commande{orders.length !== 1 ? 's' : ''} ce mois
                       </span>
                       {activeOrders.length > 0 && (
@@ -2838,6 +2863,9 @@ export default function B2BDashboard() {
               </div>
             </div>
           )}
+
+          </motion.div>
+          </AnimatePresence>
 
         </main>
       </div>

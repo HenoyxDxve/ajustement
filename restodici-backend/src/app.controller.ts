@@ -14,4 +14,14 @@ export class AppController {
   getPublicStats() {
     return this.appService.getPublicStats();
   }
+
+  @Get('config/public/banner')
+  getBannerMessages() {
+    return this.appService.getBannerMessages();
+  }
+
+  @Get('app/modules')
+  getClientModules() {
+    return this.appService.getClientModules();
+  }
 }

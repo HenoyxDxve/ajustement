@@ -19,6 +19,11 @@ export default {
           800: '#9A5200',
           900: '#6B3800',
         },
+        text: {
+        primary: '#1B1C1C',
+        secondary: '#5A4136',
+        muted: '#9CA3AF',
+      },
         // Neutral dark backgrounds
         dark: {
           50:  '#F5F5F5',
@@ -42,8 +47,10 @@ export default {
         accent: '#FF8C00',
       },
       fontFamily: {
-        sans:    ['Manrope', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Playfair Display', 'Georgia', 'serif'],
+        headline: ['Montserrat', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        label: ['Inter', 'sans-serif'],
+
       },
       boxShadow: {
         'card':     '0 2px 14px rgba(0,0,0,0.07)',

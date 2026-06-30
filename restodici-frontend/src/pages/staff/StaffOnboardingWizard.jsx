@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -110,6 +111,15 @@ export default function StaffOnboardingWizard() {
         <div className="rounded-3xl shadow-xl overflow-hidden" style={{ background: '#FFFFFF' }}>
           <div className="px-8 py-8">
             <StepDots current={step} />
+
+            <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            >
 
             {/* ── STEP 0: Bienvenue ── */}
             {step === 0 && (
@@ -227,6 +237,8 @@ export default function StaffOnboardingWizard() {
               </div>
             )}
 
+            </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 

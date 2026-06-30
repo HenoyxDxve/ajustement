@@ -442,3 +442,17 @@ export const commandesExtraAPI = {
   rembourser: (id, motif) => api.patch(`/commandes/${id}/rembourser`, { motif }),
 };
 
+// ── Config publique ───────────────────────────────────────────────────────────
+
+export const publicConfigAPI = {
+  getBannerMessages: () => api.get('/config/public/banner'),
+};
+
+// ── Modules client — plug-and-play depuis l'admin ────────────────────────────
+// GET /app/modules renvoie { delivery: { enabled, provider, apiUrl }, messaging: { ... } }
+// L'admin active/désactive ces modules depuis son dashboard sans modifier le code.
+
+export const modulesAPI = {
+  getClientModules: () => api.get('/app/modules'),
+};
+

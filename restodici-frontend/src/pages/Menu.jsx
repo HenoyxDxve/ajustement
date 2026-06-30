@@ -7,11 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   Search, X, UtensilsCrossed, Star, Clock, Heart, ArrowLeft,
   ShoppingCart, Plus, Minus, Store, AlertCircle, MapPin, ChevronRight,
-  Truck, Package, Navigation, SlidersHorizontal,
+  Truck, Package, Navigation, SlidersHorizontal, Trash2,
 } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
-import { menuAPI, promosAPI } from '../services/api';
+import { menuAPI, promosAPI, publicConfigAPI } from '../services/api';
 import ProductCustomizationModal from '../components/menu/ProductCustomizationModal';
 import CartDrawer from '../components/cart/CartDrawer';
 import DeliveryMap from '../components/maps/DeliveryMap';
@@ -20,7 +20,7 @@ import { getArticleImage } from '../utils/articleImage';
 
 /* ── Design tokens ── */
 const C = {
-  bg:     '#FFFAF3',
+  bg:     '#FFFFFF',
   card:   '#FFFFFF',
   accent: '#FF8C00',
   aD:     '#E07A00',
@@ -59,12 +59,15 @@ const fallback = (i, w = 600) =>
   `https://images.unsplash.com/${FOOD_IMGS[i % FOOD_IMGS.length]}?q=80&w=${w}&auto=format&fit=crop`;
 
 const CSS = `
-@keyframes sk      { 0%{background-position:200% 0}100%{background-position:-200% 0} }
-@keyframes fadeUp  { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
-@keyframes barIn   { from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes sk        { 0%{background-position:200% 0}100%{background-position:-200% 0} }
+@keyframes fadeUp    { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
+@keyframes barIn     { from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)} }
 @keyframes overlayIn { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
-@keyframes modalIn { from{opacity:0;transform:translateY(20px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)} }
-@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes modalIn   { from{opacity:0;transform:translateY(20px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes spin      { to{transform:rotate(360deg)} }
+@keyframes bannerMarquee  { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+@keyframes bannerMarqueeR { 0%{transform:translateX(-50%)} 100%{transform:translateX(0)} }
+@keyframes bannerShine    { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .cat-scroll::-webkit-scrollbar{display:none}
 .prod-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
 .cart-panel{ display:flex; flex-direction:column; }
@@ -495,7 +498,7 @@ function PromoStrip({ promos }) {
 }
 
 /* ── Panneau panier — 3 modes de livraison ── */
-function CartPanel({ items, total, onUpdate, deliveryMode, onDeliveryMode, onCheckout, deliveryAddress, onOpenMap }) {
+function CartPanel({ items, total, onUpdate, onClear, deliveryMode, onDeliveryMode, onCheckout, deliveryAddress, onOpenMap }) {
   const subtotal = total();
   const fraisLiv = deliveryMode === 'LIVRAISON' ? 500 : 0;
   const grandTotal = subtotal + fraisLiv;
@@ -508,9 +511,17 @@ function CartPanel({ items, total, onUpdate, deliveryMode, onDeliveryMode, onChe
             <p style={{ margin: 0, fontFamily: sans, fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Commande actuelle</p>
             <p style={{ margin: '3px 0 0', fontFamily: sans, fontSize: 14, fontWeight: 900, color: C.dark }}>#{String(Math.floor(Date.now() / 1000)).slice(-7)}</p>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ margin: 0, fontFamily: sans, fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Articles</p>
-            <p style={{ margin: '3px 0 0', fontFamily: sans, fontSize: 15, fontWeight: 900, color: C.accent }}>{items.reduce((s, i) => s + (i.quantite || 0), 0)}</p>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ margin: 0, fontFamily: sans, fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Articles</p>
+              <p style={{ margin: '3px 0 0', fontFamily: sans, fontSize: 15, fontWeight: 900, color: C.accent }}>{items.reduce((s, i) => s + (i.quantite || 0), 0)}</p>
+            </div>
+            {items.length > 0 && (
+              <button onClick={onClear} title="Vider le panier"
+                style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,140,0,0.1)', border: '1px solid rgba(255,140,0,0.25)', borderRadius: 8, padding: '5px 9px', cursor: 'pointer', color: C.accent, fontSize: 11, fontWeight: 700, lineHeight: 1, marginTop: 2 }}>
+                <Trash2 size={11} /> Vider
+              </button>
+            )}
           </div>
         </div>
 
@@ -632,6 +643,11 @@ export default function MenuPage() {
   const [error,           setError]           = useState(null);
   const [mapOpen,         setMapOpen]         = useState(false);
 
+  /* ── Bannière défilante — noms réels des restaurants ── */
+  const bannerItems = restaurants.length > 0
+    ? restaurants.map(r => r.nom)
+    : ['Cocody', 'Plateau', 'Adjamé', 'Treichville', 'Marcory', 'Yopougon', 'Abobo', 'Koumassi'];
+
   /* Favoris — restaurants */
   const [restoFavs, setRestoFavs] = useState(
     () => { try { return JSON.parse(localStorage.getItem('restoFavs') || '[]'); } catch { return []; } }
@@ -651,8 +667,27 @@ export default function MenuPage() {
   );
 
   const { user } = useAuth();
-  const { addItem, updateQuantity, items, total } = useCart();
+  const { addItem, updateQuantity, clearCart, items, total } = useCart();
   const cartCount = items.reduce((s, i) => s + (i.quantite || 0), 0);
+
+  /* Item en attente venant de Home.jsx (clic sur un plat) */
+  const pendingItemRef = useRef(null);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('pendingHomeItem');
+      if (raw) {
+        pendingItemRef.current = JSON.parse(raw);
+        localStorage.removeItem('pendingHomeItem');
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  /* Charger les messages de bannière depuis l'API */
+  useEffect(() => {
+    publicConfigAPI.getBannerMessages()
+      .then(res => { if (Array.isArray(res.data?.messages) && res.data.messages.length > 0) setBannerMessages(res.data.messages); })
+      .catch(() => {});
+  }, []);
 
   /* Persister favoris restaurants */
   useEffect(() => { localStorage.setItem('restoFavs', JSON.stringify(restoFavs)); }, [restoFavs]);
@@ -672,7 +707,14 @@ export default function MenuPage() {
   useEffect(() => {
     setLoading(true);
     menuAPI.getRestaurants()
-      .then(r => setRestaurants(r.data || []))
+      .then(r => {
+        const list = r.data || [];
+        setRestaurants(list);
+        if (pendingItemRef.current) {
+          const target = list.find(resto => resto.id === pendingItemRef.current.restaurantId);
+          if (target) setSelectedResto(target);
+        }
+      })
       .catch(() => setError('Impossible de charger les restaurants.'))
       .finally(() => setLoading(false));
   }, []);
@@ -689,13 +731,28 @@ export default function MenuPage() {
       promosAPI.getActives(selectedResto.id, user?.id).catch(() => ({ data: [] })),
     ])
       .then(([mr, cr, pr]) => {
-        setMenuData(mr.data || []);
+        const menuList = mr.data || [];
+        setMenuData(menuList);
         setCategories(cr.data || []);
         setPromos(pr.data || []);
+        if (pendingItemRef.current && pendingItemRef.current.restaurantId === selectedResto.id) {
+          const pending = pendingItemRef.current;
+          pendingItemRef.current = null;
+          const realArticle = menuList.find(a => a.id === pending.articleId);
+          addItem({
+            articleId: pending.articleId,
+            nom: realArticle?.nom || pending.nom,
+            prix: Number(realArticle?.prixClient ?? realArticle?.prix ?? pending.prix),
+            photoUrl: realArticle?.photoUrl || realArticle?.imageUrl || pending.photoUrl,
+            categorie: realArticle?.categorie || pending.categorie,
+            restaurantId: selectedResto.id,
+            restaurantName: selectedResto.nom,
+          }, 1);
+        }
       })
       .catch(() => setError('Impossible de charger le menu.'))
       .finally(() => setMenuLoading(false));
-  }, [selectedResto]);
+  }, [selectedResto, addItem]);
 
   useEffect(() => {
     const map = {};
@@ -740,9 +797,21 @@ export default function MenuPage() {
       setMapOpen(true);
       return;
     }
-    localStorage.setItem('deliveryMode', deliveryMode);
+    const subtotal    = total();
+    const deliveryFee = deliveryMode === 'LIVRAISON' ? 500 : 0;
+    const pendingOrder = {
+      restaurantId:   selectedResto?.id,
+      restaurantName: selectedResto?.nom,
+      orderMode:      deliveryMode,
+      items:          items.map(i => ({ ...i })),
+      deliveryFee,
+      deliveryAddress: deliveryAddress?.address ?? null,
+      deliveryZone:    deliveryAddress?.zone ?? null,
+      total:           subtotal + deliveryFee,
+    };
+    localStorage.setItem('pendingOrder', JSON.stringify(pendingOrder));
     navigate('/checkout');
-  }, [navigate, deliveryMode, deliveryAddress]);
+  }, [navigate, deliveryMode, deliveryAddress, selectedResto, items, total]);
 
   const discoCats = useMemo(() => {
     const names = new Set();
@@ -851,13 +920,35 @@ export default function MenuPage() {
 
           <div style={{ padding: 'clamp(16px,3vw,24px) clamp(12px,4vw,28px) 40px' }}>
             {/* Hero */}
-            <div style={{ background: 'linear-gradient(135deg, #FF8C00 0%, #E07A00 100%)', borderRadius: 20, padding: 'clamp(16px,4vw,28px)', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 8px 32px #FF8C0044', overflow: 'hidden', position: 'relative' }}>
-              <div style={{ position: 'absolute', right: -20, top: -20, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-              <div style={{ position: 'relative' }}>
-                <p style={{ margin: '0 0 6px', fontFamily: sans, fontSize: 'clamp(16px,4vw,22px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>Commandez chez <br />vos restaurants préférés</p>
-                <p style={{ margin: 0, fontFamily: sans, fontSize: 13, color: 'rgba(255,255,255,0.82)' }}>{restaurants.length > 0 ? restaurants.length + ' restaurants partenaires' : 'Restaurants à proximité'}</p>
+            <div style={{ background: '#0E0600', borderRadius: 18, marginBottom: 24, overflow: 'hidden', position: 'relative', boxShadow: '0 8px 32px rgba(0,0,0,0.28)' }}>
+              {/* Barre orange top */}
+              <div style={{ height: 3, background: 'linear-gradient(90deg, #FF8C00, #FFB800, #FF8C00)' }} />
+
+              {/* Titre + compteur */}
+              <div style={{ padding: 'clamp(14px,3vw,20px) clamp(14px,4vw,24px) 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <p style={{ margin: 0, fontFamily: sans, fontSize: 'clamp(13px,3vw,15px)', fontWeight: 800, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                  Restaurants disponibles
+                </p>
+                {restaurants.length > 0 && (
+                  <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 800, color: '#FF8C00', background: 'rgba(255,140,0,0.12)', border: '1px solid rgba(255,140,0,0.25)', borderRadius: 99, padding: '3px 12px' }}>
+                    {restaurants.length}
+                  </span>
+                )}
               </div>
-              <div style={{ fontSize: 'clamp(36px,8vw,60px)', position: 'relative', flexShrink: 0 }}>🍽️</div>
+
+              {/* Bande défilante — vrais noms de restaurants */}
+              <div style={{ overflow: 'hidden', paddingBottom: 'clamp(14px,3vw,20px)', maskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', width: 'max-content', animation: `bannerMarquee ${Math.max(18, bannerItems.length * 3)}s linear infinite` }}>
+                  {[...bannerItems, ...bannerItems, ...bannerItems].map((nom, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                      <span style={{ fontFamily: sans, fontSize: 'clamp(16px,4vw,22px)', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>
+                        {nom}
+                      </span>
+                      <span style={{ display: 'inline-block', width: 5, height: 5, borderRadius: '50%', background: '#FF8C00', margin: '0 clamp(16px,4vw,28px)', flexShrink: 0, opacity: 0.7 }} />
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {discoCats.length > 1 && (
@@ -991,6 +1082,7 @@ export default function MenuPage() {
               items={items}
               total={total}
               onUpdate={updateQuantity}
+              onClear={clearCart}
               deliveryMode={deliveryMode}
               onDeliveryMode={handleDeliveryMode}
               onCheckout={handleCheckout}
@@ -1002,9 +1094,9 @@ export default function MenuPage() {
           {/* Barre panier mobile */}
           {cartCount > 0 && (
             <div className="cart-mobile-bar" style={{ padding: '12px 16px 20px', background: C.card, borderTop: '1px solid ' + C.line, boxShadow: '0 -4px 20px rgba(0,0,0,0.08)', flexShrink: 0 }}>
-              <button onClick={handleCheckout} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(135deg,#FF8C00,#E07A00)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 20px', cursor: 'pointer', fontFamily: sans, fontSize: 14, fontWeight: 800, boxShadow: '0 4px 16px #FF8C0055' }}>
+              <button onClick={() => setCartOpen(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(135deg,#EF4444,#DC2626)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 20px', cursor: 'pointer', fontFamily: sans, fontSize: 14, fontWeight: 800, boxShadow: '0 4px 16px rgba(239,68,68,0.40)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ShoppingCart size={16} /> {cartCount} article{cartCount > 1 ? 's' : ''}</span>
-                <span>Payer · {formatFCFA(total())}</span>
+                <span>Voir le panier · {formatFCFA(total())}</span>
               </button>
             </div>
           )}
@@ -1024,7 +1116,7 @@ export default function MenuPage() {
       )}
 
       {/* ── Modals ── */}
-      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} initialMode={deliveryMode} />
+      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} initialMode={deliveryMode} initialAddress={deliveryAddress?.address || ''} />
       {customModal.open && (
         <ProductCustomizationModal
           product={customModal.product}

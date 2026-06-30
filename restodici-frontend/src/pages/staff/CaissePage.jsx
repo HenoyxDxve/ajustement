@@ -11,22 +11,22 @@ import mtnMomoLogo from '../../assets/payments/mtn-momo.svg';
 import moovMoneyLogo from '../../assets/payments/moov-money.svg';
 import carteBancaireLogo from '../../assets/payments/carte-bancaire.svg';
 
-// ── Tokens terracotta light ───────────────────────────────────────────────────
-const BG      = '#F9F9FC';
+// ── Tokens — miroir StaffDashboard (orange pro) ──────────────────────────────
+const BG      = '#F2F3F7';
 const CARD    = '#FFFFFF';
-const NAVY    = '#1A1C1E';
-const BORDER  = '#E1BFB4';
-const MUTED   = '#594139';
-const FAINT   = '#594139';
-const PRIMARY = '#973100';
-const PRIMARY_CONTAINER = '#C04000';
-const PRIMARY_LIGHT = '#FFDBCF';
-const GREEN   = '#45664B';
-const GREEN_L = '#C4E9C7';
-const RED     = '#BA1A1A';
+const NAVY    = '#111827';
+const BORDER  = 'rgba(0,0,0,0.08)';
+const MUTED   = '#6B7280';
+const FAINT   = '#9CA3AF';
+const PRIMARY = '#FF8C00';
+const PRIMARY_CONTAINER = '#E07A00';
+const PRIMARY_LIGHT = '#FFF5E8';
+const GREEN   = '#16A34A';
+const GREEN_L = '#DCFCE7';
+const RED     = '#DC2626';
 const RED_L   = '#FFDAD6';
-const AMBER   = '#735C00';
-const AMBER_L = '#FFE088';
+const AMBER   = '#D97706';
+const AMBER_L = '#FEF3C7';
 
 // Legacy aliases for existing code
 const TER    = PRIMARY;
@@ -806,14 +806,15 @@ export default function CaissePage() {
                       onClick={() => { setPayMode(m.id); setMontant(''); }}
                       style={{
                         flex: 1, padding: '12px 6px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
-                        background: sel ? GREEN_L : CARD,
-                        border: `1.5px solid ${sel ? '#ABD0AF' : BORDER}`,
+                        background: sel ? PRIMARY_LIGHT : CARD,
+                        border: `1.5px solid ${sel ? 'rgba(255,140,0,0.35)' : BORDER}`,
                         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
                         transition: 'all 0.14s',
+                        boxShadow: sel ? `0 2px 10px rgba(255,140,0,0.18)` : 'none',
                       }}
                     >
-                      <m.Icon size={18} color={sel ? GREEN : MUTED} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: sel ? GREEN : NAVY }}>{m.label}</span>
+                      <m.Icon size={18} color={sel ? PRIMARY : MUTED} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: sel ? PRIMARY_CONTAINER : NAVY }}>{m.label}</span>
                     </button>
                   );
                 })}
@@ -833,7 +834,7 @@ export default function CaissePage() {
                   </div>
                   <div style={{ minWidth: 136 }}>
                     <p style={{ margin: '0 0 6px', fontSize: 10, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.14em' }}>Rendu monnaie</p>
-                    <div style={{ padding: '10px 14px', borderRadius: 14, background: change > 0 ? GREEN_L : BG, border: `1.5px solid ${change > 0 ? '#ABD0AF' : BORDER}`, textAlign: 'center', minHeight: 54, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ padding: '10px 14px', borderRadius: 14, background: change > 0 ? GREEN_L : BG, border: `1.5px solid ${change > 0 ? '#86EFAC' : BORDER}`, textAlign: 'center', minHeight: 54, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                       <span style={{ fontSize: 22, fontWeight: 800, color: change > 0 ? GREEN : MUTED, lineHeight: 1 }}>{fmt(change)}</span>
                       <span style={{ fontSize: 9, color: change > 0 ? GREEN : MUTED, fontWeight: 600, marginTop: 2 }}>FCFA · calculé automatiquement</span>
                     </div>
@@ -916,7 +917,7 @@ export default function CaissePage() {
 
               {/* Footer */}
               <p style={{ margin: 0, textAlign: 'center', fontSize: 10, color: MUTED, fontWeight: 500 }}>
-                Transaction journalisée (RG-34) · Horodatage synchronisé
+                Transaction journalisée · Horodatage synchronisé
               </p>
             </div>
           )}

@@ -168,6 +168,8 @@ export class AuthService {
         telephone: user.telephone,
         twoFactorEnabled: user.twoFactorEnabled ?? false,
         emailVerified: user.emailVerified ?? false,
+        createdAt: user.createdAt,
+        adressesSauvegardees: user.adressesSauvegardees ?? [],
         restaurant: user.restaurant
           ? {
               id: user.restaurant.id,
@@ -249,6 +251,10 @@ export class AuthService {
 
     if (typeof updates.telephone === 'string') {
       user.telephone = updates.telephone.trim();
+    }
+
+    if (Array.isArray((updates as any).adressesSauvegardees)) {
+      user.adressesSauvegardees = (updates as any).adressesSauvegardees;
     }
 
     const savedUser = await this.userRepository.save(user);

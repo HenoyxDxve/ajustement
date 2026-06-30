@@ -17,7 +17,7 @@ import carteBancaireLogo from '../../assets/payments/carte-bancaire.svg';
 /* ── Constantes ─────────────────────────────────────────────────────────── */
 const NAVY   = '#0F172A';
 const ORANGE = '#FF8C00';
-const BG     = '#FDFAF7';
+const BG     = '#FFFFFF';
 const LINE   = 'rgba(89,67,42,0.12)';
 
 const KENTE = ['#FF8C00', '#FF8C00', '#0F172A', '#E07A00'];
@@ -101,7 +101,7 @@ function SectionTitle({ children }) {
 /* ══════════════════════════════════════════════════════════════════════════
    CartDrawer — composant principal
 ══════════════════════════════════════════════════════════════════════════ */
-export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode }) {
+export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode, initialAddress }) {
   const { items, total, updateQuantity, removeItem, clearCart, restaurantId, restaurantName } = useCart();
   const { user } = useAuth();
   const navigate  = useNavigate();
@@ -109,7 +109,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode }
   /* ── Step 1 state ── */
   const [step,    setStep]    = useState(1);
   const [mode,    setMode]    = useState(initialMode || 'SUR_PLACE');
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState(initialAddress || '');
 
   /* ── Step 2 — livraison ── */
   const [zone,          setZone]          = useState('');
@@ -155,14 +155,15 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode }
 
   const selectedMethod = paymentMethods.find(m => m.id === selectedPayment);
 
-  /* Reset step quand on ferme, sync mode à l'ouverture */
+  /* Reset step quand on ferme, sync mode + adresse à l'ouverture */
   useEffect(() => {
     if (!isOpen) {
       setTimeout(() => setStep(1), 300);
-    } else if (initialMode) {
-      setMode(initialMode);
+    } else {
+      if (initialMode) setMode(initialMode);
+      if (initialAddress) setAddress(initialAddress);
     }
-  }, [isOpen, initialMode]);
+  }, [isOpen, initialMode, initialAddress]);
 
   /* ── Handlers ── */
   const handleApplyPromo = () => {
@@ -224,6 +225,41 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode }
       setDriverStatus('found');
     } catch {
       setDriverStatus('error');
+    }
+  };
+
+  const handleContinue = () => {
+    const deliveryFee = mode === 'LIVRAISON' ? 500 : 0;
+    const pendingOrder = {
+      restaurantId,
+      restaurantName: restaurantName || 'Restaurant',
+      orderMode: mode,
+      deliveryAddress: mode === 'LIVRAISON' ? address : null,
+      deliveryZone: null,
+      deliveryFee,
+      driver: null,
+      fournisseurLivraisonId: null,
+      promoCode: null,
+      promoDiscount: 0,
+      paymentMethod: null,
+      phone: null,
+      total: subtotal + deliveryFee,
+      tableNumber: mode === 'SUR_PLACE' && tableNumber ? tableNumber : undefined,
+      items: items.map(item => ({
+        articleId: item.articleId,
+        nom: item.nom,
+        prix: item.prix,
+        quantite: item.quantite,
+        instructions: item.instructions,
+        photoUrl: item.photoUrl,
+      })),
+    };
+    localStorage.setItem('pendingOrder', JSON.stringify(pendingOrder));
+    onClose();
+    if (!user) {
+      navigate('/login?redirect=checkout');
+    } else {
+      navigate('/checkout');
     }
   };
 
@@ -413,7 +449,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode }
                     <p style={{ fontSize: 11, color: '#9E8B7A', margin: 0 }}>Sous-total</p>
                     <p style={{ fontSize: 20, fontWeight: 900, color: ORANGE, fontFamily: 'Georgia, serif', margin: 0 }}>{formatFCFA(subtotal)}</p>
                   </div>
-                  <button onClick={() => setStep(2)}
+                  <button onClick={handleContinue}
                     style={{ background: ORANGE, color: '#fff', border: 'none', borderRadius: 14, padding: '14px 24px', fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 24px rgba(224,78,26,0.35)', letterSpacing: '-0.01em', transition: 'background 0.2s' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#E07A00'}
                     onMouseLeave={e => e.currentTarget.style.background = ORANGE}>
@@ -453,7 +489,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode }
                   <SectionTitle>Livraison</SectionTitle>
 
                   {/* Adresse */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F8F5F2', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F5F5F5', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
                     <MapPin style={{ width: 15, height: 15, color: ORANGE, flexShrink: 0 }} />
                     <span style={{ fontSize: 12, fontWeight: 600, color: NAVY, flex: 1 }}>{address || 'Adresse non renseignée'}</span>
                     <button onClick={() => setStep(1)}
@@ -493,7 +529,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode }
 
                   {driverStatus === 'searching' && (
                     <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#F8F5F2', borderRadius: 30, padding: '10px 18px' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#F5F5F5', borderRadius: 30, padding: '10px 18px' }}>
                         <Loader style={{ width: 16, height: 16, color: ORANGE, animation: 'spin 1s linear infinite' }} />
                         <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>Recherche en cours…</span>
                       </div>

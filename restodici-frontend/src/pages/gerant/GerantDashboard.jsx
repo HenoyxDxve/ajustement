@@ -5,6 +5,7 @@
    Fonctionnalités : WebSocket temps réel, QR Code, carte Leaflet
    ═══════════════════════════════════════════════════════════════ */
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "qrcode";
 import { useLocation, useNavigate } from "react-router-dom";
 import Chart from "chart.js/auto";
@@ -328,9 +329,9 @@ function MenuTab({ restaurantId, token }) {
     const errors = {};
     if (!newArticle.nom.trim()) errors.nom = "Nom requis";
     if (!newArticle.prix || parseFloat(newArticle.prix) <= 0)
-      errors.prix = "Prix > 0 requis (RG-05)";
+      errors.prix = "Prix > 0 requis";
     if (!newArticle.categorieId)
-      errors.categorieId = "Catégorie requise (RG-01)";
+      errors.categorieId = "Catégorie requise";
     if (newArticle.stock === "" || parseInt(newArticle.stock) < 0)
       errors.stock = "Stock >= 0 requis";
     setFormErrors(errors);
@@ -1290,7 +1291,7 @@ function OrdersTab({ restaurantId }) {
                       onClick={() => handleDownloadReceipt(order)}
                       disabled={receiptLoading[order.id]}
                       className="flex items-center gap-1.5 px-3 py-1.5 border border-[#973100] text-[#973100] rounded-lg text-sm hover:bg-[#FFDBCF] transition disabled:opacity-60"
-                      title="Télécharger le reçu PDF (RG-16)"
+                      title="Télécharger le reçu PDF"
                     >
                       <FileText className="w-3.5 h-3.5" />
                       {receiptLoading[order.id] ? '…' : 'Reçu PDF'}
@@ -1484,7 +1485,7 @@ function StocksTab({ restaurantId }) {
       return;
     }
     if (!entreeForm.fournisseurId) {
-      showToast('Fournisseur obligatoire pour une entrée de stock (RG-24)');
+      showToast('Fournisseur obligatoire pour une entrée de stock');
       return;
     }
     if (parseInt(entreeForm.quantity) <= 0) {
@@ -1645,7 +1646,7 @@ function StocksTab({ restaurantId }) {
             <>
               <p className="text-xs text-[#6B7280] mb-4 flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-[#973100] inline-block" />
-                Réception marchandise — fournisseur <strong>obligatoire</strong> (RG-24)
+                Réception marchandise — fournisseur <strong>obligatoire</strong>
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                 <div>
@@ -1903,9 +1904,9 @@ function FinanceTab({ restaurantId }) {
   }, [kpiData]);
 
   const handleRecordExpense = async () => {
-    if (!expenseForm.categorie) { showToast('Catégorie obligatoire (RG-27)', false); return; }
+    if (!expenseForm.categorie) { showToast('Catégorie obligatoire', false); return; }
     const m = parseFloat(expenseForm.montant);
-    if (!m || m <= 0) { showToast('Montant strictement positif requis (RG-27)', false); return; }
+    if (!m || m <= 0) { showToast('Montant strictement positif requis', false); return; }
     setSaving(true);
     try {
       await tresorerieAPI.recordExpense({ categorie: expenseForm.categorie, montant: m, description: expenseForm.description, date: new Date().toISOString() });
@@ -1922,7 +1923,7 @@ function FinanceTab({ restaurantId }) {
     setBudget(b => ({ ...b, saving: true }));
     try {
       await tresorerieAPI.configureBudgetAlerts({ plafondMensuel: parseFloat(budget.plafond), alerte80: budget.alerte80, alerte100: budget.alerte100 });
-      showToast('Budget configuré (RG-30)');
+      showToast('Budget configuré');
     } catch { showToast('Erreur configuration budget', false); }
     finally { setBudget(b => ({ ...b, saving: false })); }
   };
@@ -1976,7 +1977,7 @@ function FinanceTab({ restaurantId }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-extrabold text-[#0F172A]">Trésorerie & Finances</h3>
-          <p className="text-xs text-[#6B7280] mt-0.5">CA, dépenses, budget, exports SYSCOHADA — US-26, US-27, US-28, RG-27, RG-29</p>
+          <p className="text-xs text-[#6B7280] mt-0.5">CA, dépenses, budget, exports SYSCOHADA — , </p>
         </div>
         <div className="flex p-1 bg-[#F4F6F8] rounded-2xl gap-1">
           {[{ v: 'day', l: "Aujourd'hui" }, { v: 'week', l: 'Semaine' }, { v: 'month', l: 'Mois' }].map(p => (
@@ -1993,12 +1994,12 @@ function FinanceTab({ restaurantId }) {
         <div className="rounded-2xl p-5 shadow-sm col-span-2 xl:col-span-1" style={{ background: '#973100' }}>
           <p className="text-xs font-semibold uppercase tracking-wide text-white/50 mb-1">{caLabel}</p>
           <p className="text-2xl font-extrabold text-white leading-none">{formatFCFA(caValue)}</p>
-          <p className="text-xs text-white/30 mt-2">Chiffre d'affaires — US-26</p>
+          <p className="text-xs text-white/30 mt-2">Chiffre d'affaires</p>
         </div>
         {[
           { label: 'Commandes', value: kpiData.nbCommandes, sub: 'période sélectionnée', icon: ShoppingBag, bg: '#FFDBCF', color: '#973100' },
           { label: 'Ticket moyen', value: formatFCFA(kpiData.ticketMoyen), sub: 'par commande', icon: CreditCard, bg: '#F0FDF4', color: '#16A34A' },
-          { label: 'Marge brute', value: (kpiData.margesBrutes || 0) + '%', sub: '(PV−Coût)/PV — RG-28', icon: PieChart, bg: '#EFF6FF', color: '#2563EB' },
+          { label: 'Marge brute', value: (kpiData.margesBrutes || 0) + '%', sub: '(PV−Coût)/PV ', icon: PieChart, bg: '#EFF6FF', color: '#2563EB' },
         ].map(({ label, value, sub, icon: Icon, bg, color }) => (
           <div key={label} className="rounded-2xl bg-white border border-[#E2E8F0] p-5 shadow-sm">
             <div className="flex items-center justify-between mb-2">
@@ -2024,7 +2025,7 @@ function FinanceTab({ restaurantId }) {
             </div>
             <div>
               <h4 className="text-sm font-bold text-[#0F172A]">Répartition modes de paiement</h4>
-              <p className="text-[10px] text-[#6B7280]">Mobile Money · Carte · Espèces — US-15</p>
+              <p className="text-[10px] text-[#6B7280]">Mobile Money · Carte · Espèces</p>
             </div>
           </div>
           <div className="flex gap-4 items-center">
@@ -2052,7 +2053,7 @@ function FinanceTab({ restaurantId }) {
           </div>
         </div>
 
-        {/* Budget & Alertes RG-30 */}
+        {/* Budget & Alertes  */}
         <div className="rounded-2xl bg-white border border-[#E2E8F0] p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-7 h-7 rounded-lg bg-[#FFDBCF] flex items-center justify-center">
@@ -2060,7 +2061,7 @@ function FinanceTab({ restaurantId }) {
             </div>
             <div>
               <h4 className="text-sm font-bold text-[#0F172A]">Plafond budgétaire</h4>
-              <p className="text-[10px] text-[#6B7280]">Alertes automatiques à 80% et 100% — RG-30</p>
+              <p className="text-[10px] text-[#6B7280]">Alertes automatiques à 80% et 100% </p>
             </div>
           </div>
 
@@ -2126,7 +2127,7 @@ function FinanceTab({ restaurantId }) {
             </div>
             <div>
               <h4 className="text-sm font-bold text-[#0F172A]">Saisir une dépense opérationnelle</h4>
-              <p className="text-[10px] text-[#6B7280]">Catégorie obligatoire · montant {'>'} 0 — US-28, RG-27</p>
+              <p className="text-[10px] text-[#6B7280]">Catégorie obligatoire · montant {'>'} 0 — </p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
@@ -2192,12 +2193,12 @@ function FinanceTab({ restaurantId }) {
             </div>
             <div>
               <h4 className="text-sm font-bold text-[#0F172A]">Exports financiers</h4>
-              <p className="text-[10px] text-[#6B7280]">SYSCOHADA · Rapports — RG-29</p>
+              <p className="text-[10px] text-[#6B7280]">SYSCOHADA · Rapports </p>
             </div>
           </div>
 
           {/* SYSCOHADA */}
-          <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-wide mb-2">Export SYSCOHADA (RG-29)</p>
+          <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-wide mb-2">Export SYSCOHADA</p>
           <div className="space-y-2 mb-4">
             {[
               { period: 'monthly',   label: 'Mensuel',      color: '#973100' },
@@ -4707,9 +4708,18 @@ export default function GerantDashboard({ restaurantId, token }) {
             : "bg-white border border-[rgba(0,0,0,0.05)]"
         }`}
       >
-        <div ref={tabContentRef} style={{ animation: 'fadeUp 0.22s ease both' }}>
-          {renderTabContent()}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            ref={tabContentRef}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {renderTabContent()}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 // src/App.jsx — Point d'entrée du routage React
 // Définit toutes les routes de l'application et protège les espaces privés
 // selon le rôle de l'utilisateur connecté (CLIENT, GERANT, STAFF, B2B, ADMIN)
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useRef, useLayoutEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { CartProvider } from './hooks/useCart';
@@ -61,9 +61,30 @@ const queryClient = new QueryClient();
 // Écran de chargement affiché pendant qu'un chunk se télécharge
 function PageLoader() {
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFFAF3' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F2F3F7' }}>
       <div style={{ width: 36, height: 36, borderRadius: '50%', border: '4px solid #FF8C00', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
+// Déclenche un fondu opacity 0→1 sur chaque changement de route (location.key unique par navigation)
+function RouteTransition({ children }) {
+  const location = useLocation();
+  const ref = useRef(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.animationName = 'none';
+    void el.offsetHeight; // force reflow pour relancer l'animation
+    el.style.animationName = 'pageIn';
+  }, [location.key]);
+  return (
+    <div ref={ref} style={{
+      animationName: 'pageIn', animationDuration: '0.18s',
+      animationTimingFunction: 'ease-out', animationFillMode: 'both',
+    }}>
+      {children}
     </div>
   );
 }
@@ -140,6 +161,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
+          <RouteTransition>
           {/* Suspense affiche PageLoader pendant le téléchargement d'un chunk lazy */}
           <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -259,6 +281,7 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
+          </RouteTransition>
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>

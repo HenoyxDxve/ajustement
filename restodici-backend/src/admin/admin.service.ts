@@ -94,6 +94,55 @@ const CONFIG_DEFAULTS: Array<{
     description: "Activer l'intégration Twilio SMS",
     category: 'integration',
   },
+  // Modules client — plug-and-play depuis le dashboard admin
+  {
+    key: 'delivery_enabled',
+    value: 'false',
+    description: 'Activer le module de livraison dans le dashboard client',
+    category: 'integration',
+  },
+  {
+    key: 'delivery_provider',
+    value: null,
+    description: 'Nom du prestataire de livraison (ex: shipday, lalamove)',
+    category: 'integration',
+  },
+  {
+    key: 'delivery_api_url',
+    value: null,
+    description: "URL de l'API du prestataire de livraison",
+    category: 'integration',
+  },
+  {
+    key: 'delivery_api_key',
+    value: null,
+    description: 'Clé API du prestataire de livraison',
+    category: 'integration',
+  },
+  {
+    key: 'messaging_enabled',
+    value: 'false',
+    description: 'Activer le module de messagerie dans le dashboard client',
+    category: 'integration',
+  },
+  {
+    key: 'messaging_provider',
+    value: null,
+    description: 'Nom du prestataire de messagerie (ex: sendbird, tawk.to)',
+    category: 'integration',
+  },
+  {
+    key: 'messaging_api_url',
+    value: null,
+    description: "URL de l'API de messagerie",
+    category: 'integration',
+  },
+  {
+    key: 'messaging_api_key',
+    value: null,
+    description: 'Clé API de messagerie',
+    category: 'integration',
+  },
   // Plateforme (identité légale)
   {
     key: 'platform_nom',
@@ -117,6 +166,17 @@ const CONFIG_DEFAULTS: Array<{
     key: 'platform_adresse',
     value: null,
     description: 'Adresse du siège social de la plateforme',
+    category: 'platform',
+  },
+  // Bannière accueil
+  {
+    key: 'banner_messages',
+    value: JSON.stringify([
+      'Commandez chez vos restaurants préférés',
+      'Livraison rapide dans toute la ville',
+      'Paiement mobile sécurisé',
+    ]),
+    description: "Messages défilants de la bannière d'accueil (tableau JSON de chaînes)",
     category: 'platform',
   },
   // Système

@@ -23,28 +23,33 @@ import {
 import DispatchModal from '../../components/livraison/DispatchModal';
 import EconomicReconciliation from '../../components/staff/EconomicReconciliation';
 
-// ─── Palette — Mission Control Dark Cockpit ────────────────────────────────────
-const BG             = '#0D1117';           // fond principal
-const SIDEBAR_BG     = '#0F172A';           // sidebar
-const SURFACE        = '#161B27';           // cartes / panneaux
-const SURFACE_ELEVATED = '#1E2535';         // hover / éléments surélevés
-const TEXT           = '#F1F5F9';           // texte principal
-const TEXT_LIGHT     = '#64748B';           // texte secondaire (alias TEXT_MUTED)
-const TEXT_MUTED     = '#64748B';
-const BORDER         = 'rgba(255,255,255,0.07)';
+// ─── Palette — Pro dark sidebar + orange accent ───────────────────────────────
+const BG             = '#F2F3F7';
+const SIDEBAR_BG     = '#111111';
+const SIDEBAR_BORDER = 'rgba(255,255,255,0.07)';
+const SURFACE        = '#FFFFFF';
+const SURFACE_ELEVATED = '#F5F5F8';
+const BORDER         = 'rgba(0,0,0,0.08)';
+const BORDER_STRONG  = 'rgba(0,0,0,0.12)';
+const TEXT           = '#111827';
+const TEXT_MUTED     = '#6B7280';
+const TEXT_LIGHT     = '#9CA3AF';
 const ORANGE         = '#FF8C00';
-const ORANGE_GLOW    = 'rgba(255,140,0,0.15)';
-const GREEN          = '#10B981';
-const GREEN_LIGHT    = '#34D399';
-const GREEN_BG       = 'rgba(16,185,129,0.1)';
-const GREEN_BORDER   = 'rgba(16,185,129,0.25)';
-const GREEN_GLOW     = 'rgba(16,185,129,0.15)';
-const DANGER         = '#EF4444';
-const DANGER_GLOW    = 'rgba(239,68,68,0.15)';
+const ORANGE_DARK    = '#E07A00';
+const ORANGE_GLOW    = 'rgba(255,140,0,0.12)';
+const ORANGE_LIGHT   = '#FFF5E8';
+const GREEN          = '#16A34A';
+const GREEN_LIGHT    = '#22C55E';
+const GREEN_BG       = '#DCFCE7';
+const GREEN_BORDER   = '#86EFAC';
+const GREEN_GLOW     = 'rgba(22,163,74,0.12)';
+const DANGER         = '#DC2626';
+const DANGER_GLOW    = 'rgba(220,38,38,0.12)';
 const BLUE           = '#3B82F6';
 const PURPLE         = '#8B5CF6';
-const AMBER          = '#F59E0B';
-const SHADOW         = '0 0 0 1px rgba(255,255,255,0.07), 0 8px 32px rgba(0,0,0,0.4)';
+const AMBER          = '#D97706';
+const SHADOW         = '0 1px 4px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04)';
+const SHADOW_MD      = '0 4px 16px rgba(0,0,0,0.10)';
 
 // ─── Domain constants ─────────────────────────────────────────────────────────
 const STATUS_FLOW = {
@@ -88,22 +93,22 @@ const B2B_ACTION_LABELS = {
 };
 
 const STATUS_CONFIG = {
-  RECUE:        { bg: 'rgba(59,130,246,0.15)',  text: '#93C5FD', border: 'rgba(59,130,246,0.3)',  dot: '#3B82F6', label: 'Reçue' },
-  CONFIRMEE:    { bg: 'rgba(139,92,246,0.15)',  text: '#C4B5FD', border: 'rgba(139,92,246,0.3)',  dot: '#8B5CF6', label: 'Confirmée' },
-  EN_PREP:      { bg: 'rgba(245,158,11,0.15)',  text: '#FCD34D', border: 'rgba(245,158,11,0.3)',  dot: '#F59E0B', label: 'En préparation' },
-  PRETE:        { bg: 'rgba(16,185,129,0.15)',  text: '#6EE7B7', border: 'rgba(16,185,129,0.3)',  dot: '#10B981', label: 'Prête' },
-  EN_LIVRAISON: { bg: 'rgba(139,92,246,0.15)',  text: '#C4B5FD', border: 'rgba(139,92,246,0.3)',  dot: '#8B5CF6', label: 'En livraison' },
-  LIVREE:       { bg: 'rgba(16,185,129,0.15)',  text: '#6EE7B7', border: 'rgba(16,185,129,0.3)',  dot: '#10B981', label: 'Livrée' },
-  ANNULEE:      { bg: 'rgba(239,68,68,0.15)',   text: '#FCA5A5', border: 'rgba(239,68,68,0.3)',   dot: DANGER,    label: 'Annulée' },
-  EN_ATTENTE:   { bg: 'rgba(100,116,139,0.15)', text: '#94A3B8', border: 'rgba(100,116,139,0.3)', dot: '#64748B', label: 'En attente' },
-  EN_PREPARATION: { bg: 'rgba(245,158,11,0.15)', text: '#FCD34D', border: 'rgba(245,158,11,0.3)', dot: '#F59E0B', label: 'En préparation' },
+  RECUE:        { bg: '#DBEAFE', text: '#1D4ED8', border: '#93C5FD', dot: '#2563EB', label: 'Reçue' },
+  CONFIRMEE:    { bg: '#EDE9FE', text: '#5B21B6', border: '#C4B5FD', dot: '#7C3AED', label: 'Confirmée' },
+  EN_PREP:      { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D', dot: '#D97706', label: 'En préparation' },
+  PRETE:        { bg: '#DCFCE7', text: '#15803D', border: '#86EFAC', dot: '#16A34A', label: 'Prête' },
+  EN_LIVRAISON: { bg: '#E0E7FF', text: '#3730A3', border: '#A5B4FC', dot: '#4F46E5', label: 'En livraison' },
+  LIVREE:       { bg: '#DCFCE7', text: '#15803D', border: '#86EFAC', dot: '#16A34A', label: 'Livrée' },
+  ANNULEE:      { bg: '#FFE4E6', text: '#BE123C', border: '#FCA5A5', dot: '#BA1A1A', label: 'Annulée' },
+  EN_ATTENTE:   { bg: '#F1F5F9', text: '#475569', border: '#CBD5E1', dot: '#64748B', label: 'En attente' },
+  EN_PREPARATION: { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D', dot: '#D97706', label: 'En préparation' },
 };
 
 const KDS_COLS = [
-  { key: 'new',   label: 'Nouvelles',      dot: BLUE,        topColor: BLUE,   statuses: ['RECUE', 'CONFIRMEE'] },
-  { key: 'prep',  label: 'En préparation', dot: AMBER,       topColor: AMBER,  statuses: ['EN_PREP'] },
-  { key: 'ready', label: 'Prêtes',         dot: GREEN,       topColor: GREEN,  statuses: ['PRETE'] },
-  { key: 'deliv', label: 'En livraison',   dot: PURPLE,      topColor: PURPLE, statuses: ['EN_LIVRAISON'] },
+  { key: 'new',   label: 'À confirmer',    dot: '#3B82F6',   topColor: '#3B82F6',  statuses: ['RECUE', 'CONFIRMEE'] },
+  { key: 'prep',  label: 'En préparation', dot: '#F59E0B',   topColor: '#F59E0B',  statuses: ['EN_PREP'] },
+  { key: 'ready', label: 'Prêtes',         dot: '#22C55E',   topColor: '#22C55E',  statuses: ['PRETE'] },
+  { key: 'deliv', label: 'En livraison',   dot: '#8B5CF6',   topColor: '#8B5CF6',  statuses: ['EN_LIVRAISON'] },
 ];
 
 const PIPELINE_STEPS = ['RECUE', 'CONFIRMEE', 'EN_PREP', 'PRETE', 'EN_LIVRAISON', 'LIVREE'];
@@ -163,9 +168,9 @@ function TimerBadge({ minutesAgo }) {
       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${isLate ? 'animate-pulse' : ''}`}
       style={
         isLate
-          ? { background: DANGER_GLOW, color: '#FCA5A5', borderColor: 'rgba(239,68,68,0.3)' }
+          ? { background: '#FFDAD6', color: '#BA1A1A', borderColor: '#FFB4AB' }
           : isWarn
-          ? { background: 'rgba(245,158,11,0.15)', color: '#FCD34D', borderColor: 'rgba(245,158,11,0.3)' }
+          ? { background: '#FFE88A', color: '#735C00', borderColor: '#FCD34D' }
           : { background: SURFACE_ELEVATED, color: TEXT_MUTED, borderColor: BORDER }
       }
     >
@@ -189,7 +194,7 @@ function PipelineBar({ status }) {
               flex: 1,
               height: 4,
               borderRadius: 2,
-              background: i < currentIdx ? GREEN : i === currentIdx ? ORANGE : 'rgba(255,255,255,0.08)',
+              background: i < currentIdx ? GREEN : i === currentIdx ? ORANGE : BORDER,
               transition: 'background 0.2s',
             }}
           />
@@ -206,36 +211,29 @@ function PipelineBar({ status }) {
 }
 
 // ─── StatCard ─────────────────────────────────────────────────────────────────
-function StatCard({ icon: Icon, value, label, color, glow, subtitle }) {
+function StatCard({ icon: Icon, value, label, color, subtitle }) {
   return (
     <div
-      className="relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-200"
-      style={{
-        background: SURFACE,
-        borderColor: BORDER,
-        boxShadow: SHADOW,
-      }}
-      onMouseEnter={e => { e.currentTarget.style.background = SURFACE_ELEVATED; e.currentTarget.style.boxShadow = `0 0 0 1px ${color}30, 0 12px 40px rgba(0,0,0,0.5)`; }}
-      onMouseLeave={e => { e.currentTarget.style.background = SURFACE; e.currentTarget.style.boxShadow = SHADOW; }}
+      className="relative rounded-2xl overflow-hidden transition-all duration-200"
+      style={{ background: SURFACE, border: `1px solid ${BORDER}`, boxShadow: SHADOW }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = SHADOW_MD; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = SHADOW; }}
     >
-      {/* Bande couleur accent haut */}
-      <div className="h-1" style={{ background: `linear-gradient(90deg, ${color}, ${color}55)` }} />
+      {/* Circle glow bg */}
+      <div style={{ position: 'absolute', top: -24, right: -24, width: 90, height: 90, borderRadius: '50%', background: color + '10', pointerEvents: 'none' }} />
       <div className="p-5">
-        <div className="flex items-start justify-between mb-2">
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center"
-            style={{ background: glow || (color + '20'), border: `1px solid ${color}30` }}
-          >
+        <div className="flex items-start justify-between mb-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: color + '15' }}>
             <Icon className="w-5 h-5" style={{ color }} />
           </div>
-          <div className="text-right">
-            <p className="text-[2rem] font-black leading-none tracking-tight" style={{ color: TEXT }}>{value}</p>
-          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+            style={{ background: color + '12', color: color }}>
+            {subtitle || 'aujourd\'hui'}
+          </span>
         </div>
-        {/* Secondary bridging line — anchors the value before the tiny label */}
-        <p className="text-xs font-semibold mb-1" style={{ color: color + 'BB' }}>{subtitle || 'aujourd\'hui'}</p>
-        <p className="text-[0.62rem] font-black uppercase tracking-widest" style={{ color: TEXT_MUTED }}>{label}</p>
-        <div className="mt-2 h-0.5 rounded-full" style={{ background: `linear-gradient(90deg, ${color}50, transparent)`, width: '60%' }} />
+        <p className="text-[2.1rem] font-black leading-none tracking-tight mb-1" style={{ color: TEXT }}>{value}</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: TEXT_MUTED }}>{label}</p>
+        <div className="mt-3 h-[3px] rounded-full" style={{ background: `linear-gradient(90deg, ${color}, ${color}22)`, width: '55%' }} />
       </div>
     </div>
   );
@@ -258,12 +256,13 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
     <div
       className="rounded-xl border overflow-hidden transition-all duration-200"
       style={{
-        background: isUrgent ? 'rgba(239,68,68,0.08)' : SURFACE_ELEVATED,
-        borderColor: isUrgent ? 'rgba(239,68,68,0.35)' : BORDER,
+        background: isUrgent ? '#FFF8F8' : SURFACE,
+        borderColor: isUrgent ? '#BA1A1A' : BORDER,
+        borderWidth: isUrgent ? '2px' : '1px',
         boxShadow: SHADOW,
         borderLeft: `3px solid ${leftBorderColor}`,
       }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5)'; }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'; }}
       onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = SHADOW; }}
     >
       <div className="p-5">
@@ -278,12 +277,12 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-              <span className="px-2.5 py-1 rounded-md text-sm font-bold" style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER}` }}>
+              <span className="px-2.5 py-1 rounded-md text-sm font-bold" style={{ background: SURFACE_ELEVATED, color: ORANGE, border: `1px solid ${BORDER}` }}>
                 #{order.numero}
               </span>
               <StatusBadge status={order.statut} />
               {order.modeLivraison && (
-                <span className="px-2.5 py-1 rounded-md text-xs font-bold border" style={{ background: ORANGE_GLOW, color: ORANGE, borderColor: 'rgba(255,140,0,0.3)' }}>
+                <span className="px-2.5 py-1 rounded-md text-xs font-bold border" style={{ background: ORANGE_GLOW, color: ORANGE, borderColor: BORDER }}>
                   {formatDeliveryMode(order.modeLivraison)}
                 </span>
               )}
@@ -314,13 +313,13 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
       {(order.lignes || []).length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {order.lignes.slice(0, 4).map((l, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE, borderColor: BORDER, color: TEXT }}>
+            <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE_ELEVATED, borderColor: BORDER, color: TEXT }}>
               <span className="font-black" style={{ color: ORANGE }}>{l.quantite}×</span>
               {l.article?.nom || 'Article'}
             </span>
           ))}
           {order.lignes.length > 4 && (
-            <span className="px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE, borderColor: BORDER, color: TEXT_MUTED }}>
+            <span className="px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE_ELEVATED, borderColor: BORDER, color: TEXT_MUTED }}>
               +{order.lignes.length - 4}
             </span>
           )}
@@ -329,9 +328,9 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
 
       {/* Note */}
       {note && (
-        <div className="flex gap-2 rounded-xl p-2.5 mb-3 border" style={{ background: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.3)' }}>
-          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: AMBER }} />
-          <span className="text-sm font-medium" style={{ color: '#FCD34D' }}>{note}</span>
+        <div className="flex gap-2 rounded-xl p-2.5 mb-3 border" style={{ background: '#FFFBEB', borderColor: '#FCD34D' }}>
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#D97706' }} />
+          <span className="text-sm font-medium" style={{ color: '#92400E' }}>{note}</span>
         </div>
       )}
 
@@ -340,7 +339,7 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
 
       {/* Payment */}
       {!order.estPaye && (
-        <div className="rounded-xl p-3 mb-3 border mt-3" style={{ background: BG, borderColor: BORDER }}>
+        <div className="rounded-xl p-3 mb-3 border mt-3" style={{ background: '#F9F9FC', borderColor: BORDER }}>
           <p className="text-xs font-bold mb-2 flex items-center gap-1.5" style={{ color: TEXT_MUTED }}>
             <CircleDollarSign className="w-3.5 h-3.5" style={{ color: GREEN }} /> Encaissement
           </p>
@@ -363,7 +362,7 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
               value={draft.montantRemis ?? Number(order.montantTotal)}
               onChange={e => setPaymentDraft({ ...draft, montantRemis: e.target.value })}
               className="w-24 rounded-lg border px-2.5 py-1.5 text-xs font-medium focus:outline-none"
-              style={{ borderColor: BORDER, background: SURFACE_ELEVATED, color: TEXT }}
+              style={{ borderColor: BORDER, background: '#FFFFFF', color: TEXT }}
             />
             <button
               onClick={() => onPayment(order)}
@@ -385,23 +384,28 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
       {/* Actions */}
       {nextStatuses.length > 0 && (
         <div className="flex gap-2 mt-2">
-          {nextStatuses.map((ns, i) => (
-            <button
-              key={ns}
-              onClick={() => onAction(order.id, ns)}
-              disabled={saving}
-              className="flex-1 py-2 px-3 rounded-lg text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={
-                i === 0
-                  ? { background: GREEN, color: '#FFF', boxShadow: `0 4px 12px ${GREEN}40` }
-                  : { background: GREEN_GLOW, color: GREEN, border: `1px solid ${GREEN_BORDER}` }
-              }
-              onMouseEnter={e => { if (!saving && i === 1) { e.currentTarget.style.background = GREEN; e.currentTarget.style.color = '#FFF'; } }}
-              onMouseLeave={e => { if (i === 1) { e.currentTarget.style.background = GREEN_GLOW; e.currentTarget.style.color = GREEN; } }}
-            >
-              {ACTION_LABELS[ns] || ns}
-            </button>
-          ))}
+          {nextStatuses.map((ns, i) => {
+            const btnStyle = ns === 'CONFIRMEE' || ns === 'EN_PREP'
+              ? { background: ORANGE_DARK, color: '#FFF', boxShadow: '0 4px 12px rgba(255,140,0,0.3)' }
+              : ns === 'PRETE'
+              ? { background: '#CCA72F', color: '#4E3D00', boxShadow: '0 4px 12px rgba(204,167,47,0.3)' }
+              : ns === 'LIVREE' || ns === 'EN_LIVRAISON'
+              ? { background: GREEN, color: '#FFF', boxShadow: '0 4px 12px rgba(22,163,74,0.3)' }
+              : i === 0
+              ? { background: GREEN, color: '#FFF', boxShadow: `0 4px 12px ${GREEN_GLOW}` }
+              : { background: GREEN_BG, color: GREEN, border: `1px solid ${GREEN_BORDER}` };
+            return (
+              <button
+                key={ns}
+                onClick={() => onAction(order.id, ns)}
+                disabled={saving}
+                className="flex-1 py-2 px-3 rounded-lg text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={btnStyle}
+              >
+                {ACTION_LABELS[ns] || ns}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -410,7 +414,7 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
           onClick={() => onAction(order.id, 'ANNULEE')}
           disabled={saving}
           className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-50"
-          style={{ background: DANGER_GLOW, color: '#FCA5A5', borderColor: 'rgba(239,68,68,0.3)' }}
+          style={{ background: '#FFDAD6', color: '#BA1A1A', borderColor: '#FFB4AB' }}
         >
           Annuler
         </button>
@@ -420,7 +424,7 @@ function StaffOrderCard({ order, onAction, onPayment, paymentDraft, setPaymentDr
         <button
           onClick={() => onDispatch(order)}
           className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-bold border transition-colors flex items-center justify-center gap-1.5"
-          style={{ background: 'rgba(59,130,246,0.12)', color: '#93C5FD', borderColor: 'rgba(59,130,246,0.3)' }}
+          style={{ background: '#DBEAFE', color: '#1D4ED8', borderColor: '#93C5FD' }}
         >
           <Truck className="w-3 h-3" /> Dispatcher la livraison
         </button>
@@ -442,23 +446,23 @@ function B2BOrderCard({ order, onAction, saving }) {
     <div
       className="rounded-xl border p-4 transition-all duration-200"
       style={{
-        background: SURFACE_ELEVATED,
-        borderColor: isUrgent ? 'rgba(245,158,11,0.4)' : BORDER,
-        borderLeft: `3px solid ${isUrgent ? AMBER : 'rgba(245,158,11,0.5)'}`,
+        background: SURFACE,
+        borderColor: isUrgent ? '#D97706' : BORDER,
+        borderLeft: `3px solid ${isUrgent ? '#D97706' : BORDER}`,
         boxShadow: SHADOW,
       }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5)'; }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'; }}
       onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = SHADOW; }}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,158,11,0.15)' }}>
-            <Package className="w-4 h-4" style={{ color: AMBER }} />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#FEF3C7' }}>
+            <Package className="w-4 h-4" style={{ color: '#D97706' }} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 mb-1">
               <span className="px-2 py-0.5 rounded-md text-[10px] font-black" style={{ background: ORANGE, color: '#FFF' }}>B2B</span>
-              <span className="px-2 py-0.5 rounded-md text-xs font-bold" style={{ background: 'rgba(245,158,11,0.15)', color: '#FCD34D', border: `1px solid rgba(245,158,11,0.3)` }}>#{order.numero}</span>
+              <span className="px-2 py-0.5 rounded-md text-xs font-bold" style={{ background: '#FEF3C7', color: '#92400E', border: `1px solid #FCD34D` }}>#{order.numero}</span>
               <StatusBadge status={order.statut} />
               {isUrgent && <span className="px-2 py-0.5 rounded-md text-[10px] font-black animate-pulse" style={{ background: DANGER, color: '#FFF' }}>URGENT</span>}
             </div>
@@ -467,7 +471,7 @@ function B2BOrderCard({ order, onAction, saving }) {
               <Clock className="w-3 h-3" /> {timeStr}
             </p>
             {(order.dateLivraison || order.heureLivraison) && (
-              <p className="text-[11px] mt-0.5 flex items-center gap-1 font-semibold" style={{ color: '#FCD34D' }}>
+              <p className="text-[11px] mt-0.5 flex items-center gap-1 font-semibold" style={{ color: '#92400E' }}>
                 <Truck className="w-3 h-3" />
                 {order.dateLivraison ? new Date(order.dateLivraison).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : ''}
                 {order.heureLivraison ? ` à ${order.heureLivraison}` : ''}
@@ -478,7 +482,7 @@ function B2BOrderCard({ order, onAction, saving }) {
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <TimerBadge minutesAgo={minutesAgo} />
           {order.totalEstime != null && (
-            <p className="text-base font-black" style={{ color: AMBER }}>
+            <p className="text-base font-black" style={{ color: '#92400E' }}>
               {(Number(order.totalEstime) || 0).toLocaleString('fr-FR')}{' '}
               <span className="text-[10px] font-normal" style={{ color: TEXT_MUTED }}>FCFA</span>
             </p>
@@ -489,7 +493,7 @@ function B2BOrderCard({ order, onAction, saving }) {
       {(order.lignes || []).length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {order.lignes.slice(0, 4).map((l, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border" style={{ background: SURFACE, borderColor: 'rgba(245,158,11,0.25)', color: '#FCD34D' }}>
+            <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border" style={{ background: '#FEF3C7', borderColor: '#FCD34D', color: '#92400E' }}>
               <span className="font-black">{l.quantite}×</span> {l.nomArticle || 'Article'}
             </span>
           ))}
@@ -511,8 +515,8 @@ function B2BOrderCard({ order, onAction, saving }) {
               className="flex-1 py-2 px-3 rounded-lg text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={
                 i === 0
-                  ? { background: AMBER, color: '#FFF', boxShadow: `0 4px 12px rgba(245,158,11,0.4)` }
-                  : { background: 'rgba(245,158,11,0.12)', color: AMBER, border: `1px solid rgba(245,158,11,0.3)` }
+                  ? { background: ORANGE_DARK, color: '#FFF', boxShadow: `0 4px 12px rgba(255,140,0,0.3)` }
+                  : { background: '#FEF3C7', color: '#92400E', border: `1px solid #FCD34D` }
               }
             >
               {B2B_ACTION_LABELS[ns] || ns}
@@ -538,18 +542,18 @@ function KDSBoard({ orders, b2bOrders, onAction, onB2BAction, onPayment, payment
         const total = colOrders.length + colB2B.length;
 
         return (
-          <div key={col.key} className="rounded-xl overflow-hidden min-h-[400px]" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
+          <div key={col.key} className="rounded-xl overflow-hidden min-h-[400px]" style={{ background: SURFACE, border: `1px solid ${BORDER}`, boxShadow: SHADOW }}>
             {/* Bande couleur top */}
             <div className="h-1" style={{ background: col.topColor }} />
             <div className="flex items-center justify-between px-4 py-3" style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}` }}>
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: col.dot, boxShadow: `0 0 8px ${col.dot}88` }} />
+                <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: col.dot }} />
                 <span className="text-sm font-black" style={{ color: TEXT }}>{col.label}</span>
               </div>
               <span
                 className="text-xs font-black px-2.5 py-1 rounded-full"
                 style={total > 0
-                  ? { background: col.dot + '22', color: col.dot, border: `1px solid ${col.dot}44` }
+                  ? { background: '#E2E2E5', color: TEXT, border: `1px solid ${BORDER}` }
                   : { background: SURFACE_ELEVATED, color: TEXT_MUTED, border: `1px solid ${BORDER}` }
                 }
               >
@@ -573,7 +577,7 @@ function KDSBoard({ orders, b2bOrders, onAction, onB2BAction, onPayment, payment
                 <B2BOrderCard key={o.id} order={o} onAction={onB2BAction} saving={savingB2BId === o.id} />
               ))}
               {total === 0 && (
-                <div className="text-center py-10 px-3 rounded-xl border-2 border-dashed" style={{ background: BG, borderColor: BORDER }}>
+                <div className="text-center py-10 px-3 rounded-xl border-2 border-dashed" style={{ background: '#F9F9FC', borderColor: BORDER }}>
                   <ChefHat className="w-8 h-8 mx-auto mb-2" style={{ color: TEXT_MUTED }} />
                   <p className="text-xs font-semibold" style={{ color: TEXT_MUTED }}>Aucune commande</p>
                 </div>
@@ -615,17 +619,17 @@ function WeeklySchedule({ openingTime, closingTime }) {
             <div
               key={i}
               className="flex items-center gap-3 p-2 rounded-xl transition-colors"
-              style={isToday ? { background: GREEN_BG, border: `1px solid ${GREEN_BORDER}` } : { border: `1px solid transparent` }}
+              style={isToday ? { background: ORANGE_LIGHT, border: `1px solid rgba(255,140,0,0.25)` } : { border: `1px solid transparent` }}
             >
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0"
-                style={isToday ? { background: GREEN, color: '#FFF' } : { background: SURFACE_ELEVATED, color: TEXT_MUTED }}
+                style={isToday ? { background: ORANGE, color: '#FFF' } : { background: SURFACE_ELEVATED, color: TEXT_MUTED }}
               >
                 {day.init}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold truncate" style={{ color: isToday ? '#86EFAC' : TEXT }}>{day.name}</p>
-                <p className="text-[10px] truncate" style={{ color: day.rest ? '#F87171' : TEXT_MUTED }}>{day.hours}</p>
+                <p className="text-xs font-bold truncate" style={{ color: isToday ? ORANGE_DARK : TEXT }}>{day.name}</p>
+                <p className="text-[10px] truncate" style={{ color: day.rest ? DANGER : TEXT_MUTED }}>{day.hours}</p>
               </div>
               {isToday && (
                 <span className="w-2 h-2 rounded-full" style={{ background: inService ? GREEN_LIGHT : AMBER }} />
@@ -646,12 +650,12 @@ function ToastList({ toasts }) {
         <div
           key={t.id}
           className="rounded-xl p-4 min-w-[300px] max-w-md pointer-events-auto border animate-[slideIn_0.3s_ease-out]"
-          style={{ background: SURFACE_ELEVATED, borderColor: BORDER, boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07)' }}
+          style={{ background: '#FFFFFF', borderColor: BORDER, boxShadow: '0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)' }}
         >
           <div className="flex items-start gap-3">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: t.ok ? GREEN_GLOW : ORANGE_GLOW }}
+              style={{ background: t.ok ? GREEN_BG : ORANGE_LIGHT }}
             >
               {t.ok
                 ? <CheckCircle className="w-5 h-5" style={{ color: GREEN }} />
@@ -887,10 +891,10 @@ export default function StaffDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
         <div className="text-center">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)`, boxShadow: `0 0 30px ${ORANGE_GLOW}` }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: ORANGE }}>
             <UtensilsCrossed className="w-7 h-7 text-white" />
           </div>
-          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: `${ORANGE}40`, borderTopColor: ORANGE }} />
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: BORDER, borderTopColor: ORANGE }} />
           <p className="text-sm font-semibold" style={{ color: TEXT_MUTED }}>Chargement...</p>
         </div>
       </div>
@@ -908,7 +912,7 @@ export default function StaffDashboard() {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        select option { background: #1E2535; color: #F1F5F9; }
+        select option { background: #FFFFFF; color: #1A1C1E; }
       `}</style>
       <OnboardingWizard />
 
@@ -917,7 +921,7 @@ export default function StaffDashboard() {
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 lg:hidden"
-          style={{ background: 'rgba(0,0,0,0.5)' }}
+          style={{ background: 'rgba(26,28,30,0.4)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -930,7 +934,7 @@ export default function StaffDashboard() {
           width: 240,
           height: '100vh',
           background: SIDEBAR_BG,
-          borderRight: `1px solid ${BORDER}`,
+          borderRight: 'none',
           flexDirection: 'column',
           zIndex: 50,
           overflowY: 'auto',
@@ -940,46 +944,43 @@ export default function StaffDashboard() {
         className={sidebarOpen ? 'flex' : 'hidden lg:flex'}
       >
         {/* Logo */}
-        <div style={{ padding: '1.5rem 1rem 1rem', borderBottom: `1px solid ${BORDER}` }}>
+        <div style={{ padding: '1.25rem 1rem', borderBottom: `1px solid ${SIDEBAR_BORDER}` }}>
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: ORANGE, boxShadow: `0 0 16px ${ORANGE_GLOW}` }}
-            >
-              <UtensilsCrossed className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: ORANGE, boxShadow: `0 4px 12px ${ORANGE}55` }}>
+              <UtensilsCrossed className="w-4.5 h-4.5 text-white" />
             </div>
             <div>
-              <p className="font-black text-sm leading-tight" style={{ color: TEXT }}>RESTODICI</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: ORANGE }}>Espace Staff</p>
+              <p className="font-black text-sm leading-tight tracking-wide" style={{ color: '#FFFFFF' }}>RESTODICI</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)' }}>Espace Staff</p>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav style={{ flex: 1, padding: '1rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <nav style={{ flex: 1, padding: '0.875rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {TABS.map(({ id, label, icon: Icon, badge, badgeRed }) => {
             const isActive = activeTab === id;
             return (
               <button
                 key={id}
                 onClick={() => { goTab(id); setSidebarOpen(false); }}
-                className="flex items-center gap-2.5 w-full text-left text-sm font-semibold transition-all rounded-xl"
+                className="flex items-center gap-2.5 w-full text-left text-sm font-semibold transition-all"
                 style={{
-                  padding: '0.65rem 0.85rem',
-                  background: isActive ? ORANGE_GLOW : 'transparent',
-                  color: isActive ? ORANGE : TEXT_MUTED,
-                  borderLeft: isActive ? `3px solid ${ORANGE}` : '3px solid transparent',
+                  padding: '0.625rem 0.875rem',
+                  borderRadius: 10,
+                  background: isActive ? 'rgba(255,140,0,0.14)' : 'transparent',
+                  color: isActive ? ORANGE : 'rgba(255,255,255,0.55)',
+                  border: isActive ? `1px solid rgba(255,140,0,0.2)` : '1px solid transparent',
                 }}
-                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = TEXT; } }}
-                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TEXT_MUTED; } }}
+                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; } }}
+                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; } }}
               >
-                <Icon className="w-4 h-4 flex-shrink-0" style={{ color: isActive ? ORANGE : TEXT_MUTED }} />
+                <Icon className="w-4 h-4 flex-shrink-0" style={{ color: isActive ? ORANGE : 'rgba(255,255,255,0.45)' }} />
                 <span className="flex-1">{label}</span>
                 {badge != null && badge > 0 && (
-                  <span
-                    className="px-1.5 py-0.5 rounded-md text-[10px] font-black"
-                    style={badgeRed ? { background: DANGER, color: '#FFF' } : { background: ORANGE, color: '#FFF' }}
-                  >
+                  <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black"
+                    style={badgeRed ? { background: DANGER, color: '#FFF' } : { background: ORANGE, color: '#FFF' }}>
                     {badge}
                   </span>
                 )}
@@ -987,27 +988,30 @@ export default function StaffDashboard() {
             );
           })}
 
+          {/* Divider */}
+          <div style={{ height: 1, background: SIDEBAR_BORDER, margin: '6px 0' }} />
+
           {/* Clôture link */}
           <button
             onClick={() => { setShowCloture(true); setSidebarOpen(false); }}
-            className="flex items-center gap-2.5 w-full text-left text-sm font-semibold transition-all rounded-xl mt-1"
-            style={{ padding: '0.65rem 0.85rem', color: TEXT_MUTED, borderLeft: '3px solid transparent' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = TEXT; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TEXT_MUTED; }}
+            className="flex items-center gap-2.5 w-full text-left text-sm font-semibold transition-all"
+            style={{ padding: '0.625rem 0.875rem', borderRadius: 10, color: 'rgba(255,255,255,0.55)', background: 'transparent', border: '1px solid transparent' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
           >
-            <Wallet className="w-4 h-4 flex-shrink-0" />
+            <Wallet className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }} />
             <span className="flex-1">Clôture caisse</span>
           </button>
 
           {/* KDS link */}
           <Link
             to="/staff/kds"
-            className="flex items-center gap-2.5 w-full text-sm font-semibold transition-all rounded-xl"
-            style={{ padding: '0.65rem 0.85rem', color: TEXT_MUTED, borderLeft: '3px solid transparent', textDecoration: 'none' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = TEXT; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TEXT_MUTED; }}
+            className="flex items-center gap-2.5 w-full text-sm font-semibold transition-all"
+            style={{ padding: '0.625rem 0.875rem', borderRadius: 10, color: 'rgba(255,255,255,0.55)', background: 'transparent', textDecoration: 'none', border: '1px solid transparent' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
           >
-            <ChefHat className="w-4 h-4 flex-shrink-0" />
+            <ChefHat className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }} />
             <span>Mode KDS</span>
           </Link>
         </nav>
@@ -1016,8 +1020,8 @@ export default function StaffDashboard() {
         <div style={{ padding: '0 0.75rem', marginBottom: '0.75rem' }}>
           <button
             onClick={() => { setShowNewOrder(true); setSidebarOpen(false); }}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{ background: ORANGE, boxShadow: `0 4px 20px ${ORANGE_GLOW}` }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_DARK})`, borderRadius: 12, boxShadow: `0 4px 16px ${ORANGE}44` }}
           >
             <Plus className="w-4 h-4" />
             Nouvelle commande
@@ -1025,31 +1029,29 @@ export default function StaffDashboard() {
         </div>
 
         {/* Staff profile */}
-        <div style={{ borderTop: `1px solid ${BORDER}`, padding: '0.85rem 1rem' }}>
+        <div style={{ borderTop: `1px solid ${SIDEBAR_BORDER}`, padding: '0.85rem 1rem' }}>
           <button
             onClick={() => setShowPanel(true)}
-            className="flex items-center gap-2.5 w-full text-left transition-all rounded-xl mb-2"
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            className="flex items-center gap-2.5 w-full text-left transition-all rounded-xl p-2 mb-1"
+            style={{ border: '1px solid transparent' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = SIDEBAR_BORDER; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
           >
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm text-white flex-shrink-0"
-              style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)` }}
-            >
+            <div className="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm text-white flex-shrink-0"
+              style={{ background: ORANGE, boxShadow: `0 2px 8px ${ORANGE}55` }}>
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate" style={{ color: TEXT }}>{fullName}</p>
-              <p className="text-[11px] truncate" style={{ color: TEXT_MUTED }}>{user?.email || 'staff@restodici.ci'}</p>
+              <p className="text-sm font-bold truncate" style={{ color: '#FFFFFF' }}>{fullName}</p>
+              <p className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>{user?.email || 'staff@restodici.ci'}</p>
             </div>
           </button>
-          {/* Déconnexion */}
           <button
             onClick={() => logout()}
-            className="flex items-center gap-2.5 w-full text-left text-sm font-bold rounded-xl transition-all"
-            style={{ padding: '0.55rem 0.75rem', color: '#FCA5A5', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; e.currentTarget.style.color = '#F87171'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#FCA5A5'; }}
+            className="flex items-center gap-2.5 w-full text-left text-sm font-semibold transition-all"
+            style={{ padding: '0.55rem 0.875rem', borderRadius: 8, color: 'rgba(255,100,100,0.7)', background: 'transparent' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.1)'; e.currentTarget.style.color = '#FF6B6B'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,100,100,0.7)'; }}
           >
             <LogOut className="w-4 h-4 flex-shrink-0" />
             <span>Déconnexion</span>
@@ -1062,31 +1064,26 @@ export default function StaffDashboard() {
 
         {/* Top bar */}
         <div
-          className="sticky top-0 z-30 flex items-center justify-between px-5 py-3.5"
-          style={{
-            background: SURFACE,
-            borderBottom: `1px solid ${BORDER}`,
-            boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-          }}
+          className="sticky top-0 z-30 flex items-center justify-between px-5 py-3"
+          style={{ background: '#FFFFFF', borderBottom: `1px solid ${BORDER}`, boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}
         >
-          {/* Left: hamburger + title */}
+          {/* Left */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl transition-colors"
-              style={{ color: TEXT_MUTED }}
-            >
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-xl" style={{ color: TEXT_MUTED }}>
               <Menu className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-base font-black" style={{ color: TEXT }}>{pageTitle}</h1>
+              <h1 className="text-sm font-black" style={{ color: TEXT }}>{pageTitle}</h1>
               <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-[11px] hidden sm:block font-semibold" style={{ color: TEXT_MUTED }}>
+                <p className="text-[11px] hidden sm:block font-medium" style={{ color: TEXT_MUTED }}>
                   {user?.restaurant?.nom || 'Mon Restaurant'}
                 </p>
-                <span className="hidden sm:flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: isInService(user?.restaurant?.openingTime, user?.restaurant?.closingTime) ? GREEN_LIGHT : TEXT_MUTED }} />
-                  <span className="text-[10px] font-bold" style={{ color: isInService(user?.restaurant?.openingTime, user?.restaurant?.closingTime) ? GREEN_LIGHT : TEXT_MUTED }}>
+                <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full"
+                  style={{ background: isInService(user?.restaurant?.openingTime, user?.restaurant?.closingTime) ? '#DCFCE7' : '#F3F4F6' }}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse"
+                    style={{ background: isInService(user?.restaurant?.openingTime, user?.restaurant?.closingTime) ? GREEN : TEXT_LIGHT }} />
+                  <span className="text-[10px] font-bold"
+                    style={{ color: isInService(user?.restaurant?.openingTime, user?.restaurant?.closingTime) ? '#15803D' : TEXT_MUTED }}>
                     {isInService(user?.restaurant?.openingTime, user?.restaurant?.closingTime) ? 'En service' : 'Fermé'}
                   </span>
                 </span>
@@ -1094,11 +1091,13 @@ export default function StaffDashboard() {
             </div>
           </div>
 
-          {/* Right: actions */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: SURFACE_ELEVATED, border: `1px solid ${BORDER}` }}>
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: isAvailable ? GREEN_LIGHT : TEXT_MUTED }} />
-              <span className="text-xs font-semibold hidden sm:block" style={{ color: isAvailable ? GREEN_LIGHT : TEXT_MUTED }}>
+          {/* Right */}
+          <div className="flex items-center gap-1.5">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+              style={{ background: isAvailable ? '#DCFCE7' : SURFACE_ELEVATED, border: `1px solid ${BORDER}` }}>
+              <span className="w-2 h-2 rounded-full animate-pulse"
+                style={{ background: isAvailable ? GREEN : TEXT_LIGHT }} />
+              <span className="text-xs font-semibold" style={{ color: isAvailable ? '#15803D' : TEXT_MUTED }}>
                 {isAvailable ? 'Disponible' : 'Occupé'}
               </span>
             </div>
@@ -1107,7 +1106,7 @@ export default function StaffDashboard() {
 
             <button
               onClick={() => void refresh()}
-              className="p-2 rounded-xl transition-colors"
+              className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
               style={{ color: TEXT_MUTED }}
               title="Rafraîchir"
               onMouseEnter={e => { e.currentTarget.style.color = TEXT; e.currentTarget.style.background = SURFACE_ELEVATED; }}
@@ -1116,11 +1115,10 @@ export default function StaffDashboard() {
               <RefreshCw className="w-4 h-4" />
             </button>
 
-            {/* Avatar */}
             <button
               onClick={() => setShowPanel(true)}
               className="w-8 h-8 rounded-full font-black text-sm flex items-center justify-center text-white transition-all hover:scale-105"
-              style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)`, boxShadow: `0 0 12px ${ORANGE_GLOW}` }}
+              style={{ background: ORANGE, boxShadow: `0 2px 8px ${ORANGE}44` }}
             >
               {initials}
             </button>
@@ -1134,38 +1132,36 @@ export default function StaffDashboard() {
           {activeTab === 'dashboard' && (
             <div className="space-y-5">
 
-              {/* Hero welcome card */}
-              <div className="rounded-2xl overflow-hidden" style={{ background: SURFACE, boxShadow: SHADOW, border: `1px solid ${BORDER}` }}>
-                {/* Bande dégradé haut */}
-                <div className="h-1" style={{ background: `linear-gradient(90deg, ${ORANGE}, ${GREEN})` }} />
+              {/* Hero cockpit card */}
+              <div className="rounded-2xl overflow-hidden" style={{ background: '#111111', boxShadow: '0 4px 24px rgba(0,0,0,0.18)' }}>
+                {/* Orange top stripe */}
+                <div style={{ height: 3, background: `linear-gradient(90deg, ${ORANGE}, #FFB800, ${ORANGE})` }} />
+
                 <div className="p-5 lg:p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center gap-5">
+                    {/* Left: avatar + greeting */}
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      {/* Avatar */}
                       <div className="relative flex-shrink-0">
-                        <div
-                          className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg"
-                          style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)`, boxShadow: `0 0 20px ${ORANGE_GLOW}` }}
-                        >
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-black text-white"
+                          style={{ background: ORANGE, boxShadow: `0 4px 16px ${ORANGE}55` }}>
                           {initials}
                         </div>
-                        <div
-                          className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2"
-                          style={{ background: isAvailable ? GREEN_LIGHT : TEXT_MUTED, borderColor: SURFACE }}
-                        />
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#111111]"
+                          style={{ background: isAvailable ? GREEN_LIGHT : TEXT_LIGHT }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-black uppercase tracking-widest mb-1" style={{ color: ORANGE }}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
                           {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </p>
-                        <h2 className="text-xl font-black mb-1 truncate" style={{ color: TEXT }}>
+                        <h2 className="text-lg font-black mb-1 truncate" style={{ color: '#FFFFFF' }}>
                           Bonjour, {firstName} !
                         </h2>
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: allActive.length > 0 ? ORANGE : GREEN_LIGHT }} />
-                          <p className="text-sm truncate" style={{ color: TEXT_MUTED }}>
+                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse"
+                            style={{ background: allActive.length > 0 ? ORANGE : GREEN_LIGHT }} />
+                          <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>
                             {allActive.length === 0
-                              ? 'Aucune commande active pour le moment'
+                              ? 'Le passe est calme — profitez-en'
                               : `${allActive.length} commande${allActive.length > 1 ? 's' : ''} active${allActive.length > 1 ? 's' : ''}${urgentOrders.length > 0 ? ` · ${urgentOrders.length} urgente${urgentOrders.length > 1 ? 's' : ''}` : ' · Tout sous contrôle'}`}
                           </p>
                         </div>
@@ -1173,66 +1169,53 @@ export default function StaffDashboard() {
                     </div>
 
                     {/* Disponibilité toggle */}
-                    <div className="flex items-center gap-1 rounded-xl p-1 flex-shrink-0" style={{ background: BG, border: `1px solid ${BORDER}` }}>
-                      <button
-                        onClick={() => setIsAvailable(true)}
+                    <div className="flex items-center gap-1 rounded-xl p-1 flex-shrink-0"
+                      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <button onClick={() => setIsAvailable(true)}
                         className="px-4 py-2 rounded-lg text-sm font-black transition-all"
                         style={isAvailable
-                          ? { background: GREEN, color: '#FFF', boxShadow: `0 4px 12px ${GREEN_GLOW}` }
-                          : { color: TEXT_MUTED }
-                        }
-                      >
+                          ? { background: ORANGE, color: '#FFF', boxShadow: `0 2px 8px ${ORANGE}55` }
+                          : { color: 'rgba(255,255,255,0.45)' }}>
                         Disponible
                       </button>
-                      <button
-                        onClick={() => setIsAvailable(false)}
+                      <button onClick={() => setIsAvailable(false)}
                         className="px-4 py-2 rounded-lg text-sm font-black transition-all"
                         style={!isAvailable
-                          ? { background: SURFACE_ELEVATED, color: TEXT, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }
-                          : { color: TEXT_MUTED }
-                        }
-                      >
+                          ? { background: 'rgba(255,255,255,0.12)', color: '#FFF' }
+                          : { color: 'rgba(255,255,255,0.45)' }}>
                         Occupé
                       </button>
                     </div>
                   </div>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5 pt-5" style={{ borderTop: `1px solid ${BORDER}` }}>
-                    <StatCard
-                      icon={CheckCircle}
-                      value={completedToday.length}
-                      label="Livrées aujourd'hui"
-                      color={GREEN}
-                      glow={GREEN_GLOW}
-                      subtitle="commandes livrées"
-                    />
-                    <StatCard
-                      icon={Wallet}
-                      value={encaissementsToday > 0 ? formatFCFA(encaissementsToday) : '—'}
-                      label="Encaissé aujourd'hui"
-                      color={ORANGE}
-                      glow={ORANGE_GLOW}
-                      subtitle="total encaissé"
-                    />
-                    <StatCard
-                      icon={Activity}
-                      value={allActive.length}
-                      label="En cours"
-                      color={BLUE}
-                      glow="rgba(59,130,246,0.15)"
-                      subtitle="commandes actives"
-                    />
-                    <StatCard
-                      icon={AlertTriangle}
-                      value={urgentOrders.length}
-                      label="Urgentes"
-                      color={urgentOrders.length > 0 ? DANGER : GREEN}
-                      glow={urgentOrders.length > 0 ? DANGER_GLOW : GREEN_GLOW}
-                      subtitle={urgentOrders.length > 0 ? '+15 min sans traitement' : 'tout sous contrôle'}
-                    />
+                  {/* Live stats strip inside dark card */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-5 pt-5"
+                    style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                    {[
+                      { icon: CheckCircle, v: completedToday.length, label: "Livrées", sub: 'ce jour', color: GREEN_LIGHT },
+                      { icon: Wallet, v: encaissementsToday > 0 ? formatFCFA(encaissementsToday) : '—', label: "Encaissé", sub: 'total jour', color: ORANGE },
+                      { icon: Activity, v: allActive.length, label: "En cours", sub: 'actives', color: BLUE },
+                      { icon: AlertTriangle, v: urgentOrders.length, label: "Urgentes", sub: urgentOrders.length > 0 ? '+15 min' : 'RAS', color: urgentOrders.length > 0 ? DANGER : GREEN_LIGHT },
+                    ].map(({ icon: Ic, v, label, sub, color }, i) => (
+                      <div key={i} className="rounded-xl p-3.5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Ic className="w-3.5 h-3.5" style={{ color }} />
+                          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</span>
+                        </div>
+                        <p className="text-2xl font-black leading-none" style={{ color: '#FFFFFF', letterSpacing: '-0.02em' }}>{v}</p>
+                        <p className="text-[10px] mt-1 font-medium" style={{ color }}>{sub}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              </div>
+
+              {/* KPI cards row */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard icon={CheckCircle} value={completedToday.length} label="Livrées aujourd'hui" color={GREEN} subtitle="commandes" />
+                <StatCard icon={Wallet} value={encaissementsToday > 0 ? formatFCFA(encaissementsToday) : '—'} label="Encaissé" color={ORANGE} subtitle="total jour" />
+                <StatCard icon={Activity} value={allActive.length} label="En cours" color={BLUE} subtitle="actives" />
+                <StatCard icon={AlertTriangle} value={urgentOrders.length} label="Urgentes" color={urgentOrders.length > 0 ? DANGER : GREEN} subtitle={urgentOrders.length > 0 ? '+15 min' : 'tout OK'} />
               </div>
 
               {/* Main grid */}
@@ -1240,10 +1223,10 @@ export default function StaffDashboard() {
 
                 {/* Commandes en cours */}
                 <div className="lg:col-span-2">
-                  <div className="rounded-xl border overflow-hidden" style={{ background: SURFACE, borderColor: BORDER, boxShadow: SHADOW }}>
+                  <div className="rounded-xl border overflow-hidden" style={{ background: '#FFFFFF', borderColor: BORDER, boxShadow: SHADOW }}>
                     <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: BORDER }}>
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: ORANGE_GLOW }}>
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: ORANGE_LIGHT }}>
                           <ChefHat className="w-4 h-4" style={{ color: ORANGE }} />
                         </div>
                         <h3 className="font-black text-sm" style={{ color: TEXT }}>Commandes en cours</h3>
@@ -1261,15 +1244,15 @@ export default function StaffDashboard() {
 
                     {allActive.length === 0 ? (
                       <div className="text-center py-12 px-6">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: GREEN_GLOW, border: `1px solid ${GREEN_BORDER}` }}>
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: GREEN_BG, border: `1px solid #ABD0AF` }}>
                           <Coffee className="w-7 h-7" style={{ color: GREEN }} />
                         </div>
                         <p className="font-black text-base mb-1" style={{ color: TEXT }}>Calme plat</p>
                         <p className="text-sm mb-4" style={{ color: TEXT_MUTED }}>Les nouvelles commandes apparaissent ici en temps réel.</p>
                         <button
                           onClick={() => setShowNewOrder(true)}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white transition-all hover:scale-105"
-                          style={{ background: ORANGE, boxShadow: `0 4px 16px ${ORANGE_GLOW}` }}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-black text-white transition-all hover:scale-105"
+                          style={{ background: ORANGE, borderRadius: '999px', boxShadow: '0 4px 12px rgba(255,140,0,0.3)' }}
                         >
                           <Plus className="w-4 h-4" /> Nouvelle commande
                         </button>
@@ -1294,7 +1277,7 @@ export default function StaffDashboard() {
                           <button
                             onClick={() => goTab('commandes')}
                             className="w-full py-2.5 text-sm font-black rounded-xl transition-colors"
-                            style={{ background: ORANGE_GLOW, color: ORANGE, border: `1px solid rgba(255,140,0,0.25)` }}
+                            style={{ background: ORANGE_LIGHT, color: ORANGE, border: `1px solid ${BORDER}` }}
                           >
                             Voir les {allActive.length - 4} autres commandes →
                           </button>
@@ -1309,19 +1292,19 @@ export default function StaffDashboard() {
                   {urgentOrders.length > 0 && (
                     <div
                       className="flex items-center gap-3 rounded-xl px-4 py-3 border animate-pulse"
-                      style={{ background: DANGER_GLOW, borderColor: 'rgba(239,68,68,0.35)', boxShadow: SHADOW }}
+                      style={{ background: '#FFDAD6', borderColor: '#FFB4AB', boxShadow: SHADOW }}
                     >
-                      <AlertTriangle className="w-5 h-5 flex-shrink-0" style={{ color: '#FCA5A5' }} />
+                      <AlertTriangle className="w-5 h-5 flex-shrink-0" style={{ color: '#BA1A1A' }} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-black" style={{ color: '#FCA5A5' }}>
+                        <p className="text-sm font-black" style={{ color: '#BA1A1A' }}>
                           {urgentOrders.length} urgente{urgentOrders.length > 1 ? 's' : ''}
                         </p>
-                        <p className="text-[11px]" style={{ color: '#F87171' }}>+15 min sans traitement</p>
+                        <p className="text-[11px]" style={{ color: '#93000A' }}>+15 min sans traitement</p>
                       </div>
                       <button
                         onClick={() => goTab('commandes')}
                         className="px-3 py-1.5 rounded-xl text-xs font-black text-white flex-shrink-0"
-                        style={{ background: DANGER }}
+                        style={{ background: '#BA1A1A' }}
                       >
                         Traiter
                       </button>
@@ -1331,9 +1314,9 @@ export default function StaffDashboard() {
                   <WeeklySchedule openingTime={user?.restaurant?.openingTime} closingTime={user?.restaurant?.closingTime} />
 
                   {stockAlerts.length > 0 && (
-                    <div className="rounded-xl border p-4" style={{ background: SURFACE, borderColor: 'rgba(239,68,68,0.25)', boxShadow: SHADOW }}>
+                    <div className="rounded-xl border p-4" style={{ background: '#FFFFFF', borderColor: '#FFB4AB', boxShadow: SHADOW }}>
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-black text-sm flex items-center gap-2" style={{ color: '#FCA5A5' }}>
+                        <h3 className="font-black text-sm flex items-center gap-2" style={{ color: '#BA1A1A' }}>
                           <AlertTriangle className="w-4 h-4" /> Alertes stock
                         </h3>
                         <button onClick={() => goTab('stocks')} className="text-xs font-bold" style={{ color: ORANGE }}>Gérer →</button>
@@ -1342,15 +1325,15 @@ export default function StaffDashboard() {
                         {stockAlerts.slice(0, 3).map(item => (
                           <div key={item.id} className="p-3 rounded-xl border" style={
                             item.stock <= 0
-                              ? { background: DANGER_GLOW, borderColor: 'rgba(239,68,68,0.3)' }
-                              : { background: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.3)' }
+                              ? { background: '#FFDAD6', borderColor: '#FFB4AB', borderLeft: '4px solid #BA1A1A' }
+                              : { background: '#FEF3C7', borderColor: '#FCD34D', borderLeft: '4px solid #735C00' }
                           }>
                             <div className="flex items-center justify-between">
                               <p className="text-sm font-bold truncate flex-1" style={{ color: TEXT }}>{item.nom}</p>
                               <span className="px-2 py-0.5 rounded-md text-[10px] font-black ml-2" style={
                                 item.stock <= 0
-                                  ? { background: DANGER, color: '#FFF' }
-                                  : { background: AMBER, color: '#FFF' }
+                                  ? { background: '#BA1A1A', color: '#FFF' }
+                                  : { background: '#735C00', color: '#FFF' }
                               }>
                                 {item.stock <= 0 ? 'RUPTURE' : 'FAIBLE'}
                               </span>
@@ -1363,15 +1346,15 @@ export default function StaffDashboard() {
                   )}
 
                   {(serverActivity.length > 0 || actionHistory.length > 0) && (
-                    <div className="rounded-xl border p-4" style={{ background: SURFACE, borderColor: BORDER, boxShadow: SHADOW }}>
+                    <div className="rounded-xl border p-4" style={{ background: '#FFFFFF', borderColor: BORDER, boxShadow: SHADOW }}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: GREEN_GLOW }}>
+                          <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: GREEN_BG }}>
                             <Activity className="w-3.5 h-3.5" style={{ color: GREEN }} />
                           </div>
                           <h3 className="font-black text-sm" style={{ color: TEXT }}>Activité récente</h3>
                         </div>
-                        <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: GREEN_LIGHT }} />
+                        <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: GREEN }} />
                       </div>
                       <div className="space-y-2">
                         {(serverActivity.length > 0 ? serverActivity.slice(0, 5) : actionHistory.slice(0, 4)).map((entry) => {
@@ -1380,7 +1363,7 @@ export default function StaffDashboard() {
                             ? (entry.statutNouvel === 'LIVREE' ? GREEN : entry.statutNouvel === 'ANNULEE' ? DANGER : entry.statutNouvel === 'EN_PREP' ? AMBER : ORANGE)
                             : (entry.type === 'paiement' ? GREEN : entry.type === 'commande' ? ORANGE : entry.type === 'b2b' ? AMBER : TEXT_MUTED);
                           return (
-                            <div key={entry.id} className="flex items-start gap-3 p-2 rounded-xl" style={{ background: SURFACE_ELEVATED }}>
+                            <div key={entry.id} className="flex items-start gap-3 p-2 rounded-xl" style={{ background: '#F3F3F6' }}>
                               <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: color + '22' }}>
                                 <span className="w-2 h-2 rounded-full" style={{ background: color }} />
                               </div>
@@ -1422,14 +1405,14 @@ export default function StaffDashboard() {
                     className="px-4 py-2 rounded-xl text-sm font-black transition-all"
                     style={
                       orderFilter === id
-                        ? { background: ORANGE, color: '#FFF', boxShadow: `0 4px 12px ${ORANGE_GLOW}` }
-                        : { background: SURFACE, color: TEXT_MUTED, border: `1px solid ${BORDER}` }
+                        ? { background: ORANGE, color: '#FFF', boxShadow: '0 4px 12px rgba(255,140,0,0.3)' }
+                        : { background: '#FFFFFF', color: TEXT_MUTED, border: `1px solid ${BORDER}` }
                     }
                   >
                     {label}
                     {count != null && count > 0 && (
                       <span className="ml-2 px-1.5 py-0.5 rounded-md text-[10px] font-black" style={
-                        orderFilter === id ? { background: 'rgba(0,0,0,0.2)', color: '#FFF' } : { background: SURFACE_ELEVATED, color: TEXT_MUTED }
+                        orderFilter === id ? { background: 'rgba(0,0,0,0.2)', color: '#FFF' } : { background: '#F3F3F6', color: TEXT_MUTED }
                       }>
                         {count}
                       </span>
@@ -1444,16 +1427,16 @@ export default function StaffDashboard() {
 
               {orderFilter === 'board' && (
                 allActive.length === 0 ? (
-                  <div className="text-center py-16 rounded-xl border" style={{ background: SURFACE, borderColor: BORDER }}>
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: GREEN_GLOW, border: `1px solid ${GREEN_BORDER}` }}>
+                  <div className="text-center py-16 rounded-xl border" style={{ background: '#FFFFFF', borderColor: BORDER }}>
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: GREEN_BG, border: `1px solid #ABD0AF` }}>
                       <ChefHat className="w-7 h-7" style={{ color: GREEN }} />
                     </div>
                     <p className="font-black text-base mb-1" style={{ color: TEXT }}>Le passe est calme</p>
                     <p className="text-sm mb-4" style={{ color: TEXT_MUTED }}>Aucune commande active.</p>
                     <button
                       onClick={() => setShowNewOrder(true)}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white transition-all hover:scale-105"
-                      style={{ background: ORANGE, boxShadow: `0 4px 16px ${ORANGE_GLOW}` }}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-black text-white transition-all hover:scale-105"
+                      style={{ background: ORANGE, borderRadius: '999px' }}
                     >
                       <Plus className="w-4 h-4" /> Nouvelle commande
                     </button>
@@ -1476,7 +1459,7 @@ export default function StaffDashboard() {
 
               {orderFilter === 'b2b' && (
                 activeB2B.length === 0 ? (
-                  <div className="text-center py-16 rounded-xl border" style={{ background: SURFACE, borderColor: BORDER }}>
+                  <div className="text-center py-16 rounded-xl border" style={{ background: '#FFFFFF', borderColor: BORDER }}>
                     <Package className="w-12 h-12 mx-auto mb-3" style={{ color: TEXT_MUTED }} />
                     <p className="font-black" style={{ color: TEXT }}>Aucune commande B2B active</p>
                     <p className="text-sm mt-1" style={{ color: TEXT_MUTED }}>Les commandes entreprise apparaissent ici.</p>
@@ -1492,7 +1475,7 @@ export default function StaffDashboard() {
 
               {orderFilter === 'all' && (
                 filteredOrders.length === 0 ? (
-                  <div className="text-center py-16 rounded-xl border" style={{ background: SURFACE, borderColor: BORDER }}>
+                  <div className="text-center py-16 rounded-xl border" style={{ background: '#FFFFFF', borderColor: BORDER }}>
                     <p className="font-black" style={{ color: TEXT_MUTED }}>Aucune commande</p>
                   </div>
                 ) : (
@@ -1522,18 +1505,18 @@ export default function StaffDashboard() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                  { label: 'Articles total',  value: stocks.length,                                color: ORANGE, glow: ORANGE_GLOW },
-                  { label: 'Disponibles',     value: stocks.filter(s => s.stock > s.seuil).length, color: GREEN,  glow: GREEN_GLOW },
-                  { label: 'En alerte',       value: stockAlerts.length,                           color: DANGER, glow: DANGER_GLOW },
+                  { label: 'Articles total',  value: stocks.length,                                color: ORANGE, glow: ORANGE_LIGHT },
+                  { label: 'Disponibles',     value: stocks.filter(s => s.stock > s.seuil).length, color: GREEN, glow: GREEN_BG },
+                  { label: 'En alerte',       value: stockAlerts.length,                           color: '#BA1A1A', glow: '#FFDAD6' },
                 ].map((s, i) => (
-                  <div key={i} className="rounded-xl border p-5" style={{ background: SURFACE, borderColor: BORDER, boxShadow: SHADOW }}>
+                  <div key={i} className="rounded-xl border p-5" style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', borderColor: BORDER, boxShadow: SHADOW }}>
                     <p className="text-3xl font-black mb-1" style={{ color: s.color }}>{s.value}</p>
                     <p className="text-sm font-bold" style={{ color: TEXT_MUTED }}>{s.label}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-xl border overflow-hidden" style={{ background: SURFACE, borderColor: BORDER, boxShadow: SHADOW }}>
+              <div className="rounded-xl border overflow-hidden" style={{ background: '#FFFFFF', borderColor: BORDER, boxShadow: SHADOW }}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b" style={{ borderColor: BORDER }}>
                   <div>
                     <h2 className="text-lg font-black" style={{ color: TEXT }}>Inventaire</h2>
@@ -1544,14 +1527,14 @@ export default function StaffDashboard() {
                       </span>
                     </p>
                   </div>
-                  <div className="flex rounded-xl p-1" style={{ background: BG }}>
+                  <div className="flex rounded-xl p-1" style={{ background: '#F3F3F6' }}>
                     {[['all', 'Tous'], [`alerts`, `Alertes (${stockAlerts.length})`]].map(([key, label]) => (
                       <button
                         key={key}
                         onClick={() => setStockFilter(key)}
                         className="px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
                         style={stockFilter === key
-                          ? { background: SURFACE_ELEVATED, color: TEXT, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }
+                          ? { background: '#FFFFFF', color: TEXT, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }
                           : { color: TEXT_MUTED }
                         }
                       >
@@ -1577,18 +1560,18 @@ export default function StaffDashboard() {
                       const pct = item.seuil > 0 ? Math.min(100, Math.round((item.stock / (item.seuil * 3)) * 100)) : 50;
                       const barColor = isRupture ? DANGER : isLow ? AMBER : GREEN;
                       return (
-                        <div key={item.id} className="flex items-center gap-4 px-5 py-4 transition-colors" style={{ background: SURFACE, borderBottom: '1px solid rgba(255,255,255,0.07)' }}
-                          onMouseEnter={e => { e.currentTarget.style.background = SURFACE_ELEVATED; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = SURFACE; }}
+                        <div key={item.id} className="flex items-center gap-4 px-5 py-4 transition-colors" style={{ background: '#FFFFFF', borderBottom: '1px solid #EEEEF0' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#EEEEF0'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; }}
                         >
                           <div
                             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ background: isRupture ? DANGER_GLOW : isLow ? 'rgba(245,158,11,0.15)' : GREEN_GLOW }}
+                            style={{ background: isRupture ? '#FFDAD6' : isLow ? '#FEF3C7' : GREEN_BG }}
                           >
                             {isRupture
-                              ? <AlertTriangle className="w-5 h-5" style={{ color: DANGER }} />
+                              ? <AlertTriangle className="w-5 h-5" style={{ color: '#BA1A1A' }} />
                               : isLow
-                              ? <AlertCircle className="w-5 h-5" style={{ color: AMBER }} />
+                              ? <AlertCircle className="w-5 h-5" style={{ color: '#735C00' }} />
                               : <CheckCircle className="w-5 h-5" style={{ color: GREEN }} />
                             }
                           </div>
@@ -1601,7 +1584,7 @@ export default function StaffDashboard() {
                                 </span>
                               )}
                             </div>
-                            <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                            <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: '#E2E2E5' }}>
                               <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
                             </div>
                             <p className="text-xs" style={{ color: TEXT_MUTED }}>
@@ -1612,9 +1595,9 @@ export default function StaffDashboard() {
                           <span
                             className="px-2.5 py-1 rounded-lg text-xs font-black flex-shrink-0"
                             style={
-                              isRupture ? { background: DANGER_GLOW, color: '#FCA5A5' }
-                              : isLow ? { background: 'rgba(245,158,11,0.15)', color: '#FCD34D' }
-                              : { background: GREEN_GLOW, color: '#6EE7B7' }
+                              isRupture ? { background: '#FFDAD6', color: '#BA1A1A' }
+                              : isLow ? { background: '#FEF3C7', color: '#735C00' }
+                              : { background: '#DCFCE7', color: '#15803D' }
                             }
                           >
                             {isRupture ? 'RUPTURE' : isLow ? 'FAIBLE' : 'OK'}
@@ -1624,7 +1607,7 @@ export default function StaffDashboard() {
                               onClick={() => void adjustStock(item.id, -1, 'Correction')}
                               disabled={savingStockId === item.id || item.stock <= 0}
                               className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors border disabled:opacity-40 disabled:cursor-not-allowed"
-                              style={{ background: DANGER_GLOW, borderColor: 'rgba(239,68,68,0.3)', color: '#FCA5A5' }}
+                              style={{ background: '#FFDAD6', borderColor: '#FFB4AB', color: '#BA1A1A' }}
                             >
                               <Minus className="w-4 h-4" />
                             </button>
@@ -1651,15 +1634,15 @@ export default function StaffDashboard() {
       {/* ── PROFILE PANEL ── */}
       {showPanel && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowPanel(false)} />
-          <div className="relative w-full max-w-md h-full overflow-y-auto shadow-2xl" style={{ background: SURFACE }}>
-            <div className="h-1" style={{ background: `linear-gradient(90deg, ${ORANGE}, ${GREEN})` }} />
+          <div className="absolute inset-0 backdrop-blur-sm" style={{ background: 'rgba(26,28,30,0.4)' }} onClick={() => setShowPanel(false)} />
+          <div className="relative w-full max-w-md h-full overflow-y-auto shadow-2xl" style={{ background: '#FFFFFF' }}>
+            <div className="h-1" style={{ background: `linear-gradient(90deg, ${ORANGE}, ${ORANGE_DARK})` }} />
             <div className="p-6 border-b" style={{ borderColor: BORDER }}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div
                     className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white"
-                    style={{ background: `linear-gradient(135deg, ${ORANGE}, #C96200)`, boxShadow: `0 0 20px ${ORANGE_GLOW}` }}
+                    style={{ background: ORANGE }}
                   >
                     {initials}
                   </div>
@@ -1672,7 +1655,7 @@ export default function StaffDashboard() {
                   onClick={() => setShowPanel(false)}
                   className="p-2 rounded-xl transition-colors"
                   style={{ color: TEXT_MUTED }}
-                  onMouseEnter={e => { e.currentTarget.style.background = SURFACE_ELEVATED; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#F3F3F6'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <X className="w-5 h-5" />
@@ -1693,7 +1676,7 @@ export default function StaffDashboard() {
                         value={form[f.key]}
                         onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                         className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none transition-all"
-                        style={{ borderColor: BORDER, background: SURFACE_ELEVATED, color: TEXT }}
+                        style={{ borderColor: BORDER, background: '#F3F3F6', color: TEXT }}
                         placeholder={f.placeholder}
                       />
                     </div>
@@ -1710,19 +1693,19 @@ export default function StaffDashboard() {
                       value={form[f.key]}
                       onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                       className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none transition-all"
-                      style={{ borderColor: BORDER, background: SURFACE_ELEVATED, color: TEXT }}
+                      style={{ borderColor: BORDER, background: '#F3F3F6', color: TEXT }}
                       placeholder={f.placeholder}
                     />
                   </div>
                 ))}
 
                 {profileError && (
-                  <div className="p-3 rounded-xl border text-sm font-medium" style={{ background: DANGER_GLOW, borderColor: 'rgba(239,68,68,0.3)', color: '#FCA5A5' }}>
+                  <div className="p-3 rounded-xl border text-sm font-medium" style={{ background: '#FFDAD6', borderColor: '#FFB4AB', color: '#BA1A1A' }}>
                     {profileError}
                   </div>
                 )}
                 {profileSuccess && (
-                  <div className="p-3 rounded-xl border text-sm font-medium" style={{ background: GREEN_GLOW, borderColor: GREEN_BORDER, color: '#6EE7B7' }}>
+                  <div className="p-3 rounded-xl border text-sm font-medium" style={{ background: GREEN_BG, borderColor: GREEN_BORDER, color: '#15803D' }}>
                     {profileSuccess}
                   </div>
                 )}
@@ -1730,8 +1713,8 @@ export default function StaffDashboard() {
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="w-full py-3 rounded-xl text-sm font-black text-white transition-all hover:scale-[1.02] disabled:opacity-60 disabled:scale-100 flex items-center justify-center gap-2"
-                  style={{ background: ORANGE, boxShadow: `0 4px 16px ${ORANGE_GLOW}` }}
+                  className="w-full py-3 text-sm font-black text-white transition-all hover:scale-[1.02] disabled:opacity-60 disabled:scale-100 flex items-center justify-center gap-2"
+                  style={{ background: ORANGE, borderRadius: '999px', boxShadow: '0 4px 12px rgba(255,140,0,0.3)' }}
                 >
                   {savingProfile ? <><Spinner size={16} /> Enregistrement...</> : <><Save className="w-4 h-4" /> Enregistrer</>}
                 </button>

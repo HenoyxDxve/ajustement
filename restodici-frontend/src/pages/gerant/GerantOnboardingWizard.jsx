@@ -1,5 +1,6 @@
 // src/pages/gerant/GerantOnboardingWizard.jsx
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -174,6 +175,14 @@ export default function GerantOnboardingWizard() {
         </div>
 
         <div className="p-8">
+          <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
 
           {/* ── STEP 0: Bienvenue ── */}
           {step === 0 && (
@@ -447,6 +456,8 @@ export default function GerantOnboardingWizard() {
             </div>
           )}
 
+          </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

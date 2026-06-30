@@ -14,26 +14,27 @@ import { b2bAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import DispatchModal from '../../components/livraison/DispatchModal';
 
-/* ── Palette ── */
-const BG     = '#F9F9FC';
+/* ── Palette — miroir StaffDashboard ── */
+const BG     = '#F2F3F7';
 const CARD   = '#FFFFFF';
-const NAVY   = '#1A1C1E';
-const BORDER = '#E1BFB4';
-const MUTED  = '#594139';
-const FAINT  = '#8D7167';
+const NAVY   = '#111827';
+const BORDER = 'rgba(0,0,0,0.08)';
+const MUTED  = '#6B7280';
+const FAINT  = '#9CA3AF';
 
-const OG     = '#973100';            /* terracotta principal */
-const OG_D   = '#C04000';
-const OG_G   = 'linear-gradient(135deg, #973100 0%, #C04000 100%)';
-const OG_L   = 'rgba(151,49,0,0.09)';
-const GREEN  = '#45664B';
-const GREEN_G= 'linear-gradient(135deg,#2E4E35,#45664B)';
-const AMBER  = '#735C00';
-const AMBER_G= 'linear-gradient(135deg,#574500,#CCA72F)';
-const RED    = '#BA1A1A';
+const OG     = '#FF8C00';
+const OG_D   = '#E07A00';
+const OG_G   = 'linear-gradient(135deg, #FF8C00 0%, #E07A00 100%)';
+const OG_L   = 'rgba(255,140,0,0.09)';
+const GREEN  = '#16A34A';
+const GREEN_G= 'linear-gradient(135deg,#15803D,#16A34A)';
+const GREEN_L= '#DCFCE7';
+const AMBER  = '#D97706';
+const AMBER_G= 'linear-gradient(135deg,#B45309,#D97706)';
+const RED    = '#DC2626';
 const RED_L  = '#FFDAD6';
-const PURPLE = '#6750A4';
-const PURPLE_G='linear-gradient(135deg,#4F378B,#7965AF)';
+const PURPLE = '#8B5CF6';
+const PURPLE_G='linear-gradient(135deg,#6D28D9,#8B5CF6)';
 
 const NEXT_STATUT = {
   RECUE: 'CONFIRMEE', CONFIRMEE: 'EN_PREP',
@@ -240,7 +241,7 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
                 {l.servi && <CheckCircle2 size={12} color={GREEN} style={{ flexShrink: 0 }} />}
               </div>
               {l.instructions && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 3, marginLeft: 28, fontSize: 10, fontWeight: 700, color: '#C04000', background: 'rgba(151,49,0,0.09)', padding: '2px 8px', borderRadius: 6 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 3, marginLeft: 28, fontSize: 10, fontWeight: 700, color: OG_D, background: OG_L, padding: '2px 8px', borderRadius: 6 }}>
                   {l.instructions}
                 </span>
               )}
@@ -355,13 +356,13 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
             onClick={() => onDispatch(order)}
             style={{
               marginTop: 8, width: '100%', padding: '9px 12px', borderRadius: 12,
-              border: '1.5px solid #973100', background: 'rgba(151,49,0,0.06)',
-              color: '#C05C00', fontSize: 12, fontWeight: 700,
+              border: `1.5px solid ${OG}`, background: OG_L,
+              color: OG_D, fontSize: 12, fontWeight: 700,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               transition: 'background 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(151,49,0,0.12)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(151,49,0,0.06)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,140,0,0.12)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = OG_L; }}
           >
             <Truck size={13} /> Dispatcher la livraison
           </button>

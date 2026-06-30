@@ -86,6 +86,17 @@ export class User {
     inverseJoinColumn: { name: 'restaurantId', referencedColumnName: 'id' },
   })
   favorites?: Restaurant[];
+  @Column({ nullable: true, type: 'json' })
+  adressesSauvegardees?: Array<{
+    id: string;
+    label: string;
+    adresse: string;
+    lat?: number;
+    lng?: number;
+    type: 'home' | 'work' | 'other';
+    isDefault: boolean;
+  }>;
+
   @Column({ nullable: true })
   refreshToken?: string;
 

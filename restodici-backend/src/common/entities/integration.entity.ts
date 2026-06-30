@@ -15,6 +15,8 @@ export enum IntegrationType {
   EMAIL = 'EMAIL',
   STORAGE = 'STORAGE',
   ANALYTICS = 'ANALYTICS',
+  DELIVERY = 'DELIVERY',
+  MESSAGING = 'MESSAGING',
   CUSTOM = 'CUSTOM',
 }
 

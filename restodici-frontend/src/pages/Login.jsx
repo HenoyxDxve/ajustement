@@ -156,7 +156,7 @@ export default function Login() {
        droite  → image héro (masquée sur mobile)
      ═══════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen min-h-dvh flex" style={{ background: '#F9F9FC' }}>
+    <div className="min-h-screen min-h-dvh flex" style={{ background: '#FFFFFF' }}>
 
       {/* ── Colonne gauche : formulaire ── */}
       <div className="flex-1 flex flex-col justify-center px-5 py-10 sm:px-10 lg:px-16 xl:px-24">
@@ -176,7 +176,7 @@ export default function Login() {
           <div className="flex items-center gap-2.5 mb-10">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: '#973100' }}
+              style={{ background: '#FF8C00' }}
             >
               <UtensilsCrossed className="w-[18px] h-[18px] text-white" />
             </div>
@@ -243,7 +243,7 @@ export default function Login() {
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full py-3 rounded-xl font-semibold text-white text-sm transition disabled:opacity-60"
-                style={{ background: '#973100' }}
+                style={{ background: '#FF8C00' }}
               >
                 {isSubmitting ? 'Vérification…' : 'Valider'}
               </button>
@@ -314,7 +314,7 @@ export default function Login() {
                   <Link
                     to="/forgot-password"
                     className="text-xs font-medium hover:underline"
-                    style={{ color: '#973100' }}
+                    style={{ color: '#FF8C00' }}
                   >
                     Oublié ?
                   </Link>
@@ -386,7 +386,7 @@ export default function Login() {
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full py-3 rounded-xl font-semibold text-white text-sm transition disabled:opacity-60 active:scale-[0.99]"
-                style={{ background: '#973100' }}
+                style={{ background: '#FF8C00' }}
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -404,7 +404,7 @@ export default function Login() {
                 <Link
                   to="/register"
                   className="font-semibold hover:underline"
-                  style={{ color: '#973100' }}
+                  style={{ color: '#FF8C00' }}
                 >
                   S'inscrire
                 </Link>

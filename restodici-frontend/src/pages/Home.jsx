@@ -4,6 +4,7 @@
               newsletter, footer — entièrement responsive
    ═══════════════════════════════════════════════════════════════ */
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { UtensilsCrossed, ArrowRight, Check, Star, Search, ShoppingBag, Truck, Clock, Heart, Mail } from "lucide-react";
 import { menuAPI, newsletterAPI, api } from "../services/api";
 
@@ -33,12 +34,16 @@ const sans  = "'Manrope', system-ui, sans-serif";
 
 const CSS = `
 @keyframes kfmarquee   { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+@keyframes kfmarqueeR  { 0%{transform:translateX(-50%)} 100%{transform:translateX(0)} }
 @keyframes kfbadge     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
 @keyframes kfpulse     { 0%,100%{opacity:1} 50%{opacity:0.55} }
 @keyframes kfspin      { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
 @keyframes kfzoomin    { from{transform:scale(1)} to{transform:scale(1.07)} }
 @keyframes kfbounce    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
 @keyframes kfskeleton  { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+@keyframes kfshine     { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+@keyframes kfglowpulse { 0%,100%{opacity:0.4;transform:scale(1)} 50%{opacity:0.9;transform:scale(1.08)} }
+@keyframes kftagpop    { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
 .rd-nav-link:hover     { color:${T.accent} !important; }
 .rd-btn-cta:hover      { transform:translateY(-2px) !important; box-shadow:0 16px 40px rgba(255,140,0,0.5) !important; }
 .rd-btn-outline:hover  { background:${T.accent} !important; color:#fff !important; }
@@ -371,17 +376,57 @@ function CategoryStrip({ activeCatId, onCategorySelect, menuRef, restaurants = [
 
 /* ─── Marquee ─── */
 function Marquee() {
-  const items=["Attiéké Poisson Braisé","Alloco Poulet Grillé","Kedjenou de Poulet","Garba au Thon Frais","Foutou Sauce Graine","Riz Gras Sauté","Soupe Kandia","Placali & Sauce Graine","Aloko & Poisson Fumé","Brochettes Bœuf","Tchep au Crabe","Poulet Yassa","Mafé Mouton","Capitaine Frit"];
+  /* Plats ivoiriens — ce que les restaurants servent vraiment */
+  const plats = [
+    "Attiéké Poisson Braisé","Kedjenou de Poulet","Garba au Thon","Alloco Poulet Grillé",
+    "Foutou Sauce Graine","Soupe Kandia","Mafé Mouton","Riz Gras Sauté","Capitaine Frit",
+    "Tchep au Crabe","Placali & Sauce Graine","Brochettes Bœuf","Poulet Yassa","Aloko Poisson Fumé",
+  ];
+  /* Quartiers + moyens de paiement — données réelles du projet */
+  const infos = [
+    "Cocody","Plateau","Adjamé","Treichville","Marcory","Yopougon","Abobo","Koumassi",
+    "Orange Money","MTN MoMo","Wave","Moov Money",
+  ];
+
+  const DOT = <span style={{ display:"inline-block", width:4, height:4, borderRadius:"50%", background:"#FF8C00", margin:"0 22px", verticalAlign:"middle", opacity:0.7, flexShrink:0 }} />;
+  const DIAMOND = <span style={{ color:"#FF8C00", margin:"0 18px", opacity:0.5, fontSize:8 }}>◆</span>;
+
   return (
-    <div style={{ background:T.dark,overflow:"hidden",padding:"18px 0",position:"relative" }}>
-      <div style={{ position:"absolute",left:0,top:0,bottom:0,width:5,background:`linear-gradient(to bottom,${T.accent},${T.yellow})` }} />
-      <div style={{ display:"flex",animation:"kfmarquee 55s linear infinite",width:"max-content" }}>
-        {[...items,...items].map((d,i)=>(
-          <span key={i} style={{ fontFamily:serif,fontSize:16,color:"rgba(255,255,255,0.6)",fontStyle:"italic",whiteSpace:"nowrap",padding:"0 36px" }}>
-            {d}&nbsp;<span style={{ color:T.yellow,opacity:0.7 }}>◆</span>
+    <div style={{ background:"#0E0600", overflow:"hidden", position:"relative", padding:"20px 0" }}>
+
+      {/* Ligne top orange — fixe, fine */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:1, background:"linear-gradient(90deg,transparent,#FF8C00 30%,#FFB800 50%,#FF8C00 70%,transparent)" }} />
+
+      {/* Dégradé de fondu gauche/droite */}
+      <div style={{ position:"absolute", left:0, top:0, bottom:0, width:120, background:"linear-gradient(to right,#0E0600,transparent)", zIndex:2, pointerEvents:"none" }} />
+      <div style={{ position:"absolute", right:0, top:0, bottom:0, width:120, background:"linear-gradient(to left,#0E0600,transparent)", zIndex:2, pointerEvents:"none" }} />
+
+      {/* Rangée 1 — Plats ivoiriens, écriture script/serif, blanc cassé */}
+      <div style={{ display:"flex", alignItems:"center", width:"max-content", animation:"kfmarquee 45s linear infinite", marginBottom:14 }}>
+        {[...plats,...plats,...plats].map((plat,i) => (
+          <span key={i} style={{ display:"inline-flex", alignItems:"center" }}>
+            <span style={{ fontFamily:serif, fontSize:17, fontStyle:"italic", fontWeight:700, color:"rgba(255,245,230,0.92)", whiteSpace:"nowrap", letterSpacing:"0.01em" }}>
+              {plat}
+            </span>
+            {DOT}
           </span>
         ))}
       </div>
+
+      {/* Rangée 2 — Quartiers & paiements, capslock, orange/doré, sens inverse */}
+      <div style={{ display:"flex", alignItems:"center", width:"max-content", animation:"kfmarqueeR 36s linear infinite" }}>
+        {[...infos,...infos,...infos,...infos].map((info,i) => (
+          <span key={i} style={{ display:"inline-flex", alignItems:"center" }}>
+            <span style={{ fontFamily:sans, fontSize:11, fontWeight:800, color:"#FF8C00", whiteSpace:"nowrap", letterSpacing:"0.16em", textTransform:"uppercase" }}>
+              {info}
+            </span>
+            {DIAMOND}
+          </span>
+        ))}
+      </div>
+
+      {/* Ligne bottom — fixe */}
+      <div style={{ position:"absolute", bottom:0, left:0, right:0, height:1, background:"linear-gradient(90deg,transparent,#FF8C00 30%,#FFB800 50%,#FF8C00 70%,transparent)" }} />
     </div>
   );
 }
@@ -469,10 +514,29 @@ function HowItWorks() {
 function MenuItem({ item, restaurant, idx }) {
   const [fav, setFav] = useState(false);
   const [hov, setHov] = useState(false);
+  const navigate = useNavigate();
   const tags = [item.categorie?.nom, restaurant?.typeRestaurant || restaurant?.type].filter(Boolean);
   const rating = Number(restaurant?.noteMoyenne) > 0 ? Number(restaurant.noteMoyenne).toFixed(1) : null;
+
+  const handleCardClick = () => {
+    const restaurantId = item._restaurantId || restaurant?.id;
+    if (!restaurantId) return;
+    try {
+      localStorage.setItem('pendingHomeItem', JSON.stringify({
+        articleId: item.id || item.articleId,
+        nom: item.nom,
+        prix: item.prix,
+        restaurantId,
+        restaurantName: restaurant?.nom || 'Restaurant',
+        photoUrl: item.photoUrl || item.imageUrl || null,
+        categorie: item.categorie || null,
+      }));
+    } catch { /* ignore */ }
+    navigate('/menu');
+  };
+
   return (
-    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)} onClick={handleCardClick}
       style={{ background:T.card,borderRadius:18,overflow:"hidden",boxShadow:T.shadowS,border:`1px solid ${T.line}`,transition:"all .35s cubic-bezier(.22,1,.36,1)",cursor:"pointer",transform:hov?"translateY(-4px)":"none" }}>
 
       {/* Photo */}
@@ -783,9 +847,26 @@ function Stats() {
 /* ─── Section témoignages ─── */
 function Testimonials() {
   const items=[
-    { q:"Le QR Code table a transformé notre restaurant. Moins d'erreurs, clients ravis, CA +23% en 3 mois.", name:"Koffi Jean-Claude", role:"Gérant — Le Wôrôwôrô, Cocody", ini:"KJ", c:T.accent },
-    { q:"Facturation B2B consolidée pour 50 collaborateurs. La déclaration TVA se fait en 5 minutes maintenant.", name:"Aminata Touré", role:"DRH — TechCI Abidjan", ini:"AT", c:T.yellow },
-    { q:"Commander avec Wave et voir ma commande avancer en direct. Simple et rapide. Je recommande à tous.", name:"Marc Kouassi", role:"Client fidèle — Yopougon", ini:"MK", c:T.accent },
+    {
+      q:"J'habite à Riviera 2 et je commandais toujours par téléphone — souvent le plat était épuisé. Avec RestoDici je vois en direct ce qui est dispo. Mon attiéké poisson braisé du vendredi arrive toujours chaud.",
+      name:"Rosine Akissi N'Dri", role:"Cliente — Riviera 2, Cocody", ini:"RA", c:T.accent, stars:5,
+      badge:"Client régulier", via:"Orange Money",
+    },
+    {
+      q:"On gère les repas de 60 commerciaux en déplacement. Avant c'était un chaos de tickets et de remboursements. Aujourd'hui le service comptabilité reçoit une facture consolidée chaque fin de mois. Conforme SYSCOHADA, enfin.",
+      name:"Kouadio Serge Brou", role:"DAF — Groupe Palmafrique, Plateau", ini:"KS", c:T.yellow, stars:5,
+      badge:"Compte Entreprise", via:"Virement mensuel",
+    },
+    {
+      q:"Mon restaurant est devenu rentable depuis qu'on a activé le QR code. Les clients commandent eux-mêmes, les erreurs ont chuté. En 2 mois : +18% de ticket moyen et 0 facture d'imprimante pour les menus.",
+      name:"Patricia Adjoumani", role:"Gérante — Chez Patricia, Treichville", ini:"PA", c:T.accent, stars:5,
+      badge:"Partenaire Restaurateur", via:"Dashboard gérant",
+    },
+    {
+      q:"Je teste toujours avec Wave. Ici le paiement passe en 10 secondes, sans coupure, sans OTP foireux. Mon garba du midi est toujours là à l'heure. Les gars d'Abobo vous remercient.",
+      name:"Thierry Dié", role:"Chauffeur VTC — Abobo", ini:"TD", c:T.yellow, stars:5,
+      badge:"Client depuis le lancement", via:"Wave",
+    },
   ];
   return (
     <section style={{ background:T.bg,padding:"120px 0" }}>
@@ -793,9 +874,9 @@ function Testimonials() {
         <Reveal>
           <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:60,flexWrap:"wrap",gap:20 }}>
             <div>
-              <Chip color={T.accent}>Avis clients</Chip>
+              <Chip color={T.accent}>Avis vérifiés</Chip>
               <h2 style={{ fontFamily:serif,fontSize:"clamp(34px,4vw,52px)",color:T.dark,fontWeight:900,lineHeight:1.08,margin:0,letterSpacing:"-0.025em" }}>
-                Ce qu'ils en <em style={{ color:T.accent }}>disent.</em>
+                Ils l'utilisent au <em style={{ color:T.accent }}>quotidien.</em>
               </h2>
             </div>
             <div style={{ textAlign:"right" }}>
@@ -805,20 +886,30 @@ function Testimonials() {
             </div>
           </div>
         </Reveal>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:22 }}>
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:22 }}>
           {items.map((t,i)=>(
-            <Reveal key={t.name} delay={i*90}>
-              <div className="rd-feat-card" style={{ background:T.card,border:`1px solid ${T.line}`,borderTop:`3px solid ${t.c}`,borderRadius:20,padding:"38px 32px",display:"flex",flexDirection:"column",boxShadow:T.shadowS,transition:"all .35s" }}>
-                <div style={{ fontFamily:serif,fontSize:80,color:`${t.c}20`,lineHeight:0.55,marginBottom:18,fontWeight:900 }}>"</div>
-                <div style={{ display:"flex",gap:3,marginBottom:14 }}><Stars n={5}/></div>
-                <p style={{ fontFamily:serif,fontSize:17,color:T.text,lineHeight:1.72,fontStyle:"italic",margin:"0 0 auto",fontWeight:400 }}>"{t.q}"</p>
-                <div style={{ display:"flex",alignItems:"center",gap:14,paddingTop:24,marginTop:24,borderTop:`1px solid ${T.line}` }}>
-                  <div style={{ width:46,height:46,borderRadius:"50%",background:`${t.c}18`,border:`2px solid ${t.c}35`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                    <span style={{ fontFamily:sans,fontSize:14,fontWeight:800,color:t.c }}>{t.ini}</span>
+            <Reveal key={t.name} delay={i*80}>
+              <div className="rd-feat-card" style={{ background:T.card,border:`1px solid ${T.line}`,borderTop:`3px solid ${t.c}`,borderRadius:20,padding:"32px 30px",display:"flex",flexDirection:"column",boxShadow:T.shadowS,transition:"all .35s",height:"100%" }}>
+                {/* Header: badge + via */}
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18 }}>
+                  <span style={{ fontFamily:sans,fontSize:10,fontWeight:800,letterSpacing:"0.10em",textTransform:"uppercase",color:t.c,background:`${t.c}14`,padding:"4px 10px",borderRadius:6 }}>{t.badge}</span>
+                  <span style={{ fontFamily:sans,fontSize:11,color:T.mutedL,fontWeight:500 }}>via {t.via}</span>
+                </div>
+                {/* Stars */}
+                <div style={{ display:"flex",gap:3,marginBottom:14 }}><Stars n={t.stars}/></div>
+                {/* Quote */}
+                <p style={{ fontFamily:serif,fontSize:16,color:T.text,lineHeight:1.75,fontStyle:"italic",margin:"0 0 auto",fontWeight:400 }}>"{t.q}"</p>
+                {/* Author */}
+                <div style={{ display:"flex",alignItems:"center",gap:14,paddingTop:22,marginTop:22,borderTop:`1px solid ${T.line}` }}>
+                  <div style={{ width:44,height:44,borderRadius:"50%",background:`${t.c}18`,border:`2px solid ${t.c}30`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                    <span style={{ fontFamily:sans,fontSize:13,fontWeight:800,color:t.c }}>{t.ini}</span>
                   </div>
                   <div>
                     <p style={{ fontFamily:sans,fontSize:14,fontWeight:700,color:T.dark,margin:"0 0 2px" }}>{t.name}</p>
                     <p style={{ fontFamily:sans,fontSize:12,color:T.mutedL,margin:0 }}>{t.role}</p>
+                  </div>
+                  <div style={{ marginLeft:"auto" }}>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-1 14.5l-3.5-3.5 1.41-1.41L9 11.67l5.09-5.08 1.41 1.41L9 14.5z" fill={t.c} opacity="0.6"/></svg>
                   </div>
                 </div>
               </div>

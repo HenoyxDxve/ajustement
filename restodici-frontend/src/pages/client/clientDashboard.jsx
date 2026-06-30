@@ -4,6 +4,7 @@
    Données temps réel via WebSocket + cache localStorage 10 min
    ═══════════════════════════════════════════════════════════════ */
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag, Clock, CheckCircle, Star, Download, Eye,
@@ -17,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { commandesService as svcTs, createCommandesSocket } from '../../services/commandes.service';
-import { authAPI, commandesService } from '../../services/api';
+import { authAPI, commandesService, paiementsAPI, modulesAPI } from '../../services/api';
 import SecurityPanel from '../../components/security/SecurityPanel';
 import NotificationBell from '../../components/notifications/NotificationBell';
 import { formatFCFA } from '../../utils/formatters';
@@ -29,9 +30,9 @@ import moovMoneyLogo    from '../../assets/payments/moov-money.svg';
 import carteBancaireLogo from '../../assets/payments/carte-bancaire.svg';
 
 /* ── Palette — alignée sur Home.jsx ── */
-const ACCENT       = '#973100';
-const ACCENT_DARK  = '#C96200';
-const ACCENT_LIGHT = '#FFF3E0';
+const ACCENT       = '#FF8C00';
+const ACCENT_DARK  = '#E07A00';
+const ACCENT_LIGHT = '#FFF5E8';
 const SURFACE      = '#FFFFFF';
 const BORDER       = 'rgba(0,0,0,0.09)';
 const NAVY         = '#111827';
@@ -53,7 +54,7 @@ const STEPS     = ['RECUE', 'CONFIRMEE', 'EN_PREP', 'PRETE', 'EN_LIVRAISON', 'LI
 const MODE_LABELS = { SUR_PLACE: 'Sur place', EMPORTER: 'À emporter', LIVRAISON: 'Livraison' };
 const MODE_ICONS  = { SUR_PLACE: UtensilsCrossed, EMPORTER: Package, LIVRAISON: Truck };
 
-const PAYMENT_TYPES = [
+const PAYMENT_TYPES_FALLBACK = [
   { id: 'ORANGE_MONEY',   label: 'Orange Money',  placeholder: '07 XX XX XX XX', logo: orangeMoneyLogo,   color: '#FF6600', bg: '#FFF3EB' },
   { id: 'MTN_MONEY',      label: 'MTN MoMo',       placeholder: '05 XX XX XX XX', logo: mtnMomoLogo,       color: '#FFCC00', bg: '#FFFDE6' },
   { id: 'WAVE',           label: 'Wave',            placeholder: '01 XX XX XX XX', logo: null,              color: '#1DA1F2', bg: '#E8F5FD' },
@@ -61,13 +62,30 @@ const PAYMENT_TYPES = [
   { id: 'CARTE_BANCAIRE', label: 'Carte Bancaire',  placeholder: 'XXXX XXXX XXXX XXXX', logo: carteBancaireLogo, color: '#1A1A2E', bg: '#F0F0F5' },
 ];
 
+// Mapping provider API → métadonnées UI pour les modes de paiement dynamiques
+const PROVIDER_META = {
+  ORANGE: { logo: orangeMoneyLogo,   color: '#FF6600', bg: '#FFF3EB', placeholder: '07 XX XX XX XX' },
+  MOMO:   { logo: mtnMomoLogo,       color: '#FFCC00', bg: '#FFFDE6', placeholder: '05 XX XX XX XX' },
+  WAVE:   { logo: null,              color: '#1DA1F2', bg: '#E8F5FD', placeholder: '01 XX XX XX XX' },
+  MOOV:   { logo: moovMoneyLogo,     color: '#0066CC', bg: '#E6F0FF', placeholder: '01 XX XX XX XX' },
+  CARTE:  { logo: carteBancaireLogo, color: '#1A1A2E', bg: '#F0F0F5', placeholder: 'XXXX XXXX XXXX XXXX' },
+};
+const mapApiMethodToType = (m) => {
+  const meta = PROVIDER_META[m.provider] || {};
+  return {
+    id:          m.provider || m.id,
+    label:       m.label,
+    placeholder: meta.placeholder || 'XXXXXXXXXX',
+    logo:        meta.logo !== undefined ? meta.logo : null,
+    color:       meta.color  || '#6B7280',
+    bg:          meta.bg     || '#F9FAFB',
+  };
+};
+
 function pmKey(uid)              { return uid ? `saved_pm:${uid}` : 'saved_pm'; }
 function loadSavedPM(uid)        { try { return JSON.parse(localStorage.getItem(pmKey(uid)) || '[]'); } catch { return []; } }
 function savePM(uid, list)       { localStorage.setItem(pmKey(uid), JSON.stringify(list)); }
 
-function addrKey(uid)            { return uid ? `saved_addresses:${uid}` : 'saved_addresses'; }
-function loadSavedAddresses(uid) { try { return JSON.parse(localStorage.getItem(addrKey(uid)) || '[]'); } catch { return []; } }
-function saveAddresses(uid, list){ localStorage.setItem(addrKey(uid), JSON.stringify(list)); }
 
 function ordersKey(uid)   { return uid ? `orders:${uid}` : 'orders'; }
 function avisKey(uid)     { return uid ? `avis_given:${uid}` : 'avis_given'; }
@@ -989,7 +1007,8 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
 /* ════════════════════════════════════════════════════════════════
    ──  PAYMENT TAB  ───────────────────────────────────────────────
    ════════════════════════════════════════════════════════════════ */
-function PaymentTab({ savedPM, setSavedPM, pmForm, setPmForm, pmMsg, setPmMsg, addPM, removePM, setDefaultPM, userId }) {
+function PaymentTab({ savedPM, setSavedPM, pmForm, setPmForm, pmMsg, setPmMsg, addPM, removePM, setDefaultPM, userId, paymentTypes }) {
+  const PAYMENT_TYPES = paymentTypes || PAYMENT_TYPES_FALLBACK;
   const currentType = PAYMENT_TYPES.find(t => t.id === pmForm.type) || PAYMENT_TYPES[0];
 
   return (
@@ -1326,10 +1345,118 @@ function SecurityTab({ user }) {
 }
 
 /* ════════════════════════════════════════════════════════════════
+   ──  MODULE LIVRAISON  ──────────────────────────────────────────
+   Activé/désactivé depuis Admin › Config › delivery_enabled
+   ════════════════════════════════════════════════════════════════ */
+function DeliveryTab({ module: mod }) {
+  if (!mod?.enabled) {
+    return (
+      <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+        <div className="p-10 flex flex-col items-center text-center gap-4">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
+            <Truck className="w-8 h-8" style={{ color: ACCENT }} />
+          </div>
+          <div>
+            <h3 className="text-base font-extrabold text-[#111827] mb-1">Module Livraison</h3>
+            <p className="text-sm text-[#6B7280] max-w-xs">
+              Ce module n'est pas encore activé. L'administrateur peut l'activer depuis le dashboard admin
+              en configurant un prestataire de livraison (Shipday, Lalamove, etc.).
+            </p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ background: ACCENT_LIGHT }}>
+            <Zap className="w-3.5 h-3.5" style={{ color: ACCENT }} />
+            <span className="text-xs font-bold" style={{ color: ACCENT }}>Admin › Paramètres › delivery_enabled</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-5">
+      <div className="rounded-2xl p-5" style={{ background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})` }}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.2)' }}>
+            <Truck className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-white/60 uppercase tracking-wider">Module actif</p>
+            <h2 className="text-base font-extrabold text-white">Livraison — {mod.provider || 'Prestataire configuré'}</h2>
+          </div>
+        </div>
+      </div>
+      <div className="bg-white rounded-2xl border p-6" style={{ borderColor: BORDER }}>
+        <p className="text-sm text-[#6B7280] mb-4">Intégration active via <strong>{mod.provider || 'prestataire'}</strong>.</p>
+        {mod.apiUrl && (
+          <a href={mod.apiUrl} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
+            style={{ background: ACCENT, textDecoration: 'none' }}>
+            <ArrowRight className="w-4 h-4" /> Accéder au portail livraison
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ──  MODULE MESSAGERIE  ─────────────────────────────────────────
+   Activé/désactivé depuis Admin › Config › messaging_enabled
+   ════════════════════════════════════════════════════════════════ */
+function MessagingTab({ module: mod }) {
+  if (!mod?.enabled) {
+    return (
+      <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
+        <div className="p-10 flex flex-col items-center text-center gap-4">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
+            <MessageSquare className="w-8 h-8" style={{ color: ACCENT }} />
+          </div>
+          <div>
+            <h3 className="text-base font-extrabold text-[#111827] mb-1">Module Messagerie</h3>
+            <p className="text-sm text-[#6B7280] max-w-xs">
+              Ce module n'est pas encore activé. L'administrateur peut l'activer depuis le dashboard admin
+              en configurant un prestataire de messagerie (Sendbird, Tawk.to, etc.).
+            </p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ background: ACCENT_LIGHT }}>
+            <Zap className="w-3.5 h-3.5" style={{ color: ACCENT }} />
+            <span className="text-xs font-bold" style={{ color: ACCENT }}>Admin › Paramètres › messaging_enabled</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-5">
+      <div className="rounded-2xl p-5" style={{ background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})` }}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.2)' }}>
+            <MessageSquare className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-white/60 uppercase tracking-wider">Module actif</p>
+            <h2 className="text-base font-extrabold text-white">Messagerie — {mod.provider || 'Prestataire configuré'}</h2>
+          </div>
+        </div>
+      </div>
+      <div className="bg-white rounded-2xl border p-6" style={{ borderColor: BORDER }}>
+        <p className="text-sm text-[#6B7280] mb-4">Intégration active via <strong>{mod.provider || 'prestataire'}</strong>.</p>
+        {mod.apiUrl && (
+          <a href={mod.apiUrl} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
+            style={{ background: ACCENT, textDecoration: 'none' }}>
+            <ArrowRight className="w-4 h-4" /> Ouvrir la messagerie
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
    ──  COMPOSANT PRINCIPAL  ───────────────────────────────────────
    ════════════════════════════════════════════════════════════════ */
 export default function ClientDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshProfile } = useAuth();
   const navigate  = useNavigate();
   const [tab, setTab] = useState('overview');
   const [sideOpen, setSideOpen] = useState(false);
@@ -1349,8 +1476,13 @@ export default function ClientDashboard() {
   const [savedPM, setSavedPM]               = useState(() => loadSavedPM(user?.id));
   const [pmForm, setPmForm]                 = useState({ type: 'ORANGE_MONEY', label: '', numero: '' });
   const [pmMsg, setPmMsg]                   = useState('');
-  const [savedAddresses, setSavedAddresses] = useState(() => loadSavedAddresses(user?.id));
+  // Adresses depuis la BD (user.adressesSauvegardees, sync via refreshProfile)
+  const [savedAddresses, setSavedAddresses] = useState(() => user?.adressesSauvegardees || []);
   const [addrForm, setAddrForm]             = useState({ label: '', adresse: '' });
+  // Modes de paiement dynamiques depuis l'API
+  const [paymentTypes, setPaymentTypes]     = useState(PAYMENT_TYPES_FALLBACK);
+  // Modules client — plug-and-play depuis l'admin
+  const [clientModules, setClientModules]   = useState({ delivery: { enabled: false }, messaging: { enabled: false } });
 
   const userId = user?.id;
 
@@ -1377,8 +1509,32 @@ export default function ClientDashboard() {
   }, [loadOrders, userId]);
 
   useEffect(() => {
-    if (user) setProfileForm({ nom: user.nom || '', email: user.email || '', telephone: user.telephone || '' });
+    if (user) {
+      setProfileForm({ nom: user.nom || '', email: user.email || '', telephone: user.telephone || '' });
+      setSavedAddresses(user.adressesSauvegardees || []);
+    }
   }, [user]);
+
+  // Charge les modules client depuis la BD (plug-and-play admin)
+  useEffect(() => {
+    modulesAPI.getClientModules()
+      .then(r => { if (r.data) setClientModules(r.data); })
+      .catch(() => {});
+  }, []);
+
+  // Charge les méthodes de paiement depuis l'agrégateur NovaSend
+  useEffect(() => {
+    paiementsAPI.getMethods()
+      .then(r => {
+        const list = r.data?.methods || r.data || [];
+        if (Array.isArray(list) && list.length > 0) {
+          const mapped = list.map(mapApiMethodToType);
+          setPaymentTypes(mapped);
+          setPmForm(p => ({ ...p, type: p.type || mapped[0]?.id || 'ORANGE_MONEY' }));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -1403,6 +1559,7 @@ export default function ClientDashboard() {
     e.preventDefault();
     try {
       await authAPI.updateProfile(profileForm);
+      await refreshProfile();
       setProfileMsg('Profil mis à jour !');
       setTimeout(() => setProfileMsg(''), 3000);
     } catch { setProfileMsg('Erreur lors de la mise à jour'); }
@@ -1474,19 +1631,19 @@ export default function ClientDashboard() {
     savePM(userId, next);
   };
 
-  const addAddress = (e) => {
+  const addAddress = async (e) => {
     e.preventDefault();
     if (!addrForm.label.trim() || !addrForm.adresse.trim()) return;
     const entry = { id: `${Date.now()}`, label: addrForm.label.trim(), adresse: addrForm.adresse.trim() };
     const next = [...savedAddresses, entry];
     setSavedAddresses(next);
-    saveAddresses(userId, next);
     setAddrForm({ label: '', adresse: '' });
+    try { await authAPI.updateProfile({ adressesSauvegardees: next }); await refreshProfile(); } catch {}
   };
-  const removeAddress = (id) => {
+  const removeAddress = async (id) => {
     const next = savedAddresses.filter(a => a.id !== id);
     setSavedAddresses(next);
-    saveAddresses(userId, next);
+    try { await authAPI.updateProfile({ adressesSauvegardees: next }); await refreshProfile(); } catch {}
   };
 
   const activeOrders  = orders.filter(o => !['LIVREE', 'ANNULEE'].includes(o.statut));
@@ -1502,31 +1659,34 @@ export default function ClientDashboard() {
                        : orders;
 
   const TABS = [
-    { key: 'overview', label: 'Vue d\'ensemble', icon: ShoppingBag },
+    { key: 'overview', label: "Vue d'ensemble", icon: ShoppingBag },
     { key: 'orders',   label: 'Commandes',       icon: Package, badge: activeOrders.length || undefined },
     { key: 'payment',  label: 'Paiement',         icon: CreditCard },
     { key: 'profile',  label: 'Profil',           icon: User },
     { key: 'security', label: 'Sécurité',         icon: Shield },
+    // Modules plug-and-play — apparaissent automatiquement quand activés par l'admin
+    ...(clientModules.delivery?.enabled  ? [{ key: 'delivery',  label: 'Livraison', icon: Truck }]         : []),
+    ...(clientModules.messaging?.enabled ? [{ key: 'messaging', label: 'Messages',  icon: MessageSquare }] : []),
   ];
 
-  /* ── Sidebar nav component ── */
+  /* ── Sidebar nav component — fond blanc, accent orange ── */
   const Sidebar = ({ mobile = false }) => (
-    <div className="flex flex-col h-full" style={{ background: NAVY }}>
+    <div className="flex flex-col h-full" style={{ background: '#fff', borderRight: '1px solid rgba(0,0,0,0.08)' }}>
       {/* Brand */}
-      <div className="px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+      <div className="px-5 py-5" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})` }}>
             <UtensilsCrossed className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white leading-none">Resto d'ici</p>
-            <p className="text-[10px] mt-0.5 font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-sm font-bold leading-none" style={{ color: '#111827' }}>Resto d'ici</p>
+            <p className="text-[10px] mt-0.5 font-semibold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>
               Espace client
             </p>
           </div>
           {mobile && (
-            <button onClick={() => setSideOpen(false)} style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <button onClick={() => setSideOpen(false)} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer' }}>
               <X className="w-4 h-4" />
             </button>
           )}
@@ -1535,7 +1695,7 @@ export default function ClientDashboard() {
 
       {/* Section label */}
       <div className="px-4 pt-5 pb-2">
-        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#D1D5DB' }}>
           Navigation
         </p>
       </div>
@@ -1547,17 +1707,21 @@ export default function ClientDashboard() {
           const active = tab === item.key;
           return (
             <button key={item.key} onClick={() => changeTab(item.key)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all"
               style={{
-                background: active ? `${ACCENT}22` : 'transparent',
-                color: active ? ACCENT : 'rgba(255,255,255,0.65)',
-                borderLeft: active ? `3px solid ${ACCENT}` : '3px solid transparent',
+                background: active ? ACCENT_LIGHT : 'transparent',
+                color: active ? ACCENT : '#6B7280',
+                border: 'none',
+                cursor: 'pointer',
               }}>
-              <Icon className="w-4 h-4 shrink-0" />
-              <span className="flex-1 text-left">{item.label}</span>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                style={{ background: active ? ACCENT : '#F3F4F6' }}>
+                <Icon className="w-3.5 h-3.5" style={{ color: active ? '#fff' : '#9CA3AF' }} />
+              </div>
+              <span className="flex-1 text-left font-semibold">{item.label}</span>
               {(item.badge ?? 0) > 0 && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center"
-                  style={{ background: `${ACCENT}33`, color: ACCENT }}>
+                  style={{ background: active ? ACCENT : '#FEE2E2', color: active ? '#fff' : '#DC2626' }}>
                   {item.badge}
                 </span>
               )}
@@ -1567,26 +1731,26 @@ export default function ClientDashboard() {
       </nav>
 
       {/* Divider */}
-      <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '0 16px' }} />
+      <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '0 16px' }} />
 
       {/* User block */}
       <div className="px-3 py-4">
         <div className="flex items-center gap-3 px-2 py-2.5 rounded-xl"
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          style={{ background: '#F9FAFB', border: '1px solid rgba(0,0,0,0.07)' }}>
           <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold text-white"
             style={{ background: ACCENT }}>
             {(user?.prenom || user?.nom || 'C')[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate text-white">{user?.prenom || user?.nom || 'Client'}</p>
-            <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-xs font-semibold truncate" style={{ color: '#111827' }}>{user?.prenom || user?.nom || 'Client'}</p>
+            <p className="text-[10px] truncate" style={{ color: '#9CA3AF' }}>
               {user?.email || ''}
             </p>
           </div>
           <button onClick={() => setShowLogoutConfirm(true)} title="Déconnexion"
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition hover:opacity-80"
-            style={{ background: `${RED}22`, color: '#FCA5A5' }}>
-            <LogOut className="w-3.5 h-3.5" />
+            className="w-7 h-7 rounded-lg flex items-center justify-center transition"
+            style={{ background: '#FFF1F2', border: 'none', cursor: 'pointer' }}>
+            <LogOut className="w-3.5 h-3.5" style={{ color: '#EF4444' }} />
           </button>
         </div>
       </div>
@@ -1598,7 +1762,7 @@ export default function ClientDashboard() {
 
       {/* ── Desktop sidebar ── */}
       <div className="hidden lg:flex flex-col w-[220px] shrink-0 h-full border-r"
-        style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+        style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
         <Sidebar />
       </div>
 
@@ -1653,7 +1817,14 @@ export default function ClientDashboard() {
               </div>
             )}
 
-            <div key={tab} style={{ animation: 'fadeUp 0.22s ease both' }}>
+            <AnimatePresence mode="wait">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
             {tab === 'overview' && (
               <OverviewTab
                 user={user} orders={orders} activeOrders={activeOrders}
@@ -1707,7 +1878,7 @@ export default function ClientDashboard() {
                     </div>
                   ) : filteredOrders.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center" style={{ background: '#FFF7ED' }}>
-                      <ShoppingBag className="w-12 h-12 mb-3" style={{ color: '#973100', opacity: 0.4 }} />
+                      <ShoppingBag className="w-12 h-12 mb-3" style={{ color: ACCENT, opacity: 0.4 }} />
                       <p className="text-sm font-medium mb-1" style={{ color: '#0F172A' }}>
                         {orders.length === 0 ? "Vous n'avez pas encore passé de commande" : 'Aucune commande dans cette catégorie'}
                       </p>
@@ -1748,6 +1919,7 @@ export default function ClientDashboard() {
                 pmMsg={pmMsg} setPmMsg={setPmMsg}
                 addPM={addPM} removePM={removePM} setDefaultPM={setDefaultPM}
                 userId={userId}
+                paymentTypes={paymentTypes}
               />
             )}
 
@@ -1762,8 +1934,11 @@ export default function ClientDashboard() {
               />
             )}
 
-            {tab === 'security' && <SecurityTab user={user} />}
-            </div>{/* key={tab} */}
+            {tab === 'security'  && <SecurityTab  user={user} />}
+            {tab === 'delivery'  && <DeliveryTab  module={clientModules.delivery}  />}
+            {tab === 'messaging' && <MessagingTab module={clientModules.messaging} />}
+            </motion.div>
+            </AnimatePresence>
           </div>{/* max-w-5xl */}
         </div>{/* flex-1 overflow-y-auto */}
       </div>{/* flex-1 flex-col main area */}

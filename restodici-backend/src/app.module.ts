@@ -12,6 +12,7 @@ import { AppService } from './app.service';
 import { User } from './auth/entities/user.entity';
 import { Restaurant } from './restaurants/entities/restaurant.entity';
 import { Commande } from './commandes/entities/commande.entity';
+import { SystemConfig } from './common/entities/system-config.entity';
 import { AuthModule } from './auth/auth.module';
 import { MenuModule } from './menu/menu.module';
 import { CommandesModule } from './commandes/commandes.module';
@@ -62,7 +63,7 @@ import { LivraisonsExternesModule } from './livraisons-externes/livraisons-exter
       ttl: 60 * 1000, // 1 minute
     }),
     ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature([User, Restaurant, Commande]),
+    TypeOrmModule.forFeature([User, Restaurant, Commande, SystemConfig]),
     AuthModule,
     B2BModule,
     AdminModule,

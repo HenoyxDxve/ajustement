@@ -1,576 +1,280 @@
-
-import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  AlertCircle,
-  BadgePercent,
-  CheckCircle,
-  ChevronRight,
-  CreditCard,
-  Minus,
-  Package,
-  Plus,
-  ShieldCheck,
-  ShoppingBag,
-  Store,
-  Trash2,
-  Truck,
+  ArrowLeft, Bike, CheckCircle, ChevronRight, CreditCard,
+  Edit2, MapPin, Package, ShoppingBag, Star, Store, Tag,
+  Truck, User,
 } from 'lucide-react';
-import { useCart } from '../hooks/useCart';
-import LocationAssistant from '../components/maps/LocationAssistant';
-import { FREQUENT_LOCATION_ZONES } from '../components/maps/locationAssistantData';
 import { formatFCFA } from '../utils/formatters';
 
-const deliveryZones = [
-  { name: 'Cocody', fee: 1000 },
-  { name: 'Plateau', fee: 800 },
-  { name: 'Marcory', fee: 1200 },
-  { name: 'Treichville', fee: 900 },
-  { name: 'Yopougon', fee: 1500 },
-].map((zone) => {
-  const frequentZone = FREQUENT_LOCATION_ZONES.find(
-    (item) => item.name.toLowerCase() === zone.name.toLowerCase(),
+/* ── Palette (identique à CartDrawer + Home) ── */
+const ORANGE   = '#FF8C00';
+const ORANGE_D = '#E07A00';
+const NAVY     = '#0F172A';
+const BG       = '#FFFAF3';
+const BORDER   = 'rgba(255,140,0,0.14)';
+const MUTED    = '#9E8B7A';
+
+const MODE_META = {
+  SUR_PLACE: { label: 'Sur place',   Icon: Store,    color: '#059669', bg: '#F0FDF4' },
+  EMPORTER:  { label: 'À emporter',  Icon: Package,  color: '#7C3AED', bg: '#F5F3FF' },
+  LIVRAISON: { label: 'Livraison',   Icon: Truck,    color: ORANGE,    bg: '#FFF4EE' },
+};
+
+const PAYMENT_LABELS = {
+  orange_money: 'Orange Money',
+  mtn_momo:     'MTN MoMo',
+  moov_money:   'Moov Money',
+  wave:         'Wave',
+  card:         'Carte Bancaire',
+};
+
+/* ── Sous-composant ligne récap ── */
+function Row({ label, value, accent }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ fontSize: 13, color: accent ?? MUTED }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: accent ?? NAVY }}>{value}</span>
+    </div>
   );
+}
 
-  return {
-    ...zone,
-    ...frequentZone,
-    address: frequentZone?.address || `${zone.name}, Abidjan`,
-  };
-});
-
-const orderModes = [
-  {
-    id: 'sur_place',
-    label: 'Sur place',
-    description: 'Mangez directement au restaurant',
-    icon: Store,
-  },
-  {
-    id: 'emporter',
-    label: 'À emporter',
-    description: 'Récupérez rapidement votre commande',
-    icon: Package,
-  },
-  {
-    id: 'livraison',
-    label: 'Livraison',
-    description: 'Recevez vos plats à domicile',
-    icon: Truck,
-  },
-];
-
+/* ══════════════════════════════════════════════════════════════
+   CartPage — Récapitulatif de commande
+   Charge automatiquement les données du CartDrawer (pendingOrder)
+══════════════════════════════════════════════════════════════ */
 export default function CartPage() {
   const navigate = useNavigate();
-  const { items, restaurantId, restaurantName, updateQuantity, removeItem, clearCart } =
-    useCart();
-  const [orderMode, setOrderMode] = useState('sur_place');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [deliveryZone, setDeliveryZone] = useState('');
-  const [deliveryPosition, setDeliveryPosition] = useState({ lat: null, lng: null });
-  const [promoCode, setPromoCode] = useState('');
-  const [promoApplied, setPromoApplied] = useState(false);
-  const [promoDiscount, setPromoDiscount] = useState(0);
-  const [errors, setErrors] = useState({});
+  const [order, setOrder] = useState(null);
 
-  const subtotal = useMemo(
-    () => items.reduce((sum, item) => sum + Number(item.prix) * Number(item.quantite), 0),
-    [items],
-  );
-  const deliveryFee =
-    orderMode === 'livraison'
-      ? deliveryZones.find((zone) => zone.name === deliveryZone)?.fee || 1000
-      : 0;
-  const total = subtotal + deliveryFee - promoDiscount;
-
-  const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-  const validateForm = () => {
-    const nextErrors = {};
-
-    if (!restaurantId || !UUID_V4_RE.test(restaurantId)) {
-      nextErrors.restaurant = 'Restaurant invalide. Veuillez retourner au menu et sélectionner un restaurant.';
-    }
-
-    if (orderMode === 'livraison' && !deliveryAddress.trim()) {
-      nextErrors.deliveryAddress = 'Adresse de livraison requise.';
-    }
-
-    if (orderMode === 'livraison' && !deliveryZone) {
-      nextErrors.deliveryZone = 'Zone de livraison requise.';
-    }
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  };
-
-  const handleProceedToCheckout = () => {
-    if (!validateForm()) {
-      return;
-    }
-
-    const normalizedOrderMode =
-      orderMode === 'sur_place'
-        ? 'SUR_PLACE'
-        : orderMode === 'livraison'
-          ? 'LIVRAISON'
-          : 'EMPORTER';
-
-    const orderDetails = {
-      items: items.map((item) => ({
-        lineId: item.lineId,
-        articleId: item.articleId,
-        nom: item.nom,
-        prix: item.prix,
-        quantite: item.quantite,
-        instructions: item.instructions,
-      })),
-      restaurantId,
-      restaurantName,
-      orderMode: normalizedOrderMode,
-      deliveryAddress: normalizedOrderMode === 'LIVRAISON' ? deliveryAddress : '',
-      deliveryZone: normalizedOrderMode === 'LIVRAISON' ? deliveryZone : '',
-      deliveryLat: normalizedOrderMode === 'LIVRAISON' ? deliveryPosition.lat : null,
-      deliveryLng: normalizedOrderMode === 'LIVRAISON' ? deliveryPosition.lng : null,
-      total,
-      timestamp: new Date().toISOString(),
-    };
-
-    localStorage.setItem('pendingOrder', JSON.stringify(orderDetails));
-
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user) {
-      navigate('/checkout');
-      return;
-    }
-
-    navigate('/login?redirect=checkout');
-  };
-
-  const handleUpdateQuantity = (lineId, newQuantity) => {
-    if (newQuantity >= 1) {
-      updateQuantity(lineId, newQuantity);
+  useEffect(() => {
+    const saved = localStorage.getItem('pendingOrder');
+    if (saved) {
+      try { setOrder(JSON.parse(saved)); }
+      catch { navigate('/menu'); }
     } else {
-      removeItem(lineId);
+      navigate('/menu');
     }
-  };
+  }, [navigate]);
 
-  const handleApplyPromo = () => {
-    const code = promoCode.trim().toLowerCase();
-    if (!code) {
-      return;
-    }
+  if (!order) return null;
 
-    if (code === 'welcome10') {
-      setPromoDiscount(Math.round(subtotal * 0.1));
-      setPromoApplied(true);
-      return;
-    }
-
-    if (code === 'freeship') {
-      setPromoDiscount(deliveryFee);
-      setPromoApplied(true);
-      return;
-    }
-
-    setPromoApplied(false);
-    setPromoDiscount(0);
-    setErrors((current) => ({ ...current, promo: 'Code promo invalide.' }));
-  };
-
-  const handleRemovePromo = () => {
-    setPromoCode('');
-    setPromoApplied(false);
-    setPromoDiscount(0);
-    setErrors((current) => ({ ...current, promo: undefined }));
-  };
-
-  if (items.length === 0) {
-    return (
-      <div className="min-h-[calc(100dvh-64px)] bg-white px-4 py-10 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto rounded-[32px] border border-[#E2E8F0] bg-white p-8 sm:p-12 text-center shadow-sm">
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#FFF0DF] text-[#FF8C00]">
-            <ShoppingBag className="h-10 w-10" />
-          </div>
-          <h1 className="text-3xl font-bold text-[#0F172A]">Votre panier est vide</h1>
-          <p className="mt-3 text-[#737373] max-w-lg mx-auto">
-            Ajoutez quelques plats savoureux pour préparer votre prochaine commande.
-          </p>
-          <Link
-            to="/menu"
-            className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#FF8C00] px-6 py-3.5 font-semibold text-white shadow-md transition hover:bg-[#E07A00]"
-          >
-            Découvrir les restaurants
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const items        = order.items ?? [];
+  const mode         = (order.orderMode ?? 'SUR_PLACE').toUpperCase();
+  const meta         = MODE_META[mode] ?? MODE_META.SUR_PLACE;
+  const { Icon: ModeIcon } = meta;
+  const subtotal     = items.reduce((s, i) => s + Number(i.prix ?? 0) * Number(i.quantite ?? 1), 0);
+  const deliveryFee  = Number(order.deliveryFee ?? 0);
+  const promoDiscount = Number(order.promoDiscount ?? 0);
+  const grandTotal   = Number(order.total ?? subtotal + deliveryFee - promoDiscount);
+  const driver       = order.driver ?? null;
+  const payLabel     = PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod ?? 'Paiement mobile';
 
   return (
-    <div className="min-h-[calc(100dvh-64px)] bg-white px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <section className="rounded-[32px] border border-[#E2E8F0] bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-[#FFF0DF] px-4 py-2 text-sm font-semibold text-[#FF8C00]">
-                <ShieldCheck className="h-4 w-4" />
-                Panier sécurisé
-              </span>
-              <h1 className="mt-4 text-3xl font-bold text-[#0F172A] sm:text-4xl">
-                Finalisez une commande claire, rapide et élégante
-              </h1>
-              <p className="mt-3 max-w-2xl text-[#737373]">
-                Chaque ajout reste une ligne distincte dans le panier pour garder vos variantes,
-                quantités et instructions bien visibles.
-              </p>
-            </div>
+    <div style={{ minHeight: '100vh', background: BG, fontFamily: "'Inter', system-ui, sans-serif" }}>
 
-            <div className="grid grid-cols-2 gap-3 sm:min-w-[320px]">
-              <MiniStat label="Articles" value={String(items.length)} />
-              <MiniStat label="Sous-total" value={formatFCFA(subtotal)} />
+      {/* ── Header sticky ── */}
+      <header style={{
+        position: 'sticky', top: 0, zIndex: 30,
+        background: 'rgba(255,250,243,0.95)', backdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${BORDER}`, boxShadow: '0 1px 8px rgba(0,0,0,0.05)',
+      }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px', height: 56, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={() => navigate('/menu')}
+            style={{ width: 36, height: 36, borderRadius: 12, border: `1px solid ${BORDER}`, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: MUTED }}>
+            <ArrowLeft style={{ width: 16, height: 16 }} />
+          </button>
+          <h1 style={{ fontSize: 15, fontWeight: 800, color: NAVY, margin: 0 }}>Récapitulatif de commande</h1>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: ORANGE }}>
+            <ShoppingBag style={{ width: 14, height: 14 }} />
+            {items.length} article{items.length > 1 ? 's' : ''}
+          </div>
+        </div>
+      </header>
+
+      <main style={{ maxWidth: 720, margin: '0 auto', padding: '20px 16px 110px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+        {/* ── Restaurant + Mode ── */}
+        <section style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 20, padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: '#FFF4EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Store style={{ width: 20, height: 20, color: ORANGE }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: NAVY, margin: 0 }}>{order.restaurantName ?? 'Restaurant'}</p>
+              <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: meta.color, background: meta.bg, padding: '3px 10px', borderRadius: 99 }}>
+                  <ModeIcon style={{ width: 10, height: 10 }} /> {meta.label}
+                </span>
+                {order.tableNumber && (
+                  <span style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>Table {order.tableNumber}</span>
+                )}
+              </div>
+            </div>
+            <button onClick={() => navigate('/menu')}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: ORANGE, background: '#FFF4EE', border: 'none', borderRadius: 10, padding: '7px 12px', cursor: 'pointer' }}>
+              <Edit2 style={{ width: 11, height: 11 }} /> Modifier
+            </button>
+          </div>
+        </section>
+
+        {/* ── Articles ── */}
+        <section style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 20, overflow: 'hidden' }}>
+          <div style={{ padding: '12px 20px', borderBottom: `1px solid ${BORDER}` }}>
+            <p style={{ fontSize: 10, fontWeight: 800, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.18em', margin: 0 }}>Votre commande</p>
+          </div>
+          {items.map((item, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px',
+              borderBottom: i < items.length - 1 ? `1px solid ${BORDER}` : 'none',
+            }}>
+              {item.photoUrl ? (
+                <img src={item.photoUrl} alt={item.nom}
+                  style={{ width: 44, height: 44, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
+              ) : (
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#FFF4EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Package style={{ width: 18, height: 18, color: ORANGE }} />
+                </div>
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: NAVY, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {item.nom}
+                </p>
+                {item.variantLabel && (
+                  <p style={{ fontSize: 11, color: ORANGE, fontWeight: 600, margin: '1px 0 0' }}>{item.variantLabel}</p>
+                )}
+                {item.instructions && (
+                  <p style={{ fontSize: 11, color: MUTED, fontStyle: 'italic', margin: '1px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {item.instructions}
+                  </p>
+                )}
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: MUTED, margin: 0 }}>×{item.quantite ?? 1}</p>
+                <p style={{ fontSize: 13, fontWeight: 800, color: ORANGE, margin: '2px 0 0' }}>
+                  {formatFCFA(Number(item.prix ?? 0) * Number(item.quantite ?? 1))}
+                </p>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* ── Livraison ── */}
+        {mode === 'LIVRAISON' && (
+          <section style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 20, overflow: 'hidden' }}>
+            <div style={{ padding: '12px 20px', borderBottom: `1px solid ${BORDER}` }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.18em', margin: 0 }}>Livraison</p>
+            </div>
+            <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {order.deliveryAddress && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <MapPin style={{ width: 14, height: 14, color: ORANGE, marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: MUTED, margin: 0 }}>Adresse</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: NAVY, margin: '2px 0 0' }}>{order.deliveryAddress}</p>
+                    {order.deliveryZone && (
+                      <p style={{ fontSize: 11, color: MUTED, margin: '2px 0 0' }}>Zone · {order.deliveryZone}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {driver && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 14, padding: '10px 14px' }}>
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: `linear-gradient(135deg,${ORANGE},${ORANGE_D})`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <User style={{ width: 16, height: 16, color: '#fff' }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: NAVY, margin: 0 }}>{driver.name}</p>
+                    <p style={{ fontSize: 11, color: '#64748B', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                      <Bike style={{ width: 11, height: 11 }} /> {driver.vehicle}
+                      {driver.rating && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                          · <Star style={{ width: 10, height: 10, fill: '#F59E0B', color: '#F59E0B' }} /> {driver.rating}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#16A34A' }}>
+                    <CheckCircle style={{ width: 13, height: 13 }} /> Confirmé
+                  </span>
+                </div>
+              )}
+
+              {deliveryFee > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, color: MUTED, fontWeight: 600 }}>Frais de livraison</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: ORANGE }}>{formatFCFA(deliveryFee)}</span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* ── Promo appliquée ── */}
+        {promoDiscount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 16, padding: '12px 18px' }}>
+            <Tag style={{ width: 16, height: 16, color: '#16A34A', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', margin: 0 }}>Code promo appliqué</p>
+              <p style={{ fontSize: 11, color: '#065F46', margin: '2px 0 0' }}>Réduction de {formatFCFA(promoDiscount)}</p>
+            </div>
+            <CheckCircle style={{ width: 16, height: 16, color: '#16A34A', flexShrink: 0 }} />
+          </div>
+        )}
+
+        {/* ── Moyen de paiement ── */}
+        <section style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 20, padding: '14px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: '#FFF4EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CreditCard style={{ width: 16, height: 16, color: ORANGE }} />
+            </div>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: MUTED, margin: 0 }}>Méthode de paiement</p>
+              <p style={{ fontSize: 13, fontWeight: 800, color: NAVY, margin: '2px 0 0' }}>{payLabel}</p>
             </div>
           </div>
         </section>
 
-        <div className="grid gap-6 xl:grid-cols-[1.55fr,0.95fr]">
-          <div className="space-y-6">
-            <section className="rounded-[28px] border border-[#E2E8F0] bg-white p-5 shadow-sm sm:p-6">
-              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-[#0F172A]">Vos articles</h2>
-                  <p className="text-sm text-[#737373] mt-1">
-                    Gérez chaque ligne individuellement sans fusion automatique.
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={clearCart}
-                    className="rounded-2xl border border-[#E2E8F0] px-4 py-2.5 text-sm font-semibold text-[#737373] transition hover:bg-white"
-                  >
-                    Vider le panier
-                  </button>
-                  <Link
-                    to="/menu"
-                    className="rounded-2xl border border-[#FF8C00] px-4 py-2.5 text-sm font-semibold text-[#FF8C00] transition hover:bg-[#FFF0DF]"
-                  >
-                    Ajouter d'autres plats
-                  </Link>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {items.map((item, index) => (
-                  <article
-                    key={item.lineId}
-                    className="rounded-[26px] border border-[#EFE7DD] bg-white p-4 transition hover:shadow-sm sm:p-5"
-                  >
-                    <div className="flex flex-col gap-4 sm:flex-row">
-                      {item.photoUrl ? (
-                        <img
-                          src={item.photoUrl}
-                          alt={item.nom}
-                          className="h-24 w-full rounded-2xl object-cover sm:h-28 sm:w-28"
-                        />
-                      ) : (
-                        <div className="flex h-24 w-full items-center justify-center rounded-2xl bg-[#FFF0DF] text-[#FF8C00] sm:h-28 sm:w-28">
-                          <Package className="h-8 w-8" />
-                        </div>
-                      )}
-
-                      <div className="flex-1">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#737373] border border-[#E2E8F0]">
-                                Ligne {index + 1}
-                              </span>
-                              {item.categorie?.nom && (
-                                <span className="rounded-full bg-[#EAF7FB] px-3 py-1 text-xs font-semibold text-[#00A7CB]">
-                                  {item.categorie.nom}
-                                </span>
-                              )}
-                            </div>
-                            <h3 className="mt-3 text-lg font-bold text-[#0F172A]">{item.nom}</h3>
-                            {item.instructions && (
-                              <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-[#737373] border border-[#E2E8F0]">
-                                {item.instructions}
-                              </div>
-                            )}
-                          </div>
-
-                          <button
-                            onClick={() => removeItem(item.lineId)}
-                            className="inline-flex items-center gap-2 self-start rounded-2xl px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Retirer
-                          </button>
-                        </div>
-
-                        <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="inline-flex w-fit items-center gap-3 rounded-2xl border border-[#E2E8F0] bg-white px-3 py-2">
-                            <button
-                              onClick={() => handleUpdateQuantity(item.lineId, item.quantite - 1)}
-                              className="rounded-xl p-2 text-[#737373] transition hover:bg-white"
-                            >
-                              <Minus className="h-4 w-4" />
-                            </button>
-                            <span className="min-w-[32px] text-center text-base font-bold text-[#0F172A]">
-                              {item.quantite}
-                            </span>
-                            <button
-                              onClick={() => handleUpdateQuantity(item.lineId, item.quantite + 1)}
-                              className="rounded-xl p-2 text-[#737373] transition hover:bg-white"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </button>
-                          </div>
-
-                          <div className="text-left sm:text-right">
-                            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#737373]">
-                              Total ligne
-                            </p>
-                            <p className="mt-1 text-2xl font-bold text-[#FF8C00]">
-                              {formatFCFA(Number(item.prix) * Number(item.quantite))}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
+        {/* ── Récap financier ── */}
+        <section style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 20, padding: '16px 20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            <Row label="Sous-total" value={formatFCFA(subtotal)} />
+            {deliveryFee > 0 && <Row label="Livraison" value={formatFCFA(deliveryFee)} />}
+            {promoDiscount > 0 && <Row label="Remise promo" value={`-${formatFCFA(promoDiscount)}`} accent="#16A34A" />}
+            <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 4, paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: NAVY }}>Total TTC</span>
+              <span style={{ fontSize: 26, fontWeight: 900, color: ORANGE, fontFamily: 'Georgia, serif', letterSpacing: '-0.02em' }}>
+                {formatFCFA(grandTotal)}
+              </span>
+            </div>
           </div>
+        </section>
 
-          <aside className="space-y-6">
-            {restaurantId && (
-              <section className="rounded-[28px] border border-[#E2E8F0] bg-white p-5 shadow-sm sm:p-6">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF0DF] text-[#FF8C00]">
-                    <Store className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#737373]">Restaurant sélectionné</p>
-                    <h3 className="mt-1 text-lg font-bold text-[#0F172A]">{restaurantName}</h3>
-                    <p className="mt-2 text-sm text-[#737373]">
-                      Tous vos articles proviennent de ce restaurant pour une commande cohérente.
-                    </p>
-                  </div>
-                </div>
-                {errors.restaurant && (
-                  <p className="mt-4 flex items-center gap-2 text-sm font-medium text-red-600">
-                    <AlertCircle className="h-4 w-4" />
-                    {errors.restaurant}
-                  </p>
-                )}
-              </section>
-            )}
+      </main>
 
-            <section className="rounded-[28px] border border-[#E2E8F0] bg-white p-5 shadow-sm sm:p-6">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-[#0F172A]">
-                <BadgePercent className="h-5 w-5 text-[#FF8C00]" />
-                Code promo
-              </h3>
-              <div className="mt-4 flex gap-2">
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={(event) => {
-                    setPromoCode(event.target.value);
-                    setErrors((current) => ({ ...current, promo: undefined }));
-                  }}
-                  placeholder="WELCOME10 ou FREESHIP"
-                  className="flex-1 rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 outline-none transition focus:border-[#FF8C00] focus:ring-2 focus:ring-[#FF8C00]/15"
-                />
-                {!promoApplied ? (
-                  <button
-                    onClick={handleApplyPromo}
-                    className="rounded-2xl bg-[#FF8C00] px-4 py-3 font-semibold text-white transition hover:bg-[#E07A00]"
-                  >
-                    Appliquer
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleRemovePromo}
-                    className="rounded-2xl border border-red-200 px-4 py-3 font-semibold text-red-600 transition hover:bg-red-50"
-                  >
-                    Retirer
-                  </button>
-                )}
-              </div>
-              {promoApplied && (
-                <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-[#2ECC71]">
-                  <CheckCircle className="h-4 w-4" />
-                  Promotion appliquée : -{formatFCFA(promoDiscount)}
-                </p>
-              )}
-              {errors.promo && (
-                <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-red-600">
-                  <AlertCircle className="h-4 w-4" />
-                  {errors.promo}
-                </p>
-              )}
-            </section>
-
-            <section className="rounded-[28px] border border-[#E2E8F0] bg-white p-5 shadow-sm sm:p-6">
-              <h3 className="text-lg font-bold text-[#0F172A]">Mode de commande</h3>
-              <div className="mt-4 grid gap-3">
-                {orderModes.map((mode) => {
-                  const Icon = mode.icon;
-                  const active = orderMode === mode.id;
-                  return (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      onClick={() => setOrderMode(mode.id)}
-                      className={`rounded-[24px] border p-4 text-left transition ${
-                        active
-                          ? 'border-[#FF8C00] bg-[#FFF0DF] shadow-sm'
-                          : 'border-[#E2E8F0] bg-white hover:border-[#FF8C00]/40'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
-                            active ? 'bg-[#FF8C00] text-white' : 'bg-white text-[#737373]'
-                          }`}
-                        >
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-[#0F172A]">{mode.label}</p>
-                          <p className="mt-1 text-sm text-[#737373]">{mode.description}</p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {orderMode === 'livraison' && (
-                <div className="mt-5 space-y-4">
-                  <LocationAssistant
-                    title="Livraison assistée"
-                    description="Sélectionnez une zone très fréquentée, ajustez l'adresse puis confirmez le point exact sur la carte."
-                    addressLabel="Adresse de livraison"
-                    addressValue={deliveryAddress}
-                    onAddressChange={(value) => {
-                      setDeliveryAddress(value);
-                      setErrors((current) => ({ ...current, deliveryAddress: undefined }));
-                    }}
-                    addressPlaceholder="Entrez votre adresse complète..."
-                    zoneLabel="Zone de livraison"
-                    zoneValue={deliveryZone}
-                    onZoneChange={(value, zone) => {
-                      setDeliveryZone(value);
-                      if (zone?.lat && zone?.lng) {
-                        setDeliveryPosition({ lat: zone.lat, lng: zone.lng });
-                      }
-                      setErrors((current) => ({ ...current, deliveryZone: undefined }));
-                    }}
-                    mapValue={deliveryPosition}
-                    onMapChange={({ lat, lng, address }) => {
-                      setDeliveryPosition({ lat, lng });
-                      if (address) {
-                        setDeliveryAddress(address);
-                      }
-                      setErrors((current) => ({
-                        ...current,
-                        deliveryAddress: undefined,
-                      }));
-                    }}
-                    frequentZones={deliveryZones}
-                    errorAddress={errors.deliveryAddress}
-                    errorZone={errors.deliveryZone}
-                  />
-
-                  <div className="rounded-[24px] border border-[#E2E8F0] bg-white p-4">
-                    <p className="text-sm font-semibold text-[#0F172A]">Tarifs par zone</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {deliveryZones.map((zone) => (
-                        <button
-                          key={zone.name}
-                          type="button"
-                          onClick={() => {
-                            setDeliveryZone(zone.name);
-                            setDeliveryAddress(zone.address || deliveryAddress);
-                            if (zone.lat && zone.lng) {
-                              setDeliveryPosition({ lat: zone.lat, lng: zone.lng });
-                            }
-                            setErrors((current) => ({ ...current, deliveryZone: undefined }));
-                          }}
-                          className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${
-                            deliveryZone === zone.name
-                              ? 'border-[#FF8C00] bg-[#FFF0DF] text-[#FF8C00]'
-                              : 'border-[#E2E8F0] bg-white text-[#737373] hover:border-[#FF8C00]/40'
-                          }`}
-                        >
-                          {zone.name} · +{formatFCFA(zone.fee)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </section>
-
-            <section className="rounded-[28px] border border-[#E2E8F0] bg-white p-5 shadow-sm sm:p-6">
-              <h3 className="text-lg font-bold text-[#0F172A]">Résumé de la commande</h3>
-              <div className="mt-5 space-y-3 text-sm text-[#737373]">
-                <PriceRow label="Sous-total" value={formatFCFA(subtotal)} />
-                <PriceRow
-                  label="Livraison"
-                  value={deliveryFee > 0 ? formatFCFA(deliveryFee) : 'Gratuite'}
-                />
-                <PriceRow
-                  label="Remise"
-                  value={promoDiscount > 0 ? `-${formatFCFA(promoDiscount)}` : 'Aucune'}
-                  accent={promoDiscount > 0 ? 'text-[#2ECC71]' : ''}
-                />
-              </div>
-
-              <div className="mt-5 rounded-[24px] bg-[#FFF0DF] px-5 py-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-[#737373]">Total à payer</p>
-                    <p className="mt-1 text-3xl font-bold text-[#FF8C00]">{formatFCFA(total)}</p>
-                  </div>
-                  <CreditCard className="h-8 w-8 text-[#FF8C00]" />
-                </div>
-              </div>
-
-              <button
-                onClick={handleProceedToCheckout}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF8C00] px-5 py-4 font-semibold text-white shadow-md transition hover:bg-[#E07A00]"
-              >
-                Passer au paiement
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </section>
-          </aside>
+      {/* ── Bouton fixe bas ── */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        padding: '14px 16px env(safe-area-inset-bottom, 12px)',
+        background: 'rgba(255,250,243,0.96)', backdropFilter: 'blur(12px)',
+        borderTop: `1px solid ${BORDER}`, zIndex: 40,
+      }}>
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <button onClick={() => navigate('/checkout')}
+            style={{
+              width: '100%', background: ORANGE, color: '#fff', border: 'none',
+              borderRadius: 16, padding: '15px 0', fontSize: 15, fontWeight: 800,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 8, boxShadow: '0 6px 24px rgba(255,140,0,0.35)', transition: 'background 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = ORANGE_D}
+            onMouseLeave={e => e.currentTarget.style.background = ORANGE}>
+            Procéder au paiement · {formatFCFA(grandTotal)}
+            <ChevronRight style={{ width: 16, height: 16 }} />
+          </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function MiniStat({ label, value }) {
-  return (
-    <div className="rounded-2xl border border-[#E2E8F0] bg-white px-4 py-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#737373]">{label}</p>
-      <p className="mt-2 text-xl font-bold text-[#0F172A] break-words">{value}</p>
-    </div>
-  );
-}
-
-function PriceRow({ label, value, accent = '' }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span>{label}</span>
-      <span className={`font-semibold text-[#0F172A] ${accent}`}>{value}</span>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 // src/pages/b2b/B2BOnboardingWizard.jsx
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   UtensilsCrossed, ShoppingBag, Users, FileText,
   CheckCircle, ArrowRight, Loader2, Building2, MapPin, UserPlus,
@@ -138,6 +139,14 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
         </div>
 
         <div className="p-8">
+          <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
 
           {/* ── STEP 0: Bienvenue ── */}
           {step === 0 && (
@@ -360,6 +369,8 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
             </div>
           )}
 
+          </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

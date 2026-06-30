@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -97,7 +98,7 @@ export default function ClientOnboardingWizard() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10"
-      style={{ background: 'linear-gradient(135deg, #FDF8F0 0%, #FFF5E8 100%)' }}>
+      style={{ background: '#FFFFFF' }}>
       <div className="w-full max-w-md">
 
         {/* Header */}
@@ -113,6 +114,15 @@ export default function ClientOnboardingWizard() {
         <div className="rounded-3xl shadow-xl overflow-hidden" style={{ background: '#FFFFFF' }}>
           <div className="px-8 py-8">
             <StepDots current={step} />
+
+            <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            >
 
             {/* ── STEP 0: Bienvenue ── */}
             {step === 0 && (
@@ -227,6 +237,8 @@ export default function ClientOnboardingWizard() {
               </div>
             )}
 
+            </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 

@@ -1939,6 +1939,91 @@ function ConfigTab() {
       {modal !== null && (
         <IntegrationModal initial={modal} onClose={() => setModal(null)} onSave={saveIntegration} />
       )}
+
+      {/* ── Zone Maintenance ── */}
+      <MaintenancePanel />
+    </div>
+  );
+}
+
+/* ══════════════════ PANNEAU MAINTENANCE ══════════════════ */
+const PURGE_TARGETS = [
+  { key: 'audit',          label: "Logs d'audit",            color: '#7C3AED', bg: '#F5F3FF' },
+  { key: 'commandes',      label: 'Historique commandes',    color: '#DC2626', bg: '#FEF2F2' },
+  { key: 'livraisons',     label: 'Livraisons externes',     color: '#EA580C', bg: '#FFF7ED' },
+  { key: 'notifications',  label: 'Notifications',           color: '#0284C7', bg: '#F0F9FF' },
+];
+
+function MaintenancePanel() {
+  const [before,  setBefore]  = useState('');
+  const [busy,    setBusy]    = useState({});
+  const [results, setResults] = useState({});
+
+  const purge = async (target) => {
+    const label = target === 'all' ? 'TOUTES les données listées' : PURGE_TARGETS.find(t => t.key === target)?.label || target;
+    const msg   = before
+      ? `Supprimer les données "${label}" antérieures au ${new Date(before).toLocaleDateString('fr-FR')} ?`
+      : `Supprimer TOUT l'historique "${label}" sans limite de date ?`;
+    if (!window.confirm(msg + '\n\nCette action est irréversible.')) return;
+    setBusy(b => ({ ...b, [target]: true }));
+    setResults(r => ({ ...r, [target]: null }));
+    try {
+      const res = await adminAPI.purgeHistorique(target, before || undefined);
+      const total = Object.values(res.data.purged || {}).reduce((s, v) => s + Number(v), 0);
+      setResults(r => ({ ...r, [target]: { ok: true, count: total } }));
+    } catch {
+      setResults(r => ({ ...r, [target]: { ok: false } }));
+    } finally {
+      setBusy(b => ({ ...b, [target]: false }));
+    }
+  };
+
+  return (
+    <div style={{ ...card, marginTop: 24, borderTop: '3px solid #EF4444' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+        <Trash2 style={{ width: 16, height: 16, color: '#DC2626' }} />
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0F172A' }}>Maintenance — Purger l'historique</h3>
+      </div>
+      <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 18px' }}>Supprime définitivement les enregistrements sélectionnés. Aucune restauration possible.</p>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
+          Supprimer les données antérieures au <span style={{ color: '#94A3B8', fontWeight: 400 }}>(laisser vide = tout supprimer)</span>
+        </label>
+        <input
+          type="date"
+          value={before}
+          onChange={e => setBefore(e.target.value)}
+          max={new Date().toISOString().slice(0, 10)}
+          style={{ border: '1px solid #D1D9E6', borderRadius: 9, padding: '9px 14px', fontSize: 13, outline: 'none' }}
+        />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12, marginBottom: 16 }}>
+        {PURGE_TARGETS.map(({ key, label, color, bg }) => (
+          <div key={key} style={{ background: bg, borderRadius: 12, padding: '14px 16px', border: `1px solid ${color}22` }}>
+            <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 700, color }}>{label}</p>
+            {results[key]?.ok === true  && <p style={{ margin: '0 0 8px', fontSize: 11, color: '#059669', fontWeight: 600 }}>✓ {results[key].count} ligne(s) supprimée(s)</p>}
+            {results[key]?.ok === false && <p style={{ margin: '0 0 8px', fontSize: 11, color: '#DC2626', fontWeight: 600 }}>✗ Erreur lors de la purge</p>}
+            <button
+              onClick={() => purge(key)}
+              disabled={!!busy[key]}
+              style={{ width: '100%', padding: '8px', borderRadius: 8, border: `1px solid ${color}44`, background: '#fff', color, fontWeight: 700, fontSize: 12, cursor: busy[key] ? 'wait' : 'pointer', opacity: busy[key] ? 0.7 : 1 }}
+            >
+              {busy[key] ? 'Suppression…' : 'Purger'}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={() => purge('all')}
+        disabled={Object.values(busy).some(Boolean)}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FEF2F2', border: '1.5px solid #FCA5A5', color: '#DC2626', borderRadius: 10, padding: '11px 18px', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}
+      >
+        <Trash2 style={{ width: 14, height: 14 }} />
+        Tout purger (audit + commandes + livraisons + notifications)
+      </button>
     </div>
   );
 }

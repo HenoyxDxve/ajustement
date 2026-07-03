@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
-import { menuAPI, promosAPI } from '../services/api';
+import { menuAPI, promosAPI, publicConfigAPI } from '../services/api';
 import ProductCustomizationModal from '../components/menu/ProductCustomizationModal';
 import CartDrawer from '../components/cart/CartDrawer';
 import DeliveryMap from '../components/maps/DeliveryMap';
@@ -62,6 +62,8 @@ const CSS = `
 @keyframes overlayIn { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
 @keyframes modalIn { from{opacity:0;transform:translateY(20px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)} }
 @keyframes spin { to{transform:rotate(360deg)} }
+@keyframes bannerMarquee  { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+@keyframes bannerMarqueeR { 0%{transform:translateX(-50%)} 100%{transform:translateX(0)} }
 .cat-scroll::-webkit-scrollbar{display:none}
 .prod-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
 .cart-panel{ display:flex; flex-direction:column; }
@@ -633,6 +635,12 @@ export default function MenuPage() {
   const [customModal,     setCustomModal]     = useState({ open: false, product: null });
   const [error,           setError]           = useState(null);
   const [mapOpen,         setMapOpen]         = useState(false);
+  const [bannerMessages,  setBannerMessages]  = useState([]);
+
+  /* Bannière défilante — noms réels des restaurants */
+  const bannerItems = restaurants.length > 0
+    ? restaurants.map(r => r.nom)
+    : ['Cocody', 'Plateau', 'Adjamé', 'Treichville', 'Marcory', 'Yopougon', 'Abobo', 'Koumassi'];
 
   /* Favoris — restaurants */
   const [restoFavs, setRestoFavs] = useState(
@@ -677,6 +685,9 @@ export default function MenuPage() {
       .then(r => setRestaurants(r.data || []))
       .catch(() => setError('Impossible de charger les restaurants.'))
       .finally(() => setLoading(false));
+    publicConfigAPI.getBannerMessages()
+      .then(res => { if (Array.isArray(res.data?.messages) && res.data.messages.length > 0) setBannerMessages(res.data.messages); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -864,14 +875,32 @@ export default function MenuPage() {
           </div>
 
           <div style={{ padding: 'clamp(16px,3vw,24px) clamp(12px,4vw,28px) 40px' }}>
-            {/* Hero */}
-            <div style={{ background: 'linear-gradient(135deg, #FF8C00 0%, #E07A00 100%)', borderRadius: 20, padding: 'clamp(16px,4vw,28px)', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 8px 32px #FF8C0044', overflow: 'hidden', position: 'relative' }}>
-              <div style={{ position: 'absolute', right: -20, top: -20, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-              <div style={{ position: 'relative' }}>
-                <p style={{ margin: '0 0 6px', fontFamily: sans, fontSize: 'clamp(16px,4vw,22px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>Commandez chez <br />vos restaurants préférés</p>
-                <p style={{ margin: 0, fontFamily: sans, fontSize: 13, color: 'rgba(255,255,255,0.82)' }}>{restaurants.length > 0 ? restaurants.length + ' restaurants partenaires' : 'Restaurants à proximité'}</p>
+            {/* Hero — bannière défilante sombre */}
+            <div style={{ background: '#0E0600', borderRadius: 18, marginBottom: 24, overflow: 'hidden', position: 'relative', boxShadow: '0 8px 32px rgba(0,0,0,0.28)' }}>
+              {/* Barre orange top */}
+              <div style={{ height: 3, background: 'linear-gradient(90deg, #FF8C00, #FFB800, #FF8C00)' }} />
+              {/* Titre + compteur */}
+              <div style={{ padding: 'clamp(14px,3vw,20px) clamp(14px,4vw,24px) 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <p style={{ margin: 0, fontFamily: sans, fontSize: 'clamp(13px,3vw,15px)', fontWeight: 800, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                  Restaurants disponibles
+                </p>
+                {restaurants.length > 0 && (
+                  <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 800, color: '#FF8C00', background: 'rgba(255,140,0,0.12)', border: '1px solid rgba(255,140,0,0.25)', borderRadius: 99, padding: '3px 12px' }}>
+                    {restaurants.length}
+                  </span>
+                )}
               </div>
-              <div style={{ fontSize: 'clamp(36px,8vw,60px)', position: 'relative', flexShrink: 0 }}>🍽️</div>
+              {/* Bande défilante */}
+              <div style={{ overflow: 'hidden', paddingBottom: 'clamp(14px,3vw,20px)', maskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', width: 'max-content', animation: `bannerMarquee ${Math.max(18, bannerItems.length * 3)}s linear infinite` }}>
+                  {[...bannerItems, ...bannerItems, ...bannerItems].map((nom, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                      <span style={{ fontFamily: sans, fontSize: 'clamp(16px,4vw,22px)', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>{nom}</span>
+                      <span style={{ display: 'inline-block', width: 5, height: 5, borderRadius: '50%', background: '#FF8C00', margin: '0 clamp(16px,4vw,28px)', flexShrink: 0, opacity: 0.7 }} />
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {discoCats.length > 1 && (

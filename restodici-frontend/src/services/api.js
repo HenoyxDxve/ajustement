@@ -349,6 +349,7 @@ export const adminAPI = {
   updateTauxCommission:(id, taux)     => api.patch(`/admin/restaurants/${id}/commission`, { taux }),
   getBackups:         ()              => api.get("/admin/backup/list"),
   runBackup:          ()              => api.post("/admin/backup/run"),
+  purgeHistorique:    (target, before) => api.post("/admin/maintenance/purge", { target, before }),
 };
 
 // paiements

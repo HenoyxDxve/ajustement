@@ -346,4 +346,14 @@ export class AdminController {
   updateTauxCommission(@Param('id') id: string, @Body('taux') taux: number) {
     return this.adminService.updateTauxCommission(id, Number(taux));
   }
+
+  @Post('maintenance/purge')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.OK)
+  purgeHistorique(
+    @Body() body: { target: 'audit' | 'commandes' | 'livraisons' | 'notifications' | 'all'; before?: string },
+  ) {
+    return this.adminService.purgeHistorique(body.target, body.before);
+  }
 }

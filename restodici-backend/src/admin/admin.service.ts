@@ -948,4 +948,29 @@ export class AdminService {
     await this.restaurantRepo.save(restaurant);
     return { restaurantId, tauxCommission: taux };
   }
+
+  // ── Purge de l'historique ──────────────────────────────────────
+  // `before` est une date ISO; si absent, purge TOUT.
+  // On utilise le manager de l'auditRepo pour les tables sans repo injecté.
+
+  async purgeHistorique(target: 'audit' | 'commandes' | 'livraisons' | 'notifications' | 'all', before?: string) {
+    const mgr = this.auditRepo.manager;
+    const cutoff = before ? new Date(before) : null;
+    const results: Record<string, number> = {};
+
+    const runDelete = async (table: string, key: string) => {
+      let q = `DELETE FROM "${table}"`;
+      const params: any[] = [];
+      if (cutoff) { q += ` WHERE "createdAt" < $1`; params.push(cutoff); }
+      const res = await mgr.query(q, params);
+      results[key] = typeof res === 'object' && 'affected' in res ? (res as any).affected : (res?.rowCount ?? 0);
+    };
+
+    if (target === 'audit' || target === 'all') await runDelete('audit_logs', 'audit');
+    if (target === 'commandes' || target === 'all') await runDelete('commandes', 'commandes');
+    if (target === 'livraisons' || target === 'all') await runDelete('livraisons_externes', 'livraisons');
+    if (target === 'notifications' || target === 'all') await runDelete('notifications', 'notifications');
+
+    return { purged: results, before: cutoff?.toISOString() ?? 'total' };
+  }
 }

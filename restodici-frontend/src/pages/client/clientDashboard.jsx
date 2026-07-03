@@ -22,6 +22,7 @@ import { authAPI, commandesService, paiementsAPI, modulesAPI } from '../../servi
 import SecurityPanel from '../../components/security/SecurityPanel';
 import NotificationBell from '../../components/notifications/NotificationBell';
 import { formatFCFA } from '../../utils/formatters';
+import { EMAIL_PATTERN, CI_PHONE_PATTERN, MSG } from '../../utils/validators';
 import OnboardingWizard from '../../components/wizard/OnboardingWizard';
 
 import orangeMoneyLogo  from '../../assets/payments/orange-money.svg';
@@ -826,6 +827,7 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
                 <Mail className="w-4 h-4 text-gray-300 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="email"
+                  pattern={EMAIL_PATTERN} title={MSG.email}
                   value={profileForm.email}
                   onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))}
                   placeholder="votre@email.com"
@@ -844,9 +846,10 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
                 <Phone className="w-4 h-4 text-gray-300 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="tel"
+                  inputMode="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone}
                   value={profileForm.telephone}
                   onChange={e => setProfileForm(p => ({ ...p, telephone: e.target.value }))}
-                  placeholder="07 XX XX XX XX"
+                  placeholder="+225 07 12 34 56 78"
                   className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#1A0C00] placeholder-gray-300 outline-none border transition-colors"
                   style={{ borderColor: 'rgba(0,0,0,0.1)', background: '#FAFAFA' }}
                   onFocus={e => { e.target.style.borderColor = ACCENT; e.target.style.background = '#fff'; }}

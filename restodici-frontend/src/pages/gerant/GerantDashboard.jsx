@@ -92,6 +92,7 @@ import {
 import { FREQUENT_LOCATION_ZONES } from "../../components/maps/locationAssistantData";
 import OnboardingWizard from "../../components/wizard/OnboardingWizard";
 import { buildFinanceReportBlob, buildBonCommandeBlob } from "../../utils/syscohada-pdf";
+import { EMAIL_PATTERN, CI_PHONE_PATTERN, MSG } from "../../utils/validators";
 
 /* ── Badge compte à rebours B2B ── */
 function B2BCountdown({ deadlineAt, statut }) {
@@ -3207,13 +3208,13 @@ function SettingsTab({ restaurantId, user }) {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-semibold text-[#374151]">Téléphone</label>
-                <input type="tel" value={settings.telephone}
+                <input type="tel" inputMode="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone} value={settings.telephone}
                   onChange={e => setSettings(p => ({ ...p, telephone: e.target.value }))}
-                  className={inputCls} style={inputStyle} placeholder="+225 07 00 00 00" />
+                  className={inputCls} style={inputStyle} placeholder="+225 07 12 34 56 78" />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-semibold text-[#374151]">Email</label>
-                <input type="email" value={settings.email}
+                <input type="email" pattern={EMAIL_PATTERN} title={MSG.email} value={settings.email}
                   onChange={e => setSettings(p => ({ ...p, email: e.target.value }))}
                   className={inputCls} style={inputStyle} placeholder="contact@restaurant.ci" />
               </div>

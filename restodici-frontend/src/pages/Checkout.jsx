@@ -8,6 +8,7 @@ import {
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import { formatFCFA } from '../utils/formatters';
+import { CI_PHONE_PATTERN, MSG, isValidCIPhone } from '../utils/validators';
 import { commandesService, createCommandesSocket } from '../services/commandes.service';
 import { paiementsAPI, promosAPI } from '../services/api';
 import orangeMoneyLogo from '../assets/payments/orange-money.svg';
@@ -430,7 +431,7 @@ export default function CheckoutPage() {
   const isOpen         = modalState !== 'idle';
 
   const canSubmit = isB2B || (() => {
-    if (method?.phoneRequired && !phone.trim()) return false;
+    if (method?.phoneRequired && !isValidCIPhone(phone)) return false;
     if (method?.otpRequired && otp.length < 4) return false;
     if (selectedMethod === 'card') {
       if (cardNumber.replace(/\s/g, '').length < 16) return false;
@@ -911,9 +912,10 @@ export default function CheckoutPage() {
                     </label>
                     <input
                       type="tel"
+                      inputMode="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone}
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
-                      placeholder="Ex : 07 XX XX XX XX"
+                      placeholder="Ex : +225 07 12 34 56 78"
                       className="checkout-input"
                       style={{
                         width: '100%',

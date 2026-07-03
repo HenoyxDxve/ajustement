@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Mail, Lock, User, Store, Phone, Building2, ChefHat, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { validateField, MSG, EMAIL_PATTERN, CI_PHONE_PATTERN } from "../utils/validators";
 
 function normalizeUserType(type) {
   const v = (type || "client").toLowerCase();
@@ -57,13 +58,13 @@ export default function Register() {
 
   const validate = () => {
     const e = {};
-    if (!form.nom.trim())       e.nom       = "Champ requis";
-    if (!form.email.trim())     e.email     = "Email requis";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Email invalide";
-    if (!form.telephone.trim()) e.telephone = "Téléphone requis";
-    if (!form.password || form.password.length < 6) e.password = "Minimum 6 caractères";
-    if (isRestaurant && !form.restaurantNom.trim()) e.restaurantNom = "Requis";
-    if (isBusiness   && !form.nomEntreprise.trim()) e.nomEntreprise = "Requis";
+    e.nom       = validateField('text',  form.nom,       { required: true });
+    e.email     = validateField('email', form.email,     { required: true });
+    e.telephone = validateField('phone', form.telephone, { required: true });
+    e.password  = validateField('password', form.password, { required: true });
+    if (isRestaurant && !form.restaurantNom.trim()) e.restaurantNom = MSG.required;
+    if (isBusiness   && !form.nomEntreprise.trim()) e.nomEntreprise = MSG.required;
+    Object.keys(e).forEach(k => { if (!e[k]) delete e[k]; });
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -175,16 +176,19 @@ export default function Register() {
                       className={inputCls(true, errors.nom)} style={inputStyle(errors.nom)} />
                   </Field>
                   <Field label="Téléphone *" icon={Phone} error={errors.telephone}>
-                    <input value={form.telephone} onChange={set("telephone")} placeholder="+225 XX XX XX" inputMode="tel"
+                    <input value={form.telephone} onChange={set("telephone")} placeholder="+225 07 12 34 56 78" inputMode="tel"
+                      type="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone} required
                       className={inputCls(true, errors.telephone)} style={inputStyle(errors.telephone)} />
                   </Field>
                 </div>
                 <Field label="Email *" icon={Mail} error={errors.email}>
                   <input type="email" value={form.email} onChange={set("email")} placeholder="gerant@restaurant.com"
+                    pattern={EMAIL_PATTERN} title={MSG.email} required
                     className={inputCls(true, errors.email)} style={inputStyle(errors.email)} />
                 </Field>
                 <Field label="Mot de passe *" icon={Lock} error={errors.password}>
                   <input type="password" value={form.password} onChange={set("password")} placeholder="••••••••"
+                    minLength={8} title={MSG.password} required
                     className={inputCls(true, errors.password)} style={inputStyle(errors.password)} />
                 </Field>
                 <Field label="Nom du restaurant *" icon={Store} error={errors.restaurantNom}>
@@ -207,16 +211,19 @@ export default function Register() {
                       className={inputCls(true, errors.nom)} style={inputStyle(errors.nom)} />
                   </Field>
                   <Field label="Téléphone *" icon={Phone} error={errors.telephone}>
-                    <input value={form.telephone} onChange={set("telephone")} placeholder="+225 XX XX XX" inputMode="tel"
+                    <input value={form.telephone} onChange={set("telephone")} placeholder="+225 07 12 34 56 78" inputMode="tel"
+                      type="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone} required
                       className={inputCls(true, errors.telephone)} style={inputStyle(errors.telephone)} />
                   </Field>
                 </div>
                 <Field label="Email professionnel *" icon={Mail} error={errors.email}>
                   <input type="email" value={form.email} onChange={set("email")} placeholder="vous@entreprise.com"
+                    pattern={EMAIL_PATTERN} title={MSG.email} required
                     className={inputCls(true, errors.email)} style={inputStyle(errors.email)} />
                 </Field>
                 <Field label="Mot de passe *" icon={Lock} error={errors.password}>
                   <input type="password" value={form.password} onChange={set("password")} placeholder="••••••••"
+                    minLength={8} title={MSG.password} required
                     className={inputCls(true, errors.password)} style={inputStyle(errors.password)} />
                 </Field>
               </>
@@ -231,16 +238,19 @@ export default function Register() {
                       className={inputCls(true, errors.nom)} style={inputStyle(errors.nom)} />
                   </Field>
                   <Field label="Téléphone *" icon={Phone} error={errors.telephone}>
-                    <input value={form.telephone} onChange={set("telephone")} placeholder="+225 XX XX XX" inputMode="tel"
+                    <input value={form.telephone} onChange={set("telephone")} placeholder="+225 07 12 34 56 78" inputMode="tel"
+                      type="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone} required
                       className={inputCls(true, errors.telephone)} style={inputStyle(errors.telephone)} />
                   </Field>
                 </div>
                 <Field label="Email *" icon={Mail} error={errors.email}>
                   <input type="email" value={form.email} onChange={set("email")} placeholder="votre@email.com"
+                    pattern={EMAIL_PATTERN} title={MSG.email} required
                     className={inputCls(true, errors.email)} style={inputStyle(errors.email)} />
                 </Field>
                 <Field label="Mot de passe *" icon={Lock} error={errors.password}>
                   <input type="password" value={form.password} onChange={set("password")} placeholder="••••••••"
+                    minLength={8} title={MSG.password} required
                     className={inputCls(true, errors.password)} style={inputStyle(errors.password)} />
                 </Field>
               </>

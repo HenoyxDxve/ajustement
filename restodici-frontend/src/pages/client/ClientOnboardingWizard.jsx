@@ -7,6 +7,7 @@ import {
   CheckCircle, ArrowRight, Loader2, Star,
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
+import { CI_PHONE_PATTERN, MSG } from '../../utils/validators';
 
 const A  = '#EA580C';
 const AL = '#FFF0DF';
@@ -38,9 +39,10 @@ function Field({ label, optional, children }) {
   );
 }
 
-function TextInput({ value, onChange, placeholder, type = 'text' }) {
+function TextInput({ value, onChange, placeholder, type = 'text', pattern, title, inputMode, maxLength }) {
   return (
     <input type={type} value={value} onChange={onChange} placeholder={placeholder}
+      pattern={pattern} title={title} inputMode={inputMode} maxLength={maxLength}
       className="w-full rounded-xl px-4 py-2.5 text-sm outline-none"
       style={{ background: SF, border: `1px solid ${BD}` }} />
   );
@@ -165,7 +167,7 @@ export default function ClientOnboardingWizard() {
                     <TextInput value={profil.nom} onChange={setP('nom')} placeholder="Ex : Assi" />
                   </Field>
                   <Field label="Téléphone *">
-                    <TextInput value={profil.telephone} onChange={setP('telephone')} placeholder="+225 0700 000000" type="tel" />
+                    <TextInput value={profil.telephone} onChange={setP('telephone')} placeholder="+225 07 12 34 56 78" type="tel" inputMode="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone} />
                   </Field>
                 </div>
                 {err && <p className="mt-3 text-sm font-semibold text-red-500">{err}</p>}

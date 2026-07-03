@@ -8,6 +8,7 @@ import {
   CheckCircle, ArrowRight, Loader2, ChefHat, Plus, X,
 } from 'lucide-react';
 import { restaurantAPI, menuAPI } from '../../services/api';
+import { EMAIL_PATTERN, CI_PHONE_PATTERN, MSG } from '../../utils/validators';
 
 const A = '#EA580C';
 const AL = '#FFF0DF';
@@ -44,13 +45,14 @@ function Field({ label, hint, children }) {
   );
 }
 
-function TextInput({ value, onChange, placeholder, type = 'text' }) {
+function TextInput({ value, onChange, placeholder, type = 'text', pattern, title, inputMode, maxLength }) {
   return (
     <input
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      pattern={pattern} title={title} inputMode={inputMode} maxLength={maxLength}
       className="w-full rounded-xl px-4 py-2.5 text-sm outline-none"
       style={{ background: SF, border: `1px solid ${BD}` }}
     />
@@ -253,11 +255,12 @@ export default function GerantOnboardingWizard() {
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Téléphone restaurant" hint="optionnel">
                     <TextInput value={adresse.restaurantTelephone} onChange={setA('restaurantTelephone')}
-                      placeholder="+225 01 XX XX XX" />
+                      type="tel" inputMode="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone}
+                      placeholder="+225 27 12 34 56 78" />
                   </Field>
                   <Field label="Email restaurant" hint="optionnel">
                     <TextInput value={adresse.restaurantEmail} onChange={setA('restaurantEmail')}
-                      type="email" placeholder="contact@restaurant.ci" />
+                      type="email" pattern={EMAIL_PATTERN} title={MSG.email} placeholder="contact@restaurant.ci" />
                   </Field>
                 </div>
               </div>

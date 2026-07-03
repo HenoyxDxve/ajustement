@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, CheckCircle, UtensilsCrossed, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { isValidEmail, MSG } from '../utils/validators';
 
 export default function Login() {
   const navigate       = useNavigate();
@@ -39,10 +40,9 @@ export default function Login() {
     const email = formData.email.trim();
     const pwd   = formData.password.trim();
 
-    if (!email)                          e.email    = 'Email requis';
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email   = 'Email invalide';
-    if (!pwd)                            e.password = 'Mot de passe requis';
-    else if (pwd.length < 6)            e.password = 'Minimum 6 caractères';
+    if (!email)                    e.email    = MSG.required;
+    else if (!isValidEmail(email)) e.email    = MSG.email;
+    if (!pwd)                      e.password = MSG.required;
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -286,6 +286,7 @@ export default function Login() {
                     aria-describedby={errors.email ? 'email-error' : undefined}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                     placeholder="vous@exemple.com"
+                    required title="Email invalide (ex. nom@domaine.com)"
                     className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition"
                     style={{
                       background: '#F9F9FC',

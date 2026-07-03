@@ -72,7 +72,7 @@ export default function ForgotPassword() {
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#EA580C]/60" />
                   <input
                     value={email} onChange={(e) => setEmail(e.target.value)}
-                    type="email" placeholder="votre@email.com"
+                    type="email" placeholder="votre@email.com" required title="Email invalide (ex. nom@domaine.com)"
                     className={`w-full pl-10 pr-4 py-3.5 bg-[#FFF0DF] border-0 rounded-2xl text-[#1A1A1A] placeholder-[#8B6E50]/70 text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C]/40 transition-all${error ? ' ring-2 ring-red-400' : ''}`}
                   />
                 </div>

@@ -10,6 +10,7 @@ import Chart from 'chart.js/auto';
 import { adminAPI, authAPI, fournisseursAPI, livraisonsExtAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import OnboardingWizard from '../../components/wizard/OnboardingWizard';
+import { EMAIL_PATTERN, CI_PHONE_PATTERN, URL_PATTERN, MSG } from '../../utils/validators';
 import {
   Users, UtensilsCrossed, ScrollText, Download, Settings,
   RefreshCw, ToggleLeft, ToggleRight, Plus, X, Check,
@@ -722,11 +723,11 @@ function UsersTab() {
                 <div><label style={labelStyle}>Nom *</label><input required value={form.nom} onChange={e => setForm(f => ({ ...f, nom: e.target.value }))} style={inputStyle} placeholder="Diallo" /></div>
                 <div><label style={labelStyle}>Prénom</label><input value={form.prenom} onChange={e => setForm(f => ({ ...f, prenom: e.target.value }))} style={inputStyle} placeholder="Moussa" /></div>
               </div>
-              <div><label style={labelStyle}>Email *</label><input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Email *</label><input required type="email" pattern={EMAIL_PATTERN} title={MSG.email} value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
               <div><label style={labelStyle}>Mot de passe * (min. 8)</label><input required type="password" minLength={8} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} style={inputStyle} /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div><label style={labelStyle}>Rôle *</label><select required value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>{ROLES.map(r => <option key={r} value={r}>{r}</option>)}</select></div>
-                <div><label style={labelStyle}>Téléphone</label><input value={form.telephone} onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} placeholder="+225 07 00 00 00 00" /></div>
+                <div><label style={labelStyle}>Téléphone</label><input type="tel" inputMode="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone} value={form.telephone} onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} placeholder="+225 07 00 00 00 00" /></div>
               </div>
               {(form.role === 'GERANT' || form.role === 'STAFF') && (
                 <div><label style={labelStyle}>ID Restaurant</label><input value={form.restaurantId} onChange={e => setForm(f => ({ ...f, restaurantId: e.target.value }))} style={inputStyle} placeholder="UUID" /></div>
@@ -759,7 +760,7 @@ function UsersTab() {
                 <div><label style={labelStyle}>Nom *</label><input required value={editForm.nom} onChange={e => setEditForm(f => ({ ...f, nom: e.target.value }))} style={inputStyle} /></div>
                 <div><label style={labelStyle}>Prénom</label><input value={editForm.prenom} onChange={e => setEditForm(f => ({ ...f, prenom: e.target.value }))} style={inputStyle} /></div>
               </div>
-              <div><label style={labelStyle}>Email *</label><input required type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Email *</label><input required type="email" pattern={EMAIL_PATTERN} title={MSG.email} value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div>
                   <label style={labelStyle}>Rôle *</label>
@@ -767,7 +768,7 @@ function UsersTab() {
                     {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
                 </div>
-                <div><label style={labelStyle}>Téléphone</label><input value={editForm.telephone} onChange={e => setEditForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Téléphone</label><input type="tel" inputMode="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone} value={editForm.telephone} onChange={e => setEditForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} /></div>
               </div>
               {(editForm.role === 'GERANT' || editForm.role === 'STAFF') && (
                 <div><label style={labelStyle}>ID Restaurant</label><input value={editForm.restaurantId} onChange={e => setEditForm(f => ({ ...f, restaurantId: e.target.value }))} style={inputStyle} placeholder="UUID du restaurant" /></div>
@@ -920,8 +921,8 @@ function RestaurantsTab() {
             <form onSubmit={handleCreate} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div><label style={labelStyle}>Nom *</label><input required value={form.nom} onChange={e => setForm(f => ({ ...f, nom: e.target.value }))} style={inputStyle} placeholder="Le Maquis du Carrefour" /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div><label style={labelStyle}>Téléphone *</label><input required value={form.telephone} onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} /></div>
-                <div><label style={labelStyle}>Email</label><input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Téléphone *</label><input required type="tel" inputMode="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone} value={form.telephone} onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Email</label><input type="email" pattern={EMAIL_PATTERN} title={MSG.email} value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
               </div>
               <div><label style={labelStyle}>Adresse *</label><input required value={form.adresse} onChange={e => setForm(f => ({ ...f, adresse: e.target.value }))} style={inputStyle} /></div>
               <div><label style={labelStyle}>Description</label><textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={{ ...inputStyle, minHeight: 64, resize: 'vertical' }} /></div>
@@ -950,8 +951,8 @@ function RestaurantsTab() {
             <form onSubmit={handleUpdate} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div><label style={labelStyle}>Nom *</label><input required value={editForm.nom} onChange={e => setEditForm(f => ({ ...f, nom: e.target.value }))} style={inputStyle} /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div><label style={labelStyle}>Téléphone *</label><input required value={editForm.telephone} onChange={e => setEditForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} /></div>
-                <div><label style={labelStyle}>Email</label><input type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Téléphone *</label><input required type="tel" inputMode="tel" pattern={CI_PHONE_PATTERN} maxLength={20} title={MSG.phone} value={editForm.telephone} onChange={e => setEditForm(f => ({ ...f, telephone: e.target.value }))} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Email</label><input type="email" pattern={EMAIL_PATTERN} title={MSG.email} value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} /></div>
               </div>
               <div><label style={labelStyle}>Adresse *</label><input required value={editForm.adresse} onChange={e => setEditForm(f => ({ ...f, adresse: e.target.value }))} style={inputStyle} /></div>
               {editError && <p style={{ color: '#EA580C', fontSize: 12, margin: 0 }}>{editError}</p>}
@@ -2404,13 +2405,14 @@ function FournisseursTab() {
     f.contact?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const Field = ({ label, field, type = 'text', placeholder }) => (
+  const Field = ({ label, field, type = 'text', placeholder, pattern, title, inputMode, maxLength, required }) => (
     <div>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>{label}</label>
       <input
         type={type} value={form[field] ?? ''}
         onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
         placeholder={placeholder}
+        pattern={pattern} title={title} inputMode={inputMode} maxLength={maxLength} required={required}
         style={{ width: '100%', border: '1px solid #D1D9E6', borderRadius: 10, padding: '12px 16px', fontSize: 15, outline: 'none', boxSizing: 'border-box' }}
       />
     </div>
@@ -2504,8 +2506,8 @@ function FournisseursTab() {
             <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
               {Field({ label: 'Nom *', field: 'nom', placeholder: 'SYSCO Abidjan' })}
               {Field({ label: 'Contact', field: 'contact', placeholder: 'Jean Kouassi' })}
-              {Field({ label: 'Téléphone', field: 'telephone', placeholder: '+225 07 00 00 00' })}
-              {Field({ label: 'Email', field: 'email', type: 'email', placeholder: 'fournisseur@email.com' })}
+              {Field({ label: 'Téléphone', field: 'telephone', type: 'tel', inputMode: 'tel', pattern: CI_PHONE_PATTERN, maxLength: 20, title: MSG.phone, placeholder: '+225 07 00 00 00' })}
+              {Field({ label: 'Email', field: 'email', type: 'email', pattern: EMAIL_PATTERN, title: MSG.email, placeholder: 'fournisseur@email.com' })}
               <div style={{ gridColumn: '1 / -1' }}>
                 {Field({ label: 'Adresse', field: 'adresse', placeholder: 'Zone Industrielle Vridi, Abidjan' })}
               </div>
@@ -2955,13 +2957,14 @@ function LivraisonsExtTab() {
     await livraisonsExtAPI.updateFournisseur(f.id, { actif: !f.actif }); load();
   };
 
-  const Field = ({ label, field, type = 'text', placeholder, full }) => (
+  const Field = ({ label, field, type = 'text', placeholder, full, pattern, title, inputMode, maxLength }) => (
     <div style={full ? { gridColumn: '1 / -1' } : {}}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>{label}</label>
       <input
         type={type} value={form[field] ?? ''}
         onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
         placeholder={placeholder}
+        pattern={pattern} title={title} inputMode={inputMode} maxLength={maxLength}
         style={{ width: '100%', border: '1px solid #D1D9E6', borderRadius: 10, padding: '12px 16px', fontSize: 15, outline: 'none', boxSizing: 'border-box' }}
       />
     </div>
@@ -3057,8 +3060,8 @@ function LivraisonsExtTab() {
                   {TYPE_LIVRAISON.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              {Field({ label: 'URL API dispatch', field: 'apiUrl', placeholder: 'https://api.yango.com/v1', full: true })}
-              {Field({ label: 'URL recherche livreurs', field: 'rechercheUrl', placeholder: 'https://api.dobi.ci/v1/drivers/available (optionnel)', full: true })}
+              {Field({ label: 'URL API dispatch', field: 'apiUrl', type: 'url', inputMode: 'url', pattern: URL_PATTERN, title: MSG.url, placeholder: 'https://api.yango.com/v1', full: true })}
+              {Field({ label: 'URL recherche livreurs', field: 'rechercheUrl', type: 'url', inputMode: 'url', pattern: URL_PATTERN, title: MSG.url, placeholder: 'https://api.dobi.ci/v1/drivers/available (optionnel)', full: true })}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
                   Clé API {modal !== 'create' && <span style={{ color: '#94A3B8', fontWeight: 400 }}>(laisser vide pour conserver)</span>}
@@ -3080,7 +3083,7 @@ function LivraisonsExtTab() {
                   </button>
                 </div>
               </div>
-              {Field({ label: 'URL callback webhook', field: 'webhookCallbackUrl', placeholder: 'https://restodici.ci/livraisons-externes/webhook/...', full: true })}
+              {Field({ label: 'URL callback webhook', field: 'webhookCallbackUrl', type: 'url', inputMode: 'url', pattern: URL_PATTERN, title: MSG.url, placeholder: 'https://restodici.ci/livraisons-externes/webhook/...', full: true })}
 
               {/* ── Endpoints plug-and-play ── */}
               <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #F1F5F9', paddingTop: 16, marginTop: 4 }}>

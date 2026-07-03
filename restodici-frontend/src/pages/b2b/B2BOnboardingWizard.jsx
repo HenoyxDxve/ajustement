@@ -6,6 +6,7 @@ import {
   CheckCircle, ArrowRight, Loader2, Building2, MapPin, UserPlus,
 } from 'lucide-react';
 import { b2bAPI } from '../../services/api';
+import { EMAIL_PATTERN, CI_PHONE_PATTERN, MSG, isValidEmail, isValidCIPhone } from '../../utils/validators';
 
 const A = '#EA580C';
 const AL = '#FFF0DF';
@@ -39,13 +40,14 @@ function Field({ label, children }) {
   );
 }
 
-function Input({ value, onChange, placeholder, type = 'text' }) {
+function Input({ value, onChange, placeholder, type = 'text', pattern, title, inputMode, maxLength }) {
   return (
     <input
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      pattern={pattern} title={title} inputMode={inputMode} maxLength={maxLength}
       className="w-full rounded-xl px-4 py-2.5 text-sm outline-none"
       style={{ background: SF, border: `1px solid ${BD}` }}
     />
@@ -78,6 +80,8 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
     const required = ['raisonSociale', 'numeroRCCM', 'numeroContribuable', 'emailProfessionnel', 'telephoneProfessionnel'];
     const missing = required.filter(k => !entreprise[k]?.trim());
     if (missing.length) { setErr('Tous les champs obligatoires sont requis'); return; }
+    if (!isValidEmail(entreprise.emailProfessionnel))   { setErr(MSG.email); return; }
+    if (!isValidCIPhone(entreprise.telephoneProfessionnel)) { setErr(MSG.phone); return; }
     setErr('');
     setStep(2);
   };
@@ -102,6 +106,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
       setErr('Nom et email requis pour le collaborateur');
       return;
     }
+    if (!isValidEmail(collab.email)) { setErr(MSG.email); return; }
     setSaving(true);
     setErr('');
     try {
@@ -197,12 +202,12 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                   { k: 'raisonSociale',          label: 'Raison sociale *',             ph: 'SARL Mon Entreprise CI' },
                   { k: 'numeroRCCM',             label: 'N° RCCM *',                    ph: 'CI-ABJ-2026-B-1234' },
                   { k: 'numeroContribuable',     label: 'N° Contribuable (NIF) *',      ph: 'CI-123456789-A' },
-                  { k: 'emailProfessionnel',     label: 'Email professionnel *',         ph: 'comptabilite@entreprise.ci' },
-                  { k: 'telephoneProfessionnel', label: 'Téléphone professionnel *',     ph: '+22507070707' },
+                  { k: 'emailProfessionnel',     label: 'Email professionnel *',         ph: 'comptabilite@entreprise.ci', type: 'email', pattern: EMAIL_PATTERN, title: MSG.email },
+                  { k: 'telephoneProfessionnel', label: 'Téléphone professionnel *',     ph: '+225 07 12 34 56 78', type: 'tel', inputMode: 'tel', pattern: CI_PHONE_PATTERN, maxLength: 20, title: MSG.phone },
                 ].map(f => (
                   <Field key={f.k} label={f.label}>
                     <Input value={entreprise[f.k]} onChange={setE(f.k)} placeholder={f.ph}
-                      type={f.k === 'emailProfessionnel' ? 'email' : 'text'} />
+                      type={f.type || 'text'} pattern={f.pattern} title={f.title} inputMode={f.inputMode} maxLength={f.maxLength} />
                   </Field>
                 ))}
               </div>
@@ -291,12 +296,12 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
               <div className="space-y-3">
                 {[
                   { k: 'nom',           label: 'Nom complet *',          ph: 'Kouassi Jean' },
-                  { k: 'email',         label: 'Email *',                ph: 'jean@entreprise.ci' },
-                  { k: 'budgetMensuel', label: 'Budget mensuel (FCFA)',  ph: '50000' },
+                  { k: 'email',         label: 'Email *',                ph: 'jean@entreprise.ci', type: 'email', pattern: EMAIL_PATTERN, title: MSG.email },
+                  { k: 'budgetMensuel', label: 'Budget mensuel (FCFA)',  ph: '50000', type: 'number', inputMode: 'numeric' },
                 ].map(f => (
                   <Field key={f.k} label={f.label}>
                     <Input value={collab[f.k]} onChange={setC(f.k)} placeholder={f.ph}
-                      type={f.k === 'budgetMensuel' ? 'number' : 'text'} />
+                      type={f.type || 'text'} pattern={f.pattern} title={f.title} inputMode={f.inputMode} maxLength={f.maxLength} />
                   </Field>
                 ))}
               </div>

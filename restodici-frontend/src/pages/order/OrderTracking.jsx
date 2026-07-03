@@ -31,7 +31,7 @@ const MODE_LABELS = {
 };
 
 const STEPS = [
-  { key: 'RECUE',        label: 'Commande reçue',   icon: CheckCircle, color: '#64748B' },
+  { key: 'RECUE',        label: 'Commande reçue',   icon: CheckCircle, color: '#8B6E50' },
   { key: 'CONFIRMEE',    label: 'Confirmée',         icon: CheckCircle, color: '#EA580C' },
   { key: 'EN_PREP',      label: 'En préparation',    icon: Clock,       color: '#EA580C' },
   { key: 'PRETE',        label: 'Prête',             icon: Package,     color: '#2ECC71' },
@@ -217,8 +217,8 @@ export default function OrderTrackingPage() {
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
         <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center border border-[rgba(89,67,42,0.10)] shadow">
           <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-4" />
-          <p className="font-bold text-[#0F172A] mb-2">Commande introuvable</p>
-          <p className="text-sm text-[#64748B] mb-6">{error || 'Aucune commande trouvée.'}</p>
+          <p className="font-bold text-[#1A0C00] mb-2">Commande introuvable</p>
+          <p className="text-sm text-[#8B6E50] mb-6">{error || 'Aucune commande trouvée.'}</p>
           <button onClick={() => navigate('/menu')} className="w-full bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold py-3 px-6 rounded-xl transition">
             Retour au menu
           </button>
@@ -249,12 +249,12 @@ export default function OrderTrackingPage() {
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[rgba(89,67,42,0.10)] shadow-sm">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white text-[#64748B] transition">
+          <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white text-[#8B6E50] transition">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="font-bold text-[#0F172A] text-sm leading-tight">Suivi de commande</h1>
-            <p className="text-xs text-[#64748B]">#{order.numero}</p>
+            <h1 className="font-bold text-[#1A0C00] text-sm leading-tight">Suivi de commande</h1>
+            <p className="text-xs text-[#8B6E50]">#{order.numero}</p>
           </div>
           <div className="flex items-center gap-2">
             {isPaid && (
@@ -311,10 +311,10 @@ export default function OrderTrackingPage() {
               <div className="w-5 h-5 border-2 border-[#EA580C] border-t-transparent rounded-full animate-spin" />
             </div>
             <div>
-              <p className="font-bold text-[#0F172A]">
+              <p className="font-bold text-[#1A0C00]">
                 {STEPS.find((s) => s.key === order.statut)?.label || order.statut}
               </p>
-              <p className="text-xs text-[#64748B] animate-pulse mt-0.5">Mise à jour en temps réel…</p>
+              <p className="text-xs text-[#8B6E50] animate-pulse mt-0.5">Mise à jour en temps réel…</p>
             </div>
           </div>
         )}
@@ -339,7 +339,7 @@ export default function OrderTrackingPage() {
         {/* Progress steps */}
         {!isCancelled && (
           <div className="bg-white rounded-2xl border border-[rgba(89,67,42,0.10)] p-5">
-            <h2 className="font-bold text-[#0F172A] text-sm mb-5">Progression</h2>
+            <h2 className="font-bold text-[#1A0C00] text-sm mb-5">Progression</h2>
             <div className="space-y-0">
               {STEPS.map((step, idx) => {
                 const Icon = step.icon;
@@ -350,7 +350,7 @@ export default function OrderTrackingPage() {
                   <div key={step.key} className="flex gap-3">
                     <div className="flex flex-col items-center">
                       <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${done || current ? 'text-white shadow-sm' : 'bg-[#F5F0E8] text-[#64748B]/40'}`}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${done || current ? 'text-white shadow-sm' : 'bg-[#F5F0E8] text-[#8B6E50]/40'}`}
                         style={done || current ? { background: step.color, transform: current ? 'scale(1.1)' : 'scale(1)' } : {}}
                       >
                         <Icon className="w-4 h-4" />
@@ -361,11 +361,11 @@ export default function OrderTrackingPage() {
                     </div>
                     <div className={`pb-5 ${isLast ? 'pb-0' : ''} flex items-start pt-1.5`}>
                       <div>
-                        <p className={`text-sm font-semibold ${current ? 'text-[#EA580C]' : done ? 'text-[#0F172A]' : 'text-[#64748B]/40'}`}>
+                        <p className={`text-sm font-semibold ${current ? 'text-[#EA580C]' : done ? 'text-[#1A0C00]' : 'text-[#8B6E50]/40'}`}>
                           {step.label}
                         </p>
                         {current && (
-                          <p className="text-xs text-[#64748B] mt-0.5 animate-pulse">En cours…</p>
+                          <p className="text-xs text-[#8B6E50] mt-0.5 animate-pulse">En cours…</p>
                         )}
                       </div>
                     </div>
@@ -379,20 +379,20 @@ export default function OrderTrackingPage() {
         {/* Order details */}
         <div className="bg-white rounded-2xl border border-[rgba(89,67,42,0.10)] overflow-hidden">
           <div className="px-5 py-4 border-b border-[rgba(89,67,42,0.08)] flex items-center gap-2">
-            <ModeIcon className="w-4 h-4 text-[#64748B]" />
-            <span className="text-sm font-semibold text-[#0F172A]">{MODE_LABELS[order.modeLivraison] || order.modeLivraison}</span>
-            {order.adresseLivraison && <span className="text-xs text-[#64748B] ml-1">· {order.adresseLivraison}</span>}
-            <span className="ml-auto text-xs text-[#64748B]">{safeFormatDate(order.createdAt)}</span>
+            <ModeIcon className="w-4 h-4 text-[#8B6E50]" />
+            <span className="text-sm font-semibold text-[#1A0C00]">{MODE_LABELS[order.modeLivraison] || order.modeLivraison}</span>
+            {order.adresseLivraison && <span className="text-xs text-[#8B6E50] ml-1">· {order.adresseLivraison}</span>}
+            <span className="ml-auto text-xs text-[#8B6E50]">{safeFormatDate(order.createdAt)}</span>
           </div>
 
           <div className="px-5 py-4 space-y-2.5">
             {order.lignes?.map((ligne, idx) => (
               <div key={idx} className="flex justify-between text-sm">
-                <span className="text-[#0F172A]">
+                <span className="text-[#1A0C00]">
                   <span className="font-semibold">{ligne.quantite}×</span> {ligne.article?.nom || 'Article'}
-                  {ligne.instructions && <span className="block text-xs text-[#64748B] italic ml-4">· {ligne.instructions}</span>}
+                  {ligne.instructions && <span className="block text-xs text-[#8B6E50] italic ml-4">· {ligne.instructions}</span>}
                 </span>
-                <span className="text-[#64748B] font-medium ml-4 shrink-0">
+                <span className="text-[#8B6E50] font-medium ml-4 shrink-0">
                   {formatFCFA(Number(ligne.prixUnitaire ?? 0) * (ligne.quantite ?? 1))}
                 </span>
               </div>
@@ -402,7 +402,7 @@ export default function OrderTrackingPage() {
           <div className="mx-5 border-t border-[rgba(89,67,42,0.08)]" />
           <div className="px-5 py-4 flex justify-between items-center">
             <div>
-              <span className="font-bold text-[#0F172A]">Total</span>
+              <span className="font-bold text-[#1A0C00]">Total</span>
               {isPaid && <span className="ml-2 text-xs text-emerald-600 font-medium">· {order.modePaiement?.replace(/_/g, ' ')}</span>}
             </div>
             <span className="text-lg font-extrabold text-[#EA580C]">{formatFCFA(order.montantTotal)} FCFA</span>
@@ -414,14 +414,14 @@ export default function OrderTrackingPage() {
                 <UtensilsCrossed className="w-4 h-4 text-[#EA580C]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-[#0F172A]">{order.restaurant.nom}</p>
-                {order.restaurant.telephone && <p className="text-xs text-[#64748B]">{order.restaurant.telephone}</p>}
+                <p className="text-xs font-semibold text-[#1A0C00]">{order.restaurant.nom}</p>
+                {order.restaurant.telephone && <p className="text-xs text-[#8B6E50]">{order.restaurant.telephone}</p>}
               </div>
               {order.restaurant.noteMoyenne > 0 && (
                 <div className="flex items-center gap-1 shrink-0">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span className="text-xs font-semibold text-[#0F172A]">{Number(order.restaurant.noteMoyenne).toFixed(1)}</span>
-                  <span className="text-xs text-[#64748B]">({order.restaurant.nbAvis})</span>
+                  <span className="text-xs font-semibold text-[#1A0C00]">{Number(order.restaurant.noteMoyenne).toFixed(1)}</span>
+                  <span className="text-xs text-[#8B6E50]">({order.restaurant.nbAvis})</span>
                 </div>
               )}
             </div>
@@ -436,8 +436,8 @@ export default function OrderTrackingPage() {
             {receptionStatus === null && (
               <>
                 <div>
-                  <p className="font-bold text-[#0F172A] text-sm">Avez-vous bien reçu votre commande ?</p>
-                  <p className="text-xs text-[#64748B] mt-0.5">Votre retour aide le restaurant à s'améliorer.</p>
+                  <p className="font-bold text-[#1A0C00] text-sm">Avez-vous bien reçu votre commande ?</p>
+                  <p className="text-xs text-[#8B6E50] mt-0.5">Votre retour aide le restaurant à s'améliorer.</p>
                 </div>
                 <div className="flex gap-3">
                   <button
@@ -470,8 +470,8 @@ export default function OrderTrackingPage() {
               <div className="space-y-4">
                 <div className="h-px bg-[rgba(89,67,42,0.08)]" />
                 <div>
-                  <p className="font-bold text-[#0F172A] text-sm">Notez votre expérience</p>
-                  <p className="text-xs text-[#64748B] mt-0.5">Votre avis aide les autres clients et le restaurant.</p>
+                  <p className="font-bold text-[#1A0C00] text-sm">Notez votre expérience</p>
+                  <p className="text-xs text-[#8B6E50] mt-0.5">Votre avis aide les autres clients et le restaurant.</p>
                 </div>
                 <div className="space-y-3">
                   <StarRating value={rating} onChange={setRating} />
@@ -483,7 +483,7 @@ export default function OrderTrackingPage() {
                     onChange={(e) => setRatingComment(e.target.value)}
                     placeholder="Commentaire optionnel…"
                     rows={2}
-                    className="w-full rounded-xl border border-[rgba(89,67,42,0.12)] bg-white px-4 py-2.5 text-sm text-[#0F172A] placeholder-[#64748B]/50 outline-none focus:ring-1 focus:ring-[#EA580C]/30 resize-none"
+                    className="w-full rounded-xl border border-[rgba(89,67,42,0.12)] bg-white px-4 py-2.5 text-sm text-[#1A0C00] placeholder-[#8B6E50]/50 outline-none focus:ring-1 focus:ring-[#EA580C]/30 resize-none"
                   />
                   {ratingError && <p className="text-xs text-red-600">{ratingError}</p>}
                   <button
@@ -497,7 +497,7 @@ export default function OrderTrackingPage() {
                       <><Send className="w-4 h-4" /> Envoyer mon avis</>
                     )}
                   </button>
-                  <button onClick={() => setShowRating(false)} className="w-full text-xs text-[#64748B] py-1 hover:text-[#0F172A] transition">
+                  <button onClick={() => setShowRating(false)} className="w-full text-xs text-[#8B6E50] py-1 hover:text-[#1A0C00] transition">
                     Plus tard
                   </button>
                 </div>
@@ -510,17 +510,17 @@ export default function OrderTrackingPage() {
                 <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-2">
                   <CheckCircle className="w-5 h-5 text-emerald-600" />
                 </div>
-                <p className="font-semibold text-[#0F172A] text-sm">Merci pour votre avis !</p>
+                <p className="font-semibold text-[#1A0C00] text-sm">Merci pour votre avis !</p>
                 {existingAvis && (
                   <div className="mt-2 flex items-center justify-center gap-1">
                     <StarRating value={existingAvis.note} readonly />
-                    <span className="text-xs text-[#64748B] ml-1">{RATING_LABELS[existingAvis.note]}</span>
+                    <span className="text-xs text-[#8B6E50] ml-1">{RATING_LABELS[existingAvis.note]}</span>
                   </div>
                 )}
                 {!existingAvis && rating > 0 && (
                   <div className="mt-2 flex items-center justify-center gap-1">
                     <StarRating value={rating} readonly />
-                    <span className="text-xs text-[#64748B] ml-1">{RATING_LABELS[rating]}</span>
+                    <span className="text-xs text-[#8B6E50] ml-1">{RATING_LABELS[rating]}</span>
                   </div>
                 )}
               </div>
@@ -530,7 +530,7 @@ export default function OrderTrackingPage() {
             {receptionStatus === 'OUI' && !ratingDone && !showRating && (
               <button
                 onClick={() => setShowRating(true)}
-                className="w-full flex items-center justify-center gap-2 rounded-xl border border-[rgba(89,67,42,0.12)] bg-white hover:bg-white px-4 py-3 font-semibold text-[#0F172A] text-sm transition"
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-[rgba(89,67,42,0.12)] bg-white hover:bg-white px-4 py-3 font-semibold text-[#1A0C00] text-sm transition"
               >
                 <Star className="w-4 h-4 text-amber-400" /> Noter le restaurant
               </button>
@@ -542,7 +542,7 @@ export default function OrderTrackingPage() {
         <div className="flex gap-3 pb-6">
           <button
             onClick={() => navigate('/menu')}
-            className="flex-1 bg-white border border-[rgba(89,67,42,0.12)] text-[#0F172A] font-semibold py-3.5 rounded-xl hover:bg-white transition text-sm"
+            className="flex-1 bg-white border border-[rgba(89,67,42,0.12)] text-[#1A0C00] font-semibold py-3.5 rounded-xl hover:bg-white transition text-sm"
           >
             Commander autre chose
           </button>

@@ -9,7 +9,7 @@ import { b2bAPI } from '../../services/api';
 
 const A = '#EA580C';
 const AL = '#FFF0DF';
-const SF = '#F9F7F5';
+const SF = '#FFFFFF';
 const BD = 'rgba(89,67,42,0.10)';
 
 const STEPS = ['Bienvenue', 'Votre entreprise', 'Adresse du siège', 'Collaborateurs', "C'est parti !"];
@@ -154,10 +154,10 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: AL }}>
                 <Building2 className="w-10 h-10" style={{ color: A }} />
               </div>
-              <h2 className="text-2xl font-extrabold text-[#111827] mb-3">
+              <h2 className="text-2xl font-extrabold text-[#1A0C00] mb-3">
                 Bonjour {user?.prenom || user?.nom?.split(' ')[0] || ''} !
               </h2>
-              <p className="text-[#6B7280] text-sm leading-relaxed mb-6">
+              <p className="text-[#8B6E50] text-sm leading-relaxed mb-6">
                 Bienvenue sur <strong>Resto d'ici Entreprise</strong>. En quelques minutes, configurez votre espace pour passer des commandes groupées pour vos équipes avec facturation mensuelle SYSCOHADA.
               </p>
               <div className="grid grid-cols-3 gap-3 mb-8">
@@ -170,8 +170,8 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: AL }}>
                       <Icon className="w-4 h-4" style={{ color: A }} />
                     </div>
-                    <p className="text-[11px] font-bold text-[#111827]">{label}</p>
-                    <p className="text-[10px] text-[#6B7280] mt-0.5">{desc}</p>
+                    <p className="text-[11px] font-bold text-[#1A0C00]">{label}</p>
+                    <p className="text-[10px] text-[#8B6E50] mt-0.5">{desc}</p>
                   </div>
                 ))}
               </div>
@@ -180,7 +180,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                 style={{ background: A }}>
                 Configurer mon compte entreprise <ArrowRight className="w-4 h-4" />
               </button>
-              <button onClick={onComplete} className="mt-3 w-full text-sm text-[#6B7280] hover:text-[#6B7280]">
+              <button onClick={onComplete} className="mt-3 w-full text-sm text-[#8B6E50] hover:text-[#8B6E50]">
                 Passer pour l'instant
               </button>
             </div>
@@ -189,8 +189,8 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
           {/* ── STEP 1: Compte entreprise (RCCM/NIF) ── */}
           {step === 1 && (
             <div>
-              <h2 className="text-xl font-extrabold text-[#111827] mb-1">Votre entreprise</h2>
-              <p className="text-sm text-[#6B7280] mb-5">Ces informations figureront sur vos factures SYSCOHADA.</p>
+              <h2 className="text-xl font-extrabold text-[#1A0C00] mb-1">Votre entreprise</h2>
+              <p className="text-sm text-[#8B6E50] mb-5">Ces informations figureront sur vos factures SYSCOHADA.</p>
 
               <div className="space-y-3">
                 {[
@@ -211,7 +211,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
 
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setStep(0)}
-                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#6B7280]"
+                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#8B6E50]"
                   style={{ borderColor: BD }}>
                   Retour
                 </button>
@@ -221,7 +221,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                   <ArrowRight className="w-4 h-4" /> Continuer
                 </button>
               </div>
-              <p className="text-[11px] text-[#6B7280] text-center mt-3">
+              <p className="text-[11px] text-[#8B6E50] text-center mt-3">
                 Format RCCM : CI-ABJ-2026-B-1234 · Téléphone : +22507070707
               </p>
             </div>
@@ -235,8 +235,8 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                   <MapPin className="w-5 h-5" style={{ color: A }} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-[#111827]">Adresse du siège</h2>
-                  <p className="text-xs text-[#6B7280]">Apparaîtra sur vos factures SYSCOHADA</p>
+                  <h2 className="text-xl font-extrabold text-[#1A0C00]">Adresse du siège</h2>
+                  <p className="text-xs text-[#8B6E50]">Apparaîtra sur vos factures SYSCOHADA</p>
                 </div>
               </div>
 
@@ -257,7 +257,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
 
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setStep(1)}
-                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#6B7280]"
+                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#8B6E50]"
                   style={{ borderColor: BD }}>
                   Retour
                 </button>
@@ -269,7 +269,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                 </button>
               </div>
               <button onClick={() => { setAdresse({ adresseSiege: '' }); handleAdresseSubmit(); }}
-                className="mt-2 w-full text-xs text-[#6B7280] hover:text-[#6B7280]">
+                className="mt-2 w-full text-xs text-[#8B6E50] hover:text-[#8B6E50]">
                 Passer cette étape
               </button>
             </div>
@@ -283,8 +283,8 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                   <UserPlus className="w-5 h-5" style={{ color: A }} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-[#111827]">Collaborateurs & budgets</h2>
-                  <p className="text-xs text-[#6B7280]">Invitez votre premier collaborateur</p>
+                  <h2 className="text-xl font-extrabold text-[#1A0C00]">Collaborateurs & budgets</h2>
+                  <p className="text-xs text-[#8B6E50]">Invitez votre premier collaborateur</p>
                 </div>
               </div>
 
@@ -305,7 +305,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
 
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setStep(2)}
-                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#6B7280]"
+                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#8B6E50]"
                   style={{ borderColor: BD }}>
                   Retour
                 </button>
@@ -317,7 +317,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                 </button>
               </div>
               <button onClick={() => setStep(4)}
-                className="mt-2 w-full text-xs text-[#6B7280] hover:text-[#6B7280]">
+                className="mt-2 w-full text-xs text-[#8B6E50] hover:text-[#8B6E50]">
                 Passer — inviter plus tard depuis le tableau de bord
               </button>
             </div>
@@ -327,8 +327,8 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
           {step === 4 && (
             <div className="text-center">
               <div className="text-5xl mb-4">🎉</div>
-              <h2 className="text-2xl font-extrabold text-[#111827] mb-3">Vous êtes prêt !</h2>
-              <p className="text-sm text-[#6B7280] leading-relaxed mb-2">
+              <h2 className="text-2xl font-extrabold text-[#1A0C00] mb-3">Vous êtes prêt !</h2>
+              <p className="text-sm text-[#8B6E50] leading-relaxed mb-2">
                 Votre espace entreprise est configuré.
               </p>
               {collabAdded && (
@@ -345,7 +345,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                   'Invitez vos collaborateurs depuis Équipes',
                   'Consultez vos factures SYSCOHADA chaque mois',
                 ].map(s => (
-                  <div key={s} className="flex items-center gap-2 text-xs mb-1.5" style={{ color: '#6B7280' }}>
+                  <div key={s} className="flex items-center gap-2 text-xs mb-1.5" style={{ color: '#8B6E50' }}>
                     <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color: A }} /> {s}
                   </div>
                 ))}
@@ -363,7 +363,7 @@ export default function B2BOnboardingWizard({ user, onComplete }) {
                 <Users className="w-4 h-4" />
                 Gérer mon équipe
               </button>
-              <button onClick={() => { localStorage.setItem(`rdi_ob_${user?.id}`, '1'); onComplete(); }} className="mt-3 w-full text-sm text-[#6B7280] hover:text-[#6B7280]">
+              <button onClick={() => { localStorage.setItem(`rdi_ob_${user?.id}`, '1'); onComplete(); }} className="mt-3 w-full text-sm text-[#8B6E50] hover:text-[#8B6E50]">
                 Explorer le tableau de bord
               </button>
             </div>

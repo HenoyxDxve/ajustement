@@ -85,17 +85,17 @@ export default function SecurityPanel({ user, accentColor = '#EA580C' }) {
   const s = {
     card:   { background: '#fff', border: '1px solid rgba(89,67,42,0.1)', borderRadius: 14, padding: '16px 18px', marginBottom: 10 },
     iconBox: { width: 38, height: 38, borderRadius: 10, background: '#FFF0DF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    label:  { fontFamily: 'sans-serif', fontSize: 13, fontWeight: 700, color: '#0F172A', margin: '0 0 2px' },
-    sub:    { fontFamily: 'sans-serif', fontSize: 11, color: '#64748B', margin: 0 },
+    label:  { fontFamily: 'sans-serif', fontSize: 13, fontWeight: 700, color: '#1A0C00', margin: '0 0 2px' },
+    sub:    { fontFamily: 'sans-serif', fontSize: 11, color: '#8B6E50', margin: 0 },
     btn:    { border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'sans-serif' },
-    input:  { width: '100%', boxSizing: 'border-box', padding: '11px 38px 11px 36px', border: '1px solid rgba(89,67,42,0.18)', borderRadius: 10, fontFamily: 'sans-serif', fontSize: 13, color: '#0F172A', outline: 'none', background: '#FDFAF7' },
+    input:  { width: '100%', boxSizing: 'border-box', padding: '11px 38px 11px 36px', border: '1px solid rgba(89,67,42,0.18)', borderRadius: 10, fontFamily: 'sans-serif', fontSize: 13, color: '#1A0C00', outline: 'none', background: '#FDFAF7' },
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <Shield style={{ width: 16, height: 16, color: accentColor }} />
-        <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: '#0F172A', margin: 0 }}>Authentification & Protection</h3>
+        <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: '#1A0C00', margin: 0 }}>Authentification & Protection</h3>
       </div>
 
       {pwdOk   && <PanelAlert type="success" msg={pwdOk} />}
@@ -140,7 +140,7 @@ export default function SecurityPanel({ user, accentColor = '#EA580C' }) {
             ].map(({ key, ph }) => (
               <div key={key}>
                 <div style={{ position: 'relative' }}>
-                  <Lock style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', width: 13, height: 13, color: '#94A3B8', pointerEvents: 'none' }} />
+                  <Lock style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', width: 13, height: 13, color: '#A89070', pointerEvents: 'none' }} />
                   <input
                     type={showPwd[key] ? 'text' : 'password'}
                     value={pwd[key]}
@@ -151,7 +151,7 @@ export default function SecurityPanel({ user, accentColor = '#EA580C' }) {
                     onBlur={e => e.target.style.borderColor = 'rgba(89,67,42,0.18)'}
                   />
                   <button type="button" onClick={() => setShowPwd(p => ({ ...p, [key]: !p[key] }))}
-                    style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: 4 }}>
+                    style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#A89070', padding: 4 }}>
                     {showPwd[key] ? <EyeOff style={{ width: 13, height: 13 }} /> : <Eye style={{ width: 13, height: 13 }} />}
                   </button>
                 </div>
@@ -164,7 +164,7 @@ export default function SecurityPanel({ user, accentColor = '#EA580C' }) {
                 {pwdSaving ? 'En cours…' : 'Enregistrer'}
               </button>
               <button onClick={() => setShowPasswordForm(false)}
-                style={{ ...s.btn, background: 'none', border: '1px solid rgba(89,67,42,0.15)', color: '#64748B' }}>
+                style={{ ...s.btn, background: 'none', border: '1px solid rgba(89,67,42,0.15)', color: '#8B6E50' }}>
                 Annuler
               </button>
             </div>
@@ -197,26 +197,26 @@ export default function SecurityPanel({ user, accentColor = '#EA580C' }) {
 
         {show2FA && qrData && (
           <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: '#64748B', margin: 0 }}>
+            <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: '#8B6E50', margin: 0 }}>
               Scannez avec <strong>Google Authenticator</strong> ou <strong>Authy</strong>, puis entrez le code généré.
             </p>
             {qrData.qrCodeDataUrl ? (
               <div style={{ border: '1px solid rgba(89,67,42,0.12)', borderRadius: 12, background: '#FDFAF7', padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                 <img src={qrData.qrCodeDataUrl} alt="QR Code 2FA" style={{ width: 150, height: 150, borderRadius: 8 }} />
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontFamily: 'sans-serif', fontSize: 10, color: '#64748B', margin: '0 0 4px' }}>Clé manuelle :</p>
+                  <p style={{ fontFamily: 'sans-serif', fontSize: 10, color: '#8B6E50', margin: '0 0 4px' }}>Clé manuelle :</p>
                   <code style={{ fontSize: 11, background: '#FDF5EF', borderRadius: 6, padding: '4px 10px', fontFamily: 'monospace', userSelect: 'all', letterSpacing: '0.08em' }}>{qrData.secret}</code>
                 </div>
               </div>
             ) : (
               <div style={{ border: '1px dashed rgba(89,67,42,0.2)', borderRadius: 10, padding: 14, textAlign: 'center', background: '#FDFAF7' }}>
-                <p style={{ fontFamily: 'monospace', fontSize: 10, color: '#64748B', wordBreak: 'break-all', margin: 0 }}>{qrData.otpAuthUrl}</p>
+                <p style={{ fontFamily: 'monospace', fontSize: 10, color: '#8B6E50', wordBreak: 'break-all', margin: 0 }}>{qrData.otpAuthUrl}</p>
               </div>
             )}
             <input
               type="text" maxLength={6} placeholder="Code à 6 chiffres"
               value={tfaCode} onChange={e => setTfaCode(e.target.value.replace(/\D/g, ''))}
-              style={{ width: '100%', boxSizing: 'border-box', border: `1px solid rgba(89,67,42,0.18)`, borderRadius: 10, padding: '12px', textAlign: 'center', fontFamily: 'monospace', fontSize: 22, letterSpacing: '0.4em', color: '#0F172A', outline: 'none', background: '#FDFAF7' }}
+              style={{ width: '100%', boxSizing: 'border-box', border: `1px solid rgba(89,67,42,0.18)`, borderRadius: 10, padding: '12px', textAlign: 'center', fontFamily: 'monospace', fontSize: 22, letterSpacing: '0.4em', color: '#1A0C00', outline: 'none', background: '#FDFAF7' }}
               onFocus={e => e.target.style.borderColor = accentColor}
               onBlur={e => e.target.style.borderColor = 'rgba(89,67,42,0.18)'}
             />
@@ -226,7 +226,7 @@ export default function SecurityPanel({ user, accentColor = '#EA580C' }) {
                 {pwdSaving ? 'Activation…' : 'Activer la 2FA'}
               </button>
               <button onClick={() => setShow2FA(false)}
-                style={{ ...s.btn, background: 'none', border: '1px solid rgba(89,67,42,0.15)', color: '#64748B' }}>
+                style={{ ...s.btn, background: 'none', border: '1px solid rgba(89,67,42,0.15)', color: '#8B6E50' }}>
                 Annuler
               </button>
             </div>

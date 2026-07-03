@@ -10,9 +10,9 @@ import { formatFCFA } from '../utils/formatters';
 /* ── Palette (identique à CartDrawer + Home) ── */
 const ORANGE   = '#EA580C';
 const ORANGE_D = '#C2410C';
-const NAVY     = '#0F172A';
-const BG       = '#FFFAF3';
-const BORDER   = 'rgba(234,88,12,0.14)';
+const NAVY     = '#1A0C00';
+const BG       = '#FFFFFF';
+const BORDER   = 'rgba(255,140,0,0.14)';
 const MUTED    = '#9E8B7A';
 
 const MODE_META = {
@@ -186,7 +186,7 @@ export default function CartPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: 800, color: NAVY, margin: 0 }}>{driver.name}</p>
-                    <p style={{ fontSize: 11, color: '#64748B', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                    <p style={{ fontSize: 11, color: '#8B6E50', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
                       <Bike style={{ width: 11, height: 11 }} /> {driver.vehicle}
                       {driver.rating && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
@@ -266,7 +266,7 @@ export default function CartPage() {
               width: '100%', background: ORANGE, color: '#fff', border: 'none',
               borderRadius: 16, padding: '15px 0', fontSize: 15, fontWeight: 800,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 8, boxShadow: '0 6px 24px rgba(234,88,12,0.35)', transition: 'background 0.2s',
+              gap: 8, boxShadow: '0 6px 24px rgba(255,140,0,0.35)', transition: 'background 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = ORANGE_D}
             onMouseLeave={e => e.currentTarget.style.background = ORANGE}>

@@ -34,7 +34,7 @@ const METHOD_VISUAL_MAP = {
   mtn_momo:     { provider: 'MOMO',   name: 'MTN Mobile Money',shortName: 'MTN MoMo', logo: mtnMomoLogo,       accent: '#FFCC00', accentLight: '#FFFDE7', borderActive: 'border-yellow-400', bgActive: 'bg-yellow-50',  phoneRequired: true,  otpRequired: false },
   moov_money:   { provider: 'MOOV',   name: 'Moov Money',     shortName: 'Moov',     logo: moovMoneyLogo,     accent: '#0066CC', accentLight: '#E3F0FF', borderActive: 'border-blue-400',   bgActive: 'bg-blue-50',    phoneRequired: true,  otpRequired: false },
   wave:         { provider: 'WAVE',   name: 'Wave',           shortName: 'Wave',     logo: null,              accent: '#1DA1F2', accentLight: '#E8F5FD', borderActive: 'border-sky-400',    bgActive: 'bg-sky-50',     phoneRequired: false, otpRequired: false },
-  card:         { provider: 'CARTE',  name: 'Carte Bancaire', shortName: 'Carte',    logo: carteBancaireLogo, accent: '#0F172A', accentLight: '#F5F0FF', borderActive: 'border-slate-500',  bgActive: 'bg-slate-50',   phoneRequired: false, otpRequired: false },
+  card:         { provider: 'CARTE',  name: 'Carte Bancaire', shortName: 'Carte',    logo: carteBancaireLogo, accent: '#1A0C00', accentLight: '#F5F0FF', borderActive: 'border-slate-500',  bgActive: 'bg-slate-50',   phoneRequired: false, otpRequired: false },
 };
 
 const METHODS_FALLBACK = Object.entries(METHOD_VISUAL_MAP)
@@ -126,11 +126,11 @@ function OtpInput({ value, onChange }) {
             borderRadius: 14,
             border: `2px solid ${digits[i].trim() ? ACCENT : '#E2E8F0'}`,
             background: digits[i].trim() ? '#FFF3E0' : '#FAFAF9',
-            color: '#0F172A',
+            color: '#1A0C00',
             outline: 'none',
             transition: 'all 0.18s',
             fontFamily: 'Manrope, sans-serif',
-            boxShadow: digits[i].trim() ? '0 0 0 3px rgba(234,88,12,0.12)' : 'none',
+            boxShadow: digits[i].trim() ? '0 0 0 3px rgba(255,140,0,0.12)' : 'none',
           }}
         />
       ))}
@@ -165,7 +165,7 @@ const GLOBAL_STYLES = `
     box-shadow: 0 0 0 3px rgba(234,88,12,0.14) !important;
   }
   .method-card:hover {
-    border-color: rgba(234,88,12,0.4) !important;
+    border-color: rgba(255,140,0,0.4) !important;
     box-shadow: 0 2px 12px rgba(234,88,12,0.08) !important;
   }
   .checkout-cta:not(:disabled):hover {
@@ -242,7 +242,7 @@ export default function CheckoutPage() {
         if (!r.data?.methods?.length) return;
         const merged = r.data.methods
           .filter(m => m.id !== 'card' || NOVASEND_CARD_ENABLED)
-          .map(m => ({ ...m, ...(METHOD_VISUAL_MAP[m.id] ?? { accent: '#64748B', accentLight: '#F1F5F9', borderActive: 'border-slate-300', bgActive: 'bg-slate-50', logo: null, phoneRequired: !!m.needsPhone, otpRequired: false }) }));
+          .map(m => ({ ...m, ...(METHOD_VISUAL_MAP[m.id] ?? { accent: '#8B6E50', accentLight: '#F1F5F9', borderActive: 'border-slate-300', bgActive: 'bg-slate-50', logo: null, phoneRequired: !!m.needsPhone, otpRequired: false }) }));
         setPaymentMethods(merged);
       })
       .catch(() => { /* fallback silencieux */ });
@@ -442,7 +442,7 @@ export default function CheckoutPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: '#FFFAF3', fontFamily: 'Manrope, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#FFFFFF', fontFamily: 'Manrope, sans-serif' }}>
       {/* Inject animation keyframes */}
       <style>{GLOBAL_STYLES}</style>
 
@@ -454,7 +454,7 @@ export default function CheckoutPage() {
             style={{ width: 36, height: 36, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(234,88,12,0.08)', border: 'none', cursor: 'pointer', color: '#EA580C' }}>
             <ArrowLeft size={18} />
           </button>
-          <h1 style={{ fontWeight: 800, fontSize: 17, color: '#0F172A', letterSpacing: '-0.03em', margin: 0 }}>
+          <h1 style={{ fontWeight: 800, fontSize: 17, color: '#1A0C00', letterSpacing: '-0.03em', margin: 0 }}>
             {isB2B ? 'Confirmer la commande' : 'Paiement'}
           </h1>
           {SIMULATE_PAYMENT && !isB2B && (
@@ -612,13 +612,13 @@ export default function CheckoutPage() {
         </aside>
 
         {/* ══ RIGHT PANEL — Payment form (60%) ════════════════════════════════ */}
-        <main style={{ flex: 1, background: '#FFFAF3', padding: '0 0 120px' }}>
+        <main style={{ flex: 1, background: '#FFFFFF', padding: '0 0 120px' }}>
 
           {/* Desktop header (hidden on mobile) */}
           <div className="hidden md:block checkout-fadeup" style={{ padding: '40px 40px 0', marginBottom: 32 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
               <div>
-                <h1 style={{ fontSize: 28, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.04em', margin: '0 0 6px', lineHeight: 1.15 }}>
+                <h1 style={{ fontSize: 28, fontWeight: 800, color: '#1A0C00', letterSpacing: '-0.04em', margin: '0 0 6px', lineHeight: 1.15 }}>
                   {isB2B ? 'Confirmer la commande' : 'Finaliser le paiement'}
                 </h1>
                 <p style={{ fontSize: 14, color: '#9E8B7A', fontWeight: 600, margin: 0 }}>
@@ -702,7 +702,7 @@ export default function CheckoutPage() {
               <section className="checkout-fadeup-1" style={{
                 background: 'white',
                 borderRadius: 20,
-                border: '1px solid rgba(234,88,12,0.12)',
+                border: '1px solid rgba(255,140,0,0.12)',
                 padding: '20px 20px',
                 marginBottom: 16,
                 boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
@@ -711,7 +711,7 @@ export default function CheckoutPage() {
                   <div style={{ width: 30, height: 30, borderRadius: 10, background: '#FFF3E0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Tag size={14} color="#EA580C" />
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>Code promo</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: '#1A0C00', letterSpacing: '-0.02em' }}>Code promo</span>
                 </div>
 
                 {promoResult ? (
@@ -739,14 +739,14 @@ export default function CheckoutPage() {
                         flex: 1,
                         borderRadius: 14,
                         border: '1.5px solid #E8E0D5',
-                        background: '#FFFAF3',
+                        background: '#FFFFFF',
                         padding: '12px 16px',
                         fontSize: 13,
                         fontWeight: 700,
                         fontFamily: 'Manrope, sans-serif',
                         textTransform: 'uppercase',
                         letterSpacing: '0.1em',
-                        color: '#0F172A',
+                        color: '#1A0C00',
                         outline: 'none',
                         transition: 'all 0.2s',
                       }}
@@ -797,7 +797,7 @@ export default function CheckoutPage() {
                     </h2>
                     <p style={{ fontSize: 13, color: '#9E8B7A', lineHeight: 1.6, margin: 0, fontWeight: 600 }}>
                       Cette commande sera ajoutée à votre facture mensuelle consolidée.
-                      Vous recevrez en fin de mois une <strong style={{ color: '#0F172A' }}>facture SYSCOHADA</strong> globale.
+                      Vous recevrez en fin de mois une <strong style={{ color: '#1A0C00' }}>facture SYSCOHADA</strong> globale.
                     </p>
                   </div>
                 </div>
@@ -806,12 +806,12 @@ export default function CheckoutPage() {
               <section className="checkout-fadeup-2" style={{
                 background: 'white',
                 borderRadius: 20,
-                border: '1px solid rgba(234,88,12,0.12)',
+                border: '1px solid rgba(255,140,0,0.12)',
                 padding: '22px 20px',
                 marginBottom: 16,
                 boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
               }}>
-                <h2 style={{ fontSize: 14, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', margin: '0 0 16px' }}>
+                <h2 style={{ fontSize: 14, fontWeight: 800, color: '#1A0C00', letterSpacing: '-0.02em', margin: '0 0 16px' }}>
                   Méthode de paiement
                 </h2>
 
@@ -874,7 +874,7 @@ export default function CheckoutPage() {
 
                         {/* Name + subtitle */}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: 14, fontWeight: 800, color: active ? '#EA580C' : '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+                          <p style={{ fontSize: 14, fontWeight: 800, color: active ? '#EA580C' : '#1A0C00', margin: 0, letterSpacing: '-0.02em' }}>
                             {m.name}
                           </p>
                           {m.phoneRequired && (
@@ -905,7 +905,7 @@ export default function CheckoutPage() {
                 {/* Phone field */}
                 {method?.phoneRequired && (
                   <div style={{ marginTop: 18 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0C00', marginBottom: 8 }}>
                       <Phone size={13} color="#EA580C" />
                       Numéro {method.name} *
                     </label>
@@ -920,11 +920,11 @@ export default function CheckoutPage() {
                         boxSizing: 'border-box',
                         borderRadius: 14,
                         border: '1.5px solid #E8E0D5',
-                        background: '#FFFAF3',
+                        background: '#FFFFFF',
                         padding: '13px 16px',
                         fontSize: 14,
                         fontWeight: 700,
-                        color: '#0F172A',
+                        color: '#1A0C00',
                         fontFamily: 'Manrope, sans-serif',
                         outline: 'none',
                         transition: 'all 0.2s',
@@ -938,7 +938,7 @@ export default function CheckoutPage() {
                   <div style={{ marginTop: 16, borderRadius: 16, border: '1.5px solid #FFD199', background: '#FFF8F0', padding: '18px 20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                       <div style={{ width: 28, height: 28, borderRadius: 9, background: '#FFF3E0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🔐</div>
-                      <p style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', margin: 0 }}>Code OTP Orange *</p>
+                      <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0C00', margin: 0 }}>Code OTP Orange *</p>
                     </div>
                     <p style={{ fontSize: 12, color: '#92400E', lineHeight: 1.55, margin: '0 0 14px', fontWeight: 600 }}>
                       Composez <strong>#144*82#</strong> depuis votre téléphone Orange pour recevoir votre code à 4 chiffres.
@@ -957,7 +957,7 @@ export default function CheckoutPage() {
                   <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                       <Lock size={13} color="#9E8B7A" />
-                      <p style={{ fontSize: 12, fontWeight: 800, color: '#0F172A', margin: 0 }}>Informations de carte</p>
+                      <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0C00', margin: 0 }}>Informations de carte</p>
                       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Lock size={11} color="#9E8B7A" />
                         <span style={{ fontSize: 10, color: '#9E8B7A', fontWeight: 700 }}>Sécurisé SSL</span>
@@ -970,7 +970,7 @@ export default function CheckoutPage() {
                       onChange={e => setCardName(e.target.value.toUpperCase())}
                       placeholder="NOM DU TITULAIRE"
                       className="checkout-input"
-                      style={{ width: '100%', boxSizing: 'border-box', borderRadius: 14, border: '1.5px solid #E8E0D5', background: '#FFFAF3', padding: '13px 16px', fontSize: 13, fontWeight: 700, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.06em', outline: 'none', transition: 'all 0.2s', fontFamily: 'Manrope, sans-serif' }}
+                      style={{ width: '100%', boxSizing: 'border-box', borderRadius: 14, border: '1.5px solid #E8E0D5', background: '#FFFFFF', padding: '13px 16px', fontSize: 13, fontWeight: 700, color: '#1A0C00', textTransform: 'uppercase', letterSpacing: '0.06em', outline: 'none', transition: 'all 0.2s', fontFamily: 'Manrope, sans-serif' }}
                     />
 
                     <div style={{ position: 'relative' }}>
@@ -981,7 +981,7 @@ export default function CheckoutPage() {
                         placeholder="0000 0000 0000 0000"
                         maxLength={19}
                         className="checkout-input"
-                        style={{ width: '100%', boxSizing: 'border-box', borderRadius: 14, border: '1.5px solid #E8E0D5', background: '#FFFAF3', padding: '13px 48px 13px 16px', fontSize: 14, fontWeight: 800, color: '#0F172A', fontFamily: 'Manrope, sans-serif', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.12em', outline: 'none', transition: 'all 0.2s' }}
+                        style={{ width: '100%', boxSizing: 'border-box', borderRadius: 14, border: '1.5px solid #E8E0D5', background: '#FFFFFF', padding: '13px 48px 13px 16px', fontSize: 14, fontWeight: 800, color: '#1A0C00', fontFamily: 'Manrope, sans-serif', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.12em', outline: 'none', transition: 'all 0.2s' }}
                       />
                       <CreditCard size={18} color="#C4B5A5" style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                     </div>
@@ -996,7 +996,7 @@ export default function CheckoutPage() {
                           placeholder="MM/AA"
                           maxLength={5}
                           className="checkout-input"
-                          style={{ width: '100%', boxSizing: 'border-box', borderRadius: 14, border: '1.5px solid #E8E0D5', background: '#FFFAF3', padding: '13px 16px', fontSize: 14, fontWeight: 800, color: '#0F172A', fontFamily: 'Manrope, sans-serif', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.1em', outline: 'none', transition: 'all 0.2s' }}
+                          style={{ width: '100%', boxSizing: 'border-box', borderRadius: 14, border: '1.5px solid #E8E0D5', background: '#FFFFFF', padding: '13px 16px', fontSize: 14, fontWeight: 800, color: '#1A0C00', fontFamily: 'Manrope, sans-serif', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.1em', outline: 'none', transition: 'all 0.2s' }}
                         />
                       </div>
                       <div>
@@ -1008,7 +1008,7 @@ export default function CheckoutPage() {
                           placeholder="•••"
                           maxLength={4}
                           className="checkout-input"
-                          style={{ width: '100%', boxSizing: 'border-box', borderRadius: 14, border: '1.5px solid #E8E0D5', background: '#FFFAF3', padding: '13px 16px', fontSize: 14, fontWeight: 800, color: '#0F172A', fontFamily: 'Manrope, sans-serif', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.1em', outline: 'none', transition: 'all 0.2s' }}
+                          style={{ width: '100%', boxSizing: 'border-box', borderRadius: 14, border: '1.5px solid #E8E0D5', background: '#FFFFFF', padding: '13px 16px', fontSize: 14, fontWeight: 800, color: '#1A0C00', fontFamily: 'Manrope, sans-serif', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.1em', outline: 'none', transition: 'all 0.2s' }}
                         />
                       </div>
                     </div>
@@ -1034,7 +1034,7 @@ export default function CheckoutPage() {
 
             {/* Delivery info on mobile */}
             {(pendingOrder.orderMode ?? '').toUpperCase() === 'LIVRAISON' && (
-              <section className="checkout-fadeup-3" style={{ background: 'white', borderRadius: 20, border: '1px solid rgba(234,88,12,0.12)', padding: '16px 20px', marginBottom: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.04)' }}>
+              <section className="checkout-fadeup-3" style={{ background: 'white', borderRadius: 20, border: '1px solid rgba(255,140,0,0.12)', padding: '16px 20px', marginBottom: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.04)' }}>
                 {pendingOrder.deliveryAddress && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: pendingOrder.driver ? 12 : 0 }}>
                     <MapPin size={14} color="#EA580C" />
@@ -1049,7 +1049,7 @@ export default function CheckoutPage() {
                       <User size={15} color="white" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', margin: '0 0 2px' }}>{pendingOrder.driver.name}</p>
+                      <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0C00', margin: '0 0 2px' }}>{pendingOrder.driver.name}</p>
                       <p style={{ fontSize: 11, color: '#9E8B7A', margin: 0, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
                         <Bike size={11} /> {pendingOrder.driver.vehicle}
                         {pendingOrder.driver.rating && (
@@ -1171,7 +1171,7 @@ export default function CheckoutPage() {
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
-          background: 'rgba(15,23,42,0.65)',
+          background: 'rgba(139,110,80,0.65)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
           padding: 16,
@@ -1231,7 +1231,7 @@ export default function CheckoutPage() {
                 </div>
               )}
               <div style={{ flex: 1 }}>
-                <p style={{ fontWeight: 800, color: '#0F172A', fontSize: 14, margin: '0 0 2px', letterSpacing: '-0.02em' }}>
+                <p style={{ fontWeight: 800, color: '#1A0C00', fontSize: 14, margin: '0 0 2px', letterSpacing: '-0.02em' }}>
                   {modalState === 'success' ? (isB2B ? 'Commande confirmée' : 'Paiement validé') : modalState === 'failed' ? 'Échec du paiement' : method?.name}
                 </p>
                 <p style={{ fontSize: 13, color: '#9E8B7A', fontWeight: 700, margin: 0 }}>{formatFCFA(effectiveTotal)}</p>
@@ -1240,7 +1240,7 @@ export default function CheckoutPage() {
                 <button
                   onClick={handleClose}
                   title="Annuler et fermer"
-                  style={{ background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: 10, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B', flexShrink: 0, transition: 'background 0.15s' }}>
+                  style={{ background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: 10, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#8B6E50', flexShrink: 0, transition: 'background 0.15s' }}>
                   <X size={16} />
                 </button>
               )}
@@ -1261,7 +1261,7 @@ export default function CheckoutPage() {
                     margin: '0 auto 20px',
                     animation: 'spin 0.9s linear infinite',
                   }} />
-                  <p style={{ fontWeight: 800, color: '#0F172A', fontSize: 16, margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+                  <p style={{ fontWeight: 800, color: '#1A0C00', fontSize: 16, margin: '0 0 6px', letterSpacing: '-0.02em' }}>
                     Création de la commande…
                   </p>
                   <p style={{ fontSize: 13, color: '#9E8B7A', fontWeight: 600, margin: 0 }}>Veuillez patienter</p>
@@ -1273,13 +1273,13 @@ export default function CheckoutPage() {
                 <div style={{ textAlign: 'center' }}>
                   <CountdownRing total={COUNTDOWN_SECS} current={countdown} />
 
-                  <p style={{ fontWeight: 800, color: '#0F172A', fontSize: 16, margin: '14px 0 6px', letterSpacing: '-0.02em' }}>
+                  <p style={{ fontWeight: 800, color: '#1A0C00', fontSize: 16, margin: '14px 0 6px', letterSpacing: '-0.02em' }}>
                     {selectedMethod === 'card' ? 'Traitement en cours…' : 'En attente de confirmation'}
                   </p>
 
                   {phone.trim() && method?.phoneRequired && (
                     <p style={{ fontSize: 13, color: '#9E8B7A', fontWeight: 600, margin: '0 0 6px' }}>
-                      Demande envoyée au <strong style={{ color: '#0F172A' }}>{phone}</strong>
+                      Demande envoyée au <strong style={{ color: '#1A0C00' }}>{phone}</strong>
                     </p>
                   )}
 
@@ -1324,7 +1324,7 @@ export default function CheckoutPage() {
                   {canRetry && (
                     <button
                       onClick={handleRetry}
-                      style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, border: '1.5px solid #E8E0D5', background: 'white', fontSize: 13, fontWeight: 800, color: '#0F172A', cursor: 'pointer', transition: 'all 0.2s' }}>
+                      style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, border: '1.5px solid #E8E0D5', background: 'white', fontSize: 13, fontWeight: 800, color: '#1A0C00', cursor: 'pointer', transition: 'all 0.2s' }}>
                       <RefreshCw size={14} />
                       Relancer le paiement
                     </button>
@@ -1358,7 +1358,7 @@ export default function CheckoutPage() {
                       <CheckCircle size={34} color="#16A34A" />
                     </div>
                   </div>
-                  <p style={{ fontWeight: 800, color: '#0F172A', fontSize: 18, margin: '0 0 8px', letterSpacing: '-0.03em' }}>
+                  <p style={{ fontWeight: 800, color: '#1A0C00', fontSize: 18, margin: '0 0 8px', letterSpacing: '-0.03em' }}>
                     {isB2B ? 'Commande enregistrée !' : 'Paiement confirmé !'}
                   </p>
                   {createdOrder && (
@@ -1388,7 +1388,7 @@ export default function CheckoutPage() {
                   }}>
                     <AlertCircle size={30} color="#EF4444" />
                   </div>
-                  <p style={{ fontWeight: 800, color: '#0F172A', fontSize: 16, margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+                  <p style={{ fontWeight: 800, color: '#1A0C00', fontSize: 16, margin: '0 0 8px', letterSpacing: '-0.02em' }}>
                     Paiement échoué
                   </p>
                   {modalError && (

@@ -11,7 +11,7 @@ import { restaurantAPI, menuAPI } from '../../services/api';
 
 const A = '#EA580C';
 const AL = '#FFF0DF';
-const SF = '#F9F7F5';
+const SF = '#FFFFFF';
 const BD = 'rgba(89,67,42,0.10)';
 
 const STEPS = ['Bienvenue', 'Adresse & carte', "Horaires d'ouverture", 'Menu & articles', "C'est parti !"];
@@ -190,10 +190,10 @@ export default function GerantOnboardingWizard() {
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: AL }}>
                 <ChefHat className="w-10 h-10" style={{ color: A }} />
               </div>
-              <h2 className="text-2xl font-extrabold text-[#111827] mb-3">
+              <h2 className="text-2xl font-extrabold text-[#1A0C00] mb-3">
                 Bienvenue {user?.prenom || user?.nom?.split(' ')[0] || ''} !
               </h2>
-              <p className="text-[#6B7280] text-sm leading-relaxed mb-6">
+              <p className="text-[#8B6E50] text-sm leading-relaxed mb-6">
                 Votre restaurant <strong>{user?.restaurant?.nom || "est créé"}</strong>. Configurez-le en 3 étapes pour commencer à recevoir des commandes.
               </p>
               <div className="grid grid-cols-3 gap-3 mb-8">
@@ -206,7 +206,7 @@ export default function GerantOnboardingWizard() {
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: AL }}>
                       <Icon className="w-4 h-4" style={{ color: A }} />
                     </div>
-                    <p className="text-[11px] font-bold text-[#111827]">{label}</p>
+                    <p className="text-[11px] font-bold text-[#1A0C00]">{label}</p>
                     <p className="text-[10px] text-[#9CA3AF] mt-0.5">{desc}</p>
                   </div>
                 ))}
@@ -216,7 +216,7 @@ export default function GerantOnboardingWizard() {
                 style={{ background: A }}>
                 Configurer mon restaurant <ArrowRight className="w-4 h-4" />
               </button>
-              <button onClick={() => navigate('/gerant')} className="mt-3 w-full text-sm text-[#9CA3AF] hover:text-[#6B7280]">
+              <button onClick={() => navigate('/gerant')} className="mt-3 w-full text-sm text-[#9CA3AF] hover:text-[#8B6E50]">
                 Passer — configurer plus tard
               </button>
             </div>
@@ -230,8 +230,8 @@ export default function GerantOnboardingWizard() {
                   <MapPin className="w-5 h-5" style={{ color: A }} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-[#111827]">Adresse & carte</h2>
-                  <p className="text-xs text-[#6B7280]">Visible par vos clients sur le menu</p>
+                  <h2 className="text-xl font-extrabold text-[#1A0C00]">Adresse & carte</h2>
+                  <p className="text-xs text-[#8B6E50]">Visible par vos clients sur le menu</p>
                 </div>
               </div>
 
@@ -266,7 +266,7 @@ export default function GerantOnboardingWizard() {
 
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setStep(0)}
-                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#6B7280]"
+                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#8B6E50]"
                   style={{ borderColor: BD }}>
                   Retour
                 </button>
@@ -277,7 +277,7 @@ export default function GerantOnboardingWizard() {
                   {saving ? 'Enregistrement…' : 'Continuer'}
                 </button>
               </div>
-              <button onClick={() => setStep(2)} className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#6B7280]">
+              <button onClick={() => setStep(2)} className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#8B6E50]">
                 Passer cette étape
               </button>
             </div>
@@ -291,8 +291,8 @@ export default function GerantOnboardingWizard() {
                   <Clock className="w-5 h-5" style={{ color: A }} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-[#111827]">Horaires d'ouverture</h2>
-                  <p className="text-xs text-[#6B7280]">Affichés sur votre fiche restaurant</p>
+                  <h2 className="text-xl font-extrabold text-[#1A0C00]">Horaires d'ouverture</h2>
+                  <p className="text-xs text-[#8B6E50]">Affichés sur votre fiche restaurant</p>
                 </div>
               </div>
 
@@ -334,7 +334,7 @@ export default function GerantOnboardingWizard() {
                 <Plus className="w-3.5 h-3.5" /> Ajouter une plage horaire
               </button>
 
-              <div className="rounded-xl px-3 py-2 mb-4 text-xs" style={{ background: SF, color: '#6B7280' }}>
+              <div className="rounded-xl px-3 py-2 mb-4 text-xs" style={{ background: SF, color: '#8B6E50' }}>
                 Aperçu : <strong>{horaireString}</strong>
               </div>
 
@@ -342,7 +342,7 @@ export default function GerantOnboardingWizard() {
 
               <div className="flex gap-3 mt-2">
                 <button onClick={() => setStep(1)}
-                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#6B7280]"
+                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#8B6E50]"
                   style={{ borderColor: BD }}>
                   Retour
                 </button>
@@ -353,7 +353,7 @@ export default function GerantOnboardingWizard() {
                   {saving ? 'Enregistrement…' : 'Continuer'}
                 </button>
               </div>
-              <button onClick={() => setStep(3)} className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#6B7280]">
+              <button onClick={() => setStep(3)} className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#8B6E50]">
                 Passer cette étape
               </button>
             </div>
@@ -367,8 +367,8 @@ export default function GerantOnboardingWizard() {
                   <BookOpen className="w-5 h-5" style={{ color: A }} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-[#111827]">Menu & articles</h2>
-                  <p className="text-xs text-[#6B7280]">Ajoutez votre premier plat au menu</p>
+                  <h2 className="text-xl font-extrabold text-[#1A0C00]">Menu & articles</h2>
+                  <p className="text-xs text-[#8B6E50]">Ajoutez votre premier plat au menu</p>
                 </div>
               </div>
 
@@ -403,7 +403,7 @@ export default function GerantOnboardingWizard() {
 
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setStep(2)}
-                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#6B7280]"
+                  className="px-4 py-3 rounded-xl border text-sm font-medium text-[#8B6E50]"
                   style={{ borderColor: BD }}>
                   Retour
                 </button>
@@ -414,7 +414,7 @@ export default function GerantOnboardingWizard() {
                   {saving ? 'Création…' : 'Ajouter et terminer'}
                 </button>
               </div>
-              <button onClick={() => setStep(4)} className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#6B7280]">
+              <button onClick={() => setStep(4)} className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#8B6E50]">
                 Passer — ajouter mes plats depuis le dashboard
               </button>
             </div>
@@ -424,8 +424,8 @@ export default function GerantOnboardingWizard() {
           {step === 4 && (
             <div className="text-center">
               <div className="text-5xl mb-4">🎉</div>
-              <h2 className="text-2xl font-extrabold text-[#111827] mb-3">Votre restaurant est prêt !</h2>
-              <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
+              <h2 className="text-2xl font-extrabold text-[#1A0C00] mb-3">Votre restaurant est prêt !</h2>
+              <p className="text-sm text-[#8B6E50] leading-relaxed mb-6">
                 {articleCreated
                   ? `Votre premier article "${article.nom}" est visible dans le menu.`
                   : 'Votre restaurant est configuré. Ajoutez vos plats depuis le tableau de bord.'}
@@ -438,7 +438,7 @@ export default function GerantOnboardingWizard() {
                   'Consultez vos statistiques de ventes',
                   'Activez les notifications pour les nouvelles commandes',
                 ].map(s => (
-                  <div key={s} className="flex items-center gap-2 text-xs mb-1.5" style={{ color: '#6B7280' }}>
+                  <div key={s} className="flex items-center gap-2 text-xs mb-1.5" style={{ color: '#8B6E50' }}>
                     <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color: A }} /> {s}
                   </div>
                 ))}

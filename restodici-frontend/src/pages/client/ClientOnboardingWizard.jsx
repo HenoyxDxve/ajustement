@@ -10,7 +10,7 @@ import { authAPI } from '../../services/api';
 
 const A  = '#EA580C';
 const AL = '#FFF0DF';
-const SF = '#F9F7F5';
+const SF = '#FFFFFF';
 const BD = 'rgba(89,67,42,0.10)';
 
 const STEPS = ['Bienvenue', 'Ton profil', 'Adresse', "C'est parti !"];
@@ -127,10 +127,10 @@ export default function ClientOnboardingWizard() {
             {/* ── STEP 0: Bienvenue ── */}
             {step === 0 && (
               <div className="text-center">
-                <p className="text-2xl font-extrabold text-[#111827] mb-2">
+                <p className="text-2xl font-extrabold text-[#1A0C00] mb-2">
                   Bienvenue chez Resto d'ici !
                 </p>
-                <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
+                <p className="text-sm text-[#8B6E50] leading-relaxed mb-6">
                   La cuisine ivoirienne authentique livrée en quelques minutes. Configurons ton compte.
                 </p>
                 <div className="rounded-2xl p-4 mb-6 text-left" style={{ background: SF }}>
@@ -139,7 +139,7 @@ export default function ClientOnboardingWizard() {
                     'Suivre ta commande en temps réel',
                     'Profiter des offres et promotions',
                   ].map(s => (
-                    <div key={s} className="flex items-center gap-2 text-xs mb-1.5 text-[#6B7280]">
+                    <div key={s} className="flex items-center gap-2 text-xs mb-1.5 text-[#8B6E50]">
                       <Star className="w-3.5 h-3.5 shrink-0" style={{ color: A }} /> {s}
                     </div>
                   ))}
@@ -155,8 +155,8 @@ export default function ClientOnboardingWizard() {
             {/* ── STEP 1: Profil ── */}
             {step === 1 && (
               <div>
-                <p className="text-xl font-extrabold text-[#111827] mb-1">Ton profil</p>
-                <p className="text-sm text-[#6B7280] mb-5">Pour personnaliser ton expérience.</p>
+                <p className="text-xl font-extrabold text-[#1A0C00] mb-1">Ton profil</p>
+                <p className="text-sm text-[#8B6E50] mb-5">Pour personnaliser ton expérience.</p>
                 <div className="space-y-4">
                   <Field label="Prénom" optional>
                     <TextInput value={profil.prenom} onChange={setP('prenom')} placeholder="Ex : Kouamé" />
@@ -181,8 +181,8 @@ export default function ClientOnboardingWizard() {
             {/* ── STEP 2: Adresse ── */}
             {step === 2 && (
               <div>
-                <p className="text-xl font-extrabold text-[#111827] mb-1">Ton adresse</p>
-                <p className="text-sm text-[#6B7280] mb-5">Pour pré-remplir tes livraisons.</p>
+                <p className="text-xl font-extrabold text-[#1A0C00] mb-1">Ton adresse</p>
+                <p className="text-sm text-[#8B6E50] mb-5">Pour pré-remplir tes livraisons.</p>
                 <Field label="Adresse de livraison habituelle" optional>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9CA3AF' }} />
@@ -194,7 +194,7 @@ export default function ClientOnboardingWizard() {
                 </Field>
                 <div className="flex gap-3 mt-6">
                   <button onClick={() => setStep(1)}
-                    className="px-4 py-3 rounded-xl border text-sm font-medium text-[#6B7280]"
+                    className="px-4 py-3 rounded-xl border text-sm font-medium text-[#8B6E50]"
                     style={{ borderColor: BD }}>
                     Retour
                   </button>
@@ -204,7 +204,7 @@ export default function ClientOnboardingWizard() {
                     Continuer <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
-                <button onClick={() => setStep(3)} className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#6B7280]">
+                <button onClick={() => setStep(3)} className="mt-2 w-full text-xs text-[#9CA3AF] hover:text-[#8B6E50]">
                   Passer — je remplirai à la commande
                 </button>
               </div>
@@ -214,8 +214,8 @@ export default function ClientOnboardingWizard() {
             {step === 3 && (
               <div className="text-center">
                 <div className="text-5xl mb-4">🍽️</div>
-                <p className="text-2xl font-extrabold text-[#111827] mb-2">C'est prêt !</p>
-                <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
+                <p className="text-2xl font-extrabold text-[#1A0C00] mb-2">C'est prêt !</p>
+                <p className="text-sm text-[#8B6E50] leading-relaxed mb-6">
                   Ton compte est configuré. Découvre nos plats et passe ta première commande.
                 </p>
                 <div className="rounded-2xl p-4 mb-6 text-left" style={{ background: SF }}>
@@ -224,7 +224,7 @@ export default function ClientOnboardingWizard() {
                     'Livraison rapide ou retrait sur place',
                     'Paiement Wave, Orange Money ou espèces',
                   ].map(s => (
-                    <div key={s} className="flex items-center gap-2 text-xs mb-1.5 text-[#6B7280]">
+                    <div key={s} className="flex items-center gap-2 text-xs mb-1.5 text-[#8B6E50]">
                       <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color: A }} /> {s}
                     </div>
                   ))}

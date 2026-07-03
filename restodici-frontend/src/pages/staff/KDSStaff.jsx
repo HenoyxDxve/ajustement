@@ -17,15 +17,15 @@ import DispatchModal from '../../components/livraison/DispatchModal';
 /* ── Palette — miroir StaffDashboard ── */
 const BG     = '#F2F3F7';
 const CARD   = '#FFFFFF';
-const NAVY   = '#111827';
+const NAVY   = '#1A0C00';
 const BORDER = 'rgba(0,0,0,0.08)';
-const MUTED  = '#6B7280';
+const MUTED  = '#8B6E50';
 const FAINT  = '#9CA3AF';
 
 const OG     = '#EA580C';
 const OG_D   = '#C2410C';
 const OG_G   = 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)';
-const OG_L   = 'rgba(234,88,12,0.09)';
+const OG_L   = 'rgba(255,140,0,0.09)';
 const GREEN  = '#16A34A';
 const GREEN_G= 'linear-gradient(135deg,#15803D,#16A34A)';
 const GREEN_L= '#DCFCE7';
@@ -325,7 +325,7 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
               )}
             </div>
             {order._b2bLieu && (
-              <div style={{ fontSize: 10, color: '#6B7280', marginTop: 2 }}>→ {order._b2bLieu}</div>
+              <div style={{ fontSize: 10, color: '#8B6E50', marginTop: 2 }}>→ {order._b2bLieu}</div>
             )}
           </div>
         )}
@@ -418,7 +418,7 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               transition: 'background 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(234,88,12,0.12)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,140,0,0.12)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = OG_L; }}
           >
             <Truck size={13} /> Dispatcher la livraison

@@ -9,8 +9,8 @@ import { X, TrendingDown, Download, Info, DollarSign, Wallet, CreditCard, Smartp
 /* ── Tokens visuels (alignés CaissePage) ──────────────────────────── */
 const BG    = '#F8FAFC';
 const CARD  = '#FFFFFF';
-const NAVY  = '#0F172A';
-const MUTED = '#64748B';
+const NAVY  = '#1A0C00';
+const MUTED = '#8B6E50';
 const BORDER = '#E2E8F0';
 const O     = '#EA580C';
 const OL    = '#FFF7ED';
@@ -21,8 +21,8 @@ const RL    = '#FEF2F2';
 const AMBER = '#D97706';
 const AL    = '#FFFBEB';
 
-const SH  = '0 1px 3px rgba(15,23,42,0.08)';
-const SH2 = '0 8px 32px rgba(15,23,42,0.12)';
+const SH  = '0 1px 3px rgba(139,110,80,0.08)';
+const SH2 = '0 8px 32px rgba(139,110,80,0.12)';
 
 /* ── Modes Novasend (frais variables) vs modes 0 % ───────────────── */
 const NOVASEND_MODES = new Set([
@@ -113,7 +113,7 @@ export default function EconomicReconciliation({ onClose }) {
     <>
       {/* Overlay */}
       <div onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)', zIndex: 1000 }}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(139,110,80,0.55)', backdropFilter: 'blur(4px)', zIndex: 1000 }}
       />
 
       {/* Modal */}
@@ -261,9 +261,9 @@ export default function EconomicReconciliation({ onClose }) {
 
               {/* Total */}
               <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px 80px 80px 100px', gap: 0, padding: '10px 14px', background: NAVY, borderTop: `1px solid ${BORDER}` }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color: '#94A3B8', gridColumn: '1 / 3' }}>TOTAL SESSION</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#A89070', gridColumn: '1 / 3' }}>TOTAL SESSION</span>
                 <span style={{ fontSize: 13, fontWeight: 800, color: '#E2E8F0' }}>{fmt(totals.brut)}</span>
-                <span style={{ fontSize: 12, color: '#94A3B8' }} />
+                <span style={{ fontSize: 12, color: '#A89070' }} />
                 <span style={{ fontSize: 12, fontWeight: 700, color: '#FCA5A5' }}>−{fmt(totals.frais)}</span>
                 <span style={{ fontSize: 14, fontWeight: 900, color: '#4ADE80' }}>{fmt(totals.net)}</span>
               </div>

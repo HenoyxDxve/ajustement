@@ -7,9 +7,9 @@ import { formatFCFA } from '../../utils/formatters';
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const BG     = '#F8FAFC';
 const CARD   = '#FFFFFF';
-const TEXT   = '#0F172A';
-const MUTED  = '#64748B';
-const FAINT  = '#94A3B8';
+const TEXT   = '#1A0C00';
+const MUTED  = '#8B6E50';
+const FAINT  = '#A89070';
 const BORDER = '#E2E8F0';
 const ORANGE = '#EA580C';    // CTA principal
 const GREEN  = '#16A34A';    // PDF, payé, succès
@@ -19,8 +19,8 @@ const RED    = '#DC2626';    // En retard, bloqué, risque
 const RED_L  = '#FEF2F2';
 const AMBER  = '#D97706';    // En attente
 const AMBER_L= '#FFFBEB';
-const SH     = '0 1px 3px rgba(15,23,42,0.07),0 1px 2px rgba(15,23,42,0.04)';
-const SH2    = '0 4px 16px rgba(15,23,42,0.10),0 2px 4px rgba(15,23,42,0.06)';
+const SH     = '0 1px 3px rgba(139,110,80,0.07),0 1px 2px rgba(139,110,80,0.04)';
+const SH2    = '0 4px 16px rgba(139,110,80,0.10),0 2px 4px rgba(139,110,80,0.06)';
 
 // ── PDF builder ────────────────────────────────────────────────────────────────
 function sanitizePdf(v) {
@@ -168,14 +168,14 @@ export default function B2BInvoices() {
       <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <Link to="/b2b" className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-70 transition"
-            style={{ color: '#6B7280' }}>
+            style={{ color: '#8B6E50' }}>
             <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
           </Link>
           <span style={{ color: 'rgba(0,0,0,0.15)' }}>›</span>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #EA580C, #C2410C)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <FileText className="w-3.5 h-3.5 text-white" />
           </div>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0, flex: 1 }}>Facturation</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#1A0C00', margin: 0, flex: 1 }}>Facturation</p>
           {/* Export SYSCOHADA CSV */}
           <button
             onClick={async () => {
@@ -279,7 +279,7 @@ export default function B2BInvoices() {
           {/* KPI summary */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Total factures', value: factures.length,             bg: '#111827' },
+              { label: 'Total factures', value: factures.length,             bg: '#1A0C00' },
               { label: 'Payées',         value: paidCount,                   bg: GREEN    },
               { label: 'En attente',     value: factures.length - paidCount, bg: AMBER    },
             ].map(s => (
@@ -435,7 +435,7 @@ export default function B2BInvoices() {
                 <CreditCard className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-[#0F172A] text-sm">Payer la facture</p>
+                <p className="font-bold text-[#1A0C00] text-sm">Payer la facture</p>
                 <p className="text-xs" style={{ color: MUTED }}>{Math.round(payModal.montant).toLocaleString()} FCFA TTC</p>
               </div>
               {(payState === 'idle' || payState === 'failed') && (
@@ -470,7 +470,7 @@ export default function B2BInvoices() {
                 <div className="text-center py-2">
                   <div className="w-12 h-12 mx-auto mb-4 rounded-full animate-spin"
                     style={{ border: `3px solid ${ORANGE}`, borderTopColor: 'transparent' }} />
-                  <p className="font-bold text-[#0F172A]">Connexion à NovaSend…</p>
+                  <p className="font-bold text-[#1A0C00]">Connexion à NovaSend…</p>
                   <p className="text-xs mt-1" style={{ color: MUTED }}>Veuillez patienter</p>
                 </div>
               )}
@@ -481,7 +481,7 @@ export default function B2BInvoices() {
                     style={{ background: '#FFF0DF' }}>
                     <ExternalLink className="w-7 h-7" style={{ color: ORANGE }} />
                   </div>
-                  <p className="font-bold text-[#0F172A] mb-2">Page de paiement prête</p>
+                  <p className="font-bold text-[#1A0C00] mb-2">Page de paiement prête</p>
                   <p className="text-xs mb-5 leading-relaxed" style={{ color: MUTED }}>
                     Cliquez sur le bouton ci-dessous pour finaliser le paiement sur la plateforme NovaSend.
                     Cette fenêtre se mettra à jour automatiquement une fois le paiement confirmé.
@@ -512,7 +512,7 @@ export default function B2BInvoices() {
                     style={{ background: GREEN_L }}>
                     <CheckCircle className="w-8 h-8" style={{ color: GREEN }} />
                   </div>
-                  <p className="font-bold text-[#0F172A] text-lg mb-1">Facture soldée !</p>
+                  <p className="font-bold text-[#1A0C00] text-lg mb-1">Facture soldée !</p>
                   <p className="text-xs animate-pulse" style={{ color: MUTED }}>Mise à jour en cours…</p>
                 </div>
               )}
@@ -523,7 +523,7 @@ export default function B2BInvoices() {
                     style={{ background: RED_L }}>
                     <AlertCircle className="w-8 h-8" style={{ color: RED }} />
                   </div>
-                  <p className="font-bold text-[#0F172A] mb-1">Échec de l'initiation</p>
+                  <p className="font-bold text-[#1A0C00] mb-1">Échec de l'initiation</p>
                   {payError && <p className="text-sm mb-4 leading-relaxed" style={{ color: RED }}>{payError}</p>}
                   <button onClick={startPayment}
                     className="w-full py-3 rounded-2xl text-white font-bold text-sm mb-3 flex items-center justify-center gap-2 hover:opacity-90 transition"

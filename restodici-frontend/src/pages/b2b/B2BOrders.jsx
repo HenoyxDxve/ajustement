@@ -5,10 +5,10 @@ import { b2bAPI } from '../../services/api';
 import { commandesService } from '../../services/commandes.service';
 import { formatFCFA } from '../../utils/formatters';
 
-const BG = '#F5F6F8'; const CARD = '#FFFFFF'; const TEXT = '#111827';
-const MUTED = '#6B7280'; const FAINT = '#6B7280'; const BORDER = 'rgba(0,0,0,0.07)';
+const BG = '#FFFFFF'; const CARD = '#FFFFFF'; const TEXT = '#1A0C00';
+const MUTED = '#8B6E50'; const FAINT = '#8B6E50'; const BORDER = 'rgba(0,0,0,0.07)';
 const ACC = '#EA580C'; const ACL = '#FFF0DF';
-const SH = '0 1px 3px rgba(15,23,42,0.07),0 1px 2px rgba(15,23,42,0.04)';
+const SH = '0 1px 3px rgba(139,110,80,0.07),0 1px 2px rgba(139,110,80,0.04)';
 
 const STATUS = {
   EN_ATTENTE:     { label: 'En attente',     color: '#D97706', bg: '#FFFBEB', dot: '#FBBF24' },
@@ -68,17 +68,17 @@ export default function B2BOrders() {
       <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <Link to="/b2b" className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-70 transition"
-            style={{ color: '#6B7280' }}>
+            style={{ color: '#8B6E50' }}>
             <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
           </Link>
           <span style={{ color: 'rgba(0,0,0,0.15)' }}>›</span>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #EA580C, #C2410C)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <ShoppingBag className="w-3.5 h-3.5 text-white" />
           </div>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0, flex: 1 }}>Commandes</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#1A0C00', margin: 0, flex: 1 }}>Commandes</p>
           {isBlocked ? (
             <span className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold text-white"
-              style={{ background: '#6B7280', cursor: 'not-allowed' }}
+              style={{ background: '#8B6E50', cursor: 'not-allowed' }}
               title="Compte bloqué — réglez votre facture mensuelle">
               <Lock className="w-3.5 h-3.5" /> Bloqué
             </span>
@@ -91,7 +91,7 @@ export default function B2BOrders() {
               </Link>
               <Link to="/b2b/order?mode=instant"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold text-white transition hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #EA580C, #C2410C)', boxShadow: '0 2px 8px rgba(234,88,12,0.40)' }}>
+                style={{ background: 'linear-gradient(135deg, #EA580C, #C2410C)', boxShadow: '0 2px 8px rgba(255,140,0,0.40)' }}>
                 <Plus className="w-3.5 h-3.5" /> Nouvelle commande
               </Link>
             </div>
@@ -122,7 +122,7 @@ export default function B2BOrders() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Total',     value: orders.length, bg: '#111827' },
+            { label: 'Total',     value: orders.length, bg: '#1A0C00' },
             { label: 'En cours',  value: active.length, bg: '#EA580C' },
             { label: 'Terminées', value: done.length,   bg: '#10B981' },
           ].map(s => (

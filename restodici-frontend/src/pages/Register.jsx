@@ -21,7 +21,7 @@ function Field({ label, icon: Icon, error, children }) {
       <label className="block text-xs font-semibold" style={{ color: '#475569' }}>{label}</label>
       <div className="relative">
         {Icon && (
-          <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#94A3B8' }} />
+          <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#A89070' }} />
         )}
         {children}
       </div>
@@ -35,7 +35,7 @@ const inputCls = (hasIcon, hasError) =>
 const inputStyle = (hasError) => ({
   background: '#F8FAFC',
   border: `1.5px solid ${hasError ? '#FCA5A5' : '#E2E8F0'}`,
-  color: '#0F172A',
+  color: '#1A0C00',
 });
 
 export default function Register() {
@@ -129,13 +129,13 @@ export default function Register() {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#EA580C' }}>
               <UtensilsCrossed style={{ width: 18, height: 18, color: 'white' }} />
             </div>
-            <span className="font-bold text-lg" style={{ color: '#0F172A' }}>Resto d'ici</span>
+            <span className="font-bold text-lg" style={{ color: '#1A0C00' }}>Resto d'ici</span>
           </div>
 
           {/* ── Titre selon le type d'inscription ── */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold" style={{ color: '#0F172A' }}>{heading}</h1>
-            <p className="mt-1 text-sm" style={{ color: '#64748B' }}>
+            <h1 className="text-2xl font-bold" style={{ color: '#1A0C00' }}>{heading}</h1>
+            <p className="mt-1 text-sm" style={{ color: '#8B6E50' }}>
               {isRestaurant ? "Gérez votre restaurant en temps réel"
                 : isBusiness ? "Repas d'équipe, budgets et facturation centralisés"
                 : "Rejoignez la table digitale"}
@@ -150,7 +150,7 @@ export default function Register() {
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition-all"
                 style={{
                   background: userType === key ? '#FFFFFF' : 'transparent',
-                  color: userType === key ? '#EA580C' : '#94A3B8',
+                  color: userType === key ? '#EA580C' : '#A89070',
                   boxShadow: userType === key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 }}>
                 <Icon className="w-3.5 h-3.5" />
@@ -262,7 +262,7 @@ export default function Register() {
             </button>
           </form>
 
-          <p className="mt-5 text-center text-sm" style={{ color: '#94A3B8' }}>
+          <p className="mt-5 text-center text-sm" style={{ color: '#A89070' }}>
             Déjà un compte ?{' '}
             <Link to={`/login${location.search}`} className="font-semibold hover:underline" style={{ color: '#EA580C' }}>
               Se connecter

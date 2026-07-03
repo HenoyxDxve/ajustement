@@ -10,8 +10,8 @@ import { formatFCFA } from '../../utils/formatters';
 import { getArticleImage } from '../../utils/articleImage';
 
 const ACCENT  = '#EA580C';
-const ACCENT_D= '#CC7000';
-const SURFACE = '#F9F7F5';
+const ACCENT_D= '#C2410C';
+const SURFACE = '#FFFFFF';
 const BORDER  = '#E8E2D9';
 const TEXT    = '#1C1917';
 const MUTED   = '#78716C';

@@ -74,14 +74,14 @@ export default function GerantLayout() {
     <div className={`flex min-h-screen ${darkMode ? 'bg-[#0C1220]' : 'bg-white'}`}>
       {/* ── Styles dynamiques : corrections mode sombre ── */}
       <style>{`
-        .gerant-theme-dark [class*='bg-white'] { background: rgba(15,23,42,0.88) !important; color: #e2e8f0; }
+        .gerant-theme-dark [class*='bg-white'] { background: rgba(139,110,80,0.88) !important; color: #e2e8f0; }
         .gerant-theme-dark [class*='border-[#E2E8F0]'] { border-color: rgba(148,163,184,0.15) !important; }
         .gerant-theme-dark canvas { filter: saturate(1.05) brightness(0.98); }
         .gerant-theme-dark input, .gerant-theme-dark textarea, .gerant-theme-dark select {
-          background: rgba(15,23,42,0.92) !important; color: #f8fafc !important;
+          background: rgba(139,110,80,0.92) !important; color: #f8fafc !important;
           border-color: rgba(148,163,184,0.2) !important;
         }
-        .nav-item-hover:hover { background: rgba(234,88,12,0.08) !important; }
+        .nav-item-hover:hover { background: rgba(255,140,0,0.08) !important; }
       `}</style>
 
       {/* ── Sidebar bureau — masquée sur mobile, toujours visible sur écran ≥ 1024px ── */}
@@ -113,7 +113,7 @@ export default function GerantLayout() {
                 </div>
               </div>
               {restaurantName && (
-                <div style={{ background: 'rgba(234,88,12,0.07)', borderRadius: 8, padding: '6px 10px' }}>
+                <div style={{ background: 'rgba(255,140,0,0.07)', borderRadius: 8, padding: '6px 10px' }}>
                   <p style={{ fontSize: 10, color: '#9CA3AF', margin: '0 0 1px' }}>Restaurant actif</p>
                   <p style={{ fontSize: 12, fontWeight: 700, color: '#374151', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{restaurantName}</p>
                 </div>
@@ -144,12 +144,12 @@ export default function GerantLayout() {
                   width: '100%', padding: collapsed ? '12px' : '10px 12px',
                   border: 'none', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
                   background: isActive ? '#EA580C' : 'transparent',
-                  boxShadow: isActive ? '0 4px 14px rgba(234,88,12,0.30)' : 'none',
+                  boxShadow: isActive ? '0 4px 14px rgba(255,140,0,0.30)' : 'none',
                   transition: 'all 0.18s',
                 }}
                 className={isActive ? '' : 'nav-item-hover'}
               >
-                <span style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isActive ? 'rgba(255,255,255,0.22)' : 'rgba(234,88,12,0.10)', color: isActive ? '#fff' : '#EA580C', transition: 'all 0.18s' }}>
+                <span style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isActive ? 'rgba(255,255,255,0.22)' : 'rgba(255,140,0,0.10)', color: isActive ? '#fff' : '#EA580C', transition: 'all 0.18s' }}>
                   <Icon style={{ width: 16, height: 16 }} />
                 </span>
                 {!collapsed && (
@@ -209,7 +209,7 @@ export default function GerantLayout() {
           <button
             onClick={() => setMobileOpen(false)}
             className="absolute top-4 right-3 flex items-center justify-center w-8 h-8 rounded-lg"
-            style={{ background: 'rgba(0,0,0,0.05)', border: 'none', cursor: 'pointer', color: '#6B7280' }}
+            style={{ background: 'rgba(0,0,0,0.05)', border: 'none', cursor: 'pointer', color: '#8B6E50' }}
             aria-label="Fermer le menu"
           >
             <X style={{ width: 16, height: 16 }} />
@@ -226,7 +226,7 @@ export default function GerantLayout() {
               </div>
             </div>
             {restaurantName && (
-              <div style={{ background: 'rgba(234,88,12,0.07)', borderRadius: 8, padding: '6px 10px' }}>
+              <div style={{ background: 'rgba(255,140,0,0.07)', borderRadius: 8, padding: '6px 10px' }}>
                 <p style={{ fontSize: 10, color: '#9CA3AF', margin: '0 0 1px' }}>Restaurant actif</p>
                 <p style={{ fontSize: 12, fontWeight: 700, color: '#374151', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{restaurantName}</p>
               </div>
@@ -246,12 +246,12 @@ export default function GerantLayout() {
                     width: '100%', padding: '10px 12px',
                     border: 'none', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
                     background: isActive ? '#EA580C' : 'transparent',
-                    boxShadow: isActive ? '0 4px 14px rgba(234,88,12,0.30)' : 'none',
+                    boxShadow: isActive ? '0 4px 14px rgba(255,140,0,0.30)' : 'none',
                     transition: 'all 0.18s',
                   }}
                   className={isActive ? '' : 'nav-item-hover'}
                 >
-                  <span style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isActive ? 'rgba(255,255,255,0.22)' : 'rgba(234,88,12,0.10)', color: isActive ? '#fff' : '#EA580C' }}>
+                  <span style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isActive ? 'rgba(255,255,255,0.22)' : 'rgba(255,140,0,0.10)', color: isActive ? '#fff' : '#EA580C' }}>
                     <Icon style={{ width: 16, height: 16 }} />
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
@@ -283,12 +283,12 @@ export default function GerantLayout() {
       {showLogoutModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-lg font-semibold text-[#0F172A]">Confirmer la déconnexion ?</h3>
+            <h3 className="mb-2 text-lg font-semibold text-[#1A0C00]">Confirmer la déconnexion ?</h3>
             <p className="mb-6 text-sm text-[#737373]">Vous serez redirigé vers la page de connexion.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 rounded-xl border border-[#E2E8F0] px-4 py-2.5 font-medium text-[#0F172A] transition hover:bg-white"
+                className="flex-1 rounded-xl border border-[#E2E8F0] px-4 py-2.5 font-medium text-[#1A0C00] transition hover:bg-white"
               >
                 Annuler
               </button>

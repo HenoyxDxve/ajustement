@@ -6,23 +6,23 @@ import { getArticleImage } from '../../utils/articleImage';
 
 const T = {
   primary:          '#EA580C',
-  primaryLight:     'rgba(234,88,12,0.10)',
-  primaryGlow:      'rgba(234,88,12,0.22)',
+  primaryLight:     'rgba(255,140,0,0.10)',
+  primaryGlow:      'rgba(255,140,0,0.22)',
   secondary:        '#16A34A',
   secondaryLight:   'rgba(22,163,74,0.09)',
   amber:            '#D97706',
   red:              '#DC2626',
   redLight:         'rgba(220,38,38,0.09)',
-  surface:          '#F5F6F8',
+  surface:          '#FFFFFF',
   surfaceLow:       '#F3F4F6',
   surfaceHigh:      '#E5E7EB',
-  onSurface:        '#111827',
-  onSurfaceVariant: '#6B7280',
+  onSurface:        '#1A0C00',
+  onSurfaceVariant: '#8B6E50',
 };
 
 const CARD   = '#FFFFFF';
 const BORDER = '#E2E8F0';
-const SH2    = '0 4px 16px rgba(15,23,42,0.10),0 2px 4px rgba(15,23,42,0.06)';
+const SH2    = '0 4px 16px rgba(139,110,80,0.10),0 2px 4px rgba(139,110,80,0.06)';
 
 function fmt(n) { return Math.round(Number(n) || 0).toLocaleString('fr-FR'); }
 

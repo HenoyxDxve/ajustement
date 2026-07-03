@@ -37,7 +37,7 @@ const STATUS_FR = {
 };
 
 function buildNotif(event, payload) {
-  const meta = EVENT_META[event] || { icon: Bell, color: '#64748B', label: event, body: () => 'Mise à jour' };
+  const meta = EVENT_META[event] || { icon: Bell, color: '#8B6E50', label: event, body: () => 'Mise à jour' };
   return {
     id:        `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     event,
@@ -140,10 +140,10 @@ export default function NotificationBell({ accentColor = '#EA580C', size = 'md',
   };
 
   const iconColor = light
-    ? (open ? accentColor : '#6B7280')
+    ? (open ? accentColor : '#8B6E50')
     : (open ? accentColor : 'rgba(255,255,255,0.75)');
 
-  const badgeBorder = light ? '#fff' : '#0F172A';
+  const badgeBorder = light ? '#fff' : '#1A0C00';
 
   return (
     <div style={{ position: 'relative', display: 'inline-flex' }}>
@@ -182,7 +182,7 @@ export default function NotificationBell({ accentColor = '#EA580C', size = 'md',
           <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FAFAFA' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Bell style={{ width: 14, height: 14, color: accentColor }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Notifications</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#1A0C00' }}>Notifications</span>
               {unread > 0 && (
                 <span style={{ background: accentColor, color: '#fff', borderRadius: 10, padding: '2px 7px', fontSize: 10, fontWeight: 700 }}>
                   {unread}
@@ -203,7 +203,7 @@ export default function NotificationBell({ accentColor = '#EA580C', size = 'md',
                 <button
                   onClick={clearAll}
                   title="Effacer tout"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', display: 'flex', alignItems: 'center', padding: '3px 5px', borderRadius: 6 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A89070', display: 'flex', alignItems: 'center', padding: '3px 5px', borderRadius: 6 }}
                 >
                   <X style={{ width: 13, height: 13 }} />
                 </button>
@@ -215,7 +215,7 @@ export default function NotificationBell({ accentColor = '#EA580C', size = 'md',
           {Notification.permission === 'default' && (
             <div style={{ padding: '8px 14px', background: `${accentColor}10`, borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 10 }}>
               <Bell style={{ width: 12, height: 12, color: accentColor, flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: '#64748B', flex: 1 }}>Activer les alertes navigateur</span>
+              <span style={{ fontSize: 11, color: '#8B6E50', flex: 1 }}>Activer les alertes navigateur</span>
               <button
                 onClick={requestPermission}
                 style={{ background: accentColor, color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
@@ -233,7 +233,7 @@ export default function NotificationBell({ accentColor = '#EA580C', size = 'md',
                   <Bell style={{ width: 22, height: 22, color: '#CBD5E1' }} />
                 </div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#475569', margin: 0 }}>Aucune notification</p>
-                <p style={{ fontSize: 11, color: '#94A3B8', margin: '4px 0 0' }}>Les alertes temps réel apparaîtront ici</p>
+                <p style={{ fontSize: 11, color: '#A89070', margin: '4px 0 0' }}>Les alertes temps réel apparaîtront ici</p>
               </div>
             ) : (
               notifications.map(n => {
@@ -259,17 +259,17 @@ export default function NotificationBell({ accentColor = '#EA580C', size = 'md',
                     {/* Contenu */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 1 }}>
-                        <p style={{ fontSize: 12, fontWeight: n.read ? 500 : 700, color: '#0F172A', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <p style={{ fontSize: 12, fontWeight: n.read ? 500 : 700, color: '#1A0C00', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {n.title}
                         </p>
                         {!n.read && (
                           <span style={{ width: 7, height: 7, borderRadius: '50%', background: n.color || accentColor, flexShrink: 0 }} />
                         )}
                       </div>
-                      <p style={{ fontSize: 11, color: '#64748B', margin: 0, lineHeight: 1.4 }}>
+                      <p style={{ fontSize: 11, color: '#8B6E50', margin: 0, lineHeight: 1.4 }}>
                         {n.body}
                       </p>
-                      <p style={{ fontSize: 10, color: '#94A3B8', margin: '3px 0 0' }}>
+                      <p style={{ fontSize: 10, color: '#A89070', margin: '3px 0 0' }}>
                         {timeAgo(n.createdAt)}
                       </p>
                     </div>
@@ -282,7 +282,7 @@ export default function NotificationBell({ accentColor = '#EA580C', size = 'md',
           {/* Pied — compteur */}
           {notifications.length > 0 && (
             <div style={{ padding: '8px 14px', borderTop: '1px solid rgba(0,0,0,0.05)', background: '#FAFAFA', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 10, color: '#94A3B8' }}>
+              <span style={{ fontSize: 10, color: '#A89070' }}>
                 {notifications.length} notification{notifications.length > 1 ? 's' : ''} · {unread} non lue{unread > 1 ? 's' : ''}
               </span>
             </div>

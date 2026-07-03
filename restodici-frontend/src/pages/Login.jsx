@@ -180,17 +180,17 @@ export default function Login() {
             >
               <UtensilsCrossed className="w-[18px] h-[18px] text-white" />
             </div>
-            <span className="font-bold text-lg" style={{ color: '#0F172A' }}>
+            <span className="font-bold text-lg" style={{ color: '#1A0C00' }}>
               Resto d'ici
             </span>
           </div>
 
           {/* Titre et sous-titre */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold" style={{ color: '#0F172A' }}>
+            <h1 className="text-2xl font-bold" style={{ color: '#1A0C00' }}>
               {twoFactorStep ? 'Vérification' : 'Connexion'}
             </h1>
-            <p className="mt-1 text-sm" style={{ color: '#64748B' }}>
+            <p className="mt-1 text-sm" style={{ color: '#8B6E50' }}>
               {twoFactorStep
                 ? "Entrez le code de votre application"
                 : 'Bon retour sur votre espace'}
@@ -211,7 +211,7 @@ export default function Login() {
           {/* ── Formulaire 2FA ── */}
           {twoFactorStep ? (
             <form onSubmit={handle2FA} className="space-y-4">
-              <p className="text-sm" style={{ color: '#64748B' }}>
+              <p className="text-sm" style={{ color: '#8B6E50' }}>
                 Entrez le code à 6 chiffres généré par votre application d'authentification.
               </p>
 
@@ -227,7 +227,7 @@ export default function Login() {
                 style={{
                   background: '#F1F5F9',
                   border: '1.5px solid #E2E8F0',
-                  color: '#0F172A',
+                  color: '#1A0C00',
                 }}
                 autoFocus
                 aria-label="Code de vérification à deux facteurs"
@@ -253,7 +253,7 @@ export default function Login() {
                 type="button"
                 onClick={() => { set2FA(false); set2FACode(''); setErrors({}); }}
                 className="w-full py-2 text-sm"
-                style={{ color: '#94A3B8' }}
+                style={{ color: '#A89070' }}
               >
                 ← Retour
               </button>
@@ -275,7 +275,7 @@ export default function Login() {
                 <div className="relative">
                   <Mail
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: '#94A3B8' }}
+                    style={{ color: '#A89070' }}
                   />
                   <input
                     id="login-email"
@@ -290,7 +290,7 @@ export default function Login() {
                     style={{
                       background: '#F9F9FC',
                       border: `1.5px solid ${errors.email ? '#FCA5A5' : '#E2E8F0'}`,
-                      color: '#0F172A',
+                      color: '#1A0C00',
                     }}
                   />
                 </div>
@@ -322,7 +322,7 @@ export default function Login() {
                 <div className="relative">
                   <Lock
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: '#94A3B8' }}
+                    style={{ color: '#A89070' }}
                   />
                   <input
                     id="login-password"
@@ -337,7 +337,7 @@ export default function Login() {
                     style={{
                       background: '#F9F9FC',
                       border: `1.5px solid ${errors.password ? '#FCA5A5' : '#E2E8F0'}`,
-                      color: '#0F172A',
+                      color: '#1A0C00',
                     }}
                   />
                   {/* Bouton afficher / masquer le mot de passe */}
@@ -346,7 +346,7 @@ export default function Login() {
                     tabIndex={-1}
                     onClick={() => setShowPw(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 hover:opacity-70 transition"
-                    style={{ color: '#94A3B8' }}
+                    style={{ color: '#A89070' }}
                     aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -399,7 +399,7 @@ export default function Login() {
               </button>
 
               {/* Lien vers l'inscription */}
-              <p className="text-center text-sm pt-1" style={{ color: '#94A3B8' }}>
+              <p className="text-center text-sm pt-1" style={{ color: '#A89070' }}>
                 Pas encore de compte ?{' '}
                 <Link
                   to="/register"

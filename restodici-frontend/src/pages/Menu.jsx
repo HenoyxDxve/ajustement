@@ -514,7 +514,7 @@ function CartPanel({ items, total, onUpdate, onClear, deliveryMode, onDeliveryMo
             </div>
             {items.length > 0 && (
               <button onClick={onClear} title="Vider le panier"
-                style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.25)', borderRadius: 8, padding: '5px 9px', cursor: 'pointer', color: C.accent, fontSize: 11, fontWeight: 700, lineHeight: 1, marginTop: 2 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(255,140,0,0.25)', borderRadius: 8, padding: '5px 9px', cursor: 'pointer', color: C.accent, fontSize: 11, fontWeight: 700, lineHeight: 1, marginTop: 2 }}>
                 <Trash2 size={11} /> Vider
               </button>
             )}
@@ -885,7 +885,7 @@ export default function MenuPage() {
                   Restaurants disponibles
                 </p>
                 {restaurants.length > 0 && (
-                  <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 800, color: '#EA580C', background: 'rgba(234,88,12,0.12)', border: '1px solid rgba(234,88,12,0.25)', borderRadius: 99, padding: '3px 12px' }}>
+                  <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 800, color: '#EA580C', background: 'rgba(255,140,0,0.12)', border: '1px solid rgba(255,140,0,0.25)', borderRadius: 99, padding: '3px 12px' }}>
                     {restaurants.length}
                   </span>
                 )}

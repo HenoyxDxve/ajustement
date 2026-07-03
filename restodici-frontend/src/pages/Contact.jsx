@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import { UtensilsCrossed, Mail, Phone, MapPin, ArrowRight, Send, CheckCircle } from 'lucide-react';
 import MiniFooter from '../components/shared/MiniFooter';
 
-const T = { accent: '#EA580C', accentD: '#C2410C', bg: '#FFFAF3', dark: '#1A0C00', text: '#3B2409', muted: '#7A5E3A' };
+const T = { accent: '#EA580C', accentD: '#C2410C', bg: '#FFFFFF', dark: '#1A0C00', text: '#3B2409', muted: '#7A5E3A' };
 const serif = "'Playfair Display', Georgia, serif";
 const sans  = "'Manrope', system-ui, sans-serif";
 
 function MiniNav() {
   return (
-    <nav style={{ background: '#fff', borderBottom: '1px solid rgba(234,88,12,0.12)', position: 'sticky', top: 0, zIndex: 50 }}>
+    <nav style={{ background: '#fff', borderBottom: '1px solid rgba(255,140,0,0.12)', position: 'sticky', top: 0, zIndex: 50 }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${T.accent}, #FFB800)`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 12px ${T.accent}40` }}>
@@ -45,7 +45,7 @@ export default function Contact() {
         type={type} id={id} value={form[id]}
         onChange={e => setForm(f => ({ ...f, [id]: e.target.value }))}
         placeholder={placeholder} required
-        style={{ width: '100%', padding: '11px 14px', border: '1.5px solid #E8DDD0', borderRadius: 10, fontSize: 13, fontFamily: sans, outline: 'none', background: '#FFFDF9', color: T.dark, boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+        style={{ width: '100%', padding: '11px 14px', border: '1.5px solid #E8DDD0', borderRadius: 10, fontSize: 13, fontFamily: sans, outline: 'none', background: '#FFFFFF', color: T.dark, boxSizing: 'border-box', transition: 'border-color 0.15s' }}
         onFocus={e => { e.target.style.borderColor = T.accent; }}
         onBlur={e => { e.target.style.borderColor = '#E8DDD0'; }}
       />
@@ -94,7 +94,7 @@ export default function Contact() {
                     value={form.message} required rows={5}
                     onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
                     placeholder="Décrivez votre demande en détail…"
-                    style={{ width: '100%', padding: '11px 14px', border: '1.5px solid #E8DDD0', borderRadius: 10, fontSize: 13, fontFamily: sans, outline: 'none', background: '#FFFDF9', color: T.dark, resize: 'vertical', boxSizing: 'border-box', minHeight: 120 }}
+                    style={{ width: '100%', padding: '11px 14px', border: '1.5px solid #E8DDD0', borderRadius: 10, fontSize: 13, fontFamily: sans, outline: 'none', background: '#FFFFFF', color: T.dark, resize: 'vertical', boxSizing: 'border-box', minHeight: 120 }}
                     onFocus={e => { e.target.style.borderColor = T.accent; }}
                     onBlur={e => { e.target.style.borderColor = '#E8DDD0'; }}
                   />

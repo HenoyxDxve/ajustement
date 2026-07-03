@@ -14,12 +14,12 @@ import mtnMomoLogo       from '../../assets/payments/mtn-momo.svg';
 import moovMoneyLogo     from '../../assets/payments/moov-money.svg';
 import carteBancaireLogo from '../../assets/payments/carte-bancaire.svg';
 
-const NAVY   = '#0F172A';
+const NAVY   = '#1A0C00';
 const ORANGE = '#EA580C';
 const BG     = '#FFFFFF';
 const LINE   = 'rgba(89,67,42,0.12)';
 
-const KENTE = ['#EA580C', '#EA580C', '#0F172A', '#C2410C'];
+const KENTE = ['#EA580C', '#EA580C', '#1A0C00', '#C2410C'];
 
 const MODES = [
   { id: 'SUR_PLACE', label: 'Sur place',  icon: Store },
@@ -43,7 +43,7 @@ const METHOD_VISUAL = {
   mtn_momo:     { logo: mtnMomoLogo,       color: '#FFCC00', bg: '#FFFDE7' },
   moov_money:   { logo: moovMoneyLogo,     color: '#0066CC', bg: '#E3F0FF' },
   wave:         { logo: null,              color: '#1DA1F2', bg: '#E8F5FD' },
-  card:         { logo: carteBancaireLogo, color: '#0F172A', bg: '#F1F5F9' },
+  card:         { logo: carteBancaireLogo, color: '#1A0C00', bg: '#F1F5F9' },
 };
 
 // fallback si l'API est indisponible
@@ -56,7 +56,7 @@ const METHODS_FALLBACK = [
 ];
 
 const mergeVisual = (methods) =>
-  methods.map(m => ({ ...m, ...(METHOD_VISUAL[m.id] ?? { logo: null, color: '#64748B', bg: '#F1F5F9' }) }));
+  methods.map(m => ({ ...m, ...(METHOD_VISUAL[m.id] ?? { logo: null, color: '#8B6E50', bg: '#F1F5F9' }) }));
 
 
 function KenteStrip() {
@@ -351,7 +351,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode, 
               <div style={{ display: 'flex', gap: 8 }}>
                 {items.length > 0 && (
                   <button onClick={clearCart}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.25)', borderRadius: 10, padding: '7px 10px', cursor: 'pointer', color: '#FFDCAA', fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,140,0,0.15)', border: '1px solid rgba(255,140,0,0.25)', borderRadius: 10, padding: '7px 10px', cursor: 'pointer', color: '#FFDCAA', fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
                     <Trash2 style={{ width: 12, height: 12 }} /> Vider
                   </button>
                 )}
@@ -367,7 +367,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode, 
               {items.length === 0 ? (
                 <div style={{ padding: '60px 20px', textAlign: 'center' }}>
                   <ChefHat style={{ width: 52, height: 52, color: '#D0C4B8', margin: '0 auto 14px', display: 'block' }} />
-                  <p style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: '#64748B', margin: '0 0 6px' }}>Panier vide</p>
+                  <p style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: '#8B6E50', margin: '0 0 6px' }}>Panier vide</p>
                   <p style={{ fontSize: 13, color: '#BDB0A7', margin: 0 }}>Ajoutez des articles depuis le menu</p>
                 </div>
               ) : items.map(item => (
@@ -496,7 +496,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode, 
                     {ZONES.map(z => (
                       <button key={z.name}
                         onClick={() => { setZone(z.name); setDriverStatus('idle'); setDriver(null); setDriverFee(null); }}
-                        style={{ padding: '7px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1.5px solid ${zone === z.name ? ORANGE : LINE}`, background: zone === z.name ? '#FFF4EE' : '#fff', color: zone === z.name ? ORANGE : '#64748B', cursor: 'pointer', transition: 'all 0.15s' }}>
+                        style={{ padding: '7px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1.5px solid ${zone === z.name ? ORANGE : LINE}`, background: zone === z.name ? '#FFF4EE' : '#fff', color: zone === z.name ? ORANGE : '#8B6E50', cursor: 'pointer', transition: 'all 0.15s' }}>
                         {z.name} · {formatFCFA(z.fee)}
                       </button>
                     ))}
@@ -504,7 +504,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode, 
 
                   {/* Prix estimé */}
                   {zone && (
-                    <div style={{ background: '#FFF4EE', border: `1px solid rgba(234,88,12,0.25)`, borderRadius: 10, padding: '10px 14px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ background: '#FFF4EE', border: `1px solid rgba(255,140,0,0.25)`, borderRadius: 10, padding: '10px 14px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: '#9E8B7A' }}>Frais de livraison estimés</span>
                       <span style={{ fontSize: 16, fontWeight: 900, color: ORANGE }}>{formatFCFA(deliveryFee)}</span>
                     </div>
@@ -542,7 +542,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode, 
                               <Star style={{ width: 12, height: 12, fill: '#F59E0B' }} /> {driver.rating}
                             </span>
                           </div>
-                          <p style={{ fontSize: 11, color: '#64748B', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <p style={{ fontSize: 11, color: '#8B6E50', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
                             <Bike style={{ width: 11, height: 11 }} /> {driver.vehicle}
                           </p>
                         </div>
@@ -560,7 +560,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode, 
                   )}
 
                   {driverStatus === 'error' && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFF4EE', border: '1px solid rgba(234,88,12,0.3)', borderRadius: 10, padding: '10px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFF4EE', border: '1px solid rgba(255,140,0,0.3)', borderRadius: 10, padding: '10px 14px' }}>
                       <AlertCircle style={{ width: 14, height: 14, color: ORANGE, flexShrink: 0 }} />
                       <span style={{ fontSize: 12, color: '#C2410C', fontWeight: 600 }}>Aucun livreur disponible. Réessayez dans quelques instants.</span>
                     </div>
@@ -642,7 +642,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode, 
                             }
                           </div>
                         )}
-                        <span style={{ fontSize: 10, fontWeight: 800, color: active ? method.color : '#64748B', textAlign: 'center', lineHeight: 1.2 }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: active ? method.color : '#8B6E50', textAlign: 'center', lineHeight: 1.2 }}>
                           {method.label}
                         </span>
                       </button>
@@ -679,7 +679,7 @@ export default function CartDrawer({ isOpen, onClose, tableNumber, initialMode, 
                     <RecapRow label="Remise promo" value={`-${formatFCFA(promoDiscount)}`} accent="#16A34A" />
                   )}
                   <div style={{ borderTop: `1px solid ${LINE}`, marginTop: 4, paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#64748B' }}>Total TTC</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#8B6E50' }}>Total TTC</span>
                     <span style={{ fontSize: 24, fontWeight: 900, color: ORANGE, fontFamily: 'Georgia, serif', letterSpacing: '-0.02em' }}>
                       {formatFCFA(grandTotal)}
                     </span>

@@ -8,9 +8,9 @@ import { formatFCFA } from '../../utils/formatters';
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const BG     = '#F8FAFC';
 const CARD   = '#FFFFFF';
-const TEXT   = '#0F172A';
-const MUTED  = '#64748B';
-const FAINT  = '#94A3B8';
+const TEXT   = '#1A0C00';
+const MUTED  = '#8B6E50';
+const FAINT  = '#A89070';
 const BORDER = '#E2E8F0';
 const ORANGE = '#EA580C';
 const GREEN  = '#16A34A';
@@ -20,8 +20,8 @@ const RED    = '#DC2626';
 const RED_L  = '#FEF2F2';
 const AMBER  = '#D97706';
 const AMBER_L= '#FFFBEB';
-const SH     = '0 1px 3px rgba(15,23,42,0.07),0 1px 2px rgba(15,23,42,0.04)';
-const SH2    = '0 4px 16px rgba(15,23,42,0.10),0 2px 4px rgba(15,23,42,0.06)';
+const SH     = '0 1px 3px rgba(139,110,80,0.07),0 1px 2px rgba(139,110,80,0.04)';
+const SH2    = '0 4px 16px rgba(139,110,80,0.10),0 2px 4px rgba(139,110,80,0.06)';
 const TVA    = 0.18;
 
 function Avatar({ name = '', size = 36 }) {
@@ -89,9 +89,9 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 shrink-0"
-             style={{ background: '#0F172A', borderBottom: '2.5px solid #EA580C' }}>
+             style={{ background: '#1A0C00', borderBottom: '2.5px solid #EA580C' }}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.20)' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,140,0,0.20)' }}>
               <FileText className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -125,7 +125,7 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
         {/* Blur guard */}
         {captureGuard && (
           <div className="absolute inset-0 z-[300] flex flex-col items-center justify-center rounded-2xl"
-               style={{ background: 'rgba(15,23,42,0.96)' }}>
+               style={{ background: 'rgba(139,110,80,0.96)' }}>
             <Shield className="w-12 h-12 mb-3" style={{ color: '#EA580C' }} />
             <p className="text-white font-bold text-base">Contenu masqué</p>
             <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
@@ -149,7 +149,7 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
           <div className="p-6 space-y-5" style={{ position: 'relative', zIndex: 1 }}>
 
             {/* Report header */}
-            <div className="rounded-2xl p-5" style={{ background: '#0F172A' }}>
+            <div className="rounded-2xl p-5" style={{ background: '#1A0C00' }}>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#EA580C' }}>Rapport Mensuel SYSCOHADA</p>
@@ -178,12 +178,12 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
 
             {/* Section 1 — Collaborateurs */}
             <div>
-              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#0F172A' }}>
+              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#1A0C00' }}>
                 <p className="text-white font-bold text-[12px] uppercase tracking-wider">1. Synthèse budgétaire par collaborateur</p>
               </div>
               <div className="rounded-b-xl overflow-x-auto border border-t-0" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
                 {collaborateurs.length === 0 ? (
-                  <div className="py-8 text-center text-[13px]" style={{ color: '#6B7280' }}>Aucun collaborateur enregistré</div>
+                  <div className="py-8 text-center text-[13px]" style={{ color: '#8B6E50' }}>Aucun collaborateur enregistré</div>
                 ) : (
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead style={{ background: '#F8FAFC' }}>
@@ -196,11 +196,11 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
                         const pct = c.limite > 0 ? Math.min(100, Math.round((c.totalDepense / c.limite) * 100)) : 0;
                         return (
                           <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFC' }}>
-                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#6B7280' }}>{i + 1}</td>
-                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#111827' }}>{c.collaborateur}</td>
-                            <td style={{ padding: '9px 12px', color: '#6B7280' }}>{c.email}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(c.limite ?? 0)}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(c.totalDepense ?? 0)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#8B6E50' }}>{i + 1}</td>
+                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#1A0C00' }}>{c.collaborateur}</td>
+                            <td style={{ padding: '9px 12px', color: '#8B6E50' }}>{c.email}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(c.limite ?? 0)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(c.totalDepense ?? 0)}</td>
                             <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 600, color: (c.soldeRestant ?? 0) > 0 ? '#16A34A' : '#DC2626' }}>{fcfa(c.soldeRestant ?? 0)}</td>
                             <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: pct >= 100 ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A' }}>{pct} %</td>
                           </tr>
@@ -214,12 +214,12 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
 
             {/* Section 2 — Factures */}
             <div>
-              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#0F172A' }}>
+              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#1A0C00' }}>
                 <p className="text-white font-bold text-[12px] uppercase tracking-wider">2. Détail des factures mensuelles</p>
               </div>
               <div className="rounded-b-xl overflow-x-auto border border-t-0" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
                 {factures.length === 0 ? (
-                  <div className="py-8 text-center text-[13px]" style={{ color: '#6B7280' }}>Aucune facture émise</div>
+                  <div className="py-8 text-center text-[13px]" style={{ color: '#8B6E50' }}>Aucune facture émise</div>
                 ) : (
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead style={{ background: '#F8FAFC' }}>
@@ -235,12 +235,12 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
                         const paid = f.statut === 'PAYEE' || f.statut === 'paid';
                         return (
                           <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFC' }}>
-                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#6B7280' }}>{i + 1}</td>
-                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#111827' }}>{f.numeroFacture}</td>
-                            <td style={{ padding: '9px 12px', color: '#6B7280' }}>{f.periode ?? f.mois} {f.annee}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(ht)}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(tva)}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#111827' }}>{fcfa(ttc)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#8B6E50' }}>{i + 1}</td>
+                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#1A0C00' }}>{f.numeroFacture}</td>
+                            <td style={{ padding: '9px 12px', color: '#8B6E50' }}>{f.periode ?? f.mois} {f.annee}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(ht)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(tva)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#1A0C00' }}>{fcfa(ttc)}</td>
                             <td style={{ padding: '9px 12px' }}>
                               <span className="px-2.5 py-1 rounded-full text-[10px] font-bold"
                                     style={{ background: paid ? '#DCFCE7' : '#FFFBEB', color: paid ? '#15803D' : '#D97706' }}>
@@ -258,7 +258,7 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
 
             {/* Section 3 — Récapitulatif fiscal */}
             <div>
-              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#0F172A' }}>
+              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#1A0C00' }}>
                 <p className="text-white font-bold text-[12px] uppercase tracking-wider">3. Récapitulatif fiscal (SYSCOHADA / DGI-CI)</p>
               </div>
               <div className="rounded-b-xl overflow-hidden border border-t-0" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
@@ -270,17 +270,17 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
                   </thead>
                   <tbody>
                     <tr style={{ background: '#fff' }}>
-                      <td style={{ padding: '9px 12px', color: '#111827' }}>Restauration collective B2B</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalHT)}</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#6B7280' }}>18 %</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalTVA)}</td>
+                      <td style={{ padding: '9px 12px', color: '#1A0C00' }}>Restauration collective B2B</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(totalHT)}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#8B6E50' }}>18 %</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(totalTVA)}</td>
                       <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700 }}>{fcfa(totalTTC)}</td>
                     </tr>
                     <tr style={{ background: '#F1F5F9', fontWeight: 700 }}>
-                      <td style={{ padding: '9px 12px', color: '#111827' }}>TOTAL GÉNÉRAL</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalHT)}</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#6B7280' }}>18 %</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalTVA)}</td>
+                      <td style={{ padding: '9px 12px', color: '#1A0C00' }}>TOTAL GÉNÉRAL</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(totalHT)}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#8B6E50' }}>18 %</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(totalTVA)}</td>
                       <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#EA580C' }}>{fcfa(totalTTC)}</td>
                     </tr>
                   </tbody>
@@ -290,7 +290,7 @@ function SyscohadaViewerModal({ reports, compte, monthlyExp, isLastDayOfMonth, l
 
             {/* Mentions légales */}
             <div className="rounded-xl p-4" style={{ background: '#F8FAFC', border: '1px solid rgba(0,0,0,0.06)' }}>
-              <p className="text-[11px] italic" style={{ color: '#6B7280' }}>
+              <p className="text-[11px] italic" style={{ color: '#8B6E50' }}>
                 Conformément au Système Comptable OHADA (SYSCOHADA Révisé) · TVA collectée au taux de 18%
                 conformément au Code Général des Impôts de la Côte d'Ivoire — Article 339 CGI-CI.
               </p>
@@ -394,14 +394,14 @@ export default function B2BReports() {
       <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <Link to="/b2b" className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-70 transition"
-            style={{ color: '#6B7280' }}>
+            style={{ color: '#8B6E50' }}>
             <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
           </Link>
           <span style={{ color: 'rgba(0,0,0,0.15)' }}>›</span>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#EA580C,#C2410C)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <BarChart2 className="w-3.5 h-3.5 text-white" />
           </div>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0, flex: 1 }}>Rapports & Analytique</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#1A0C00', margin: 0, flex: 1 }}>Rapports & Analytique</p>
 
           {/* Actions topbar */}
           <div className="flex items-center gap-2">
@@ -443,7 +443,7 @@ export default function B2BReports() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { label: 'Total dépensé',   value: formatFCFA(totalDepenses),        bg: ORANGE,    icon: TrendingUp },
-              { label: 'Collaborateurs',  value: collaborateurs.length,            bg: '#111827', icon: Users },
+              { label: 'Collaborateurs',  value: collaborateurs.length,            bg: '#1A0C00', icon: Users },
               { label: 'Commandes mois',  value: reports?.totalCommandesMois ?? 0, bg: GREEN,     icon: BarChart2 },
               { label: 'Factures',        value: factures.length,                  bg: '#7C3AED', icon: FileText },
             ].map(({ label, value, bg, icon: Icon }) => (
@@ -574,8 +574,8 @@ export default function B2BReports() {
               {auditLogs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl py-16 text-center" style={{ background: '#FFF7ED', boxShadow: SH }}>
                   <Activity className="w-12 h-12 mb-3" style={{ color: '#EA580C', opacity: 0.4 }} />
-                  <p className="text-sm font-medium" style={{ color: '#0F172A' }}>Aucun log d'audit</p>
-                  <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Les actions de votre compte seront enregistrées ici.</p>
+                  <p className="text-sm font-medium" style={{ color: '#1A0C00' }}>Aucun log d'audit</p>
+                  <p className="text-xs mt-1" style={{ color: '#A89070' }}>Les actions de votre compte seront enregistrées ici.</p>
                 </div>
               ) : (
                 <div className="rounded-2xl overflow-hidden" style={{ background: CARD, boxShadow: SH2 }}>
@@ -624,8 +624,8 @@ export default function B2BReports() {
               {factures.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center" style={{ background: '#FFF7ED' }}>
                   <FileText className="w-12 h-12 mb-3" style={{ color: '#EA580C', opacity: 0.4 }} />
-                  <p className="text-sm font-medium" style={{ color: '#0F172A' }}>Aucune facture ce mois-ci</p>
-                  <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Les factures mensuelles générées apparaîtront ici.</p>
+                  <p className="text-sm font-medium" style={{ color: '#1A0C00' }}>Aucune facture ce mois-ci</p>
+                  <p className="text-xs mt-1" style={{ color: '#A89070' }}>Les factures mensuelles générées apparaîtront ici.</p>
                 </div>
               ) : factures.map((f, i, arr) => {
                 const isPaid = f.statut === 'PAYEE' || f.statut === 'paid';
@@ -682,7 +682,7 @@ export default function B2BReports() {
 
       {/* Modal contestation */}
       {contesterModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(15,23,42,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(139,110,80,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: 28, width: '100%', maxWidth: 440, boxShadow: SH2 }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-[15px]" style={{ color: TEXT }}>Contester la facture #{contesterModal.numeroFacture}</h3>

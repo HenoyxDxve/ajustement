@@ -10,7 +10,7 @@ import { authAPI } from '../../services/api';
 
 const A  = '#EA580C';
 const AL = '#FFF0DF';
-const SF = '#F9F7F5';
+const SF = '#FFFFFF';
 const BD = 'rgba(89,67,42,0.10)';
 
 const POSTES = [
@@ -124,15 +124,15 @@ export default function StaffOnboardingWizard() {
             {/* ── STEP 0: Bienvenue ── */}
             {step === 0 && (
               <div className="text-center">
-                <p className="text-2xl font-extrabold text-[#111827] mb-2">
+                <p className="text-2xl font-extrabold text-[#1A0C00] mb-2">
                   Bienvenue, {user?.nom || 'nouveau membre'} !
                 </p>
-                <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
+                <p className="text-sm text-[#8B6E50] leading-relaxed mb-6">
                   Configurons ton espace en 2 minutes pour que tu sois opérationnel dès maintenant.
                 </p>
                 <div className="rounded-2xl p-4 mb-6 text-left" style={{ background: SF }}>
                   {['Gérer les commandes en temps réel (KDS)', 'Encaisser les paiements à la caisse', 'Suivre les stocks et alertes'].map(s => (
-                    <div key={s} className="flex items-center gap-2 text-xs mb-1.5 text-[#6B7280]">
+                    <div key={s} className="flex items-center gap-2 text-xs mb-1.5 text-[#8B6E50]">
                       <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color: A }} /> {s}
                     </div>
                   ))}
@@ -148,8 +148,8 @@ export default function StaffOnboardingWizard() {
             {/* ── STEP 1: Profil ── */}
             {step === 1 && (
               <div>
-                <p className="text-xl font-extrabold text-[#111827] mb-1">Ton profil</p>
-                <p className="text-sm text-[#6B7280] mb-5">Ces informations seront visibles dans les commandes.</p>
+                <p className="text-xl font-extrabold text-[#1A0C00] mb-1">Ton profil</p>
+                <p className="text-sm text-[#8B6E50] mb-5">Ces informations seront visibles dans les commandes.</p>
                 <div className="space-y-4">
                   <Field label="Prénom">
                     <TextInput value={profil.prenom} onChange={setP('prenom')} placeholder="Ex : Konan" />
@@ -174,8 +174,8 @@ export default function StaffOnboardingWizard() {
             {/* ── STEP 2: Poste ── */}
             {step === 2 && (
               <div>
-                <p className="text-xl font-extrabold text-[#111827] mb-1">Ton poste</p>
-                <p className="text-sm text-[#6B7280] mb-5">Ça nous aide à personnaliser ta vue principale.</p>
+                <p className="text-xl font-extrabold text-[#1A0C00] mb-1">Ton poste</p>
+                <p className="text-sm text-[#8B6E50] mb-5">Ça nous aide à personnaliser ta vue principale.</p>
                 <div className="space-y-3 mb-6">
                   {POSTES.map(({ key, label, icon: Icon, desc }) => (
                     <button key={key} onClick={() => setPoste(key)}
@@ -186,18 +186,18 @@ export default function StaffOnboardingWizard() {
                       }}>
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                         style={{ background: poste === key ? A : '#E5E7EB' }}>
-                        <Icon className="w-5 h-5" style={{ color: poste === key ? '#fff' : '#6B7280' }} />
+                        <Icon className="w-5 h-5" style={{ color: poste === key ? '#fff' : '#8B6E50' }} />
                       </div>
                       <div>
-                        <p className="text-sm font-bold" style={{ color: poste === key ? A : '#111827' }}>{label}</p>
-                        <p className="text-xs text-[#6B7280]">{desc}</p>
+                        <p className="text-sm font-bold" style={{ color: poste === key ? A : '#1A0C00' }}>{label}</p>
+                        <p className="text-xs text-[#8B6E50]">{desc}</p>
                       </div>
                     </button>
                   ))}
                 </div>
                 <div className="flex gap-3">
                   <button onClick={() => setStep(1)}
-                    className="px-4 py-3 rounded-xl border text-sm font-medium text-[#6B7280]"
+                    className="px-4 py-3 rounded-xl border text-sm font-medium text-[#8B6E50]"
                     style={{ borderColor: BD }}>
                     Retour
                   </button>
@@ -214,8 +214,8 @@ export default function StaffOnboardingWizard() {
             {step === 3 && (
               <div className="text-center">
                 <div className="text-5xl mb-4">🎉</div>
-                <p className="text-2xl font-extrabold text-[#111827] mb-2">Tu es prêt !</p>
-                <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
+                <p className="text-2xl font-extrabold text-[#1A0C00] mb-2">Tu es prêt !</p>
+                <p className="text-sm text-[#8B6E50] leading-relaxed mb-6">
                   Ton espace staff est configuré. Les commandes t'attendent.
                 </p>
                 <div className="rounded-2xl p-4 mb-6 text-left" style={{ background: SF }}>
@@ -224,7 +224,7 @@ export default function StaffOnboardingWizard() {
                     'Caisse — Encaisse rapidement',
                     'Stocks — Surveille les alertes',
                   ].map(s => (
-                    <div key={s} className="flex items-center gap-2 text-xs mb-1.5 text-[#6B7280]">
+                    <div key={s} className="flex items-center gap-2 text-xs mb-1.5 text-[#8B6E50]">
                       <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color: A }} /> {s}
                     </div>
                   ))}

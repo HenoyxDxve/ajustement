@@ -20,48 +20,48 @@
   --color-primary:       #EA580C;
   --color-primary-dark:  #C2410C;
   --color-primary-light: #FFF0DF;
-  --color-primary-dim:   rgba(234,88,12,0.12);
-  --color-primary-glow:  rgba(234,88,12,0.3);
+  --color-primary-dim:   rgba(255,140,0,0.12);
+  --color-primary-glow:  rgba(255,140,0,0.3);
 
   /* ── Surfaces ─────────────────────────────────────────── */
-  --surface-base:    #F5F6F8;
+  --surface-base:    #FFFAF3;
   --surface-card:    #FFFFFF;
   --surface-raised:  #FFFFFF;
-  --surface-overlay: rgba(0,0,0,0.45);
+  --surface-overlay: rgba(61,21,0,0.45);
 
   /* ── Light mode surfaces (backward compat) ───────────── */
-  --color-bg:            #FFFFFF;
-  --color-bg-alt:        #F5F5F5;
+  --color-bg:            #FFFAF3;
+  --color-bg-alt:        #FFF5E6;
   --color-surface:       #FFFFFF;
-  --color-surface-alt:   #F5F6F8;
+  --color-surface-alt:   #FFFAF3;
 
   /* ── Dark mode surfaces (used when .dark class present) ── */
-  --color-dark-bg:       #070707;
-  --color-dark-panel:    #0C0C0C;
-  --color-dark-card:     #141414;
-  --color-dark-elevated: #1E1E1E;
-  --color-dark-raised:   #282828;
+  --color-dark-bg:       #1A0C00;
+  --color-dark-panel:    #2D1200;
+  --color-dark-card:     #3D1500;
+  --color-dark-elevated: #5C2400;
+  --color-dark-raised:   #7C3A00;
 
   /* ── Text ─────────────────────────────────────────────── */
-  --text-primary:   #111827;
-  --text-secondary: #6B7280;
-  --text-muted:     #9CA3AF;
+  --text-primary:   #1A0C00;
+  --text-secondary: #8B6E50;
+  --text-muted:     #A89070;
   --text-inverse:   #FFFFFF;
 
   /* ── Text (backward compat) ───────────────────────────── */
-  --color-text:          #111827;
-  --color-text-secondary:#6B7280;
-  --color-text-muted:    #9CA3AF;
+  --color-text:          #1A0C00;
+  --color-text-secondary:#8B6E50;
+  --color-text-muted:    #A89070;
   --color-text-inverse:  #FFFFFF;
 
   /* ── Borders ──────────────────────────────────────────── */
-  --border:         rgba(0,0,0,0.07);
-  --border-strong:  rgba(0,0,0,0.14);
-  --border-focus:   rgba(234,88,12,0.4);
+  --border:         rgba(255,140,0,0.10);
+  --border-strong:  rgba(255,140,0,0.20);
+  --border-focus:   rgba(255,140,0,0.45);
 
   /* ── Borders (backward compat) ───────────────────────── */
-  --color-border:        rgba(0,0,0,0.07);
-  --color-border-soft:   rgba(0,0,0,0.08);
+  --color-border:        rgba(255,140,0,0.10);
+  --color-border-soft:   rgba(255,140,0,0.08);
   --color-border-dark:   rgba(255,255,255,0.08);
 
   /* ── Semantic ─────────────────────────────────────────── */

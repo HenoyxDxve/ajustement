@@ -10,7 +10,7 @@ import {
 
 const ACCENT = '#EA580C';
 const DARK   = '#1C1C1E';
-const MUTED  = '#64748B';
+const MUTED  = '#8B6E50';
 
 const STEPS_BY_ROLE = {
   CLIENT: [

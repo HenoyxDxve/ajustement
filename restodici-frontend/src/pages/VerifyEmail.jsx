@@ -69,14 +69,14 @@ export default function VerifyEmail() {
           {status === 'loading' && (
             <div className="text-center">
               <h2 className="text-xl font-extrabold text-[#1A1A1A] mb-2">Vérification en cours…</h2>
-              <p className="text-[#6B7280] text-sm">Veuillez patienter quelques secondes.</p>
+              <p className="text-[#8B6E50] text-sm">Veuillez patienter quelques secondes.</p>
             </div>
           )}
 
           {status === 'success' && (
             <div className="text-center">
               <h2 className="text-xl font-extrabold text-[#1A1A1A] mb-2">Email confirmé !</h2>
-              <p className="text-[#6B7280] text-sm mb-8">{message}</p>
+              <p className="text-[#8B6E50] text-sm mb-8">{message}</p>
               <Link to="/login"
                 className="inline-flex items-center justify-center w-full py-3.5 px-4 rounded-2xl font-bold text-white bg-[#EA580C] hover:bg-[#C2410C] transition-colors text-sm shadow-sm">
                 Se connecter
@@ -88,7 +88,7 @@ export default function VerifyEmail() {
             <div>
               <div className="text-center mb-6">
                 <h2 className="text-xl font-extrabold text-[#1A1A1A] mb-2">Lien invalide</h2>
-                <p className="text-[#6B7280] text-sm">{message}</p>
+                <p className="text-[#8B6E50] text-sm">{message}</p>
               </div>
 
               <div className="space-y-3 bg-[#FFF0DF] rounded-2xl p-5">
@@ -98,7 +98,7 @@ export default function VerifyEmail() {
                   <input
                     value={email} onChange={(e) => setEmail(e.target.value)}
                     type="email" placeholder="votre@email.com"
-                    className="w-full pl-10 pr-4 py-3.5 bg-white border-0 rounded-2xl text-[#1A1A1A] placeholder-[#6B7280]/70 text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C]/40"
+                    className="w-full pl-10 pr-4 py-3.5 bg-white border-0 rounded-2xl text-[#1A1A1A] placeholder-[#8B6E50]/70 text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C]/40"
                   />
                 </div>
                 <button type="button" disabled={isResending || !email} onClick={handleResend}
@@ -113,7 +113,7 @@ export default function VerifyEmail() {
               </div>
 
               <div className="mt-5">
-                <Link to="/login" className="flex items-center gap-2 text-[#6B7280] hover:text-[#EA580C] text-sm">
+                <Link to="/login" className="flex items-center gap-2 text-[#8B6E50] hover:text-[#EA580C] text-sm">
                   <ArrowLeft className="w-4 h-4" />Retour à la connexion
                 </Link>
               </div>

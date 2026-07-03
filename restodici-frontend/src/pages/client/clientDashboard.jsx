@@ -35,7 +35,7 @@ const ACCENT_DARK  = '#C2410C';
 const ACCENT_LIGHT = '#FFF5E8';
 const SURFACE      = '#FFFFFF';
 const BORDER       = 'rgba(0,0,0,0.09)';
-const NAVY         = '#111827';
+const NAVY         = '#1A0C00';
 const NAVY2        = '#374151';
 const BG           = '#F9FAFB';
 const RED          = '#EF4444';
@@ -77,7 +77,7 @@ const mapApiMethodToType = (m) => {
     label:       m.label,
     placeholder: meta.placeholder || 'XXXXXXXXXX',
     logo:        meta.logo !== undefined ? meta.logo : null,
-    color:       meta.color  || '#6B7280',
+    color:       meta.color  || '#8B6E50',
     bg:          meta.bg     || '#F9FAFB',
   };
 };
@@ -132,7 +132,7 @@ function ReceiptModal({ order, onClose, onDownload }) {
   return (
     <>
       {/* Overlay */}
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(2px)', zIndex: 999, animation: 'fadeIn 0.2s ease' }} />
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(139,110,80,0.45)', backdropFilter: 'blur(2px)', zIndex: 999, animation: 'fadeIn 0.2s ease' }} />
       {/* Panel */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
       <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden"
@@ -199,7 +199,7 @@ function AvisModal({ order, onClose, onSubmit }) {
   return (
     <>
       {/* Overlay */}
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(2px)', zIndex: 999, animation: 'fadeIn 0.2s ease' }} />
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(139,110,80,0.45)', backdropFilter: 'blur(2px)', zIndex: 999, animation: 'fadeIn 0.2s ease' }} />
       {/* Panel */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, maxHeight: '92vh', background: '#fff', borderRadius: '20px 20px 0 0', zIndex: 1000, animation: 'slideInUp 0.28s cubic-bezier(0.32,0.72,0,1)', overflowY: 'auto' }}>
         <div className="px-6 py-4 flex items-center justify-between" style={{ background: ACCENT }}>
@@ -221,7 +221,7 @@ function AvisModal({ order, onClose, onSubmit }) {
                 </button>
               ))}
             </div>
-            <p className="text-center text-sm text-[#6B7280] mt-2 font-medium">
+            <p className="text-center text-sm text-[#8B6E50] mt-2 font-medium">
               {['', 'Très décevant', 'Décevant', 'Correct', 'Bien', 'Excellent !'][note]}
             </p>
           </div>
@@ -250,7 +250,7 @@ function AvisModal({ order, onClose, onSubmit }) {
 function ActiveOrderCard({ order, onTrack, onReceipt, onConfirmReceipt }) {
   const idx = STEPS.indexOf(order.statut);
   const progress = idx >= 0 ? Math.round(((idx + 1) / STEPS.length) * 100) : 0;
-  const status = ORDER_STATUS[order.statut] || { label: order.statut, bg: '#F3F4F6', color: '#6B7280' };
+  const status = ORDER_STATUS[order.statut] || { label: order.statut, bg: '#F3F4F6', color: '#8B6E50' };
   const ModeIcon = MODE_ICONS[order.modeLivraison] || Package;
 
   return (
@@ -262,7 +262,7 @@ function ActiveOrderCard({ order, onTrack, onReceipt, onConfirmReceipt }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-bold text-[#111827]">#{order.numero}</span>
+            <span className="text-sm font-bold text-[#1A0C00]">#{order.numero}</span>
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
               style={{ background: status.bg, color: status.color }}>
               {status.label}
@@ -274,7 +274,7 @@ function ActiveOrderCard({ order, onTrack, onReceipt, onConfirmReceipt }) {
             {MODE_LABELS[order.modeLivraison]}
           </p>
         </div>
-        <p className="text-sm font-bold text-[#111827] shrink-0">
+        <p className="text-sm font-bold text-[#1A0C00] shrink-0">
           {formatFCFA(order.montantTotal || 0)} <span className="text-xs font-normal text-[#9CA3AF]">CFA</span>
         </p>
       </div>
@@ -310,7 +310,7 @@ function ActiveOrderCard({ order, onTrack, onReceipt, onConfirmReceipt }) {
 /* ── Ligne historique ── */
 function PastOrderRow({ order, onReceipt, onDownload, onAvis, canAvis, onReorder }) {
   const date = new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' });
-  const status = ORDER_STATUS[order.statut] || { label: order.statut, bg: '#F3F4F6', color: '#6B7280' };
+  const status = ORDER_STATUS[order.statut] || { label: order.statut, bg: '#F3F4F6', color: '#8B6E50' };
 
   return (
     <div className="rounded-3xl border bg-white p-4 shadow-sm grid gap-3 sm:grid-cols-[1fr_auto] items-center"
@@ -324,7 +324,7 @@ function PastOrderRow({ order, onReceipt, onDownload, onAvis, canAvis, onReorder
         </div>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-[#111827]">#{order.numero}</span>
+            <span className="text-sm font-semibold text-[#1A0C00]">#{order.numero}</span>
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full"
               style={{ background: status.bg, color: status.color }}>{status.label}</span>
           </div>
@@ -334,7 +334,7 @@ function PastOrderRow({ order, onReceipt, onDownload, onAvis, canAvis, onReorder
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <p className="text-sm font-bold text-[#111827]">{formatFCFA(order.montantTotal || 0)}</p>
+        <p className="text-sm font-bold text-[#1A0C00]">{formatFCFA(order.montantTotal || 0)}</p>
         {(order.estPaye || order.statut === 'LIVREE') && (
           <button onClick={onReceipt} title="Voir reçu"
             className="w-10 h-10 rounded-2xl flex items-center justify-center transition"
@@ -343,7 +343,7 @@ function PastOrderRow({ order, onReceipt, onDownload, onAvis, canAvis, onReorder
           </button>
         )}
         <button onClick={onDownload} title="Télécharger PDF"
-          className="w-10 h-10 rounded-2xl flex items-center justify-center text-[#6B7280] bg-[#F3F4F6] transition hover:text-[#111827]">
+          className="w-10 h-10 rounded-2xl flex items-center justify-center text-[#8B6E50] bg-[#F3F4F6] transition hover:text-[#1A0C00]">
           <Download className="w-4 h-4" />
         </button>
         {order.statut === 'LIVREE' && onReorder && (
@@ -376,8 +376,8 @@ function AvisPromptCard({ order, onAvis }) {
         <MessageSquare className="w-4 h-4 text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-[#111827]">{order.restaurant?.nom || 'Votre commande'}</p>
-        <p className="text-xs text-[#6B7280] truncate">{items || 'Commande livrée'}</p>
+        <p className="text-sm font-bold text-[#1A0C00]">{order.restaurant?.nom || 'Votre commande'}</p>
+        <p className="text-xs text-[#8B6E50] truncate">{items || 'Commande livrée'}</p>
       </div>
       <button onClick={onAvis}
         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white shrink-0 transition"
@@ -408,7 +408,7 @@ function OrderTrackModal({ order, onClose, onReceipt }) {
   return (
     <>
       {/* Overlay */}
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(2px)', zIndex: 999, animation: 'fadeIn 0.2s ease' }} />
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(139,110,80,0.45)', backdropFilter: 'blur(2px)', zIndex: 999, animation: 'fadeIn 0.2s ease' }} />
       {/* Panel */}
       <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 420, maxWidth: '95vw', background: '#fff', zIndex: 1000, animation: 'slideInRight 0.28s cubic-bezier(0.32,0.72,0,1)', overflowY: 'auto' }}>
         <div className="px-6 py-4 flex items-center justify-between" style={{ background: ACCENT }}>
@@ -457,7 +457,7 @@ function OrderTrackModal({ order, onClose, onReceipt }) {
           <div className="mt-4 pt-4 border-t space-y-1.5" style={{ borderColor: BORDER }}>
             {(order.lignes || []).map((l, i) => (
               <div key={i} className="flex justify-between text-sm">
-                <span className="text-[#6B7280]">{l.quantite}× {l.article?.nom || l.nom}</span>
+                <span className="text-[#8B6E50]">{l.quantite}× {l.article?.nom || l.nom}</span>
                 <span className="font-semibold text-[#1A1A1A]">{formatFCFA((l.prixUnitaire || l.prix || 0) * l.quantite)}</span>
               </div>
             ))}
@@ -588,7 +588,7 @@ function OverviewTab({ user, orders, activeOrders, delivered, cancelled, pending
               <div className="w-1.5 h-1.5 rounded-full mt-2" style={{ background: kpi.accent }} />
             </div>
             <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-1">{kpi.label}</p>
-            <p className="text-2xl font-extrabold text-[#111827] leading-tight mb-1" style={{ letterSpacing: '-0.02em' }}>
+            <p className="text-2xl font-extrabold text-[#1A0C00] leading-tight mb-1" style={{ letterSpacing: '-0.02em' }}>
               {kpi.value}
             </p>
             <p className="text-xs font-medium" style={{ color: kpi.accent }}>{kpi.sub}</p>
@@ -609,7 +609,7 @@ function OverviewTab({ user, orders, activeOrders, delivered, cancelled, pending
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#FFFBEB' }}>
                   <Star className="w-3.5 h-3.5 text-amber-500" />
                 </div>
-                <span className="text-sm font-bold text-[#111827]">Vos avis nous intéressent</span>
+                <span className="text-sm font-bold text-[#1A0C00]">Vos avis nous intéressent</span>
                 <span className="ml-auto text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ background: ACCENT }}>
                   {pendingAvis.length} en attente
                 </span>
@@ -629,7 +629,7 @@ function OverviewTab({ user, orders, activeOrders, delivered, cancelled, pending
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
                   <Package className="w-3.5 h-3.5" style={{ color: ACCENT }} />
                 </div>
-                <span className="text-sm font-bold text-[#111827]">Commandes en cours</span>
+                <span className="text-sm font-bold text-[#1A0C00]">Commandes en cours</span>
                 {activeOrders.length > 0 && (
                   <span className="text-xs font-bold px-2 py-0.5 rounded-full"
                     style={{ background: ACCENT_LIGHT, color: ACCENT }}>
@@ -680,7 +680,7 @@ function OverviewTab({ user, orders, activeOrders, delivered, cancelled, pending
                   <div className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center">
                     <CheckCircle className="w-3.5 h-3.5 text-green-600" />
                   </div>
-                  <span className="text-sm font-bold text-[#111827]">Historique récent</span>
+                  <span className="text-sm font-bold text-[#1A0C00]">Historique récent</span>
                 </div>
                 <button onClick={() => setTab('orders')}
                   className="text-xs font-semibold flex items-center gap-1" style={{ color: ACCENT }}>
@@ -730,7 +730,7 @@ function OverviewTab({ user, orders, activeOrders, delivered, cancelled, pending
               { label: 'Sécurité', icon: Shield, tab: 'security' },
             ].map(item => (
               <button key={item.tab} onClick={() => setTab(item.tab)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#374151] hover:text-[#111827] transition-colors mb-1"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#374151] hover:text-[#1A0C00] transition-colors mb-1"
                 style={{ background: 'transparent' }}
                 onMouseEnter={e => e.currentTarget.style.background = ACCENT_LIGHT}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
@@ -752,7 +752,7 @@ function OverviewTab({ user, orders, activeOrders, delivered, cancelled, pending
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-[#111827]">#{delivered[0].numero}</p>
+                  <p className="text-sm font-bold text-[#1A0C00]">#{delivered[0].numero}</p>
                   <p className="text-xs text-[#9CA3AF]">{formatFCFA(delivered[0].montantTotal || 0)}</p>
                 </div>
                 <button onClick={() => setReceiptOrder(delivered[0])}
@@ -803,10 +803,10 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
 
           {/* Infos */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-black text-[#111827] leading-tight">
+            <h2 className="text-xl font-black text-[#1A0C00] leading-tight">
               {user?.prenom || user?.nom || 'Mon profil'}
             </h2>
-            <p className="text-sm text-[#6B7280] mt-0.5 truncate">{user?.email || ''}</p>
+            <p className="text-sm text-[#8B6E50] mt-0.5 truncate">{user?.email || ''}</p>
             <div className="flex flex-wrap items-center gap-2 mt-3">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
                 <BadgeCheck className="w-3 h-3" /> Compte vérifié
@@ -837,12 +837,12 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: 'Commandes', value: orders.length, icon: ShoppingBag, accent: ACCENT },
-          { label: 'Total dépensé', value: formatFCFA(totalSpent), icon: Wallet, accent: '#111827' },
+          { label: 'Total dépensé', value: formatFCFA(totalSpent), icon: Wallet, accent: '#1A0C00' },
           { label: 'Livrées', value: delivered.length, icon: CheckCircle, accent: '#10B981' },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-xl border p-4 flex flex-col gap-2" style={{ borderColor: BORDER, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <s.icon className="w-5 h-5" style={{ color: s.accent }} />
-            <p className="text-xl font-black text-[#111827]">{s.value}</p>
+            <p className="text-xl font-black text-[#1A0C00]">{s.value}</p>
             <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">{s.label}</p>
           </div>
         ))}
@@ -852,7 +852,7 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
       <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
           <div>
-            <h3 className="text-sm font-black text-[#111827]">Informations personnelles</h3>
+            <h3 className="text-sm font-black text-[#1A0C00]">Informations personnelles</h3>
             <p className="text-xs text-gray-400 mt-0.5">Gérez vos coordonnées de compte</p>
           </div>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: ACCENT_LIGHT }}>
@@ -872,7 +872,7 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
                   value={profileForm.nom}
                   onChange={e => setProfileForm(p => ({ ...p, nom: e.target.value }))}
                   placeholder="Votre nom complet"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#111827] placeholder-gray-300 outline-none border transition-colors"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#1A0C00] placeholder-gray-300 outline-none border transition-colors"
                   style={{ borderColor: 'rgba(0,0,0,0.1)', background: '#FAFAFA' }}
                   onFocus={e => { e.target.style.borderColor = ACCENT; e.target.style.background = '#fff'; }}
                   onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.background = '#FAFAFA'; }}
@@ -890,7 +890,7 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
                   value={profileForm.email}
                   onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))}
                   placeholder="votre@email.com"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#111827] placeholder-gray-300 outline-none border transition-colors"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#1A0C00] placeholder-gray-300 outline-none border transition-colors"
                   style={{ borderColor: 'rgba(0,0,0,0.1)', background: '#FAFAFA' }}
                   onFocus={e => { e.target.style.borderColor = ACCENT; e.target.style.background = '#fff'; }}
                   onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.background = '#FAFAFA'; }}
@@ -908,7 +908,7 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
                   value={profileForm.telephone}
                   onChange={e => setProfileForm(p => ({ ...p, telephone: e.target.value }))}
                   placeholder="07 XX XX XX XX"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#111827] placeholder-gray-300 outline-none border transition-colors"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-[#1A0C00] placeholder-gray-300 outline-none border transition-colors"
                   style={{ borderColor: 'rgba(0,0,0,0.1)', background: '#FAFAFA' }}
                   onFocus={e => { e.target.style.borderColor = ACCENT; e.target.style.background = '#fff'; }}
                   onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.background = '#FAFAFA'; }}
@@ -954,7 +954,7 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
             <MapPin className="w-4 h-4" style={{ color: ACCENT }} />
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-[#111827]">Adresses de livraison</h3>
+            <h3 className="text-sm font-extrabold text-[#1A0C00]">Adresses de livraison</h3>
             <p className="text-xs text-[#9CA3AF]">{savedAddresses.length} adresse{savedAddresses.length !== 1 ? 's' : ''} enregistrée{savedAddresses.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
@@ -968,8 +968,8 @@ function ProfileTab({ user, profileForm, setProfileForm, profileMsg, handleProfi
                   <MapPin className="w-3.5 h-3.5" style={{ color: ACCENT }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-[#111827]">{a.label}</p>
-                  <p className="text-xs text-[#6B7280] mt-0.5 truncate">{a.adresse}</p>
+                  <p className="text-sm font-bold text-[#1A0C00]">{a.label}</p>
+                  <p className="text-xs text-[#8B6E50] mt-0.5 truncate">{a.adresse}</p>
                 </div>
                 <button onClick={() => removeAddress(a.id)} className="w-8 h-8 rounded-lg flex items-center justify-center transition hover:bg-red-50" title="Supprimer">
                   <Trash2 className="w-3.5 h-3.5 text-red-400" />
@@ -1040,7 +1040,7 @@ function PaymentTab({ savedPM, setSavedPM, pmForm, setPmForm, pmMsg, setPmMsg, a
 
         {/* ── Cartes enregistrées ────────────────────────────────────── */}
         <div className="space-y-4">
-          <h3 className="text-base font-extrabold text-[#111827]">Cartes & comptes enregistrés</h3>
+          <h3 className="text-base font-extrabold text-[#1A0C00]">Cartes & comptes enregistrés</h3>
 
           {savedPM.length === 0 ? (
             <div className="bg-white rounded-2xl border-2 border-dashed p-10 text-center"
@@ -1079,7 +1079,7 @@ function PaymentTab({ savedPM, setSavedPM, pmForm, setPmForm, pmMsg, setPmMsg, a
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-extrabold text-[#111827] truncate">{m.label}</p>
+                        <p className="text-sm font-extrabold text-[#1A0C00] truncate">{m.label}</p>
                         <p className="text-xs font-medium mt-0.5" style={{ color: type.color }}>{type.label}</p>
                         {m.numero && (
                           <p className="text-xs text-[#9CA3AF] mt-0.5 font-mono">
@@ -1112,7 +1112,7 @@ function PaymentTab({ savedPM, setSavedPM, pmForm, setPmForm, pmMsg, setPmMsg, a
 
         {/* ── Formulaire ajout ───────────────────────────────────────── */}
         <div>
-          <h3 className="text-base font-extrabold text-[#111827] mb-4">Ajouter un moyen de paiement</h3>
+          <h3 className="text-base font-extrabold text-[#1A0C00] mb-4">Ajouter un moyen de paiement</h3>
           <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
 
             {/* Type selector */}
@@ -1290,7 +1290,7 @@ function SecurityTab({ user }) {
               <s.icon className="w-5 h-5" style={{ color: s.color }} />
             </div>
             <div>
-              <p className="text-base font-extrabold text-[#111827]">{s.value}</p>
+              <p className="text-base font-extrabold text-[#1A0C00]">{s.value}</p>
               <p className="text-xs text-[#9CA3AF]">{s.label}</p>
             </div>
           </div>
@@ -1304,7 +1304,7 @@ function SecurityTab({ user }) {
             <Shield className="w-4 h-4" style={{ color: ACCENT }} />
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-[#111827]">Authentification & protection</h3>
+            <h3 className="text-sm font-extrabold text-[#1A0C00]">Authentification & protection</h3>
             <p className="text-xs text-[#9CA3AF]">Gérez votre mot de passe et la double authentification</p>
           </div>
         </div>
@@ -1319,7 +1319,7 @@ function SecurityTab({ user }) {
           <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
             <AlertCircle className="w-4 h-4 text-amber-500" />
           </div>
-          <h3 className="text-sm font-extrabold text-[#111827]">Bonnes pratiques</h3>
+          <h3 className="text-sm font-extrabold text-[#1A0C00]">Bonnes pratiques</h3>
         </div>
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
@@ -1333,8 +1333,8 @@ function SecurityTab({ user }) {
                 <tip.icon className="w-4 h-4" style={{ color: ACCENT }} />
               </div>
               <div>
-                <p className="text-sm font-bold text-[#111827] mb-0.5">{tip.title}</p>
-                <p className="text-xs text-[#6B7280] leading-relaxed">{tip.desc}</p>
+                <p className="text-sm font-bold text-[#1A0C00] mb-0.5">{tip.title}</p>
+                <p className="text-xs text-[#8B6E50] leading-relaxed">{tip.desc}</p>
               </div>
             </div>
           ))}
@@ -1357,8 +1357,8 @@ function DeliveryTab({ module: mod }) {
             <Truck className="w-8 h-8" style={{ color: ACCENT }} />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-[#111827] mb-1">Module Livraison</h3>
-            <p className="text-sm text-[#6B7280] max-w-xs">
+            <h3 className="text-base font-extrabold text-[#1A0C00] mb-1">Module Livraison</h3>
+            <p className="text-sm text-[#8B6E50] max-w-xs">
               Ce module n'est pas encore activé. L'administrateur peut l'activer depuis le dashboard admin
               en configurant un prestataire de livraison (Shipday, Lalamove, etc.).
             </p>
@@ -1385,7 +1385,7 @@ function DeliveryTab({ module: mod }) {
         </div>
       </div>
       <div className="bg-white rounded-2xl border p-6" style={{ borderColor: BORDER }}>
-        <p className="text-sm text-[#6B7280] mb-4">Intégration active via <strong>{mod.provider || 'prestataire'}</strong>.</p>
+        <p className="text-sm text-[#8B6E50] mb-4">Intégration active via <strong>{mod.provider || 'prestataire'}</strong>.</p>
         {mod.apiUrl && (
           <a href={mod.apiUrl} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
@@ -1411,8 +1411,8 @@ function MessagingTab({ module: mod }) {
             <MessageSquare className="w-8 h-8" style={{ color: ACCENT }} />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-[#111827] mb-1">Module Messagerie</h3>
-            <p className="text-sm text-[#6B7280] max-w-xs">
+            <h3 className="text-base font-extrabold text-[#1A0C00] mb-1">Module Messagerie</h3>
+            <p className="text-sm text-[#8B6E50] max-w-xs">
               Ce module n'est pas encore activé. L'administrateur peut l'activer depuis le dashboard admin
               en configurant un prestataire de messagerie (Sendbird, Tawk.to, etc.).
             </p>
@@ -1439,7 +1439,7 @@ function MessagingTab({ module: mod }) {
         </div>
       </div>
       <div className="bg-white rounded-2xl border p-6" style={{ borderColor: BORDER }}>
-        <p className="text-sm text-[#6B7280] mb-4">Intégration active via <strong>{mod.provider || 'prestataire'}</strong>.</p>
+        <p className="text-sm text-[#8B6E50] mb-4">Intégration active via <strong>{mod.provider || 'prestataire'}</strong>.</p>
         {mod.apiUrl && (
           <a href={mod.apiUrl} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
@@ -1680,13 +1680,13 @@ export default function ClientDashboard() {
             <UtensilsCrossed className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold leading-none" style={{ color: '#111827' }}>Resto d'ici</p>
+            <p className="text-sm font-bold leading-none" style={{ color: '#1A0C00' }}>Resto d'ici</p>
             <p className="text-[10px] mt-0.5 font-semibold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>
               Espace client
             </p>
           </div>
           {mobile && (
-            <button onClick={() => setSideOpen(false)} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer' }}>
+            <button onClick={() => setSideOpen(false)} style={{ color: '#8B6E50', background: 'none', border: 'none', cursor: 'pointer' }}>
               <X className="w-4 h-4" />
             </button>
           )}
@@ -1710,7 +1710,7 @@ export default function ClientDashboard() {
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all"
               style={{
                 background: active ? ACCENT_LIGHT : 'transparent',
-                color: active ? ACCENT : '#6B7280',
+                color: active ? ACCENT : '#8B6E50',
                 border: 'none',
                 cursor: 'pointer',
               }}>
@@ -1742,7 +1742,7 @@ export default function ClientDashboard() {
             {(user?.prenom || user?.nom || 'C')[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate" style={{ color: '#111827' }}>{user?.prenom || user?.nom || 'Client'}</p>
+            <p className="text-xs font-semibold truncate" style={{ color: '#1A0C00' }}>{user?.prenom || user?.nom || 'Client'}</p>
             <p className="text-[10px] truncate" style={{ color: '#9CA3AF' }}>
               {user?.email || ''}
             </p>
@@ -1791,7 +1791,7 @@ export default function ClientDashboard() {
               <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: ACCENT, lineHeight: 1 }}>
                 Espace client
               </p>
-              <p className="text-[13px] font-bold" style={{ color: '#111827', lineHeight: 1.3 }}>
+              <p className="text-[13px] font-bold" style={{ color: '#1A0C00', lineHeight: 1.3 }}>
                 {TABS.find(t => t.key === tab)?.label || 'Mon compte'}
               </p>
             </div>
@@ -1850,7 +1850,7 @@ export default function ClientDashboard() {
                       className="px-4 py-1.5 rounded-full text-sm font-semibold border transition"
                       style={{
                         background: orderFilter === f.k ? ACCENT : '#fff',
-                        color: orderFilter === f.k ? '#fff' : '#6B7280',
+                        color: orderFilter === f.k ? '#fff' : '#8B6E50',
                         borderColor: orderFilter === f.k ? ACCENT : BORDER,
                       }}>
                       {f.label}
@@ -1861,7 +1861,7 @@ export default function ClientDashboard() {
                 <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER }}>
                   <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-[#111827]">Mes commandes</span>
+                      <span className="text-sm font-bold text-[#1A0C00]">Mes commandes</span>
                       <span className="text-xs text-[#9CA3AF]">
                         {filteredOrders.length} résultat{filteredOrders.length !== 1 ? 's' : ''}
                       </span>
@@ -1879,10 +1879,10 @@ export default function ClientDashboard() {
                   ) : filteredOrders.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center" style={{ background: '#FFF7ED' }}>
                       <ShoppingBag className="w-12 h-12 mb-3" style={{ color: ACCENT, opacity: 0.4 }} />
-                      <p className="text-sm font-medium mb-1" style={{ color: '#0F172A' }}>
+                      <p className="text-sm font-medium mb-1" style={{ color: '#1A0C00' }}>
                         {orders.length === 0 ? "Vous n'avez pas encore passé de commande" : 'Aucune commande dans cette catégorie'}
                       </p>
-                      <p className="text-xs mb-4" style={{ color: '#94A3B8' }}>Explorez notre menu et passez votre première commande.</p>
+                      <p className="text-xs mb-4" style={{ color: '#A89070' }}>Explorez notre menu et passez votre première commande.</p>
                       <Link to="/menu"
                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
                         style={{ background: ACCENT, textDecoration: 'none' }}>
@@ -1953,7 +1953,7 @@ export default function ClientDashboard() {
       {showLogoutConfirm && (
         <>
           <div onClick={() => setShowLogoutConfirm(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(3px)', zIndex: 999, animation: 'fadeIn 0.2s ease' }} />
+            style={{ position: 'fixed', inset: 0, background: 'rgba(139,110,80,0.5)', backdropFilter: 'blur(3px)', zIndex: 999, animation: 'fadeIn 0.2s ease' }} />
           <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden"
               style={{ animation: 'slideInUp 0.25s cubic-bezier(0.32,0.72,0,1)' }}>
@@ -1962,8 +1962,8 @@ export default function ClientDashboard() {
                   style={{ background: `${RED}15` }}>
                   <LogOut className="w-6 h-6" style={{ color: RED }} />
                 </div>
-                <h3 className="text-lg font-extrabold text-[#111827] mb-1">Déconnexion</h3>
-                <p className="text-sm text-[#6B7280]">Voulez-vous vous déconnecter ?</p>
+                <h3 className="text-lg font-extrabold text-[#1A0C00] mb-1">Déconnexion</h3>
+                <p className="text-sm text-[#8B6E50]">Voulez-vous vous déconnecter ?</p>
               </div>
               <div className="px-6 pb-6 pt-5 flex gap-3">
                 <button onClick={() => setShowLogoutConfirm(false)}

@@ -15,7 +15,7 @@ import B2BOnboardingWizard from './B2BOnboardingWizard';
 
 const A  = '#EA580C';
 const AL = '#FFF0DF';
-const SF = '#F9F7F5';
+const SF = '#FFFFFF';
 const BD = 'rgba(89,67,42,0.10)';
 
 /* ── Tokens visuels partagés avec menu.jsx ─────────────────────────────────── */
@@ -285,10 +285,10 @@ function StepBar({ current }) {
           <div key={i} className="flex items-center flex-1">
             <div className="flex items-center gap-1.5">
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-all"
-                style={{ background: done ? '#16A34A' : active ? A : '#E5E7EB', color: (done || active) ? '#fff' : '#6B7280' }}>
+                style={{ background: done ? '#16A34A' : active ? A : '#E5E7EB', color: (done || active) ? '#fff' : '#8B6E50' }}>
                 {done ? '✓' : i + 1}
               </div>
-              <span className="text-xs font-semibold hidden sm:block" style={{ color: active ? A : done ? '#16A34A' : '#6B7280' }}>
+              <span className="text-xs font-semibold hidden sm:block" style={{ color: active ? A : done ? '#16A34A' : '#8B6E50' }}>
                 {label}
               </span>
             </div>
@@ -618,19 +618,19 @@ export default function BulkOrder() {
       <header className="bg-white border-b sticky top-0 z-20" style={{ borderColor: BD }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
           <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate('/b2b')}
-            className="w-9 h-9 rounded-xl border flex items-center justify-center text-[#6B7280] hover:text-[#111827] transition shrink-0"
+            className="w-9 h-9 rounded-xl border flex items-center justify-center text-[#8B6E50] hover:text-[#1A0C00] transition shrink-0"
             style={{ borderColor: BD }}>
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-[#6B7280]">
+            <p className="text-xs text-[#8B6E50]">
               {mode === 'instant' ? '⚡ Commande express — livraison aujourd\'hui' : '📅 Commande planifiée'}
             </p>
-            <p className="text-sm font-extrabold text-[#111827] leading-none">{STEPS[step]}</p>
+            <p className="text-sm font-extrabold text-[#1A0C00] leading-none">{STEPS[step]}</p>
           </div>
           {totalCouverts > 0 && (
             <div className="shrink-0 text-right">
-              <p className="text-xs text-[#6B7280]">{totalCouverts} couvert{totalCouverts > 1 ? 's' : ''}</p>
+              <p className="text-xs text-[#8B6E50]">{totalCouverts} couvert{totalCouverts > 1 ? 's' : ''}</p>
               <p className="text-sm font-extrabold" style={{ color: A }}>{totalEstime.toLocaleString('fr-FR')} FCFA</p>
             </div>
           )}
@@ -685,8 +685,8 @@ export default function BulkOrder() {
             ) : restaurants.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', textAlign: 'center', background: '#FFF7ED', borderRadius: 16 }}>
                 <UtensilsCrossed size={48} style={{ marginBottom: 12, color: '#EA580C', opacity: 0.4 }} />
-                <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 700, color: '#0F172A', margin: '0 0 6px' }}>Aucun restaurant disponible</p>
-                <p style={{ fontFamily: sans, fontSize: 13, color: '#94A3B8', margin: 0 }}>Aucun restaurant partenaire n'est disponible pour le moment.</p>
+                <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 700, color: '#1A0C00', margin: '0 0 6px' }}>Aucun restaurant disponible</p>
+                <p style={{ fontFamily: sans, fontSize: 13, color: '#A89070', margin: 0 }}>Aucun restaurant partenaire n'est disponible pour le moment.</p>
               </div>
             ) : (
               <>
@@ -787,8 +787,8 @@ export default function BulkOrder() {
                       ) : filteredProducts.length === 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', textAlign: 'center', background: '#FFF7ED', borderRadius: 12 }}>
                           <ShoppingBag size={48} style={{ marginBottom: 12, color: '#EA580C', opacity: 0.4 }} />
-                          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Aucun article disponible</p>
-                          <p style={{ fontFamily: sans, fontSize: 12, color: '#94A3B8', margin: 0 }}>Essayez une autre catégorie ou modifiez votre recherche.</p>
+                          <p style={{ fontFamily: sans, fontSize: 14, fontWeight: 700, color: '#1A0C00', margin: '0 0 4px' }}>Aucun article disponible</p>
+                          <p style={{ fontFamily: sans, fontSize: 12, color: '#A89070', margin: 0 }}>Essayez une autre catégorie ou modifiez votre recherche.</p>
                         </div>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -860,7 +860,7 @@ export default function BulkOrder() {
 
               {/* Date / heure */}
               <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
-                <h3 className="font-bold text-[#111827] mb-4 flex items-center gap-2">
+                <h3 className="font-bold text-[#1A0C00] mb-4 flex items-center gap-2">
                   <Clock className="w-4 h-4" style={{ color: A }} />
                   {mode === 'instant' ? 'Livraison aujourd\'hui' : 'Choisissez votre créneau'}
                 </h3>
@@ -906,7 +906,7 @@ export default function BulkOrder() {
                     Heure de livraison mise à jour automatiquement.
                   </p>
                 )}
-                <p className="text-[11px] text-[#6B7280] mt-2">
+                <p className="text-[11px] text-[#8B6E50] mt-2">
                   {mode === 'instant'
                     ? 'Heure calculée automatiquement — délai minimum 4 heures.'
                     : 'Délai minimum 4 heures entre la commande et la livraison.'}
@@ -915,7 +915,7 @@ export default function BulkOrder() {
 
               {/* Lieu de livraison + map */}
               <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
-                <h3 className="font-bold text-[#111827] mb-4 flex items-center gap-2">
+                <h3 className="font-bold text-[#1A0C00] mb-4 flex items-center gap-2">
                   <MapPin className="w-4 h-4" style={{ color: A }} /> Lieu de livraison
                 </h3>
 
@@ -946,16 +946,16 @@ export default function BulkOrder() {
                 {locError && <p className="text-xs text-red-500 mb-3">{locError}</p>}
 
                 <DeliveryMap value={mapPos} onChange={(pos) => { setMapPos(pos); if (pos?.address) setLivraison(p => ({ ...p, adresseLivraison: pos.address })); }} heightClassName="h-56" />
-                <p className="text-[11px] text-[#6B7280] mt-2 text-center">Cliquez ou déplacez le repère pour ajuster le point de livraison</p>
+                <p className="text-[11px] text-[#8B6E50] mt-2 text-center">Cliquez ou déplacez le repère pour ajuster le point de livraison</p>
               </div>
 
               {/* Budget summary per member */}
               {Object.keys(memberTotals).length > 0 && (
                 <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
-                  <h3 className="font-bold text-[#111827] mb-1 flex items-center gap-2">
+                  <h3 className="font-bold text-[#1A0C00] mb-1 flex items-center gap-2">
                     <Users className="w-4 h-4" style={{ color: A }} /> Impact budgétaire par membre
                   </h3>
-                  <p className="text-xs text-[#6B7280] mb-4">
+                  <p className="text-xs text-[#8B6E50] mb-4">
                     Ces montants seront déduits du budget mensuel de chaque collaborateur.
                   </p>
                   <div className="space-y-3">
@@ -975,14 +975,14 @@ export default function BulkOrder() {
                                 style={{ background: AL, color: A }}>
                                 {(collab.nom || '?').charAt(0).toUpperCase()}
                               </div>
-                              <p className="text-sm font-semibold text-[#111827]">{collab.nom}</p>
+                              <p className="text-sm font-semibold text-[#1A0C00]">{collab.nom}</p>
                             </div>
                             <div className="text-right">
                               <p className="text-xs font-bold" style={{ color: isOver ? '#DC2626' : A }}>
                                 +{cartSpend.toLocaleString('fr-FR')} FCFA
                               </p>
                               {budget > 0 && (
-                                <p className="text-[10px] text-[#6B7280]">
+                                <p className="text-[10px] text-[#8B6E50]">
                                   {newTotal.toLocaleString('fr-FR')} / {budget.toLocaleString('fr-FR')}
                                 </p>
                               )}
@@ -1015,7 +1015,7 @@ export default function BulkOrder() {
 
               <div className="flex gap-3">
                 <button onClick={() => setStep(0)}
-                  className="px-5 py-3 rounded-2xl border text-sm font-semibold text-[#6B7280] transition hover:bg-[#F3F4F6]"
+                  className="px-5 py-3 rounded-2xl border text-sm font-semibold text-[#8B6E50] transition hover:bg-[#F3F4F6]"
                   style={{ borderColor: BD }}>
                   Retour
                 </button>
@@ -1030,7 +1030,7 @@ export default function BulkOrder() {
             {/* Right: cart recap */}
             <div className="lg:col-span-1">
               <div className="sticky top-20 bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
-                <h3 className="font-bold text-[#111827] mb-4 flex items-center gap-2">
+                <h3 className="font-bold text-[#1A0C00] mb-4 flex items-center gap-2">
                   <ShoppingBag className="w-4 h-4" style={{ color: A }} /> Votre sélection
                 </h3>
                 <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
@@ -1038,21 +1038,21 @@ export default function BulkOrder() {
                     <div key={item.article.id} className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: A }}>{item.quantite}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-[#111827] truncate">{item.article.nom}</p>
-                        <p className="text-[11px] text-[#6B7280]">{(item.quantite * Number(item.article.prixClient ?? (item.article.prix || 0))).toLocaleString('fr-FR')} FCFA</p>
+                        <p className="text-xs font-semibold text-[#1A0C00] truncate">{item.article.nom}</p>
+                        <p className="text-[11px] text-[#8B6E50]">{(item.quantite * Number(item.article.prixClient ?? (item.article.prix || 0))).toLocaleString('fr-FR')} FCFA</p>
                       </div>
-                      <button onClick={() => deleteFromCart(item.article.id)} className="text-[#6B7280] hover:text-red-400">
+                      <button onClick={() => deleteFromCart(item.article.id)} className="text-[#8B6E50] hover:text-red-400">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
                 </div>
                 <div className="pt-3 border-t" style={{ borderColor: BD }}>
-                  <div className="flex justify-between text-sm font-bold text-[#111827]">
+                  <div className="flex justify-between text-sm font-bold text-[#1A0C00]">
                     <span>Total estimé</span>
                     <span style={{ color: A }}>{totalEstime.toLocaleString('fr-FR')} FCFA</span>
                   </div>
-                  <p className="text-[11px] text-[#6B7280] mt-1">Facturation mensuelle SYSCOHADA</p>
+                  <p className="text-[11px] text-[#8B6E50] mt-1">Facturation mensuelle SYSCOHADA</p>
                 </div>
               </div>
             </div>
@@ -1068,13 +1068,13 @@ export default function BulkOrder() {
             {success ? (
               <div className="flex flex-col items-center gap-4 py-16 text-center">
                 <CheckCircle className="w-16 h-16 text-green-500" />
-                <p className="text-lg font-bold text-[#111827]">{success}</p>
-                <p className="text-sm text-[#6B7280]">Redirection vers le tableau de bord…</p>
+                <p className="text-lg font-bold text-[#1A0C00]">{success}</p>
+                <p className="text-sm text-[#8B6E50]">Redirection vers le tableau de bord…</p>
               </div>
             ) : (
               <>
                 <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
-                  <h3 className="font-bold text-[#111827] mb-4">Récapitulatif de la commande</h3>
+                  <h3 className="font-bold text-[#1A0C00] mb-4">Récapitulatif de la commande</h3>
 
                   {/* Items — regroupés par membre */}
                   <div className="space-y-2 mb-4">
@@ -1086,8 +1086,8 @@ export default function BulkOrder() {
                       <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: SF }}>
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: A }}>{ligne.quantite}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-[#111827] truncate">{ligne.nomArticle}</p>
-                          <p className="text-[11px] text-[#6B7280]">
+                          <p className="text-sm font-semibold text-[#1A0C00] truncate">{ligne.nomArticle}</p>
+                          <p className="text-[11px] text-[#8B6E50]">
                             {collab ? `→ ${collab.nom}` : '→ Sans attribution'}
                           </p>
                         </div>
@@ -1101,15 +1101,15 @@ export default function BulkOrder() {
 
                   {/* Totals */}
                   <div className="border-t pt-4 space-y-2" style={{ borderColor: BD }}>
-                    <div className="flex justify-between text-sm text-[#6B7280]">
+                    <div className="flex justify-between text-sm text-[#8B6E50]">
                       <span>Sous-total HT</span>
                       <span>{Math.round(totalEstime / 1.18).toLocaleString('fr-FR')} FCFA</span>
                     </div>
-                    <div className="flex justify-between text-sm text-[#6B7280]">
+                    <div className="flex justify-between text-sm text-[#8B6E50]">
                       <span>TVA 18%</span>
                       <span>{Math.round(totalEstime - totalEstime / 1.18).toLocaleString('fr-FR')} FCFA</span>
                     </div>
-                    <div className="flex justify-between text-base font-bold text-[#111827]">
+                    <div className="flex justify-between text-base font-bold text-[#1A0C00]">
                       <span>Total TTC</span>
                       <span style={{ color: A }}>{totalEstime.toLocaleString('fr-FR')} FCFA</span>
                     </div>
@@ -1118,13 +1118,13 @@ export default function BulkOrder() {
 
                 {/* Delivery recap */}
                 <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
-                  <h3 className="font-bold text-[#111827] mb-3">
+                  <h3 className="font-bold text-[#1A0C00] mb-3">
                     {mode === 'instant' ? '⚡ Livraison express' : '📅 Livraison planifiée'}
                   </h3>
-                  <div className="space-y-2 text-sm text-[#6B7280]">
+                  <div className="space-y-2 text-sm text-[#8B6E50]">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" style={{ color: A }} />
-                      <span className="font-medium" style={{ color: '#111827' }}>
+                      <span className="font-medium" style={{ color: '#1A0C00' }}>
                         {getDeliveryLabel(livraison.dateLivraison, livraison.heureLivraison)}
                       </span>
                     </div>
@@ -1154,7 +1154,7 @@ export default function BulkOrder() {
 
                 <div className="flex gap-3">
                   <button onClick={() => setStep(1)}
-                    className="px-5 py-3 rounded-2xl border text-sm font-semibold text-[#6B7280] transition hover:bg-[#F3F4F6]"
+                    className="px-5 py-3 rounded-2xl border text-sm font-semibold text-[#8B6E50] transition hover:bg-[#F3F4F6]"
                     style={{ borderColor: BD }}>
                     Modifier
                   </button>
@@ -1182,7 +1182,7 @@ export default function BulkOrder() {
           <div className="px-5 py-4 flex items-start justify-between gap-3"
             style={{ background: AL, borderBottom: `1px solid ${BD}` }}>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-[#111827] truncate">{pickerArticle.nom}</p>
+              <p className="font-bold text-[#1A0C00] truncate">{pickerArticle.nom}</p>
               <p className="text-xs mt-0.5" style={{ color: A }}>
                 {formatFCFA(prix)} / portion · Qui veut ce plat ?
               </p>
@@ -1208,13 +1208,13 @@ export default function BulkOrder() {
               return (
                 <div key={member.id} className="flex items-center gap-3 px-5 py-3.5">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0"
-                    style={{ background: isLibre ? '#F3F4F6' : AL, color: isLibre ? '#6B7280' : A }}>
+                    style={{ background: isLibre ? '#F3F4F6' : AL, color: isLibre ? '#8B6E50' : A }}>
                     {isLibre ? '—' : member.nom.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#111827] truncate">{member.nom}</p>
+                    <p className="text-sm font-semibold text-[#1A0C00] truncate">{member.nom}</p>
                     {!isLibre && budget > 0 && (
-                      <p className="text-[10px]" style={{ color: isOver ? '#DC2626' : '#6B7280' }}>
+                      <p className="text-[10px]" style={{ color: isOver ? '#DC2626' : '#8B6E50' }}>
                         {isOver
                           ? `⚠ Dépasse de ${formatFCFA(Math.abs(solde))}`
                           : `Solde après : ${formatFCFA(Math.max(0, solde))}`}
@@ -1229,10 +1229,10 @@ export default function BulkOrder() {
                         return { ...p, [member.id]: next };
                       })}
                       className="w-8 h-8 rounded-xl flex items-center justify-center text-lg font-bold transition"
-                      style={{ background: qty > 0 ? '#FFF0DF' : '#F3F4F6', color: qty > 0 ? A : '#6B7280' }}>
+                      style={{ background: qty > 0 ? '#FFF0DF' : '#F3F4F6', color: qty > 0 ? A : '#8B6E50' }}>
                       −
                     </button>
-                    <span className="w-6 text-center text-sm font-bold text-[#111827]">{qty}</span>
+                    <span className="w-6 text-center text-sm font-bold text-[#1A0C00]">{qty}</span>
                     <button
                       onClick={() => {
                         if (isOver) return;
@@ -1240,7 +1240,7 @@ export default function BulkOrder() {
                       }}
                       disabled={isOver}
                       className="w-8 h-8 rounded-xl flex items-center justify-center text-lg font-bold transition disabled:opacity-30"
-                      style={{ background: isOver ? '#F3F4F6' : AL, color: isOver ? '#6B7280' : A }}>
+                      style={{ background: isOver ? '#F3F4F6' : AL, color: isOver ? '#8B6E50' : A }}>
                       +
                     </button>
                   </div>

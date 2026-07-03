@@ -55,7 +55,7 @@ export default function AcceptInvitation() {
             <UtensilsCrossed className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="text-xl font-bold text-[#0F172A] leading-tight">Resto d'ici</p>
+            <p className="text-xl font-bold text-[#1A0C00] leading-tight">Resto d'ici</p>
             <p className="text-[11px] text-[#737373] font-semibold">Espace Entreprise</p>
           </div>
         </div>
@@ -81,8 +81,8 @@ export default function AcceptInvitation() {
             {!loadingInvit && invitError && (
               <div className="flex flex-col items-center gap-3 py-6 text-center">
                 <AlertCircle className="w-12 h-12 text-red-400" />
-                <p className="text-base font-bold text-[#111827]">Invitation invalide</p>
-                <p className="text-sm text-[#6B7280]">{invitError}</p>
+                <p className="text-base font-bold text-[#1A0C00]">Invitation invalide</p>
+                <p className="text-sm text-[#8B6E50]">{invitError}</p>
                 <Link to="/login" className="mt-2 text-sm font-semibold underline" style={{ color: A }}>
                   Aller à la connexion
                 </Link>
@@ -93,8 +93,8 @@ export default function AcceptInvitation() {
             {success && (
               <div className="flex flex-col items-center gap-3 py-6 text-center">
                 <CheckCircle className="w-12 h-12 text-green-500" />
-                <p className="text-base font-bold text-[#111827]">Compte activé !</p>
-                <p className="text-sm text-[#6B7280]">Redirection vers la connexion…</p>
+                <p className="text-base font-bold text-[#1A0C00]">Compte activé !</p>
+                <p className="text-sm text-[#8B6E50]">Redirection vers la connexion…</p>
               </div>
             )}
 
@@ -105,11 +105,11 @@ export default function AcceptInvitation() {
                   <p className="text-sm font-bold" style={{ color: A }}>
                     {invitation.entreprise}
                   </p>
-                  <p className="text-xs text-[#6B7280] mt-0.5">
+                  <p className="text-xs text-[#8B6E50] mt-0.5">
                     vous invite à rejoindre leur espace entreprise
                   </p>
                   {invitation.limiteBudget > 0 && (
-                    <p className="text-xs mt-1 text-[#6B7280]">
+                    <p className="text-xs mt-1 text-[#8B6E50]">
                       Budget mensuel alloué : <strong style={{ color: A }}>{invitation.limiteBudget.toLocaleString('fr-FR')} FCFA</strong>
                     </p>
                   )}
@@ -123,7 +123,7 @@ export default function AcceptInvitation() {
                       type="text"
                       value={invitation.nom}
                       readOnly
-                      className="w-full rounded-xl px-4 py-3 text-sm bg-[#F3F4F6] text-[#6B7280] cursor-not-allowed"
+                      className="w-full rounded-xl px-4 py-3 text-sm bg-[#F3F4F6] text-[#8B6E50] cursor-not-allowed"
                       style={{ border: '1px solid rgba(89,67,42,0.10)' }}
                     />
                   </div>
@@ -135,7 +135,7 @@ export default function AcceptInvitation() {
                       type="email"
                       value={invitation.email}
                       readOnly
-                      className="w-full rounded-xl px-4 py-3 text-sm bg-[#F3F4F6] text-[#6B7280] cursor-not-allowed"
+                      className="w-full rounded-xl px-4 py-3 text-sm bg-[#F3F4F6] text-[#8B6E50] cursor-not-allowed"
                       style={{ border: '1px solid rgba(89,67,42,0.10)' }}
                     />
                   </div>
@@ -149,7 +149,7 @@ export default function AcceptInvitation() {
                       onChange={e => setForm(p => ({ ...p, prenom: e.target.value }))}
                       placeholder="Votre prénom"
                       className="w-full rounded-xl px-4 py-3 text-sm outline-none focus:ring-2"
-                      style={{ background: '#F9F7F5', border: '1px solid rgba(89,67,42,0.10)', focusRingColor: A }}
+                      style={{ background: '#FFFFFF', border: '1px solid rgba(89,67,42,0.10)', focusRingColor: A }}
                     />
                   </div>
 
@@ -164,10 +164,10 @@ export default function AcceptInvitation() {
                         placeholder="8 caractères minimum"
                         required
                         className="w-full rounded-xl px-4 py-3 pr-11 text-sm outline-none"
-                        style={{ background: '#F9F7F5', border: '1px solid rgba(89,67,42,0.10)' }}
+                        style={{ background: '#FFFFFF', border: '1px solid rgba(89,67,42,0.10)' }}
                       />
                       <button type="button" onClick={() => setShowPwd(v => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]">
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B6E50]">
                         {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
@@ -183,7 +183,7 @@ export default function AcceptInvitation() {
                       placeholder="Retapez votre mot de passe"
                       required
                       className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                      style={{ background: '#F9F7F5', border: '1px solid rgba(89,67,42,0.10)' }}
+                      style={{ background: '#FFFFFF', border: '1px solid rgba(89,67,42,0.10)' }}
                     />
                   </div>
 
@@ -206,7 +206,7 @@ export default function AcceptInvitation() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-[#6B7280] mt-6">
+        <p className="text-center text-xs text-[#8B6E50] mt-6">
           Déjà un compte ?{' '}
           <Link to="/login" className="font-semibold underline" style={{ color: A }}>Se connecter</Link>
         </p>

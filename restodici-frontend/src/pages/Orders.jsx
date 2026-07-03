@@ -72,7 +72,7 @@ export default function OrdersPage() {
           >
             <ArrowLeft className="w-6 h-6 text-[#737373]" />
           </button>
-          <h1 className="text-2xl font-bold text-[#0F172A] flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#1A0C00] flex items-center gap-2">
             <History className="w-6 h-6" />
             Mes Commandes
           </h1>
@@ -81,7 +81,7 @@ export default function OrdersPage() {
         {orders.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center">
             <History className="w-16 h-16 text-[#737373] mx-auto mb-4 opacity-50" />
-            <h3 className="text-xl font-semibold text-[#0F172A] mb-2">Aucune commande trouvée</h3>
+            <h3 className="text-xl font-semibold text-[#1A0C00] mb-2">Aucune commande trouvée</h3>
             <p className="text-[#737373] mb-6">
               Vous n'avez pas encore passé de commande.
             </p>
@@ -99,7 +99,7 @@ export default function OrdersPage() {
               {/* Order header */}
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="font-bold text-lg text-[#0F172A]">Commande #{order.id}</h3>
+                  <h3 className="font-bold text-lg text-[#1A0C00]">Commande #{order.id}</h3>
                   <p className="text-sm text-[#737373]">
                     {new Date(order.timestamp).toLocaleDateString('fr-FR')}
                   </p>
@@ -140,7 +140,7 @@ export default function OrdersPage() {
               <div className="space-y-2 mb-4">
                 {order.items.map((item, index) => (
                   <div key={index} className="flex justify-between text-sm">
-                    <span className="text-[#0F172A]">
+                    <span className="text-[#1A0C00]">
                       {item.quantite}x {item.nom}
                     </span>
                     <span className="text-[#737373]">
@@ -163,7 +163,7 @@ export default function OrdersPage() {
               {/* Detailed view */}
               {activeOrder === order.id && (
                 <div className="mt-4 pt-4 border-t border-[#E2E8F0] bg-white rounded-xl p-4">
-                  <h4 className="font-semibold text-[#0F172A] mb-3">Détails de la commande</h4>
+                  <h4 className="font-semibold text-[#1A0C00] mb-3">Détails de la commande</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                       <p><strong>Numéro de commande:</strong> {order.id}</p>

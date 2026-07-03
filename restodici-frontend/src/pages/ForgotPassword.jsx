@@ -57,8 +57,8 @@ export default function ForgotPassword() {
           {success ? (
             <div className="text-center">
               <h2 className="text-xl font-extrabold text-[#1A1A1A] mb-2">Email envoyé !</h2>
-              <p className="text-[#6B7280] text-sm mb-1">Un lien de réinitialisation a été envoyé si un compte existe avec cet email.</p>
-              <p className="text-[#6B7280]/70 text-xs mb-8">Vérifiez aussi vos spams.</p>
+              <p className="text-[#8B6E50] text-sm mb-1">Un lien de réinitialisation a été envoyé si un compte existe avec cet email.</p>
+              <p className="text-[#8B6E50]/70 text-xs mb-8">Vérifiez aussi vos spams.</p>
               <Link to="/login"
                 className="inline-flex items-center justify-center w-full py-3.5 px-4 rounded-2xl font-bold text-white bg-[#EA580C] hover:bg-[#C2410C] transition-colors text-sm shadow-sm">
                 Retour à la connexion
@@ -73,7 +73,7 @@ export default function ForgotPassword() {
                   <input
                     value={email} onChange={(e) => setEmail(e.target.value)}
                     type="email" placeholder="votre@email.com"
-                    className={`w-full pl-10 pr-4 py-3.5 bg-[#FFF0DF] border-0 rounded-2xl text-[#1A1A1A] placeholder-[#6B7280]/70 text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C]/40 transition-all${error ? ' ring-2 ring-red-400' : ''}`}
+                    className={`w-full pl-10 pr-4 py-3.5 bg-[#FFF0DF] border-0 rounded-2xl text-[#1A1A1A] placeholder-[#8B6E50]/70 text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C]/40 transition-all${error ? ' ring-2 ring-red-400' : ''}`}
                   />
                 </div>
                 {error && <p className="text-red-500 text-xs">{error}</p>}
@@ -90,7 +90,7 @@ export default function ForgotPassword() {
               </button>
 
               <div className="pt-2">
-                <Link to="/login" className="flex items-center gap-2 text-[#6B7280] hover:text-[#EA580C] text-sm font-medium transition-colors">
+                <Link to="/login" className="flex items-center gap-2 text-[#8B6E50] hover:text-[#EA580C] text-sm font-medium transition-colors">
                   <ArrowLeft className="w-4 h-4" />
                   Retour à la connexion
                 </Link>

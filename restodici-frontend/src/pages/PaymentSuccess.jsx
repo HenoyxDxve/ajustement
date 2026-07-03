@@ -54,10 +54,10 @@ export default function PaymentSuccessPage() {
         </div>
 
         {/* Message principal */}
-        <h1 className="text-3xl font-bold text-[#111827] text-center mb-2">
+        <h1 className="text-3xl font-bold text-[#1A0C00] text-center mb-2">
           Paiement réussi !
         </h1>
-        <p className="text-[#6B7280] text-center mb-8">
+        <p className="text-[#8B6E50] text-center mb-8">
           Votre commande <span className="font-bold text-[#EA580C]">#{orderId}</span> a été confirmée.
         </p>
 
@@ -73,10 +73,10 @@ export default function PaymentSuccessPage() {
         )}
 
         {/* Temps de livraison */}
-        <div className="bg-[#F5F6F8] rounded-2xl p-6 mb-8">
+        <div className="bg-[#FFFFFF] rounded-2xl p-6 mb-8">
           <div className="flex items-center justify-center mb-3">
             <Clock className="w-5 h-5 text-[#EA580C] mr-2" />
-            <span className="text-[#6B7280] font-medium">Livraison prévue dans</span>
+            <span className="text-[#8B6E50] font-medium">Livraison prévue dans</span>
           </div>
           <p className="text-4xl font-bold text-[#EA580C] text-center">
             25-35 min
@@ -100,7 +100,7 @@ export default function PaymentSuccessPage() {
         <button
           onClick={handleDownloadReceipt}
           disabled={downloading}
-          className="w-full inline-flex items-center justify-center gap-2 border border-[rgba(0,0,0,0.1)] text-[#111827] font-bold py-4 px-6 rounded-2xl hover:bg-[#FFF0DF] hover:border-[#EA580C] hover:text-[#EA580C] transition-all duration-300 mb-3 disabled:opacity-70"
+          className="w-full inline-flex items-center justify-center gap-2 border border-[rgba(0,0,0,0.1)] text-[#1A0C00] font-bold py-4 px-6 rounded-2xl hover:bg-[#FFF0DF] hover:border-[#EA580C] hover:text-[#EA580C] transition-all duration-300 mb-3 disabled:opacity-70"
         >
           {downloading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
           TÉLÉCHARGER MON REÇU
@@ -108,7 +108,7 @@ export default function PaymentSuccessPage() {
 
         <button
           onClick={() => navigate('/menu')}
-          className="w-full text-[#6B7280] font-semibold py-3 hover:bg-[#FFF0DF] hover:text-[#EA580C] rounded-xl transition-colors duration-200"
+          className="w-full text-[#8B6E50] font-semibold py-3 hover:bg-[#FFF0DF] hover:text-[#EA580C] rounded-xl transition-colors duration-200"
         >
           Retour à l'accueil
         </button>

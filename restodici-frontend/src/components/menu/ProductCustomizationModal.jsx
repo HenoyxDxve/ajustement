@@ -102,7 +102,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-[#0F172A]/55 p-4 backdrop-blur-sm"
+      className="fixed inset-0 flex items-center justify-center bg-[#1A0C00]/55 p-4 backdrop-blur-sm"
       style={{ zIndex: 200 }}
       onClick={onClose}
     >
@@ -119,7 +119,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
                   <Sparkles className="h-4 w-4" />
                   Personnalisation
                 </span>
-                <h2 className="mt-4 text-2xl font-bold text-[#0F172A] sm:text-3xl">{product.nom}</h2>
+                <h2 className="mt-4 text-2xl font-bold text-[#1A0C00] sm:text-3xl">{product.nom}</h2>
                 {product.categorie?.nom && (
                   <p className="mt-2 text-sm font-medium text-[#737373]">{product.categorie.nom}</p>
                 )}
@@ -158,7 +158,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="min-w-[36px] text-center text-lg font-bold text-[#0F172A]">
+                    <span className="min-w-[36px] text-center text-lg font-bold text-[#1A0C00]">
                       {quantity}
                     </span>
                     <button
@@ -216,7 +216,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
                             : 'border-[#E2E8F0] bg-white hover:border-[#F1C5AF] hover:bg-[#FFFAF6]'
                         }`}
                       >
-                        <p className="font-semibold text-[#0F172A]">{v.label}</p>
+                        <p className="font-semibold text-[#1A0C00]">{v.label}</p>
                         {Number(v.prixSupplement) > 0 && (
                           <span className="text-sm font-bold text-[#EA580C]">+ {formatFCFA(Number(v.prixSupplement))}</span>
                         )}
@@ -244,7 +244,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
                       }`}
                     >
                       <div>
-                        <p className="font-semibold text-[#0F172A]">{supplement.name}</p>
+                        <p className="font-semibold text-[#1A0C00]">{supplement.name}</p>
                         <p className="mt-1 text-xs text-[#737373]">Ajout premium pour enrichir votre plat</p>
                       </div>
                       <span className="text-sm font-bold text-[#EA580C]">+ {formatFCFA(supplement.price)}</span>
@@ -283,7 +283,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
                 value={instructions}
                 onChange={(event) => setInstructions(event.target.value)}
                 placeholder="Ex: sauce à part, sans oignon, livraison soignée..."
-                className="min-h-[120px] w-full rounded-2xl border border-[#E2E8F0] bg-[#FFFDFC] px-4 py-3 text-[#0F172A] outline-none transition focus:border-[#EA580C] focus:ring-2 focus:ring-[#EA580C]/15"
+                className="min-h-[120px] w-full rounded-2xl border border-[#E2E8F0] bg-[#FFFDFC] px-4 py-3 text-[#1A0C00] outline-none transition focus:border-[#EA580C] focus:ring-2 focus:ring-[#EA580C]/15"
               />
               <div className="mt-3 flex flex-wrap gap-2">
                 {quickInstructionTags.map((tag) => (
@@ -299,7 +299,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
               </div>
             </SectionCard>
 
-            <div className="rounded-[28px] bg-[#0F172A] p-5 text-white shadow-lg">
+            <div className="rounded-[28px] bg-[#1A0C00] p-5 text-white shadow-lg">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium text-white/70">Total personnalisé</p>
@@ -328,7 +328,7 @@ export default function ProductCustomizationModal({ product, onClose, onAdd }) {
 function SectionCard({ title, children }) {
   return (
     <section className="rounded-[28px] border border-[#EFE3D9] bg-white p-5 shadow-sm">
-      <h3 className="text-lg font-bold text-[#0F172A]">{title}</h3>
+      <h3 className="text-lg font-bold text-[#1A0C00]">{title}</h3>
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -337,7 +337,7 @@ function SectionCard({ title, children }) {
 function OptionGroup({ label, options, value, onChange }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-semibold text-[#0F172A]">{label}</p>
+      <p className="mb-2 text-sm font-semibold text-[#1A0C00]">{label}</p>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
           const active = value === option;

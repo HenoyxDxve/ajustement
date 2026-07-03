@@ -47,7 +47,7 @@ export default function DispatchModal({ commande, onClose, onDispatched }) {
   };
 
   const S = {
-    overlay: { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(3px)', zIndex: 990 },
+    overlay: { position: 'fixed', inset: 0, background: 'rgba(139,110,80,0.5)', backdropFilter: 'blur(3px)', zIndex: 990 },
     modal: {
       position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
       background: '#fff', borderRadius: 20, width: 440, maxWidth: '95vw',
@@ -56,7 +56,7 @@ export default function DispatchModal({ commande, onClose, onDispatched }) {
     header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC' },
     body: { padding: '20px 22px' },
     footer: { padding: '12px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'flex-end', gap: 10 },
-    label: { display: 'block', fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 5 },
+    label: { display: 'block', fontSize: 11, fontWeight: 600, color: '#8B6E50', marginBottom: 5 },
     input: { width: '100%', border: '1px solid #D1D9E6', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' },
     select: { width: '100%', border: '1px solid #D1D9E6', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none', background: '#fff' },
   };
@@ -75,11 +75,11 @@ export default function DispatchModal({ commande, onClose, onDispatched }) {
               <Truck style={{ width: 16, height: 16, color: O }} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#0F172A' }}>Dispatcher la livraison</h3>
-              <p style={{ margin: 0, fontSize: 11, color: '#94A3B8' }}>Commande #{commande?.numero}</p>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#1A0C00' }}>Dispatcher la livraison</h3>
+              <p style={{ margin: 0, fontSize: 11, color: '#A89070' }}>Commande #{commande?.numero}</p>
             </div>
           </div>
-          <button onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94A3B8', display: 'flex' }}>
+          <button onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#A89070', display: 'flex' }}>
             <X style={{ width: 18, height: 18 }} />
           </button>
         </div>
@@ -89,15 +89,15 @@ export default function DispatchModal({ commande, onClose, onDispatched }) {
           {success ? (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <CheckCircle style={{ width: 40, height: 40, color: '#10B981', margin: '0 auto 12px' }} />
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#1A0C00', margin: 0 }}>
                 {isManuel ? 'En livraison !' : 'Commande dispatchée !'}
               </p>
-              <p style={{ fontSize: 12, color: '#64748B', marginTop: 6 }}>
+              <p style={{ fontSize: 12, color: '#8B6E50', marginTop: 6 }}>
                 {isManuel ? 'Statut mis à jour — EN LIVRAISON.' : 'Le livreur va prendre en charge la commande.'}
               </p>
             </div>
           ) : loading ? (
-            <div style={{ textAlign: 'center', padding: 28, color: '#94A3B8', fontSize: 13 }}>Chargement…</div>
+            <div style={{ textAlign: 'center', padding: 28, color: '#A89070', fontSize: 13 }}>Chargement…</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
@@ -154,7 +154,7 @@ export default function DispatchModal({ commande, onClose, onDispatched }) {
         {!success && !loading && (
           <div style={S.footer}>
             <button onClick={onClose}
-              style={{ border: '1px solid #D1D9E6', borderRadius: 9, padding: '9px 16px', fontSize: 13, fontWeight: 600, background: '#fff', cursor: 'pointer', color: '#64748B' }}>
+              style={{ border: '1px solid #D1D9E6', borderRadius: 9, padding: '9px 16px', fontSize: 13, fontWeight: 600, background: '#fff', cursor: 'pointer', color: '#8B6E50' }}>
               Annuler
             </button>
             <button onClick={handleDispatch} disabled={saving}

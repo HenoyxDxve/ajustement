@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Lock, Eye, EyeOff, CheckCircle, AlertCircle, UtensilsCrossed } from 'lucide-react';
 import { authAPI } from '../services/api';
 
-const inputCls = 'w-full pl-10 pr-10 py-3.5 bg-[#FFF0DF] border-0 rounded-2xl text-[#1A1A1A] placeholder-[#6B7280]/70 text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C]/40 transition-all';
+const inputCls = 'w-full pl-10 pr-10 py-3.5 bg-[#FFF0DF] border-0 rounded-2xl text-[#1A1A1A] placeholder-[#8B6E50]/70 text-sm focus:outline-none focus:ring-2 focus:ring-[#EA580C]/40 transition-all';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -74,7 +74,7 @@ export default function ResetPassword() {
           {success ? (
             <div className="text-center">
               <h2 className="text-xl font-extrabold text-[#1A1A1A] mb-2">Mot de passe mis à jour !</h2>
-              <p className="text-[#6B7280] text-sm mb-8">Votre mot de passe a été modifié. Vous pouvez vous connecter.</p>
+              <p className="text-[#8B6E50] text-sm mb-8">Votre mot de passe a été modifié. Vous pouvez vous connecter.</p>
               <Link to="/login"
                 className="inline-flex items-center justify-center w-full py-3.5 px-4 rounded-2xl font-bold text-white bg-[#EA580C] hover:bg-[#C2410C] transition-colors text-sm shadow-sm">
                 Se connecter
@@ -83,12 +83,12 @@ export default function ResetPassword() {
           ) : !token ? (
             <div className="text-center">
               <h2 className="text-xl font-extrabold text-[#1A1A1A] mb-2">Lien invalide</h2>
-              <p className="text-[#6B7280] text-sm mb-8">Ce lien est invalide ou a expiré. Demandez-en un nouveau.</p>
+              <p className="text-[#8B6E50] text-sm mb-8">Ce lien est invalide ou a expiré. Demandez-en un nouveau.</p>
               <Link to="/forgot-password"
                 className="inline-flex items-center justify-center w-full py-3.5 px-4 rounded-2xl font-bold text-white bg-[#EA580C] hover:bg-[#C2410C] transition-colors text-sm shadow-sm mb-4">
                 Demander un nouveau lien
               </Link>
-              <Link to="/login" className="flex items-center justify-center gap-2 text-[#6B7280] hover:text-[#EA580C] text-sm">
+              <Link to="/login" className="flex items-center justify-center gap-2 text-[#8B6E50] hover:text-[#EA580C] text-sm">
                 <ArrowLeft className="w-4 h-4" />Retour à la connexion
               </Link>
             </div>
@@ -101,11 +101,11 @@ export default function ResetPassword() {
                   <input value={formData.newPassword} onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                     type={showNew ? 'text' : 'password'} placeholder="••••••••" className={inputCls} />
                   <button type="button" onClick={() => setShowNew(!showNew)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#EA580C]" tabIndex={-1}>
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8B6E50] hover:text-[#EA580C]" tabIndex={-1}>
                     {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-[#6B7280]/70">Minimum 6 caractères</p>
+                <p className="text-xs text-[#8B6E50]/70">Minimum 6 caractères</p>
               </div>
 
               <div className="space-y-1.5">
@@ -115,7 +115,7 @@ export default function ResetPassword() {
                   <input value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     type={showConfirm ? 'text' : 'password'} placeholder="••••••••" className={inputCls} />
                   <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#EA580C]" tabIndex={-1}>
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8B6E50] hover:text-[#EA580C]" tabIndex={-1}>
                     {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -133,7 +133,7 @@ export default function ResetPassword() {
                 ) : 'Réinitialiser le mot de passe'}
               </button>
 
-              <Link to="/login" className="flex items-center gap-2 text-[#6B7280] hover:text-[#EA580C] text-sm pt-1">
+              <Link to="/login" className="flex items-center gap-2 text-[#8B6E50] hover:text-[#EA580C] text-sm pt-1">
                 <ArrowLeft className="w-4 h-4" />Retour à la connexion
               </Link>
             </form>

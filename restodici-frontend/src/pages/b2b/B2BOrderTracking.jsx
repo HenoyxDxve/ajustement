@@ -21,7 +21,7 @@ const safeDate = (d) => {
 };
 
 const PIPELINE = [
-  { key: 'EN_ATTENTE',     label: 'Commande reçue',       icon: Package,       color: '#64748B' },
+  { key: 'EN_ATTENTE',     label: 'Commande reçue',       icon: Package,       color: '#8B6E50' },
   { key: 'CONFIRMEE',      label: 'Confirmée',             icon: CheckCircle,   color: A },
   { key: 'EN_PREPARATION', label: 'En préparation',        icon: Clock,         color: '#D97706' },
   { key: 'LIVREE',         label: 'Livrée',                icon: Truck,         color: '#16A34A' },
@@ -143,8 +143,8 @@ export default function B2BOrderTracking() {
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
         <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center border shadow" style={{ borderColor: BD }}>
           <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-4" />
-          <p className="font-bold text-[#0F172A] mb-2">Commande introuvable</p>
-          <p className="text-sm text-[#64748B] mb-6">{error || 'Aucune commande trouvée.'}</p>
+          <p className="font-bold text-[#1A0C00] mb-2">Commande introuvable</p>
+          <p className="text-sm text-[#8B6E50] mb-6">{error || 'Aucune commande trouvée.'}</p>
           <button onClick={() => navigate('/b2b')}
             className="w-full text-white font-bold py-3 px-6 rounded-xl transition"
             style={{ background: A }}>
@@ -167,12 +167,12 @@ export default function B2BOrderTracking() {
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b shadow-sm" style={{ borderColor: BD }}>
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
           <button onClick={() => navigate('/b2b')}
-            className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-[#F9F7F5] text-[#64748B] transition">
+            className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-[#FFFFFF] text-[#8B6E50] transition">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1 min-w-0">
-            <h1 className="font-bold text-[#0F172A] text-sm leading-tight">Suivi commande groupée</h1>
-            <p className="text-xs text-[#64748B]">#{order.numero}</p>
+            <h1 className="font-bold text-[#1A0C00] text-sm leading-tight">Suivi commande groupée</h1>
+            <p className="text-xs text-[#8B6E50]">#{order.numero}</p>
           </div>
           <div className="flex items-center gap-2">
             {justUpdated && <span className="text-xs text-emerald-600 font-medium animate-pulse">Mis à jour</span>}
@@ -224,10 +224,10 @@ export default function B2BOrderTracking() {
               <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: A }} />
             </div>
             <div>
-              <p className="font-bold text-[#0F172A]">
+              <p className="font-bold text-[#1A0C00]">
                 {PIPELINE.find(s => s.key === order.statut)?.label || order.statut}
               </p>
-              <p className="text-xs text-[#64748B] animate-pulse mt-0.5">Mise à jour en temps réel…</p>
+              <p className="text-xs text-[#8B6E50] animate-pulse mt-0.5">Mise à jour en temps réel…</p>
             </div>
           </div>
         )}
@@ -235,7 +235,7 @@ export default function B2BOrderTracking() {
         {/* Progress pipeline */}
         {!isCancelled && (
           <div className="bg-white rounded-2xl border p-5" style={{ borderColor: BD }}>
-            <h2 className="font-bold text-[#0F172A] text-sm mb-5">Progression</h2>
+            <h2 className="font-bold text-[#1A0C00] text-sm mb-5">Progression</h2>
             <div className="space-y-0">
               {PIPELINE.map((s, idx) => {
                 const Icon = s.icon;
@@ -245,7 +245,7 @@ export default function B2BOrderTracking() {
                 return (
                   <div key={s.key} className="flex gap-3">
                     <div className="flex flex-col items-center">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${done || current ? 'text-white shadow-sm' : 'bg-[#F5F0E8] text-[#64748B]/40'}`}
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${done || current ? 'text-white shadow-sm' : 'bg-[#F5F0E8] text-[#8B6E50]/40'}`}
                         style={done || current ? { background: s.color, transform: current ? 'scale(1.1)' : 'scale(1)' } : {}}>
                         <Icon className="w-4 h-4" />
                       </div>
@@ -256,10 +256,10 @@ export default function B2BOrderTracking() {
                     </div>
                     <div className={`pb-5 ${isLast ? 'pb-0' : ''} flex items-start pt-1.5`}>
                       <div>
-                        <p className={`text-sm font-semibold ${current ? 'text-[#EA580C]' : done ? 'text-[#0F172A]' : 'text-[#64748B]/40'}`}>
+                        <p className={`text-sm font-semibold ${current ? 'text-[#EA580C]' : done ? 'text-[#1A0C00]' : 'text-[#8B6E50]/40'}`}>
                           {s.label}
                         </p>
-                        {current && <p className="text-xs text-[#64748B] mt-0.5 animate-pulse">En cours…</p>}
+                        {current && <p className="text-xs text-[#8B6E50] mt-0.5 animate-pulse">En cours…</p>}
                       </div>
                     </div>
                   </div>
@@ -286,16 +286,16 @@ export default function B2BOrderTracking() {
         {/* Delivery info */}
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BD }}>
           <div className="px-5 py-4 border-b flex items-center gap-3" style={{ borderColor: BD }}>
-            <Truck className="w-4 h-4 text-[#64748B]" />
+            <Truck className="w-4 h-4 text-[#8B6E50]" />
             <div className="flex-1 min-w-0">
-              <span className="text-sm font-semibold text-[#0F172A]">Livraison groupée</span>
-              {order.lieuLivraison && <span className="text-xs text-[#64748B] ml-2">· {order.lieuLivraison}</span>}
+              <span className="text-sm font-semibold text-[#1A0C00]">Livraison groupée</span>
+              {order.lieuLivraison && <span className="text-xs text-[#8B6E50] ml-2">· {order.lieuLivraison}</span>}
             </div>
-            <span className="text-xs text-[#64748B] shrink-0">{safeDate(order.createdAt)}</span>
+            <span className="text-xs text-[#8B6E50] shrink-0">{safeDate(order.createdAt)}</span>
           </div>
 
           {/* Delivery date/location */}
-          <div className="px-5 py-3 border-b flex items-center gap-4 text-xs text-[#64748B]" style={{ borderColor: BD }}>
+          <div className="px-5 py-3 border-b flex items-center gap-4 text-xs text-[#8B6E50]" style={{ borderColor: BD }}>
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5" style={{ color: A }} />
               <span>
@@ -315,16 +315,16 @@ export default function B2BOrderTracking() {
             {(order.lignes || []).map((ligne, idx) => (
               <div key={idx} className="flex justify-between text-sm">
                 <div>
-                  <span className="text-[#0F172A]">
+                  <span className="text-[#1A0C00]">
                     <span className="font-semibold">{ligne.quantite}×</span> {ligne.nomArticle || 'Article'}
                   </span>
                   {ligne.collaborateur && (
-                    <span className="ml-2 text-[11px] text-[#6B7280]">
+                    <span className="ml-2 text-[11px] text-[#8B6E50]">
                       → {ligne.collaborateur.nom || ligne.collaborateurNom}
                     </span>
                   )}
                 </div>
-                <span className="text-[#64748B] font-medium ml-4 shrink-0">
+                <span className="text-[#8B6E50] font-medium ml-4 shrink-0">
                   {formatFCFA(Number(ligne.prixUnitaire ?? 0) * (ligne.quantite ?? 1))}
                 </span>
               </div>
@@ -334,8 +334,8 @@ export default function B2BOrderTracking() {
           <div className="mx-5 border-t" style={{ borderColor: BD }} />
           <div className="px-5 py-4 flex justify-between items-center">
             <div>
-              <span className="font-bold text-[#0F172A]">Total estimé</span>
-              <span className="text-xs text-[#64748B] ml-2">· Facturation SYSCOHADA fin de mois</span>
+              <span className="font-bold text-[#1A0C00]">Total estimé</span>
+              <span className="text-xs text-[#8B6E50] ml-2">· Facturation SYSCOHADA fin de mois</span>
             </div>
             <span className="text-lg font-extrabold" style={{ color: A }}>{formatFCFA(total)}</span>
           </div>
@@ -347,17 +347,17 @@ export default function B2BOrderTracking() {
                 <Building2 className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-[#0F172A]">
+                <p className="text-xs font-semibold text-[#1A0C00]">
                   {order.compteB2B?.raisonSociale || order.entreprise}
                 </p>
                 {order.compteB2B?.emailProfessionnel && (
-                  <p className="text-xs text-[#64748B]">{order.compteB2B.emailProfessionnel}</p>
+                  <p className="text-xs text-[#8B6E50]">{order.compteB2B.emailProfessionnel}</p>
                 )}
               </div>
               {(order.lignes?.length > 0) && (
                 <div className="flex items-center gap-1 shrink-0">
-                  <Users className="w-3.5 h-3.5 text-[#6B7280]" />
-                  <span className="text-xs text-[#64748B]">{order.lignes.length} repas</span>
+                  <Users className="w-3.5 h-3.5 text-[#8B6E50]" />
+                  <span className="text-xs text-[#8B6E50]">{order.lignes.length} repas</span>
                 </div>
               )}
             </div>
@@ -383,8 +383,8 @@ export default function B2BOrderTracking() {
             {!order.avisNote && receptionStatus === null && (
               <>
                 <div>
-                  <p className="font-bold text-[#0F172A] text-sm">Avez-vous bien reçu votre commande groupée ?</p>
-                  <p className="text-xs text-[#64748B] mt-0.5">Votre retour aide le restaurant et votre équipe.</p>
+                  <p className="font-bold text-[#1A0C00] text-sm">Avez-vous bien reçu votre commande groupée ?</p>
+                  <p className="text-xs text-[#8B6E50] mt-0.5">Votre retour aide le restaurant et votre équipe.</p>
                 </div>
                 <div className="flex gap-3">
                   <button onClick={() => { setReceptionStatus('OUI'); setShowRating(true); }}
@@ -414,8 +414,8 @@ export default function B2BOrderTracking() {
               <div className="space-y-4">
                 <div className="h-px" style={{ background: BD }} />
                 <div>
-                  <p className="font-bold text-[#0F172A] text-sm">Notez votre expérience</p>
-                  <p className="text-xs text-[#64748B] mt-0.5">Votre avis aide le restaurant et votre équipe.</p>
+                  <p className="font-bold text-[#1A0C00] text-sm">Notez votre expérience</p>
+                  <p className="text-xs text-[#8B6E50] mt-0.5">Votre avis aide le restaurant et votre équipe.</p>
                 </div>
                 <div className="flex flex-col items-center gap-1">
                   <StarRating value={rating} onChange={setRating} />
@@ -431,7 +431,7 @@ export default function B2BOrderTracking() {
                   placeholder="Un commentaire ? (optionnel)"
                   rows={3}
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none"
-                  style={{ background: '#F9F7F5', border: `1px solid ${BD}` }}
+                  style={{ background: '#FFFFFF', border: `1px solid ${BD}` }}
                 />
                 {ratingError && <p className="text-xs text-red-500 font-semibold">{ratingError}</p>}
                 <button onClick={handleSubmitAvis} disabled={ratingSubmitting || rating === 0}

@@ -7,9 +7,9 @@ import { formatFCFA } from '../../utils/formatters';
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const BG     = '#F8FAFC';
 const CARD   = '#FFFFFF';
-const TEXT   = '#0F172A';
-const MUTED  = '#64748B';
-const FAINT  = '#94A3B8';
+const TEXT   = '#1A0C00';
+const MUTED  = '#8B6E50';
+const FAINT  = '#A89070';
 const BORDER = '#E2E8F0';
 const ORANGE = '#EA580C';    // CTA — inviter, enregistrer
 const ORANGE_L = '#FFF3E0';
@@ -19,9 +19,9 @@ const GREEN_L= '#DCFCE7';
 const GREEN_D= '#15803D';
 const RED    = '#DC2626';    // supprimer (action risquée)
 const RED_L  = '#FEF2F2';
-const SH     = '0 1px 3px rgba(15,23,42,0.07),0 1px 2px rgba(15,23,42,0.04)';
-const SH2    = '0 4px 16px rgba(15,23,42,0.10),0 2px 4px rgba(15,23,42,0.06)';
-const SH3    = '0 20px 40px rgba(15,23,42,0.15),0 4px 8px rgba(15,23,42,0.06)';
+const SH     = '0 1px 3px rgba(139,110,80,0.07),0 1px 2px rgba(139,110,80,0.04)';
+const SH2    = '0 4px 16px rgba(139,110,80,0.10),0 2px 4px rgba(139,110,80,0.06)';
+const SH3    = '0 20px 40px rgba(139,110,80,0.15),0 4px 8px rgba(139,110,80,0.06)';
 
 function Avatar({ name = '', size = 36 }) {
   const ini = name.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
@@ -176,14 +176,14 @@ export default function B2BTeams() {
       <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <Link to="/b2b" className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-70 transition"
-            style={{ color: '#6B7280' }}>
+            style={{ color: '#8B6E50' }}>
             <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
           </Link>
           <span style={{ color: 'rgba(0,0,0,0.15)' }}>›</span>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #EA580C, #C2410C)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Users className="w-3.5 h-3.5 text-white" />
           </div>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0, flex: 1 }}>Équipe</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#1A0C00', margin: 0, flex: 1 }}>Équipe</p>
           {/* Inviter — orange (CTA principal) */}
           <button onClick={() => setShowInvite(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-bold text-white transition hover:opacity-90"
@@ -201,7 +201,7 @@ export default function B2BTeams() {
         {/* KPI summary */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Membres actifs',  value: collabs.length,          bg: '#111827' },
+            { label: 'Membres actifs',  value: collabs.length,          bg: '#1A0C00' },
             { label: 'Budget total',    value: formatFCFA(totalBudget),  bg: ORANGE    },
             { label: 'Dépenses mois',   value: formatFCFA(totalSpent),   bg: GREEN     },
           ].map(s => (
@@ -275,7 +275,7 @@ export default function B2BTeams() {
                         value={editingBudget.value}
                         onChange={e => setEditingBudget(p => ({ ...p, value: e.target.value }))}
                         className="w-24 rounded-lg px-2 py-1 text-xs font-medium"
-                        style={{ border: '1.5px solid #EA580C', outline: 'none', background: '#FFF0DF', color: '#111827' }}
+                        style={{ border: '1.5px solid #EA580C', outline: 'none', background: '#FFF0DF', color: '#1A0C00' }}
                         autoFocus
                       />
                       <button
@@ -290,7 +290,7 @@ export default function B2BTeams() {
                         style={{ background: '#16A34A' }}>OK</button>
                       <button onClick={() => setEditingBudget(null)}
                         className="rounded-lg px-2 py-1 text-[10px] font-medium"
-                        style={{ border: '1px solid rgba(0,0,0,0.1)', background: '#fff', color: '#6B7280' }}>✕</button>
+                        style={{ border: '1px solid rgba(0,0,0,0.1)', background: '#fff', color: '#8B6E50' }}>✕</button>
                     </div>
                   ) : (
                     <button

@@ -18,33 +18,33 @@ import OnboardingTour from '../../components/onboarding/OnboardingTour';
 import { buildSyscohadaBlob, buildFactureBlob } from '../../utils/syscohada-pdf';
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
-const BG       = '#F5F6F8';      // fond principal
+const BG       = '#FFFFFF';      // fond principal — crème chaude
 const CARD     = '#FFFFFF';
-const NAVY     = '#111827';      // dark principal
-const NAVY2    = '#1F2937';      // dark secondaire
-const TEXT     = '#111827';
-const MUTED    = '#6B7280';
-const FAINT    = '#6B7280';
-const BORDER   = 'rgba(0,0,0,0.07)';
+const NAVY     = '#3D1500';      // sidebar — brun chocolat/café (chaud, appétissant)
+const NAVY2    = '#5C2400';      // hover sidebar
+const TEXT     = '#1A0C00';      // texte — brun profond
+const MUTED    = '#8B6E50';      // texte secondaire — brun doux
+const FAINT    = '#A89070';      // texte discret
+const BORDER   = 'rgba(255,140,0,0.12)'; // bordures teintées chaud
 
 // Couleurs sémantiques
-const ORANGE   = '#EA580C';      // CTA principal standard
+const ORANGE   = '#EA580C';      // CTA principal RESTODICI
 const ORANGE_L = '#FFF0DF';      // fond orange léger
 const ORANGE_D = '#C2410C';      // orange foncé hover
 
-const GREEN    = '#EA580C';      // statuts positifs (alias orange)
-const GREEN_L  = '#FFF0DF';      // fond statut positif
-const GREEN_D  = '#C2410C';      // foncé hover
+const GREEN    = '#16A34A';      // succès / confirmé / livré
+const GREEN_L  = '#DCFCE7';      // fond vert léger
+const GREEN_D  = '#15803D';      // vert foncé hover
 
-const RED      = '#DC2626';      // actions risquées (supprimer, déconnexion, bloquer)
+const RED      = '#DC2626';      // actions risquées
 const RED_L    = '#FEF2F2';      // fond rouge léger
 
 const AMBER    = '#D97706';      // alertes, en attente
 const AMBER_L  = '#FFFBEB';      // fond ambre léger
 
-const SH  = '0 1px 3px rgba(15,23,42,0.07),0 1px 2px rgba(15,23,42,0.04)';
-const SH2 = '0 4px 16px rgba(15,23,42,0.10),0 2px 4px rgba(15,23,42,0.06)';
-const SH3 = '0 20px 40px rgba(15,23,42,0.15),0 4px 8px rgba(15,23,42,0.06)';
+const SH  = '0 1px 4px rgba(139,110,80,0.10),0 1px 2px rgba(0,0,0,0.04)';
+const SH2 = '0 4px 16px rgba(139,110,80,0.12),0 2px 4px rgba(0,0,0,0.06)';
+const SH3 = '0 20px 40px rgba(139,110,80,0.15),0 4px 8px rgba(0,0,0,0.06)';
 
 // ── PDF helpers ────────────────────────────────────────────────────────────────
 function downloadBlob(blob, name) {
@@ -172,7 +172,7 @@ function Avatar({ name = '', size = 32 }) {
 }
 
 function StatusPill({ statut }) {
-  const s = STATUS[statut] || { label: statut, color: '#6B7280', bg: '#F3F4F6', dot: '#D1D5DB' };
+  const s = STATUS[statut] || { label: statut, color: '#8B6E50', bg: '#F3F4F6', dot: '#D1D5DB' };
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -194,7 +194,7 @@ function BudgetBar({ spent, budget }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280' }}>Budget mensuel</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#8B6E50' }}>Budget mensuel</span>
         <span style={{ fontSize: 11, fontWeight: 800, color }}>{pct}%</span>
       </div>
       <div style={{ height: 6, background: '#F1F5F9', borderRadius: 99, overflow: 'hidden' }}>
@@ -318,7 +318,7 @@ function ViewFactureModal({ facture, onClose, onDownload }) {
           style={{
             background: isPaid
               ? `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_D} 100%)`
-              : `linear-gradient(135deg, #0F172A 0%, #1E293B 100%)`,
+              : `linear-gradient(135deg, #1A0C00 0%, #1E293B 100%)`,
             borderBottom: '1px solid rgba(255,255,255,0.08)',
           }}>
           <div className="relative">
@@ -664,7 +664,7 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 shrink-0"
-             style={{ background: '#0F172A', borderBottom: '2.5px solid #EA580C' }}>
+             style={{ background: '#1A0C00', borderBottom: '2.5px solid #EA580C' }}>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.20)' }}>
               <FileText className="w-4 h-4 text-white" />
@@ -724,7 +724,7 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
           <div className="p-6 space-y-5" style={{ position: 'relative', zIndex: 1 }}>
 
             {/* Report header */}
-            <div className="rounded-2xl p-5" style={{ background: '#0F172A' }}>
+            <div className="rounded-2xl p-5" style={{ background: '#1A0C00' }}>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#EA580C' }}>Rapport Mensuel SYSCOHADA</p>
@@ -753,12 +753,12 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
 
             {/* Section 1 — Collaborateurs */}
             <div>
-              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#0F172A' }}>
+              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#1A0C00' }}>
                 <p className="text-white font-bold text-[12px] uppercase tracking-wider">1. Synthèse budgétaire par collaborateur</p>
               </div>
-              <div className="rounded-b-xl overflow-x-auto border border-t-0" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+              <div className="rounded-b-xl overflow-x-auto border border-t-0" style={{ borderColor: 'rgba(255,140,0,0.10)' }}>
                 {collabs.length === 0 ? (
-                  <div className="py-8 text-center text-[13px]" style={{ color: '#6B7280' }}>Aucun collaborateur enregistré</div>
+                  <div className="py-8 text-center text-[13px]" style={{ color: '#8B6E50' }}>Aucun collaborateur enregistré</div>
                 ) : (
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead style={{ background: '#F8FAFC' }}>
@@ -776,11 +776,11 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
                           <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFC', transition: 'background 0.15s', cursor: 'default' }}
                             onMouseEnter={e => { e.currentTarget.style.background = '#F0F7FF'; }}
                             onMouseLeave={e => { e.currentTarget.style.background = i % 2 === 0 ? '#fff' : '#F8FAFC'; }}>
-                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#6B7280' }}>{i + 1}</td>
-                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#111827' }}>{c.nom || '—'}</td>
-                            <td style={{ padding: '9px 12px', color: '#6B7280' }}>{c.poste || '—'}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(bgt)}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(dep)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#8B6E50' }}>{i + 1}</td>
+                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#1A0C00' }}>{c.nom || '—'}</td>
+                            <td style={{ padding: '9px 12px', color: '#8B6E50' }}>{c.poste || '—'}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(bgt)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(dep)}</td>
                             <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 600, color: sol > 0 ? '#EA580C' : '#DC2626' }}>{fcfa(sol)}</td>
                             <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: pct >= 100 ? '#DC2626' : pct >= 80 ? '#D97706' : '#EA580C' }}>{pct} %</td>
                           </tr>
@@ -794,12 +794,12 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
                         return (
                           <tr style={{ background: '#F1F5F9', fontWeight: 700 }}>
                             <td style={{ padding: '9px 12px' }}></td>
-                            <td style={{ padding: '9px 12px', color: '#111827' }}>TOTAL</td>
+                            <td style={{ padding: '9px 12px', color: '#1A0C00' }}>TOTAL</td>
                             <td style={{ padding: '9px 12px' }}></td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(tb)}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(td)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(tb)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(td)}</td>
                             <td style={{ padding: '9px 12px', textAlign: 'right', color: ts > 0 ? '#EA580C' : '#DC2626' }}>{fcfa(ts)}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{tp} %</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{tp} %</td>
                           </tr>
                         );
                       })()}
@@ -811,12 +811,12 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
 
             {/* Section 2 — Factures */}
             <div>
-              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#0F172A' }}>
+              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#1A0C00' }}>
                 <p className="text-white font-bold text-[12px] uppercase tracking-wider">2. Détail des factures mensuelles</p>
               </div>
-              <div className="rounded-b-xl overflow-x-auto border border-t-0" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+              <div className="rounded-b-xl overflow-x-auto border border-t-0" style={{ borderColor: 'rgba(255,140,0,0.10)' }}>
                 {factures.length === 0 ? (
-                  <div className="py-8 text-center text-[13px]" style={{ color: '#6B7280' }}>Aucune facture émise</div>
+                  <div className="py-8 text-center text-[13px]" style={{ color: '#8B6E50' }}>Aucune facture émise</div>
                 ) : (
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead style={{ background: '#F8FAFC' }}>
@@ -834,13 +834,13 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
                           <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFC', transition: 'background 0.15s', cursor: 'default' }}
                             onMouseEnter={e => { e.currentTarget.style.background = '#F0F7FF'; }}
                             onMouseLeave={e => { e.currentTarget.style.background = i % 2 === 0 ? '#fff' : '#F8FAFC'; }}>
-                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#6B7280' }}>{i + 1}</td>
-                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#111827' }}>{f.numeroFacture || `FAC-${String(i+1).padStart(3,'0')}`}</td>
-                            <td style={{ padding: '9px 12px', color: '#6B7280' }}>{f.periode || f.mois || '—'}</td>
-                            <td style={{ padding: '9px 12px', color: '#6B7280' }}>{f.echeance ? new Date(f.echeance).toLocaleDateString('fr-FR') : '—'}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(ht)}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(tva)}</td>
-                            <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#111827' }}>{fcfa(ttc)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'center', color: '#8B6E50' }}>{i + 1}</td>
+                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#1A0C00' }}>{f.numeroFacture || `FAC-${String(i+1).padStart(3,'0')}`}</td>
+                            <td style={{ padding: '9px 12px', color: '#8B6E50' }}>{f.periode || f.mois || '—'}</td>
+                            <td style={{ padding: '9px 12px', color: '#8B6E50' }}>{f.echeance ? new Date(f.echeance).toLocaleDateString('fr-FR') : '—'}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(ht)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(tva)}</td>
+                            <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#1A0C00' }}>{fcfa(ttc)}</td>
                             <td style={{ padding: '9px 12px' }}>
                               <span className="px-2.5 py-1 rounded-full text-[10px] font-bold"
                                     style={{ background: paid ? '#FFF0DF' : '#FFFBEB', color: paid ? '#C2410C' : '#D97706' }}>
@@ -858,10 +858,10 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
 
             {/* Section 3 — Récapitulatif fiscal */}
             <div>
-              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#0F172A' }}>
+              <div className="rounded-t-xl px-4 py-2.5" style={{ background: '#1A0C00' }}>
                 <p className="text-white font-bold text-[12px] uppercase tracking-wider">3. Récapitulatif fiscal (SYSCOHADA / DGI-CI)</p>
               </div>
-              <div className="rounded-b-xl overflow-hidden border border-t-0" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+              <div className="rounded-b-xl overflow-hidden border border-t-0" style={{ borderColor: 'rgba(255,140,0,0.10)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead style={{ background: '#F8FAFC' }}>
                     <tr>{['Désignation','Base HT','Taux TVA','Montant TVA','Total TTC'].map(h => (
@@ -870,17 +870,17 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
                   </thead>
                   <tbody>
                     <tr style={{ background: '#fff' }}>
-                      <td style={{ padding: '9px 12px', color: '#111827' }}>Restauration collective B2B</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalHT)}</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#6B7280' }}>18 %</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalTVA)}</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#111827' }}>{fcfa(totalTTC)}</td>
+                      <td style={{ padding: '9px 12px', color: '#1A0C00' }}>Restauration collective B2B</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(totalHT)}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#8B6E50' }}>18 %</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(totalTVA)}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#1A0C00' }}>{fcfa(totalTTC)}</td>
                     </tr>
                     <tr style={{ background: '#F1F5F9', fontWeight: 700 }}>
-                      <td style={{ padding: '9px 12px', color: '#111827' }}>TOTAL GÉNÉRAL</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalHT)}</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#6B7280' }}>18 %</td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#111827' }}>{fcfa(totalTVA)}</td>
+                      <td style={{ padding: '9px 12px', color: '#1A0C00' }}>TOTAL GÉNÉRAL</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(totalHT)}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#8B6E50' }}>18 %</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right', color: '#1A0C00' }}>{fcfa(totalTVA)}</td>
                       <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#EA580C' }}>{fcfa(totalTTC)}</td>
                     </tr>
                   </tbody>
@@ -890,7 +890,7 @@ function SyscohadaViewerModal({ collabs, factures, compte, monthlyExp, isLastDay
 
             {/* Mentions légales */}
             <div className="rounded-xl p-4" style={{ background: '#F8FAFC', border: '1px solid rgba(0,0,0,0.06)' }}>
-              <p className="text-[11px] italic" style={{ color: '#6B7280' }}>
+              <p className="text-[11px] italic" style={{ color: '#8B6E50' }}>
                 Conformément au Système Comptable OHADA (SYSCOHADA Révisé) · TVA collectée au taux de 18%
                 conformément au Code Général des Impôts de la Côte d'Ivoire — Article 339 CGI-CI.
               </p>
@@ -1690,7 +1690,7 @@ export default function B2BDashboard() {
 
                 {/* ── Historique commandes — col 12 ─────────────────────────── */}
                 <div className="col-span-12 rounded-[32px] overflow-hidden transition-all duration-200 hover:-translate-y-1"
-                  style={{ background: CARD, boxShadow: '0 2px 16px rgba(15,23,42,0.07)', border: `1px solid ${BORDER}` }}>
+                  style={{ background: CARD, boxShadow: '0 2px 16px rgba(139,110,80,0.08)', border: `1px solid ${BORDER}` }}>
 
                   {/* Header */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 px-8 py-6"
@@ -1795,7 +1795,7 @@ export default function B2BDashboard() {
 
                 {/* ── SYSCOHADA — col 5 ─────────────────────────────────────── */}
                 <div className="col-span-12 lg:col-span-5 rounded-[32px] p-8 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1"
-                  style={{ background: BG, border: `1px solid ${BORDER}`, boxShadow: '0 2px 12px rgba(15,23,42,0.06)' }}>
+                  style={{ background: BG, border: `1px solid ${BORDER}`, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                   <div>
                     <div className="flex items-center gap-3 mb-5">
                       <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
@@ -1853,7 +1853,7 @@ export default function B2BDashboard() {
 
                 {/* ── Centres de coûts — bar chart — col 7 ─────────────────── */}
                 <div className="col-span-12 lg:col-span-7 rounded-[32px] p-8 relative overflow-hidden transition-all duration-200 hover:-translate-y-1"
-                  style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: '0 2px 16px rgba(15,23,42,0.07)' }}>
+                  style={{ background: CARD, border: `1px solid ${BORDER}`, boxShadow: '0 2px 16px rgba(139,110,80,0.08)' }}>
                   <div className="flex items-center justify-between mb-6">
                     <h4 className="text-lg font-bold" style={{ color: TEXT }}>Centres de Coûts</h4>
                     {Object.keys(centerCounts).length > 0 && (
@@ -2713,7 +2713,7 @@ export default function B2BDashboard() {
               <div className="flex gap-5 items-start">
 
                 {/* Sidebar 160px */}
-                <div className="shrink-0 rounded-2xl overflow-hidden" style={{ width: 160, background: '#F4FBF7', border: `1px solid ${BORDER}` }}>
+                <div className="shrink-0 rounded-2xl overflow-hidden" style={{ width: 160, background: ORANGE_L, border: `1px solid ${BORDER}` }}>
                   {[
                     { id: 'profil',     label: 'Profil',      icon: '👤' },
                     { id: 'entreprise', label: 'Entreprise',  icon: '🏢' },

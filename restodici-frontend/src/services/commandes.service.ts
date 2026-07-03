@@ -123,4 +123,6 @@ export const commandesService = {
   getHistory: (id: string) => API.get(`/commandes/${id}/history`),
   getRestaurantActivity: (limit = 50) =>
     API.get('/commandes/activity/restaurant', { params: { limit } }),
+  updateDelai: (id: string, delaiEstime: number) =>
+    API.patch(`/commandes/${id}/delai`, { delaiEstime }),
 };

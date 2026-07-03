@@ -175,6 +175,7 @@ export const commandesService = {
   getCommandeHistory: (id) => api.get(`/commandes/${id}/history`),
 
   registerPayment: (id, data) => api.patch(`/commandes/${id}/paiement`, data),
+  updateDelai:     (id, delaiEstime) => api.patch(`/commandes/${id}/delai`, { delaiEstime }),
 
   getRestaurantActivity: (limit = 50) =>
     api.get("/commandes/activity/restaurant", { params: { limit } }),

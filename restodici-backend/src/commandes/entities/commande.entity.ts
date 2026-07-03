@@ -62,6 +62,10 @@ export class Commande {
   @Column({ nullable: true, type: 'varchar', length: 20 })
   tableNumber?: string;
 
+  // Délai de préparation estimé en minutes (fixé par le staff)
+  @Column({ type: 'int', nullable: true })
+  delaiEstime?: number;
+
   @Column('decimal', { precision: 10, scale: 2 })
   montantTotal!: number;
 

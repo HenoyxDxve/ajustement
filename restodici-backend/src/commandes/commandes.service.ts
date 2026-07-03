@@ -334,6 +334,13 @@ export class CommandesService {
     await this.commandeRepo.update(id, { recuPdfS3Key: s3Key });
   }
 
+  async setDelai(id: string, delaiEstime: number): Promise<Commande> {
+    const commande = await this.commandeRepo.findOne({ where: { id } });
+    if (!commande) throw new NotFoundException('Commande introuvable');
+    commande.delaiEstime = delaiEstime > 0 ? delaiEstime : undefined;
+    return this.commandeRepo.save(commande);
+  }
+
   async annulerByClient(id: string, clientId: string): Promise<Commande> {
     const commande = await this.commandeRepo.findOne({
       where: { id, client: { id: clientId } },

@@ -116,6 +116,15 @@ function mmss(sec) {
   return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 }
 
+const DELAI_PRESETS = [10, 15, 20, 30, 45];
+
+function formatHM(minutes) {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${String(m).padStart(2, '0')}min` : `${h}h`;
+}
+
 function timeAgo(ts) {
   const s = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
   if (s < 60)   return `${s}s`;
@@ -148,9 +157,10 @@ function lieu(order) {
 /* ══════════════════════════════════════════════════════════════════
    OrderCard — Carte commande active
    ══════════════════════════════════════════════════════════════════ */
-function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd, onDispatch }) {
+function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd, onDispatch, onSetDelai }) {
   useGlobalTick();
   const sec    = elapsed(order.createdAt);
+  const ageMin = Math.floor(sec / 60);
   const urgent = sec >= 1200;
   const warn   = sec >= 600;
   const tColor = urgent ? RED : warn ? AMBER : MUTED;
@@ -158,6 +168,11 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
   const needsPayment = order.isB2B && next === 'EN_PREP' && !order.estPaye;
   const minsUntilDelivery = order._b2bDateLivraison ? minutesUntil(order._b2bDateLivraison) : null;
   const showDispatch = order.modeLivraison === 'LIVRAISON' && ['PRETE', 'EN_LIVRAISON'].includes(order.statut);
+
+  // Compte à rebours délai estimé
+  const remainMin  = order.delaiEstime != null ? order.delaiEstime - ageMin : null;
+  const isOverdue  = remainMin !== null && remainMin <= 0;
+  const delaiUrgent = remainMin !== null && remainMin <= 3 && !isOverdue;
 
   return (
     <div
@@ -215,36 +230,78 @@ function OrderCard({ order, onAction, onPay, saving, col, onDragStart, onDragEnd
             </p>
           </div>
 
-          {/* Chrono */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            background: urgent ? RED_L : warn ? '#FFFBEB' : '#F9FAFB',
-            border: `1px solid ${urgent ? '#FCA5A5' : warn ? '#FDE68A' : BORDER}`,
-            borderRadius: 99, padding: '5px 10px',
-          }}>
-            <Clock size={11} color={tColor} />
-            <span style={{ fontSize: 12, fontWeight: 800, color: tColor, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}>
-              {mmss(sec)}
-            </span>
+          {/* Chrono + délai */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              background: urgent ? RED_L : warn ? '#FFFBEB' : '#F9FAFB',
+              border: `1px solid ${urgent ? '#FCA5A5' : warn ? '#FDE68A' : BORDER}`,
+              borderRadius: 99, padding: '5px 10px',
+            }}>
+              <Clock size={11} color={tColor} />
+              <span style={{ fontSize: 12, fontWeight: 800, color: tColor, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}>
+                {formatHM(ageMin)}
+              </span>
+            </div>
+            {remainMin !== null && (
+              <span style={{
+                fontSize: 10, fontWeight: 800, borderRadius: 99, padding: '3px 8px',
+                background: isOverdue ? RED : delaiUrgent ? AMBER : '#DCFCE7',
+                color: isOverdue ? '#fff' : delaiUrgent ? '#92400E' : GREEN,
+              }}>
+                {isOverdue ? `RETARD ${formatHM(Math.abs(remainMin))}` : `${formatHM(remainMin)} restant`}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Articles */}
+        {/* Délai estimé rapide */}
+        <div style={{ marginBottom: 10 }}>
+          <p style={{ margin: '0 0 5px', fontSize: 10, fontWeight: 700, color: FAINT, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Délai estimé</p>
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+            {DELAI_PRESETS.map(d => (
+              <button key={d} onClick={() => onSetDelai?.(order.id, d)}
+                style={{ padding: '3px 9px', fontSize: 10, fontWeight: 800, borderRadius: 99, border: `1px solid ${order.delaiEstime === d ? OG : BORDER}`, background: order.delaiEstime === d ? OG : '#fff', color: order.delaiEstime === d ? '#fff' : MUTED, cursor: 'pointer', transition: 'all 0.15s' }}>
+                {d}min
+              </button>
+            ))}
+            {order.delaiEstime && (
+              <button onClick={() => onSetDelai?.(order.id, 0)}
+                style={{ padding: '3px 9px', fontSize: 10, fontWeight: 800, borderRadius: 99, border: '1px solid #FCA5A5', background: '#FFF5F5', color: RED, cursor: 'pointer' }}>
+                ×
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Articles — personnalisation complète */}
         <div style={{ marginBottom: 12, padding: '10px 12px', background: col.accentL, borderRadius: 12, border: `1px solid ${col.accent}18` }}>
           {(order.lignes || []).map((l, i) => (
-            <div key={l.id || i} style={{ marginBottom: i < (order.lignes.length - 1) ? 8 : 0 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 900, color: col.accent, minWidth: 26, flexShrink: 0 }}>{l.quantite}×</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: l.servi ? FAINT : NAVY, textDecoration: l.servi ? 'line-through' : 'none', flex: 1, lineHeight: 1.35 }}>
-                  {l.article?.nom || l.nomArticle || 'Article'}
-                </span>
-                {l.servi && <CheckCircle2 size={12} color={GREEN} style={{ flexShrink: 0 }} />}
+            <div key={l.id || i} style={{ marginBottom: i < (order.lignes.length - 1) ? 10 : 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 900, color: col.accent, minWidth: 26, flexShrink: 0, marginTop: 1 }}>{l.quantite}×</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: l.servi ? FAINT : NAVY, textDecoration: l.servi ? 'line-through' : 'none', lineHeight: 1.35 }}>
+                      {l.article?.nom || l.nomArticle || 'Article'}
+                    </span>
+                    {l.servi && <CheckCircle2 size={12} color={GREEN} style={{ flexShrink: 0 }} />}
+                  </div>
+                  {/* Variante */}
+                  {l.variantLabel && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 3, fontSize: 10, fontWeight: 800, color: '#5B21B6', background: '#EDE9FE', padding: '2px 7px', borderRadius: 5 }}>
+                      {l.variantLabel}{l.variantSupplement > 0 ? ` +${Number(l.variantSupplement).toLocaleString('fr-FR')} F` : ''}
+                    </span>
+                  )}
+                  {/* Instructions */}
+                  {l.instructions && (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, marginTop: 4, fontSize: 10, fontWeight: 700, color: OG_D, background: OG_L, padding: '4px 8px', borderRadius: 6, lineHeight: 1.4 }}>
+                      <span style={{ flexShrink: 0 }}>📝</span>
+                      <span>{l.instructions}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              {l.instructions && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 3, marginLeft: 28, fontSize: 10, fontWeight: 700, color: OG_D, background: OG_L, padding: '2px 8px', borderRadius: 6 }}>
-                  {l.instructions}
-                </span>
-              )}
             </div>
           ))}
         </div>
@@ -441,7 +498,7 @@ function HistoryRow({ order }) {
 /* ══════════════════════════════════════════════════════════════════
    KDSColumn — Colonne Kanban
    ══════════════════════════════════════════════════════════════════ */
-function KDSColumn({ col, orders, onAction, onPay, saving, onDragStart, onDragEnd, onDropCard, onDispatch }) {
+function KDSColumn({ col, orders, onAction, onPay, saving, onDragStart, onDragEnd, onDropCard, onDispatch, onSetDelai }) {
   const [dragOver, setDragOver] = useState(false);
 
   return (
@@ -484,7 +541,7 @@ function KDSColumn({ col, orders, onAction, onPay, saving, onDragStart, onDragEn
           </div>
         ) : orders.map(o => (
           <OrderCard key={o.id} order={o} onAction={onAction} onPay={onPay} saving={saving} col={col}
-            onDragStart={onDragStart} onDragEnd={onDragEnd} onDispatch={onDispatch} />
+            onDragStart={onDragStart} onDragEnd={onDragEnd} onDispatch={onDispatch} onSetDelai={onSetDelai} />
         ))}
       </div>
     </div>
@@ -606,6 +663,13 @@ export default function KDSStaff() {
     } finally {
       setSaving('');
     }
+  };
+
+  const onSetDelai = async (id, delaiEstime) => {
+    try {
+      await commandesService.updateDelai(id, delaiEstime);
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, delaiEstime: delaiEstime > 0 ? delaiEstime : undefined } : o));
+    } catch { /* ignore */ }
   };
 
   const onAction = async (id, kdsNext) => {
@@ -739,6 +803,7 @@ export default function KDSStaff() {
                 onDragStart={setDraggedId}
                 onDragEnd={() => setDraggedId(null)}
                 onDispatch={setDispatchOrder}
+                onSetDelai={onSetDelai}
                 onDropCard={(targetStatut) => {
                   if (!draggedId) return;
                   const order = orders.find(o => o.id === draggedId);

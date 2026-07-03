@@ -219,6 +219,13 @@ export class CommandesController {
     return this.commandesService.annulerByClient(id, req.user.id);
   }
 
+  @Patch(':id/delai')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('GERANT', 'STAFF', 'ADMIN')
+  setDelai(@Param('id') id: string, @Body('delaiEstime') delaiEstime: number) {
+    return this.commandesService.setDelai(id, Number(delaiEstime));
+  }
+
   @Patch(':id/statut')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('GERANT', 'STAFF', 'ADMIN')

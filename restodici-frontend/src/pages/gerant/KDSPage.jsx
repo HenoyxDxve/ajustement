@@ -61,6 +61,20 @@ const KDS_COLUMNS = [
   },
 ];
 
+const DELAI_PRESETS = [10, 15, 20, 30, 45];
+
+function formatHM(minutes) {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${String(m).padStart(2, '0')}min` : `${h}h`;
+}
+
+function useGlobalTick() {
+  const [, set] = useState(0);
+  useEffect(() => { const id = setInterval(() => set(n => n + 1), 30000); return () => clearInterval(id); }, []);
+}
+
 function playNotificationTone() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
@@ -182,19 +196,37 @@ export default function KDSPage() {
     }
   };
 
+  const setOrderDelai = async (orderId, delaiEstime) => {
+    try {
+      await commandesService.updateDelai(orderId, delaiEstime);
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, delaiEstime } : o));
+    } catch { /* keep ui intact */ }
+  };
+
   const filteredOrders = useMemo(() => {
-    return orders.filter(order => 
+    return orders.filter(order =>
       order.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.lignes?.some(l => l.article?.nom.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [orders, searchTerm]);
+
+  // Tri : commandes avec deadline dépassée ou proche en premier, puis FIFO
+  const urgencyScore = (o) => {
+    if (!o.createdAt) return 0;
+    const ageMs = Date.now() - new Date(o.createdAt).getTime();
+    if (o.delaiEstime) {
+      const remainMs = o.delaiEstime * 60000 - ageMs;
+      return -remainMs; // plus petit remainMs = plus urgent (score élevé)
+    }
+    return ageMs; // sans délai : plus vieille = plus urgente
+  };
 
   const columnsData = useMemo(() =>
     KDS_COLUMNS.map(col => ({
       ...col,
       orders: filteredOrders
         .filter(o => col.statuses.includes(o.statut))
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Plus récentes en haut
+        .sort((a, b) => urgencyScore(b) - urgencyScore(a))
     })),
     [filteredOrders]
   );
@@ -335,6 +367,7 @@ export default function KDSPage() {
                     onStatusUpdate={updateStatus}
                     onRegisterPayment={registerPayment}
                     onDispatch={setDispatchOrder}
+                    onSetDelai={setOrderDelai}
                   />
                 ))
               )}
@@ -366,24 +399,29 @@ function OrderCard({
   onStatusUpdate,
   onRegisterPayment,
   onDispatch,
+  onSetDelai,
 }) {
+  useGlobalTick();
   const nextStatuses = STATUS_FLOW[order.statut] || [];
   const allowPayment = ['SUR_PLACE', 'LIVRAISON'].includes(order.modeLivraison);
   const showDispatch = order.modeLivraison === 'LIVRAISON' && ['PRETE', 'EN_LIVRAISON'].includes(order.statut);
-  
-  const ageMinutes = order.createdAt 
-    ? Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000) 
-    : 0;
-  
-  const isUrgent = ageMinutes > 18;
-  const isWarning = ageMinutes > 12 && !isUrgent;
+
+  const ageMs      = order.createdAt ? Date.now() - new Date(order.createdAt).getTime() : 0;
+  const ageMinutes = Math.floor(ageMs / 60000);
+
+  // Compte à rebours délai
+  const deadlineMs   = order.delaiEstime ? order.delaiEstime * 60000 - ageMs : null;
+  const remainMin    = deadlineMs !== null ? Math.ceil(deadlineMs / 60000) : null;
+  const isOverdue    = remainMin !== null && remainMin <= 0;
+  const isUrgent     = remainMin !== null ? remainMin <= 3 : ageMinutes > 18;
+  const isWarning    = remainMin !== null ? (remainMin <= 8 && !isUrgent) : (ageMinutes > 12 && !isUrgent);
 
   return (
-    <div className={`group bg-white rounded-3xl border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5 ${isUrgent ? 'border-red-300 ring-1 ring-red-200' : 'border-slate-200'}`}>
+    <div className={`group bg-white rounded-3xl border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5 ${isUrgent || isOverdue ? 'border-red-300 ring-1 ring-red-200' : isWarning ? 'border-amber-300' : 'border-slate-200'}`}>
       {/* Header */}
       <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between bg-gradient-to-r from-white to-slate-50">
         <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl shadow-inner transition-colors ${isUrgent ? 'bg-red-100 text-red-700' : 'bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700'}`}>
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl shadow-inner transition-colors ${isOverdue ? 'bg-red-600 text-white' : isUrgent ? 'bg-red-100 text-red-700' : 'bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700'}`}>
             #{order.numero.slice(-4)}
           </div>
 
@@ -391,13 +429,19 @@ function OrderCard({
             <div className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-2xl border ${STATUS_COLORS[order.statut] || 'bg-slate-100 text-slate-600'}`}>
               {STATUS_LABELS[order.statut] || order.statut}
             </div>
-            
-            {(isUrgent || isWarning) && (
-              <div className={`mt-1.5 flex items-center gap-1.5 text-xs font-medium ${isUrgent ? 'text-red-600' : 'text-amber-600'}`}>
+
+            {/* Temps écoulé + compte à rebours */}
+            <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+              <span className={`flex items-center gap-1 text-xs font-medium ${isOverdue ? 'text-red-600' : isUrgent ? 'text-red-500' : isWarning ? 'text-amber-600' : 'text-slate-400'}`}>
                 <Timer className="w-3.5 h-3.5" />
-                {ageMinutes} min
-              </div>
-            )}
+                {formatHM(ageMinutes)} écoulé
+              </span>
+              {remainMin !== null && (
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isOverdue ? 'bg-red-600 text-white' : isUrgent ? 'bg-red-100 text-red-700' : isWarning ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                  {isOverdue ? `RETARD ${formatHM(Math.abs(remainMin))}` : `${formatHM(remainMin)} restant`}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -407,24 +451,55 @@ function OrderCard({
         </div>
       </div>
 
-      {/* Items */}
-      <div className="px-6 py-5 space-y-3 border-b border-slate-100">
-        {order.lignes?.slice(0, 4).map((ligne, idx) => (
-          <div key={idx} className="flex justify-between text-sm">
+      {/* Délai estimé rapide */}
+      <div className="px-6 pt-4 pb-0">
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Délai estimé</p>
+        <div className="flex gap-2 flex-wrap">
+          {DELAI_PRESETS.map(d => (
+            <button
+              key={d}
+              onClick={() => onSetDelai(order.id, d)}
+              className={`px-3 py-1 text-xs font-bold rounded-full border transition-all ${order.delaiEstime === d ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-slate-600 border-slate-200 hover:border-amber-400 hover:text-amber-600'}`}
+            >
+              {d} min
+            </button>
+          ))}
+          {order.delaiEstime && (
+            <button
+              onClick={() => onSetDelai(order.id, 0)}
+              className="px-3 py-1 text-xs font-bold rounded-full border border-red-200 text-red-400 hover:bg-red-50 transition-all"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Items — personnalisation complète */}
+      <div className="px-6 py-4 space-y-4 border-b border-slate-100 mt-3">
+        {order.lignes?.map((ligne, idx) => (
+          <div key={idx} className="text-sm">
             <div className="flex items-start gap-3 text-slate-700">
-              <span className="font-bold text-amber-600 mt-px">{ligne.quantite}×</span>
-              <span>{ligne.article?.nom}</span>
+              <span className="font-bold text-amber-600 mt-px shrink-0">{ligne.quantite}×</span>
+              <div className="flex-1 min-w-0">
+                <span className="font-semibold">{ligne.article?.nom}</span>
+                {/* Variante */}
+                {ligne.variantLabel && (
+                  <span className="ml-2 inline-flex items-center text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                    {ligne.variantLabel}{ligne.variantSupplement > 0 ? ` +${formatFCFA(ligne.variantSupplement)}` : ''}
+                  </span>
+                )}
+                {/* Instructions personnalisation */}
+                {ligne.instructions && (
+                  <div className="mt-1.5 flex items-start gap-1.5 text-xs font-medium text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5">
+                    <span className="shrink-0 mt-px">📝</span>
+                    <span>{ligne.instructions}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            {ligne.instructions && (
-              <span className="text-amber-600 text-xs bg-amber-50 px-2.5 py-px rounded-lg max-w-[140px] truncate">
-                {ligne.instructions}
-              </span>
-            )}
           </div>
         ))}
-        {order.lignes?.length > 4 && (
-          <p className="text-xs text-slate-400">+{order.lignes.length - 4} autres...</p>
-        )}
       </div>
 
       {/* Payment Area */}

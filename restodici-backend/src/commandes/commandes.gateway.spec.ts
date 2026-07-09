@@ -10,6 +10,11 @@ describe('CommandesGateway', () => {
     findOne: jest.fn(),
   };
 
+  // JWT_SECRET déterministe pour les tests (plus de fallback dans le code).
+  beforeAll(() => {
+    process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+  });
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -29,7 +34,7 @@ describe('CommandesGateway', () => {
   it('joins user, role and restaurant rooms from validated token payload', async () => {
     const token = jwt.sign(
       { sub: 'user-1', email: 'gerant@example.com', role: 'GERANT' },
-      process.env.JWT_SECRET || 'dev-secret-change-me',
+      process.env.JWT_SECRET as string,
     );
 
     userRepository.findOne.mockResolvedValue({

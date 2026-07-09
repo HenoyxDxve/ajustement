@@ -8,6 +8,7 @@ import {
   InitiatePaymentOptions,
   PaymentGatewayResult,
 } from './payment-gateway.interface';
+import { EXTERNAL_URLS } from '../../config/app-config';
 
 /**
  * Wrapper NovaSend implementant PaymentGateway.
@@ -19,7 +20,7 @@ export class NovaSendGateway implements PaymentGateway {
   readonly name = 'novasend';
 
   private readonly logger = new Logger(NovaSendGateway.name);
-  private readonly BASE = 'https://business.novasend.app/v1';
+  private readonly BASE = EXTERNAL_URLS.novasend;
 
   // Mapping référence → provider pour enrichir le webhook entrant
   private readonly pendingMap = new Map<string, string>();

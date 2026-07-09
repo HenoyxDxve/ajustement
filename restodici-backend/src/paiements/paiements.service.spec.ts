@@ -10,6 +10,7 @@ import { CommandesGateway } from '../commandes/commandes.gateway';
 import { SmsService } from '../notifications/sms.service';
 import { FcmService } from '../notifications/fcm.service';
 import { RECEIPT_QUEUE } from '../receipt-queue/receipt-queue.constants';
+import { PaymentGatewayRegistry } from './gateways/payment-gateway.registry';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -46,6 +47,15 @@ const mockNovaSend = {
   getProvider: jest.fn(),
 };
 
+const mockGatewayRegistry = {
+  getGateway: jest.fn().mockResolvedValue({
+    initiate: jest.fn(),
+    verifyWebhook: jest.fn().mockReturnValue(true),
+    handleWebhook: jest.fn().mockResolvedValue({ transactionId: 'txn-1', status: 'SUCCESS' }),
+  }),
+  getEnabledPaymentGateways: jest.fn().mockResolvedValue([]),
+};
+
 function makeCommande(overrides: Partial<Commande> = {}): Commande {
   return {
     id: 'cmd-uuid-1',
@@ -80,6 +90,7 @@ async function buildModule(): Promise<TestingModule> {
       { provide: SmsService, useValue: mockSmsService },
       { provide: FcmService, useValue: mockFcmService },
       { provide: NovaSendService, useValue: mockNovaSend },
+      { provide: PaymentGatewayRegistry, useValue: mockGatewayRegistry },
     ],
   }).compile();
 }

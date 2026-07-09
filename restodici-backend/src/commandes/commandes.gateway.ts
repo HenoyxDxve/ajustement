@@ -9,21 +9,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
 import { User } from '../auth/entities/user.entity';
+import { getCorsOrigins } from '../config/app-config';
 
-// [SÉCURITÉ] CORS WebSocket restreint aux origines connues (audit §3.3)
-const WS_CORS_ORIGINS: string[] = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'http://localhost:3000',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174',
-  'http://127.0.0.1:5175',
-  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map((o) => o.trim()) : []),
-];
-
+// [SÉCURITÉ] CORS WebSocket restreint aux mêmes origines que HTTP (config centralisée).
 @WebSocketGateway({
-  cors: { origin: WS_CORS_ORIGINS, credentials: true },
+  cors: { origin: getCorsOrigins(), credentials: true },
   namespace: 'commandes',
 })
 export class CommandesGateway {
@@ -72,7 +62,7 @@ export class CommandesGateway {
 
     let payload: { sub?: string } | null = null;
     try {
-      // [SÉCURITÉ] Pas de fallback : JWT_SECRET validé au démarrage (audit §3.1)
+      // [SÉCURITÉ] Pas de fallback : JWT_SECRET validé au démarrage (main.ts).
       payload = jwt.verify(token, process.env.JWT_SECRET as string) as {
         sub?: string;
       };

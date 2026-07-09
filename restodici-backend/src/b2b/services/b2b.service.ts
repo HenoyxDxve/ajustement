@@ -24,6 +24,7 @@ import { FactureMensuelleB2B } from '../entities/facture-mensuelle-b2b.entity';
 import { PlanRepasB2B, FrequencePlan } from '../entities/plan-repas-b2b.entity';
 import { Article } from '../../menu/entities/article.entity';
 import { SystemConfig } from '../../common/entities/system-config.entity';
+import { EXTERNAL_URLS } from '../../config/app-config';
 import { CreateTeamDto } from '../dto/create-team.dto';
 import { AddTeamMemberDto } from '../dto/add-team-member.dto';
 import { CreateBulkOrderDto } from '../dto/create-bulk-order.dto';
@@ -2194,7 +2195,7 @@ export class B2BService {
     };
 
     const response = await axios.post(
-      'https://api.novasend.ci/v1/payments',
+      EXTERNAL_URLS.novasendPayments,
       payload,
       {
         headers: {

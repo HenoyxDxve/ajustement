@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { randomUUID } from 'crypto';
+import { EXTERNAL_URLS } from '../config/app-config';
 
 // Providers internes — utilisés pour tracker le mode de paiement côté webhook
 // CARTE : réservé pour l'intégration carte bancaire NovaSend (à venir)
@@ -31,7 +32,7 @@ export interface InitiatePaymentResult {
 @Injectable()
 export class NovaSendService {
   private readonly logger = new Logger(NovaSendService.name);
-  private readonly BASE = 'https://business.novasend.app/v1';
+  private readonly BASE = EXTERNAL_URLS.novasend;
 
   // Mapping référence → provider pour enrichir le webhook entrant
   private readonly pendingMap = new Map<string, NovaSendProvider>();

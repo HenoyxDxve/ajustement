@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { EXTERNAL_URLS } from '../config/app-config';
 
 @Injectable()
 export class FcmService {
@@ -33,7 +34,7 @@ export class FcmService {
     }
     try {
       await axios.post(
-        'https://fcm.googleapis.com/fcm/send',
+        EXTERNAL_URLS.fcmSend,
         {
           to: token,
           notification: { title, body, sound: 'default' },
@@ -65,7 +66,7 @@ export class FcmService {
     }
     try {
       await axios.post(
-        'https://fcm.googleapis.com/fcm/send',
+        EXTERNAL_URLS.fcmSend,
         {
           to: `/topics/${topic}`,
           notification: { title, body, sound: 'default' },

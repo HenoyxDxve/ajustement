@@ -17,8 +17,12 @@ import moovMoneyLogo from '../assets/payments/moov-money.svg';
 import carteBancaireLogo from '../assets/payments/carte-bancaire.svg';
 
 // Flags
-// Flip to false when the real NovaSend API key is configured in production
-const SIMULATE_PAYMENT    = true;
+// Simulation de paiement : active en dev, désactivée en production.
+// Forçable via VITE_SIMULATE_PAYMENT ('true' / 'false').
+const SIMULATE_PAYMENT =
+  import.meta.env.VITE_SIMULATE_PAYMENT != null
+    ? import.meta.env.VITE_SIMULATE_PAYMENT === 'true'
+    : import.meta.env.DEV;
 // Flip to false when NovaSend card payment is live in CI
 const NOVASEND_CARD_ENABLED = true;
 

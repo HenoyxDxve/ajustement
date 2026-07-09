@@ -28,6 +28,7 @@ const CartPage        = lazy(() => import('./pages/Cart'));
 const CheckoutPage    = lazy(() => import('./pages/Checkout'));
 const OrdersPage      = lazy(() => import('./pages/Orders'));
 const PaymentSuccessPage  = lazy(() => import('./pages/PaymentSuccess'));
+const PaymentPreviewPage  = lazy(() => import('./pages/PaymentPreview'));
 const OrderTrackingPage   = lazy(() => import('./pages/order/OrderTracking'));
 const ClientDashboard     = lazy(() => import('./pages/client/clientDashboard'));
 
@@ -171,6 +172,7 @@ export default function App() {
               }>
                 <Route path="/checkout"              element={<CheckoutPage />} />
                 <Route path="/checkout/success/:id"  element={<PaymentSuccessPage />} />
+                <Route path="/paiement/preview"      element={<PaymentPreviewPage />} />
                 <Route path="/suivi/:id"             element={<OrderTrackingPage />} />
               </Route>
 

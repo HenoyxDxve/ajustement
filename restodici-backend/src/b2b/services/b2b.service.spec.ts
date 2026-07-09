@@ -22,6 +22,7 @@ import { Article } from '../../menu/entities/article.entity';
 import { CommandesGateway } from '../../commandes/commandes.gateway';
 import { EmailService } from '../../email/email.service';
 import { ConfigService } from '@nestjs/config';
+import { SystemConfig } from '../../common/entities/system-config.entity';
 
 // ─── Shared mock objects ──────────────────────────────────────────────────────
 
@@ -145,6 +146,7 @@ async function buildModule(): Promise<TestingModule> {
       { provide: getRepositoryToken(FactureMensuelleB2B), useValue: factureRepository },
       { provide: getRepositoryToken(PlanRepasB2B), useValue: planRepasRepository },
       { provide: getRepositoryToken(Article), useValue: articleRepository },
+      { provide: getRepositoryToken(SystemConfig), useValue: { findOne: jest.fn(), find: jest.fn() } },
       { provide: CommandesGateway, useValue: commandesGateway },
       { provide: EmailService, useValue: emailService },
       { provide: ConfigService, useValue: configService },

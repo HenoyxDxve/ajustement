@@ -20,9 +20,9 @@ import { EmailModule } from '../email/email.module';
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret:
-          configService.get<string>('JWT_SECRET') || 'dev-secret-change-me',
+      useFactory: (configService: ConfigService) => ({
+        // [SÉCURITÉ] Pas de fallback : JWT_SECRET est garanti au démarrage (main.ts).
+        secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '24h' },
       }),
       inject: [ConfigService],

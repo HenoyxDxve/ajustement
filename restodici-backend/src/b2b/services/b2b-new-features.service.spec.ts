@@ -18,6 +18,7 @@ import { Article } from '../../menu/entities/article.entity';
 import { CommandesGateway } from '../../commandes/commandes.gateway';
 import { EmailService } from '../../email/email.service';
 import { ConfigService } from '@nestjs/config';
+import { SystemConfig } from '../../common/entities/system-config.entity';
 
 // Helper: builds a chainable QueryBuilder mock
 function makeQB(rows: any[]) {
@@ -91,6 +92,7 @@ describe('B2BService — contestFacture', () => {
         },
         { provide: getRepositoryToken(Article), useValue: {} },
         { provide: getRepositoryToken(PlanRepasB2B), useValue: {} },
+        { provide: getRepositoryToken(SystemConfig), useValue: {} },
         { provide: CommandesGateway, useValue: { emitToManagers: jest.fn() } },
         { provide: EmailService, useValue: emailService },
         { provide: ConfigService, useValue: configService },
@@ -198,6 +200,7 @@ describe('B2BService — exportSyscohadaCsv', () => {
         },
         { provide: getRepositoryToken(Article), useValue: {} },
         { provide: getRepositoryToken(PlanRepasB2B), useValue: {} },
+        { provide: getRepositoryToken(SystemConfig), useValue: {} },
         { provide: CommandesGateway, useValue: { emitToManagers: jest.fn() } },
         {
           provide: EmailService,
@@ -313,6 +316,7 @@ describe('B2BService — checkOverdueInvoices relances', () => {
         },
         { provide: getRepositoryToken(Article), useValue: {} },
         { provide: getRepositoryToken(PlanRepasB2B), useValue: {} },
+        { provide: getRepositoryToken(SystemConfig), useValue: {} },
         { provide: CommandesGateway, useValue: { emitToManagers: jest.fn() } },
         { provide: EmailService, useValue: emailService },
         { provide: ConfigService, useValue: configService },

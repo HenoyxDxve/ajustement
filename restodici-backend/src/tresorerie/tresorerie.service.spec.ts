@@ -1,11 +1,34 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { TresorerieService } from './tresorerie.service';
+import { Commande } from '../commandes/entities/commande.entity';
+
+const mockCommandeRepo = {
+  find: jest.fn(),
+};
 
 // ─── Builder ──────────────────────────────────────────────────────────────────
 
+function seedCommandeData() {
+  mockCommandeRepo.find.mockResolvedValue([
+    {
+      id: 'cmd-1',
+      montantTotal: 100000,
+      montantRemise: 10000,
+      createdAt: new Date('2026-07-08T10:00:00.000Z'),
+    },
+  ]);
+}
+
 function buildModule() {
   return Test.createTestingModule({
-    providers: [TresorerieService],
+    providers: [
+      TresorerieService,
+      {
+        provide: getRepositoryToken(Commande),
+        useValue: mockCommandeRepo,
+      },
+    ],
   }).compile();
 }
 
@@ -16,6 +39,7 @@ describe('TresorerieService getRevenueStats()', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    seedCommandeData();
     const module = await buildModule();
     service = module.get<TresorerieService>(TresorerieService);
   });
@@ -117,6 +141,7 @@ describe('TresorerieService generateFinancialReport()', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    seedCommandeData();
     const module = await buildModule();
     service = module.get<TresorerieService>(TresorerieService);
   });
@@ -161,6 +186,7 @@ describe('TresorerieService exportSyscohada()', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    seedCommandeData();
     const module = await buildModule();
     service = module.get<TresorerieService>(TresorerieService);
   });

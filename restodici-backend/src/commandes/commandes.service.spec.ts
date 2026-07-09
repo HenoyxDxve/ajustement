@@ -172,7 +172,7 @@ describe('CommandesService rembourser()', () => {
   });
 
   it('sets rembourse=true, statut=ANNULEE, rembourseLe, saves and emits event', async () => {
-    const commande = makeCommande({ rembourse: false });
+    const commande = makeCommande({ rembourse: false, payeAt: new Date() });
     mockCommandeRepo.findOne.mockResolvedValue(commande);
     mockCommandeRepo.save.mockImplementation((c: Commande) =>
       Promise.resolve(c),

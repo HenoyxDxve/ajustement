@@ -14,6 +14,7 @@ import { TresorerieService } from '../tresorerie/tresorerie.service';
 import { PromosService } from '../promos/promos.service';
 import { SmsService } from '../notifications/sms.service';
 import { FcmService } from '../notifications/fcm.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 // ─── Shared mock objects ──────────────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ const mockTresorerieService = {};
 const mockPromosService = {};
 const mockSmsService = {};
 const mockFcmService = {};
+const mockNotificationsService = { create: jest.fn().mockResolvedValue({ id: 'notif-1' }) };
 
 function buildModule() {
   return Test.createTestingModule({
@@ -67,6 +69,7 @@ function buildModule() {
       { provide: PromosService, useValue: mockPromosService },
       { provide: SmsService, useValue: mockSmsService },
       { provide: FcmService, useValue: mockFcmService },
+      { provide: NotificationsService, useValue: mockNotificationsService },
     ],
   }).compile();
 }

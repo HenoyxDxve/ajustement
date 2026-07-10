@@ -24,6 +24,7 @@ import { TresorerieService } from '../tresorerie/tresorerie.service';
 import { PromosService } from '../promos/promos.service';
 import { SmsService } from '../notifications/sms.service';
 import { FcmService } from '../notifications/fcm.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const DIGITAL_MODES = [
   ModePaiementCommande.ORANGE_MONEY,
@@ -31,6 +32,17 @@ const DIGITAL_MODES = [
   ModePaiementCommande.MOOV_MONEY,
   ModePaiementCommande.CARTE_BANCAIRE,
 ];
+
+// Libellés lisibles des statuts pour le corps des notifications.
+const STATUT_LABELS: Record<string, string> = {
+  RECUE: 'reçue',
+  CONFIRMEE: 'confirmée',
+  EN_PREP: 'en préparation',
+  PRETE: 'prête',
+  EN_LIVRAISON: 'en livraison',
+  LIVREE: 'livrée',
+  ANNULEE: 'annulée',
+};
 
 @Injectable()
 export class CommandesService {
@@ -52,7 +64,33 @@ export class CommandesService {
     private promosService: PromosService,
     private smsService: SmsService,
     private fcmService: FcmService,
+    private notificationsService: NotificationsService,
   ) {}
+
+  /**
+   * Crée une notification persistée pour le client ET la pousse en temps réel.
+   * (source unique : évite de dupliquer la logique dans chaque étape du cycle)
+   */
+  private async notifyClient(
+    clientId: string,
+    type: string,
+    title: string,
+    body: string,
+    data?: Record<string, any>,
+  ): Promise<void> {
+    try {
+      const notif = await this.notificationsService.create({
+        userId: clientId,
+        type,
+        title,
+        body,
+        data: data ?? null,
+      });
+      this.commandesGateway.emitToClient(clientId, 'notification.new', notif);
+    } catch {
+      // La notification ne doit jamais casser le flux métier.
+    }
+  }
 
   async createCommande(
     dto: CreateCommandeDto,
@@ -247,6 +285,13 @@ export class CommandesService {
       numero: commande.numero,
       statut: commande.statut,
     });
+    await this.notifyClient(
+      clientId,
+      'commande.creee',
+      'Commande enregistrée',
+      `Votre commande n°${commande.numero} a bien été enregistrée.`,
+      { commandeId: commande.id, numero: commande.numero },
+    );
 
     await this.fcmService.notifyNewOrder(
       restaurantId,
@@ -390,6 +435,13 @@ export class CommandesService {
       id: saved.id,
       statut: saved.statut,
     });
+    await this.notifyClient(
+      clientId,
+      'commande.statut',
+      'Commande mise à jour',
+      `Votre commande n°${saved.numero} est ${STATUT_LABELS[saved.statut] ?? saved.statut}.`,
+      { commandeId: saved.id, statut: saved.statut },
+    );
 
     return saved;
   }
@@ -457,6 +509,13 @@ export class CommandesService {
         id: saved.id,
         statut: saved.statut,
       });
+      await this.notifyClient(
+        saved.client.id,
+        'commande.statut',
+        'Commande annulée',
+        `Votre commande n°${saved.numero} a été annulée.`,
+        { commandeId: saved.id, statut: saved.statut },
+      );
 
       return saved;
     }
@@ -510,6 +569,13 @@ export class CommandesService {
       id: saved.id,
       statut: saved.statut,
     });
+    await this.notifyClient(
+      saved.client.id,
+      'commande.statut',
+      'Commande mise à jour',
+      `Votre commande n°${saved.numero} est ${STATUT_LABELS[saved.statut] ?? saved.statut}.`,
+      { commandeId: saved.id, statut: saved.statut },
+    );
 
     if (newStatut === StatutCommande.LIVREE) {
       if (commande.client?.telephone) {
@@ -604,6 +670,15 @@ export class CommandesService {
       id: saved.id,
       estPaye: saved.estPaye,
     });
+    if (saved.estPaye) {
+      await this.notifyClient(
+        saved.client.id,
+        'commande.paiement',
+        'Paiement confirmé',
+        `Le paiement de votre commande n°${saved.numero} est confirmé.`,
+        { commandeId: saved.id },
+      );
+    }
 
     return {
       commande: saved,
@@ -667,6 +742,13 @@ export class CommandesService {
       id: saved.id,
       estPaye: true,
     });
+    await this.notifyClient(
+      saved.client.id,
+      'commande.paiement',
+      'Paiement confirmé',
+      `Le paiement de votre commande n°${saved.numero} est confirmé.`,
+      { commandeId: saved.id },
+    );
 
     return saved;
   }
@@ -819,6 +901,13 @@ export class CommandesService {
         numero: commande.numero,
         motif: motif ?? null,
       });
+      await this.notifyClient(
+        commande.client.id,
+        'commande.remboursee',
+        'Commande remboursée',
+        `Votre commande n°${commande.numero} a été remboursée.`,
+        { commandeId: id, numero: commande.numero },
+      );
     }
 
     return commande;
@@ -859,6 +948,13 @@ export class CommandesService {
       numero: saved.numero,
       statut: StatutCommande.LIVREE,
     });
+    await this.notifyClient(
+      clientId,
+      'commande.statut',
+      'Commande livrée',
+      `Votre commande n°${saved.numero} a été livrée. Bon appétit !`,
+      { commandeId: saved.id, statut: StatutCommande.LIVREE },
+    );
 
     return saved;
   }

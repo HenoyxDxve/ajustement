@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, X, CheckCheck, ChefHat, Truck, CreditCard, AlertTriangle, Package, RotateCcw } from 'lucide-react';
 import { createCommandesSocket } from '../../services/commandes.service';
+import { notificationsAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 
 const ROLE_EVENTS = {
@@ -44,10 +45,32 @@ function buildNotif(event, payload) {
     title:     meta.label,
     body:      meta.body(payload),
     color:     meta.color,
-    Icon:      meta.icon,
     read:      false,
     createdAt: new Date().toISOString(),
+    persisted: false,
   };
+}
+
+/* Notification persistée renvoyée par l'API/serveur → forme d'affichage. */
+function mapServerNotif(n) {
+  const meta = EVENT_META[n.type] || { color: '#8B6E50' };
+  return {
+    id:        n.id,
+    event:     n.type,
+    title:     n.title,
+    body:      n.body,
+    color:     meta.color,
+    read:      !!n.read,
+    createdAt: n.createdAt,
+    persisted: true,
+  };
+}
+
+/* Notification native du navigateur. */
+function nativeNotify(n) {
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    try { new Notification(n.title, { body: n.body, icon: '/favicon.ico', tag: n.id }); } catch {}
+  }
 }
 
 function timeAgo(iso) {
@@ -62,43 +85,56 @@ function timeAgo(iso) {
 // light=false (défaut) → fond sombre (sidebar B2B/gérant)
 export default function NotificationBell({ accentColor = '#EA580C', size = 'md', light = false }) {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(`notifs:${user?.id}`) || '[]'); } catch { return []; }
-  });
+  const isClient = user?.role?.toUpperCase() === 'CLIENT';
+  const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const panelRef        = useRef(null);
   const btnRef          = useRef(null);
   const unread          = notifications.filter(n => !n.read).length;
 
-  /* Persist */
+  /* Historique persisté depuis l'API au montage */
   useEffect(() => {
-    if (user?.id) {
-      try { localStorage.setItem(`notifs:${user.id}`, JSON.stringify(notifications.slice(0, 40))); } catch {}
-    }
-  }, [notifications, user?.id]);
+    if (!user?.id) return;
+    let cancelled = false;
+    notificationsAPI.list({ limit: 40 })
+      .then(res => {
+        if (cancelled) return;
+        setNotifications((res.data?.items || []).map(mapServerNotif));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   /* Demande automatique de permission navigateur au montage */
   useEffect(() => {
-    if (user?.role?.toUpperCase() === 'CLIENT' && Notification.permission === 'default') {
+    if (isClient && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {});
     }
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* Socket — une seule connexion */
+  /* Socket — temps réel.
+     Client : notifications persistées poussées par le serveur (notification.new).
+     Staff/gérant/B2B : événements de commande en direct (éphémères). */
   useEffect(() => {
     if (!user?.id) return;
     const socket = createCommandesSocket(user);
-    const events = ROLE_EVENTS[user.role?.toUpperCase()] || ROLE_EVENTS.CLIENT;
 
+    if (isClient) {
+      const onNew = (serverNotif) => {
+        const n = mapServerNotif(serverNotif);
+        setNotifications(prev => [n, ...prev.filter(p => p.id !== n.id)].slice(0, 60));
+        nativeNotify(n);
+      };
+      socket.on('notification.new', onNew);
+      return () => { socket.off('notification.new', onNew); socket.disconnect(); };
+    }
+
+    const events = ROLE_EVENTS[user.role?.toUpperCase()] || ROLE_EVENTS.CLIENT;
     const handleEvent = (event) => (payload) => {
       const notif = buildNotif(event, payload);
-      setNotifications(prev => [notif, ...prev].slice(0, 40));
-      // Notif navigateur native
-      if (Notification.permission === 'granted') {
-        try { new Notification(notif.title, { body: notif.body, icon: '/favicon.ico', tag: notif.id }); } catch {}
-      }
+      setNotifications(prev => [notif, ...prev].slice(0, 60));
+      nativeNotify(notif);
     };
-
     events.forEach(ev => socket.on(ev, handleEvent(ev)));
     return () => { events.forEach(ev => socket.off(ev)); socket.disconnect(); };
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -115,9 +151,16 @@ export default function NotificationBell({ accentColor = '#EA580C', size = 'md',
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    notificationsAPI.markAllRead().catch(() => {});
+  };
   const clearAll    = () => setNotifications([]);
-  const markRead    = (id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  const markRead    = (id) => {
+    const target = notifications.find(n => n.id === id);
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    if (target?.persisted) notificationsAPI.markRead(id).catch(() => {});
+  };
 
   const requestPermission = async () => {
     if (Notification.permission === 'default') await Notification.requestPermission();

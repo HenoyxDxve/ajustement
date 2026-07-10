@@ -453,3 +453,12 @@ export const modulesAPI = {
   getClientModules: () => api.get('/app/modules'),
 };
 
+// ── Notifications persistées (historique + non-lues + mark-as-read) ──
+export const notificationsAPI = {
+  list:        (params)  => api.get('/notifications', { params }),   // { items, total, unread }
+  unreadCount: ()        => api.get('/notifications/unread-count'),  // { count }
+  markRead:    (id)      => api.patch(`/notifications/${id}/read`),
+  markAllRead: ()        => api.patch('/notifications/read-all'),
+  remove:      (id)      => api.delete(`/notifications/${id}`),
+};
+

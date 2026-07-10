@@ -229,10 +229,16 @@ function B2BCategoryTabs({ cats, active, onChange }) {
 const STEPS = ['Choisir les plats', 'Livraison & lieu', 'Confirmer'];
 
 // ── helpers ───────────────────────────────────────────────────────────────────
+// Délai minimum de livraison : 4 h (+ 2 min de marge pour passer le contrôle strict backend)
+const DELIVERY_LEAD_MS = (4 * 60 + 2) * 60 * 1000;
+
 const getMinDatetime = () => {
-  // +1 min ensures the truncated HH:MM value always passes the strict "≥ 4h" backend check
-  const d = new Date(Date.now() + (4 * 60 + 1) * 60 * 1000);
-  return { minDate: d.toISOString().slice(0, 10), minTime: d.toTimeString().slice(0, 5) };
+  const d = new Date(Date.now() + DELIVERY_LEAD_MS);
+  // Composants LOCAUX cohérents (évite tout décalage UTC/local près de minuit).
+  const pad = (n) => String(n).padStart(2, '0');
+  const minDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const minTime = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return { minDate, minTime };
 };
 
 const getDeliveryLabel = (dateStr, timeStr) => {
@@ -360,16 +366,26 @@ export default function BulkOrder() {
 
   const [timeRefreshed, setTimeRefreshed] = useState(false);
 
-  // ── Auto-refresh delivery time in instant mode (handles slow form fill) ──
+  // ── Mode instant : l'heure de livraison suit l'heure courante en temps réel ──
+  // (= maintenant + 4h, resynchronisé chaque seconde ; re-render seulement quand
+  //  la minute change → aucune erreur de délai périmé au moment de valider/envoyer)
   useEffect(() => {
     if (mode !== 'instant') return;
-    const id = setInterval(() => {
+    let flashTimer;
+    const sync = () => {
       const { minDate, minTime } = getMinDatetime();
-      setLivraison(prev => ({ ...prev, dateLivraison: minDate, heureLivraison: minTime }));
-      setTimeRefreshed(true);
-      setTimeout(() => setTimeRefreshed(false), 3000);
-    }, 30_000);
-    return () => clearInterval(id);
+      setLivraison(prev => {
+        if (prev.dateLivraison === minDate && prev.heureLivraison === minTime) return prev;
+        // La minute a changé → petit indicateur visuel
+        setTimeRefreshed(true);
+        clearTimeout(flashTimer);
+        flashTimer = setTimeout(() => setTimeRefreshed(false), 2500);
+        return { ...prev, dateLivraison: minDate, heureLivraison: minTime };
+      });
+    };
+    sync(); // synchro immédiate à l'entrée en mode instant
+    const id = setInterval(sync, 1000);
+    return () => { clearInterval(id); clearTimeout(flashTimer); };
   }, [mode]);
 
   // ── Load restaurants + collabs ────────────────────────────────────────────
@@ -541,9 +557,13 @@ export default function BulkOrder() {
   // ── Validation ────────────────────────────────────────────────────────────
   const validateStep0 = () => { if (panierItems.length === 0) { setError('Sélectionnez au moins un plat'); return false; } setError(''); return true; };
   const validateStep1 = () => {
-    if (!livraison.dateLivraison || !livraison.heureLivraison) { setError('Date et heure requises'); return false; }
+    // En mode instant, l'heure est calculée automatiquement (toujours = maintenant + 4h) :
+    // on ne valide donc que le lieu. En mode planifié, on vérifie le délai de 4h.
+    if (mode !== 'instant') {
+      if (!livraison.dateLivraison || !livraison.heureLivraison) { setError('Date et heure requises'); return false; }
+      if (new Date(`${livraison.dateLivraison}T${livraison.heureLivraison}`) < new Date(Date.now() + 4 * 60 * 60 * 1000)) { setError('Délai minimum 4 heures avant livraison'); return false; }
+    }
     if (!livraison.lieuLivraison.trim()) { setError('Lieu de livraison requis'); return false; }
-    if (new Date(`${livraison.dateLivraison}T${livraison.heureLivraison}`) < new Date(Date.now() + 4 * 60 * 60 * 1000)) { setError('Délai minimum 4 heures avant livraison'); return false; }
     setError(''); return true;
   };
 
@@ -551,9 +571,13 @@ export default function BulkOrder() {
   const handleSubmit = async () => {
     setSubmitting(true); setError('');
     try {
+      // Mode instant : on recalcule l'heure au tout dernier moment (= heure courante + 4h)
+      // pour ne jamais envoyer une valeur périmée. Mode planifié : on garde le créneau choisi.
+      const { dateLivraison, heureLivraison } =
+        mode === 'instant' ? getMinDatetime() : livraison;
       const result = await b2bAPI.createCommandeGroupee({
-        dateLivraison: livraison.dateLivraison,
-        heureLivraison: livraison.heureLivraison,
+        dateLivraison,
+        heureLivraison,
         lieuLivraison: livraison.lieuLivraison,
         adresseLivraison: livraison.adresseLivraison || livraison.lieuLivraison,
         lignes: buildLignes(),

@@ -64,6 +64,13 @@ export function validateEnv(): void {
     if (!process.env.REDIS_PASSWORD) {
       prodCritical.push('REDIS_PASSWORD');
     }
+    // Clé dédiée du chiffrement au repos — ne doit pas dépendre du JWT_SECRET.
+    if (
+      !process.env.TOTP_ENCRYPTION_KEY ||
+      !process.env.TOTP_ENCRYPTION_KEY.trim()
+    ) {
+      prodCritical.push('TOTP_ENCRYPTION_KEY');
+    }
     if (prodCritical.length) {
       throw new Error(
         `[FATAL] Variables obligatoires en production manquantes : ${prodCritical.join(', ')}`,

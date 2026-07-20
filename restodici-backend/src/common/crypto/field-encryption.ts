@@ -4,9 +4,11 @@ import * as crypto from 'crypto';
  * Chiffrement de champ au repos (AES-256-GCM).
  * Utilisé pour les secrets sensibles stockés en base (ex. secret TOTP 2FA).
  *
- * Clé : dérivée de TOTP_ENCRYPTION_KEY (recommandé, dédié) ou, à défaut,
- * de JWT_SECRET (déjà garanti au démarrage) → fonctionne sans config
- * supplémentaire en dev, tout en permettant une clé dédiée en production.
+ * Clé : TOTP_ENCRYPTION_KEY, dédiée et découplée du JWT_SECRET (obligatoire en
+ * production — cf. validateEnv). Le JWT_SECRET n'est plus qu'un fallback de
+ * LECTURE, pour déchiffrer les anciens secrets créés avant l'introduction d'une
+ * clé dédiée (dev / migration). On ne dérive JAMAIS d'une chaîne vide : ça
+ * produirait une clé prévisible (sha256("")).
  *
  * Format stocké : "enc:v1:<iv_hex>:<authTag_hex>:<ciphertext_hex>".
  * Rétrocompatible : une valeur non préfixée est considérée déjà en clair
@@ -15,18 +17,36 @@ import * as crypto from 'crypto';
 
 const PREFIX = 'enc:v1:';
 
-function getKey(): Buffer {
-  const secret =
-    process.env.TOTP_ENCRYPTION_KEY || process.env.JWT_SECRET || '';
+function deriveKey(secret: string): Buffer {
   // Dérive une clé de 32 octets (sha256) quelle que soit la longueur de la source.
   return crypto.createHash('sha256').update(secret).digest();
+}
+
+/**
+ * Clés candidates par ordre de préférence : la clé dédiée d'abord, puis le
+ * JWT_SECRET (héritage). Jamais de chaîne vide. Sert au chiffrement (première
+ * clé) et au déchiffrement (essai de toutes les clés → migration sans perte).
+ */
+function keyCandidates(): Buffer[] {
+  const secrets: string[] = [];
+  const dedicated = process.env.TOTP_ENCRYPTION_KEY;
+  if (dedicated && dedicated.trim()) secrets.push(dedicated);
+  const jwt = process.env.JWT_SECRET; // fallback héritage/dev uniquement
+  if (jwt && jwt.trim()) secrets.push(jwt);
+  if (!secrets.length) {
+    throw new Error(
+      '[FATAL] Aucune clé de chiffrement disponible (TOTP_ENCRYPTION_KEY ou JWT_SECRET).',
+    );
+  }
+  return secrets.map(deriveKey);
 }
 
 /** Chiffre une valeur en clair. Renvoie la chaîne préfixée à stocker. */
 export function encryptField(plaintext: string): string {
   if (plaintext == null) return plaintext;
+  const key = keyCandidates()[0]; // clé dédiée si présente, sinon JWT_SECRET (dev)
   const iv = crypto.randomBytes(12); // 96 bits recommandés pour GCM
-  const cipher = crypto.createCipheriv('aes-256-gcm', getKey(), iv);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
   const enc = Buffer.concat([
     cipher.update(plaintext, 'utf8'),
     cipher.final(),
@@ -39,21 +59,25 @@ export function encryptField(plaintext: string): string {
 export function decryptField(stored?: string | null): string | undefined {
   if (stored == null) return undefined;
   if (!stored.startsWith(PREFIX)) return stored; // ancien secret en clair
-  try {
-    const [ivHex, tagHex, dataHex] = stored.slice(PREFIX.length).split(':');
-    const decipher = crypto.createDecipheriv(
-      'aes-256-gcm',
-      getKey(),
-      Buffer.from(ivHex, 'hex'),
-    );
-    decipher.setAuthTag(Buffer.from(tagHex, 'hex'));
-    const dec = Buffer.concat([
-      decipher.update(Buffer.from(dataHex, 'hex')),
-      decipher.final(),
-    ]);
-    return dec.toString('utf8');
-  } catch {
-    // Clé invalide / données corrompues → on ne renvoie rien (2FA échouera proprement).
-    return undefined;
+  const [ivHex, tagHex, dataHex] = stored.slice(PREFIX.length).split(':');
+  // Essaie chaque clé candidate : couvre la rotation clé dédiée ↔ ancien JWT_SECRET.
+  for (const key of keyCandidates()) {
+    try {
+      const decipher = crypto.createDecipheriv(
+        'aes-256-gcm',
+        key,
+        Buffer.from(ivHex, 'hex'),
+      );
+      decipher.setAuthTag(Buffer.from(tagHex, 'hex'));
+      const dec = Buffer.concat([
+        decipher.update(Buffer.from(dataHex, 'hex')),
+        decipher.final(),
+      ]);
+      return dec.toString('utf8');
+    } catch {
+      // Mauvaise clé → on tente la suivante.
+    }
   }
+  // Aucune clé ne convient (données corrompues) → 2FA échouera proprement.
+  return undefined;
 }

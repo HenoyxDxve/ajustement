@@ -37,3 +37,39 @@ describe('field-encryption (AES-256-GCM)', () => {
     expect(decryptField(tampered)).toBeUndefined();
   });
 });
+
+describe('field-encryption — découplage de la clé', () => {
+  const OLD_TOTP = process.env.TOTP_ENCRYPTION_KEY;
+  const OLD_JWT = process.env.JWT_SECRET;
+
+  afterEach(() => {
+    process.env.TOTP_ENCRYPTION_KEY = OLD_TOTP;
+    process.env.JWT_SECRET = OLD_JWT;
+  });
+
+  it('migration : un secret chiffré sous JWT_SECRET reste lisible après ajout d’une clé dédiée', () => {
+    // Ancien monde : pas de clé dédiée, chiffré avec JWT_SECRET.
+    delete process.env.TOTP_ENCRYPTION_KEY;
+    process.env.JWT_SECRET = 'ancien-jwt-secret';
+    const legacy = encryptField('JBSWY3DPEHPK3PXP');
+
+    // Nouveau monde : clé dédiée introduite, JWT_SECRET conservé (fallback lecture).
+    process.env.TOTP_ENCRYPTION_KEY = 'nouvelle-cle-dediee';
+    expect(decryptField(legacy)).toBe('JBSWY3DPEHPK3PXP');
+  });
+
+  it('ne dérive jamais d’une chaîne vide : sans aucune clé → lève', () => {
+    delete process.env.TOTP_ENCRYPTION_KEY;
+    delete process.env.JWT_SECRET;
+    expect(() => encryptField('x')).toThrow(/clé de chiffrement/i);
+  });
+
+  it('un secret chiffré avec la clé dédiée n’est PAS déchiffrable avec le seul JWT_SECRET', () => {
+    process.env.TOTP_ENCRYPTION_KEY = 'cle-dediee-forte';
+    process.env.JWT_SECRET = 'un-autre-secret';
+    const enc = encryptField('TOPSECRET');
+    // On retire la clé dédiée : seul JWT_SECRET reste → doit échouer (découplage réel).
+    delete process.env.TOTP_ENCRYPTION_KEY;
+    expect(decryptField(enc)).toBeUndefined();
+  });
+});

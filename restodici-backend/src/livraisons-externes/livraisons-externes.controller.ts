@@ -5,6 +5,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { LivraisonsExternesService } from './livraisons-externes.service';
 
 @Controller('livraisons-externes')
@@ -110,6 +111,7 @@ export class LivraisonsExternesController {
   // ── Webhook : statuts entrants depuis les fournisseurs ─────────
   // Pas de guard JWT : le fournisseur externe envoie directement ici
 
+  @Public()
   @Post('webhook/:fournisseurId')
   @HttpCode(HttpStatus.OK)
   webhook(@Param('fournisseurId') fournisseurId: string, @Body() body: any) {

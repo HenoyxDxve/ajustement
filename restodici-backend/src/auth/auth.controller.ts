@@ -15,6 +15,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
+import { Public } from './decorators/public.decorator';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import type { Response, Request } from 'express';
@@ -37,6 +38,7 @@ export class AuthController {
     return clone;
   }
 
+  @Public()
   @Post('register')
   @Throttle({
     default: {
@@ -52,6 +54,7 @@ export class AuthController {
     return this.issueTokens(res, result);
   }
 
+  @Public()
   @Post('login')
   @Throttle({
     default: {
@@ -88,6 +91,7 @@ export class AuthController {
     return this.authService.updateProfile(req.user.id, body);
   }
 
+  @Public()
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(
@@ -100,6 +104,7 @@ export class AuthController {
     return { message: 'Déconnexion réussie' };
   }
 
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
@@ -114,6 +119,7 @@ export class AuthController {
   }
 
   // Password reset routes
+  @Public()
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @Throttle({
@@ -126,8 +132,15 @@ export class AuthController {
     return this.authService.requestPasswordReset(email);
   }
 
+  @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
+  @Throttle({
+    default: {
+      limit: process.env.NODE_ENV === 'production' ? 5 : 1000,
+      ttl: 60000,
+    },
+  })
   async resetPassword(
     @Body('token') token: string,
     @Body('newPassword') newPassword: string,
@@ -136,14 +149,28 @@ export class AuthController {
   }
 
   // Email verification routes
+  @Public()
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
+  @Throttle({
+    default: {
+      limit: process.env.NODE_ENV === 'production' ? 5 : 1000,
+      ttl: 60000,
+    },
+  })
   async verifyEmail(@Body('token') token: string) {
     return this.authService.verifyEmail(token);
   }
 
+  @Public()
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
+  @Throttle({
+    default: {
+      limit: process.env.NODE_ENV === 'production' ? 3 : 1000,
+      ttl: 60000,
+    },
+  })
   async resendVerificationEmail(@Body('email') email: string) {
     return this.authService.resendVerificationEmail(email);
   }
@@ -186,6 +213,7 @@ export class AuthController {
     return this.authService.disable2FA(req.user.id);
   }
 
+  @Public()
   @Post('2fa/verify-login')
   @HttpCode(HttpStatus.OK)
   @Throttle({

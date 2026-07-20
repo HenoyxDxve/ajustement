@@ -21,6 +21,7 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { Public } from '../auth/decorators/public.decorator';
 import { PromosService } from '../promos/promos.service';
 
 @Controller('menu')
@@ -31,6 +32,7 @@ export class MenuController {
   ) {}
 
   // GET /menu — Récupération menu avec filtres (US-01, US-03)
+  @Public()
   @Get()
   getMenu(
     @Query('categorie') categorieId?: string,
@@ -43,6 +45,7 @@ export class MenuController {
 
   // GET /menu/restaurants — Liste des restaurants actifs
   // [PERF] Cache 5 min (audit §4.3)
+  @Public()
   @Get('restaurants')
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(5 * 60 * 1000)
@@ -51,6 +54,7 @@ export class MenuController {
   }
 
   // GET /menu/promos-actives?restaurantId=xxx&userId=yyy — Offres limitées actives (public)
+  @Public()
   @Get('promos-actives')
   getPromosActives(
     @Query('restaurantId') restaurantId: string,
@@ -61,6 +65,7 @@ export class MenuController {
 
   // GET /menu/categories — Liste catégories
   // [PERF] Cache 5 min (audit §4.3)
+  @Public()
   @Get('categories')
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(5 * 60 * 1000)
@@ -69,6 +74,7 @@ export class MenuController {
   }
 
   // GET /menu/search — Recherche articles
+  @Public()
   @Get('search')
   searchArticles(
     @Query('q') query: string,
@@ -86,6 +92,7 @@ export class MenuController {
 
   // GET /menu/restaurant/:id — Menu d'un restaurant spécifique
   // [PERF] Cache 2 min (audit §4.3)
+  @Public()
   @Get('restaurant/:id')
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(2 * 60 * 1000)

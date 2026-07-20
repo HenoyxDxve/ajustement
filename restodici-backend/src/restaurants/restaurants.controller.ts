@@ -17,12 +17,14 @@ import { RestaurantsService } from './restaurants.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('restaurants')
 export class RestaurantsController {
   constructor(private readonly restaurantsService: RestaurantsService) {}
 
   // GET /restaurants — Liste tous les restaurants actifs (filtrés par zone/catégorie)
+  @Public()
   @Get()
   getAllRestaurants(
     @Query('zone') zone?: string,
@@ -46,6 +48,7 @@ export class RestaurantsController {
   }
 
   // GET /restaurants/:id — Détails d'un restaurant
+  @Public()
   @Get(':id')
   getRestaurant(@Param('id') id: string) {
     return this.restaurantsService.getById(id);
@@ -78,6 +81,7 @@ export class RestaurantsController {
   }
 
   // GET /restaurants/qr/validate — Validation QR code table
+  @Public()
   @Get('qr/validate')
   validateQRCode(@Query('token') token: string) {
     return this.restaurantsService.validateTableQR(token);

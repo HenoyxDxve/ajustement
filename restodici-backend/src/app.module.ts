@@ -9,6 +9,7 @@ import { dataSourceOptions } from './config/data-source';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { BullModule } from '@nestjs/bullmq';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -81,6 +82,8 @@ import { LivraisonsExternesModule } from './livraisons-externes/livraisons-exter
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // Auth JWT globale : tout est protégé par défaut, sauf routes @Public().
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })

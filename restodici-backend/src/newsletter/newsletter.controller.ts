@@ -5,12 +5,14 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { NewsletterService } from './newsletter.service';
 
 @Controller('newsletter')
 export class NewsletterController {
   constructor(private readonly newsletterService: NewsletterService) {}
 
+  @Public()
   @Post('subscribe')
   @HttpCode(HttpStatus.OK)
   subscribe(@Body() body: { email: string }) {

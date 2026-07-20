@@ -1,6 +1,9 @@
 import { Controller, Get, Post, Param, Body } from '@nestjs/common';
 import { B2BService } from '../services/b2b.service';
+import { Public } from '../../auth/decorators/public.decorator';
 
+// L'invité n'a pas encore de compte : l'accès se fait par token d'invitation.
+@Public()
 @Controller('b2b/invitations')
 export class B2BInvitationsController {
   constructor(private readonly b2bService: B2BService) {}

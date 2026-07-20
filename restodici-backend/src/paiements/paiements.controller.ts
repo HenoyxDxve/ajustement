@@ -18,6 +18,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { PaiementsService } from './paiements.service';
 import { InitierPaiementDto } from './dto/initier-paiement.dto';
 import { NovaSendProvider } from './novasend.service';
+import { Public } from '../auth/decorators/public.decorator';
 import * as crypto from 'crypto';
 
 @SkipThrottle()
@@ -31,6 +32,7 @@ export class PaiementsController {
   ) {}
 
   // ── Méthodes de paiement actives (public — aucune clé exposée) ─────────────
+  @Public()
   @Get('methodes')
   async getPaymentMethods() {
     return this.paiementsService.getPaymentMethods();
@@ -62,6 +64,7 @@ export class PaiementsController {
   }
 
   // ── Webhook NovaSend (appelé par NovaSend après paiement) ───────────────────
+  @Public() // authentifié par signature HMAC, pas par JWT
   @Post('webhook/novasend')
   @HttpCode(HttpStatus.OK)
   async novasendWebhook(
@@ -96,6 +99,7 @@ export class PaiementsController {
   }
 
   // ── Webhook CinetPay (legacy) ────────────────────────────────────────────────
+  @Public() // authentifié par signature HMAC, pas par JWT
   @Post('webhook/cinetpay')
   @HttpCode(HttpStatus.OK)
   async cinetpayWebhook(
@@ -132,6 +136,7 @@ export class PaiementsController {
   }
 
   // ── Webhook générique par intégration ────────────────────────────────────────
+  @Public() // authentifié par signature (verifyWebhook du gateway), pas par JWT
   @Post('webhook/:integrationName')
   @HttpCode(HttpStatus.OK)
   async genericWebhook(

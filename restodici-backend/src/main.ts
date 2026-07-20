@@ -45,15 +45,18 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
-  // Documentation OpenAPI/Swagger — accessible sur /api/docs.
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle("Resto d'ici API")
-    .setDescription('API de la plateforme de restauration RESTODICI')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  // Documentation OpenAPI/Swagger — jamais exposée en production
+  // (elle publierait toute la surface d'API : routes, DTOs, modèles).
+  if (process.env.NODE_ENV !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle("Resto d'ici API")
+      .setDescription('API de la plateforme de restauration RESTODICI')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   const port = parseInt(process.env.PORT || '3000', 10);
   await app.listen(port);

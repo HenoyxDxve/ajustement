@@ -17,6 +17,7 @@ import { Role } from '../../auth/entities/user.entity';
 import { B2BService } from '../services/b2b.service';
 import { B2bPlansRepasService } from '../services/b2b-plans-repas.service';
 import { B2bAuditService } from '../services/b2b-audit.service';
+import { B2bTeamsService } from '../services/b2b-teams.service';
 import { CreateTeamDto } from '../dto/create-team.dto';
 import { AddTeamMemberDto } from '../dto/add-team-member.dto';
 import { CreateBulkOrderDto } from '../dto/create-bulk-order.dto';
@@ -37,6 +38,7 @@ export class B2BController {
     private b2bService: B2BService,
     private plansRepasService: B2bPlansRepasService,
     private auditService: B2bAuditService,
+    private teamsService: B2bTeamsService,
   ) {}
 
   // ============================================================
@@ -233,12 +235,12 @@ export class B2BController {
     @Req() req: RequestWithUser,
     @Body() createTeamDto: CreateTeamDto,
   ) {
-    return this.b2bService.createTeam(req.user.id, createTeamDto);
+    return this.teamsService.createTeam(req.user.id, createTeamDto);
   }
 
   @Get('teams')
   async getTeams(@Req() req: RequestWithUser) {
-    return this.b2bService.getTeamsByUser(req.user.id);
+    return this.teamsService.getTeamsByUser(req.user.id);
   }
 
   @Post('teams/:teamId/members')
@@ -247,7 +249,7 @@ export class B2BController {
     @Param('teamId') teamId: string,
     @Body() addTeamMemberDto: AddTeamMemberDto,
   ) {
-    return this.b2bService.addTeamMember(teamId, req.user.id, addTeamMemberDto);
+    return this.teamsService.addTeamMember(teamId, req.user.id, addTeamMemberDto);
   }
 
   @Delete('teams/:teamId/members/:userId')
@@ -256,7 +258,7 @@ export class B2BController {
     @Param('teamId') teamId: string,
     @Param('userId') userId: string,
   ) {
-    await this.b2bService.removeTeamMember(teamId, req.user.id, userId);
+    await this.teamsService.removeTeamMember(teamId, req.user.id, userId);
     return { message: 'Team member removed successfully' };
   }
 

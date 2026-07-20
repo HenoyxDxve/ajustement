@@ -1,6 +1,7 @@
 // src/services/api.js — appels HTTP centralisés vers le backend
 import axios from "axios";
 import { resolveFrontendApiAndSocketBase } from "./backend-endpoints.js";
+import { getAccessToken, setAccessToken, clearAccessToken } from "./token-store.js";
 
 const { apiBaseUrl: API_URL } = resolveFrontendApiAndSocketBase({
   viteApiUrl: import.meta.env.VITE_API_URL,
@@ -15,7 +16,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = getAccessToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -40,7 +41,7 @@ api.interceptors.response.use(
       !original.url?.includes('/auth/login')
     ) {
       // On ne tente le refresh que si une session existait (access token présent).
-      const hadSession = !!localStorage.getItem('token');
+      const hadSession = !!getAccessToken();
       if (!hadSession) {
         localStorage.removeItem('user');
         if (window.location.pathname !== '/login') window.location.href = '/login';
@@ -63,14 +64,14 @@ api.interceptors.response.use(
         // Le refresh token voyage dans le cookie HttpOnly (withCredentials).
         const res = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
         const accessToken = res.data.accessToken ?? res.data.access_token ?? res.data.token;
-        localStorage.setItem('token', accessToken);
+        setAccessToken(accessToken);
         api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         original.headers.Authorization = `Bearer ${accessToken}`;
         _flushQueue(accessToken, null);
         return api(original);
       } catch (refreshErr) {
         _flushQueue(null, refreshErr);
-        localStorage.removeItem('token');
+        clearAccessToken();
         localStorage.removeItem('user');
         if (window.location.pathname !== '/login') window.location.href = '/login';
         return Promise.reject(refreshErr);

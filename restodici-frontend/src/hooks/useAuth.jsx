@@ -1,24 +1,27 @@
 // src/hooks/useAuth.jsx — contexte d'authentification JWT
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+//
+// L'access token vit EN MÉMOIRE (token-store), jamais en localStorage : une
+// faille XSS ne peut donc pas le voler. Au rechargement de page il est perdu et
+// régénéré silencieusement via le refresh token (cookie HttpOnly) au montage.
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import axios from "axios";
 import { authService } from "../services/auth.service";
+import { resolveFrontendApiAndSocketBase } from "../services/backend-endpoints.js";
+import { setAccessToken, clearAccessToken } from "../services/token-store.js";
+
+const { apiBaseUrl: API_URL } = resolveFrontendApiAndSocketBase({
+  viteApiUrl: import.meta.env.VITE_API_URL,
+  browserOrigin: window.location.origin,
+});
 
 const AuthContext = createContext(null);
-
-// décode le payload base64url d'un JWT
-function decodeToken(token) {
-  const rawPayload = token.split(".")[1];
-  const payload = rawPayload?.replace(/-/g, "+").replace(/_/g, "/");
-  if (!payload) throw new Error("Token invalide");
-  const paddedPayload = payload.padEnd(
-    payload.length + ((4 - (payload.length % 4)) % 4),
-    "=",
-  );
-  return JSON.parse(atob(paddedPayload));
-}
-
-function isExpired(payload) {
-  return payload?.exp ? payload.exp * 1000 <= Date.now() : false;
-}
 
 function getErrorMessage(error, fallback) {
   const apiError = error?.response?.data;
@@ -30,41 +33,68 @@ function getErrorMessage(error, fallback) {
   return error?.message || fallback;
 }
 
-// restitue la session au rechargement
-function getStoredSession() {
-  const token = localStorage.getItem("token");
-  const storedUser = localStorage.getItem("user");
-  if (token) {
-    try {
-      const payload = decodeToken(token);
-      if (isExpired(payload)) {
-        throw new Error("Token expiré");
-      }
-      const userFromStorage = storedUser ? JSON.parse(storedUser) : null;
-      // Préfère les données complètes du profil plutôt que le seul contenu du JWT
-      return userFromStorage
-        ? { ...userFromStorage, token }
-        : { ...payload, token };
-    } catch {
-      // Token corrompu ou expiré → on nettoie
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-    }
+// Profil (nom, rôle…) mis en cache localStorage pour l'affichage instantané.
+// Ce n'est PAS une donnée d'authentification : le token n'y est jamais.
+function getStoredUser() {
+  try {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
   }
-
-  return null;
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(getStoredSession);
-  const loading = false; // synchrone depuis localStorage
+  const [user, setUser] = useState(getStoredUser);
+  const [loading, setLoading] = useState(true);
+
+  // ── Silent refresh au montage ─────────────────────────────────────────────
+  // L'access token en mémoire est perdu à chaque reload : on le régénère via le
+  // cookie refresh HttpOnly. Tant que ce n'est pas résolu, loading=true (les
+  // routes protégées affichent un loader au lieu de rediriger vers /login).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const { data } = await axios.post(
+          `${API_URL}/auth/refresh`,
+          {},
+          { withCredentials: true },
+        );
+        const token = data?.accessToken ?? data?.access_token ?? data?.token;
+        if (!token) throw new Error("Pas de token de session");
+        setAccessToken(token);
+        // Profil frais = source de vérité ; à défaut on garde le user en cache.
+        try {
+          const profile = await authService.getProfile();
+          if (active && profile) {
+            localStorage.setItem("user", JSON.stringify(profile));
+            setUser(profile);
+          }
+        } catch {
+          // profil indisponible : on conserve l'utilisateur mis en cache
+        }
+      } catch {
+        // Pas de session valide (aucun cookie / expiré) → état déconnecté.
+        if (active) {
+          clearAccessToken();
+          localStorage.removeItem("user");
+          setUser(null);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const syncUser = useCallback((nextUser) => {
-    const token = localStorage.getItem("token") || user?.token;
     localStorage.setItem("user", JSON.stringify(nextUser));
-    setUser(token ? { ...nextUser, token } : nextUser);
+    setUser(nextUser);
     return nextUser;
-  }, [user?.token]);
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -79,9 +109,15 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     try {
       const data = await authService.login(email, password);
-      const { access_token, token, user: userData, requiresTwoFactor, tempToken } = data;
+      const {
+        access_token,
+        token,
+        user: userData,
+        requiresTwoFactor,
+        tempToken,
+      } = data;
 
-      // 2FA required — pass through without setting auth state
+      // 2FA requise — on ne pose pas l'état d'auth ici (cf. Login.jsx).
       if (requiresTwoFactor && tempToken) {
         return { success: false, requiresTwoFactor: true, tempToken };
       }
@@ -92,12 +128,12 @@ export function AuthProvider({ children }) {
         return { success: false, error: "Réponse invalide du serveur" };
       }
 
-      localStorage.setItem("token", jwtToken);
+      setAccessToken(jwtToken); // en mémoire uniquement
       localStorage.setItem("user", JSON.stringify(userData));
-      // Clear stale restaurant selection from previous sessions
+      // Nettoie une éventuelle sélection de restaurant d'une session précédente.
       localStorage.removeItem("selectedRestaurantId");
       localStorage.removeItem("currentRestaurantId");
-      setUser({ ...userData, token: jwtToken });
+      setUser(userData);
 
       return { success: true, user: userData };
     } catch (error) {
@@ -127,8 +163,14 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
+  const logout = useCallback(async () => {
+    // Efface le cookie refresh HttpOnly côté serveur (invalide la session).
+    try {
+      await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
+    } catch {
+      // même si l'appel échoue, on nettoie l'état local
+    }
+    clearAccessToken();
     localStorage.removeItem("user");
     setUser(null);
   }, []);
@@ -139,9 +181,7 @@ export function AuthProvider({ children }) {
   );
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   );
 }
 

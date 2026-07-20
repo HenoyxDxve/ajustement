@@ -3,6 +3,7 @@ import { lazy, Suspense, useRef, useLayoutEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { getAccessToken } from './services/token-store.js';
 import { CartProvider } from './hooks/useCart';
 
 // layouts
@@ -139,7 +140,7 @@ function ProtectedBusinessRoute({ children }) {
 
 function GerantDashboardWrapper() {
   const { user } = useAuth();
-  const token = localStorage.getItem('token');
+  const token = getAccessToken();
   const restaurantId = user?.restaurant?.id || user?.restaurantId;
   return <GerantDashboard restaurantId={restaurantId} token={token} />;
 }

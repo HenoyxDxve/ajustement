@@ -1,5 +1,6 @@
 // src/services/auth.service.js
 import axios from "axios";
+import { getAccessToken } from "./token-store.js";
 
 //  Base URL avec préfixe '/api' pour matcher NestJS
 const RAW_API_BASE = import.meta.env.VITE_API_URL?.trim();
@@ -13,7 +14,7 @@ const api = axios.create({
 
 // Interceptor pour injecter le token JWT automatiquement
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

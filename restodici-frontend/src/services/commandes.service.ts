@@ -1,6 +1,7 @@
 import axios from "axios";
 import { io } from "socket.io-client";
 import { resolveFrontendApiAndSocketBase } from "./backend-endpoints.js";
+import { getAccessToken } from "./token-store.js";
 
 const { apiBaseUrl, socketBase } = resolveFrontendApiAndSocketBase({
   viteApiUrl: (import.meta as any).env?.VITE_API_URL,
@@ -13,7 +14,7 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = getAccessToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -23,7 +24,7 @@ export const createCommandesSocket = (user: {
   role?: string;
   restaurant?: { id?: string };
 }) => {
-  const token = localStorage.getItem("token");
+  const token = getAccessToken();
   const roles = user?.role ? [user.role] : [];
   const restaurantId = user?.restaurant?.id;
 
@@ -57,7 +58,7 @@ export const createCommandesSocket = (user: {
 
   socket.on("reconnect_attempt", () => {
     // refresh token before reconnect attempts
-    const t = localStorage.getItem("token");
+    const t = getAccessToken();
     if (t) {
       // update auth used by the client for the next attempt
       // socket.auth is consumed by socket.io-client on connect

@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, CheckCircle, UtensilsCrossed, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { setAccessToken } from '../services/token-store.js';
 import { isValidEmail, MSG } from '../utils/validators';
 
 export default function Login() {
@@ -137,10 +138,10 @@ export default function Login() {
       const userData = res.data?.user;
       if (!userData) throw new Error('Réponse invalide');
 
-      /* Stockage du token JWT dans le localStorage */
+      /* Access token en mémoire (jamais en localStorage) */
       const token = res.data.accessToken || res.data.access_token || res.data.token;
-      localStorage.setItem('token', token);
-      syncUser({ ...userData, token });
+      setAccessToken(token);
+      syncUser(userData);
 
       redirectAfterLogin(userData);
     } catch (err) {

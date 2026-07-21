@@ -19,7 +19,6 @@ import {
 import { CommissionPlateforme } from '../commandes/entities/commission-plateforme.entity';
 import { FactureMensuelleB2B } from '../b2b/entities/facture-mensuelle-b2b.entity';
 import { PaymentMethod } from '../paiements/entities/payment-method.entity';
-import { ensurePaymentMethodsSeeded } from '../paiements/payment-methods.seed';
 import { paginationParams, buildPaginated } from '../common/pagination/pagination';
 
 /* ── Clés de config avec leurs métadonnées ── */
@@ -728,7 +727,7 @@ export class AdminService {
       ordre: number;
     }>
   > {
-    await ensurePaymentMethodsSeeded(this.paymentMethodRepo);
+    // Le catalogue est semé au démarrage par PaiementsService (onModuleInit).
     const methods = await this.paymentMethodRepo.find({
       order: { ordre: 'ASC' },
     });

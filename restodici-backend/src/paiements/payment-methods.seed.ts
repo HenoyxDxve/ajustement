@@ -22,16 +22,19 @@ export const PAYMENT_METHOD_DEFAULTS: Array<
 /**
  * Insère les moyens manquants (idempotent). Les moyens déjà présents ne sont
  * pas touchés — on préserve les choix d'activation de l'admin.
+ *
+ * Utilise `INSERT ... ON CONFLICT (code) DO NOTHING` : sûr même sous concurrence
+ * (plusieurs requêtes/instances au démarrage) — jamais de violation de contrainte
+ * unique, une seule requête.
  */
 export async function ensurePaymentMethodsSeeded(
   repo: Repository<PaymentMethod>,
 ): Promise<void> {
-  const existing = await repo.find();
-  const existingCodes = new Set(existing.map((m) => m.code));
-  const toInsert = PAYMENT_METHOD_DEFAULTS.filter(
-    (d) => !existingCodes.has(d.code),
-  );
-  if (toInsert.length > 0) {
-    await repo.save(toInsert.map((d) => repo.create({ ...d, enabled: true })));
-  }
+  await repo
+    .createQueryBuilder()
+    .insert()
+    .into(PaymentMethod)
+    .values(PAYMENT_METHOD_DEFAULTS.map((d) => ({ ...d, enabled: true })))
+    .orIgnore()
+    .execute();
 }

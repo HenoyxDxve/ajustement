@@ -233,25 +233,24 @@ describe('AdminService', () => {
   });
 
   describe('moyens de paiement', () => {
-    it('getPaymentMethods sème les défauts si la table est vide', async () => {
-      paymentRepo.find
-        .mockResolvedValueOnce([]) // ensurePaymentMethodsSeeded: rien en base
-        .mockResolvedValueOnce([
-          {
-            id: 'pm1',
-            code: 'wave',
-            label: 'Wave',
-            provider: 'WAVE',
-            gateway: 'novasend',
-            needsPhone: false,
-            enabled: true,
-            ordre: 4,
-          },
-        ]);
+    it('getPaymentMethods retourne les moyens triés (sans re-seed)', async () => {
+      paymentRepo.find.mockResolvedValue([
+        {
+          id: 'pm1',
+          code: 'wave',
+          label: 'Wave',
+          provider: 'WAVE',
+          gateway: 'novasend',
+          needsPhone: false,
+          enabled: true,
+          ordre: 4,
+        },
+      ]);
 
       const result = await service.getPaymentMethods();
 
-      expect(paymentRepo.save).toHaveBeenCalled(); // seed déclenché
+      // Le seed est fait au boot par PaiementsService — pas ici.
+      expect(paymentRepo.save).not.toHaveBeenCalled();
       expect(result).toEqual([
         expect.objectContaining({ code: 'wave', enabled: true }),
       ]);

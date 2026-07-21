@@ -3,6 +3,7 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -41,7 +42,7 @@ const PROVIDER_TO_MODE: Record<NovaSendProvider, ModePaiementCommande> = {
 };
 
 @Injectable()
-export class PaiementsService {
+export class PaiementsService implements OnModuleInit {
   private readonly logger = new Logger(PaiementsService.name);
 
   constructor(
@@ -62,6 +63,16 @@ export class PaiementsService {
     private novaSend: NovaSendService,
     private gatewayRegistry: PaymentGatewayRegistry,
   ) {}
+
+  // Sème le catalogue des moyens de paiement une seule fois, au démarrage
+  // (idempotent, race-safe) — plus de seed par requête.
+  async onModuleInit(): Promise<void> {
+    await ensurePaymentMethodsSeeded(this.paymentMethodRepo).catch((e) =>
+      this.logger.error(
+        `Seed moyens de paiement échoué : ${(e as Error).message}`,
+      ),
+    );
+  }
 
   // ── Initier un paiement digital ────────────────────────────────────────────
   async initiatePayment(
@@ -378,10 +389,8 @@ export class PaiementsService {
   }
 
 
-  // l'admin ET dont la gateway est configurée sont proposés au client.
+  // Moyens ACTIVÉS par l'admin ET dont la gateway est configurée (lus en base).
   async getPaymentMethods(): Promise<{ methods: { id: string; label: string; provider: string; gateway: string; needsPhone: boolean }[]; configured: boolean }> {
-    await ensurePaymentMethodsSeeded(this.paymentMethodRepo);
-
     const gateways = await this.gatewayRegistry.getEnabledPaymentGateways();
     const enabledGatewayNames = new Set(gateways.map((gw) => gw.name));
 

@@ -202,11 +202,14 @@ export class CommandesController {
   @UseGuards(AuthGuard('jwt'))
   async findOne(@Param('id') id: string, @Req() req: any) {
     const userRole = req.user.role;
-    const clientId = userRole === 'CLIENT' ? req.user.id : undefined;
-    const restaurantId =
-      userRole === 'GERANT' || userRole === 'STAFF'
-        ? req.user.restaurant?.id
-        : undefined;
+    const isAdmin = userRole === 'ADMIN';
+    const isRestaurantStaff = userRole === 'GERANT' || userRole === 'STAFF';
+
+    // Default-deny : seul l'ADMIN voit toutes les commandes. Le staff/gérant est
+    // borné à son restaurant ; TOUT autre rôle (CLIENT, B2B…) doit être le
+    // client propriétaire de la commande.
+    const restaurantId = isRestaurantStaff ? req.user.restaurant?.id : undefined;
+    const clientId = isAdmin || isRestaurantStaff ? undefined : req.user.id;
 
     return this.commandesService.findOne(id, clientId, restaurantId);
   }

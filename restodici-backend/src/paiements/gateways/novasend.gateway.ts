@@ -42,10 +42,19 @@ export class NovaSendGateway implements PaymentGateway {
 
   verifyWebhook(payload: any, signature?: string): boolean {
     const secret = this.integration.webhookSecret;
-    if (!secret || !signature) return true; // pas de secret configuré → on accepte
+    // Fail-closed en production : sans secret configuré, un webhook n'est pas
+    // vérifiable → on le refuse. En dev on tolère (simulation locale).
+    if (!secret) return process.env.NODE_ENV !== 'production';
+    if (!signature) return false;
     const raw = typeof payload === 'string' ? payload : JSON.stringify(payload);
-    const expected = crypto.createHmac('sha256', secret).update(raw).digest('hex');
-    return signature === expected;
+    const expected = crypto
+      .createHmac('sha256', secret)
+      .update(raw)
+      .digest('hex');
+    // Comparaison à temps constant (anti-timing).
+    const a = Buffer.from(signature);
+    const b = Buffer.from(expected);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
   }
 
   async handleWebhook(payload: any): Promise<PaymentWebhookResult> {

@@ -7,6 +7,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   Req,
 } from '@nestjs/common';
@@ -139,8 +140,16 @@ export class B2BController {
   }
 
   @Get('commandes-groupees')
-  async getCommandesGroupees(@Req() req: RequestWithUser) {
-    return this.b2bService.getCommandesGroupees(req.user.id);
+  async getCommandesGroupees(
+    @Req() req: RequestWithUser,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    // Pagination DB par défaut (100) — jamais de dump complet côté endpoint.
+    return this.b2bService.getCommandesGroupees(req.user.id, {
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 100,
+    });
   }
 
   // ============================================================
@@ -148,8 +157,15 @@ export class B2BController {
   // ============================================================
 
   @Get('factures-mensuelles')
-  async getFacturesMensuelles(@Req() req: RequestWithUser) {
-    return this.facturationService.getFacturesMensuelles(req.user.id);
+  async getFacturesMensuelles(
+    @Req() req: RequestWithUser,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.facturationService.getFacturesMensuelles(req.user.id, {
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 100,
+    });
   }
 
   @Post('factures-mensuelles/:id/payer')

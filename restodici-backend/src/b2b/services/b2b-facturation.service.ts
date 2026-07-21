@@ -92,13 +92,26 @@ export class B2bFacturationService {
 
   // ── Factures ────────────────────────────────────────────────────────────────
 
-  async getFacturesMensuelles(userId: string): Promise<Record<string, any>[]> {
+  async getFacturesMensuelles(
+    userId: string,
+    pagination?: { page?: number; limit?: number },
+  ): Promise<Record<string, any>[]> {
     const compte = await this.findCompteByUser(userId);
     if (!compte) return [];
+
+    // Pagination DB optionnelle (endpoint) ; liste complète sans params (stats).
+    const take =
+      pagination?.limit != null
+        ? Math.min(Math.max(pagination.limit, 1), 200)
+        : undefined;
+    const skip =
+      take != null ? (Math.max(pagination?.page ?? 1, 1) - 1) * take : undefined;
 
     const factures = await this.factureRepository.find({
       where: { compteB2B: { id: compte.id } },
       order: { createdAt: 'DESC' },
+      take,
+      skip,
     });
 
     return factures.map((f) => this.formatFacture(f, compte));

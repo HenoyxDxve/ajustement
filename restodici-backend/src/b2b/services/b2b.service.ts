@@ -1101,14 +1101,28 @@ export class B2BService {
     return { id: saved.id, numero: saved.numero, statut: saved.statut };
   }
 
-  async getCommandesGroupees(userId: string): Promise<Record<string, any>[]> {
+  async getCommandesGroupees(
+    userId: string,
+    pagination?: { page?: number; limit?: number },
+  ): Promise<Record<string, any>[]> {
     const compte = await this.getCompteB2B(userId);
     if (!compte) return [];
+
+    // Pagination DB (LIMIT/OFFSET) quand l'appelant la demande (endpoint).
+    // Sans pagination, la liste complète est renvoyée (agrégations internes).
+    const take =
+      pagination?.limit != null
+        ? Math.min(Math.max(pagination.limit, 1), 200)
+        : undefined;
+    const skip =
+      take != null ? (Math.max(pagination?.page ?? 1, 1) - 1) * take : undefined;
 
     const commandes = await this.commandeGroupeeRepository.find({
       where: { compteB2B: { id: compte.id } },
       relations: ['lignes'],
       order: { createdAt: 'DESC' },
+      take,
+      skip,
     });
 
     return commandes.map((cmd) => ({

@@ -41,6 +41,12 @@ describe('CommandesService — méthodes complémentaires', () => {
       findOne: jest.fn(),
       save: jest.fn((a) => Promise.resolve({ id: 'avis-1', ...a })),
       create: jest.fn((a) => a),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({ nb: '0', moyenne: null }),
+      }),
     });
     Object.assign(restoRepo, { findOne: jest.fn(), update: jest.fn() });
     Object.assign(historyRepo, {
@@ -167,10 +173,12 @@ describe('CommandesService — méthodes complémentaires', () => {
       avisRepo.findOne.mockResolvedValue({ id: 'existing' });
       await expect(service.submitAvis('cmd-1', 'client-1', 5)).rejects.toThrow(BadRequestException);
     });
-    it('enregistre l\'avis et recalcule la moyenne', async () => {
+    it('enregistre l\'avis et recalcule la moyenne (agrégation SQL)', async () => {
       cmdRepo.findOne.mockResolvedValue(cmd({ statut: StatutCommande.LIVREE }));
       avisRepo.findOne.mockResolvedValue(null);
-      avisRepo.find.mockResolvedValue([{ note: 4 }, { note: 5 }]);
+      avisRepo
+        .createQueryBuilder()
+        .getRawOne.mockResolvedValue({ nb: '2', moyenne: '4.5' });
       const r = await service.submitAvis('cmd-1', 'client-1', 5, 'Super');
       expect(r.nbAvis).toBe(2);
       expect(r.noteMoyenne).toBe(4.5);

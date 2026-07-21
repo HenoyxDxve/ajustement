@@ -792,12 +792,16 @@ export class CommandesService {
     });
     const saved = await this.avisRepo.save(avis);
 
-    const allAvis = await this.avisRepo.find({
-      where: { restaurant: { id: commande.restaurant.id } },
-    });
-    const nbAvis = allAvis.length;
-    const noteMoyenne =
-      Math.round((allAvis.reduce((s, a) => s + a.note, 0) / nbAvis) * 10) / 10;
+    // Agrégation en base (COUNT/AVG) — ne charge pas toute la table des avis.
+    const agg = await this.avisRepo
+      .createQueryBuilder('a')
+      .select('COUNT(*)', 'nb')
+      .addSelect('AVG(a.note)', 'moyenne')
+      .where('a.restaurantId = :rid', { rid: commande.restaurant.id })
+      .getRawOne<{ nb: string; moyenne: string }>();
+
+    const nbAvis = Number(agg?.nb ?? 0);
+    const noteMoyenne = Math.round(Number(agg?.moyenne ?? 0) * 10) / 10;
 
     await this.restaurantRepo.update(
       { id: commande.restaurant.id },

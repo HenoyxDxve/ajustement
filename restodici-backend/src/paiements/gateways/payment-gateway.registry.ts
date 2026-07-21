@@ -8,14 +8,34 @@ import {
 import { PaymentGateway } from './payment-gateway.interface';
 import { NovaSendGateway } from './novasend.gateway';
 
+/**
+ * Fabrique une stratégie de paiement à partir de sa configuration (Integration).
+ * Chaque provider construit sa propre instance configurée.
+ */
+type PaymentGatewayFactory = (integration: Integration) => PaymentGateway;
+
 @Injectable()
 export class PaymentGatewayRegistry {
   private readonly logger = new Logger(PaymentGatewayRegistry.name);
+
+  /**
+   * Registre des stratégies de paiement (Strategy pattern), indexé par nom
+   * d'intégration. Ajouter un provider (CinetPay, Stripe, Monetbil…) = y
+   * enregistrer une fabrique, SANS modifier la logique de sélection.
+   */
+  private readonly factories = new Map<string, PaymentGatewayFactory>([
+    ['novasend', (integration) => new NovaSendGateway(integration)],
+  ]);
 
   constructor(
     @InjectRepository(Integration)
     private readonly integrationRepo: Repository<Integration>,
   ) {}
+
+  /** Enregistre dynamiquement une nouvelle stratégie de paiement. */
+  register(name: string, factory: PaymentGatewayFactory): void {
+    this.factories.set(name.toLowerCase().trim(), factory);
+  }
 
   /**
    * Retourne le gateway correspondant au nom donné en chargeant
@@ -68,16 +88,15 @@ export class PaymentGatewayRegistry {
   // ── Factory interne ────────────────────────────────────────────────────────
 
   private buildGateway(integration: Integration): PaymentGateway {
-    const normalized = integration.name.toLowerCase().trim();
+    const key = integration.name.toLowerCase().trim();
+    const factory = this.factories.get(key);
 
-    switch (normalized) {
-      case 'novasend':
-        return new NovaSendGateway(integration);
-
-      default:
-        throw new NotFoundException(
-          `Type de gateway inconnu : "${integration.name}". Seul "novasend" est supporté pour l'instant.`,
-        );
+    if (!factory) {
+      throw new NotFoundException(
+        `Type de gateway inconnu : "${integration.name}". Providers supportés : ${[...this.factories.keys()].join(', ')}.`,
+      );
     }
+
+    return factory(integration);
   }
 }

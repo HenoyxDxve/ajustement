@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -42,6 +43,8 @@ const MOIS_FR = [
  */
 @Injectable()
 export class B2bFacturationService {
+  private readonly logger = new Logger(B2bFacturationService.name);
+
   constructor(
     @InjectRepository(FactureMensuelleB2B)
     private factureRepository: Repository<FactureMensuelleB2B>,
@@ -353,8 +356,8 @@ export class B2bFacturationService {
           echeance: echeanceDate.toISOString().slice(0, 10),
         })
         .catch((err) =>
-          console.error(
-            `[B2bFacturationService] Erreur email facture ${numeroFacture}: ${(err as Error).message}`,
+          this.logger.error(
+            `Erreur email facture ${numeroFacture} : ${(err as Error).message}`,
           ),
         );
     }

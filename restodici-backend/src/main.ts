@@ -2,7 +2,7 @@
 import 'dotenv/config'; // ← charge .env avant tout le reste
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -60,7 +60,10 @@ async function bootstrap() {
 
   const port = parseInt(process.env.PORT || '3000', 10);
   await app.listen(port);
-  console.log(`API Resto d'ici démarrée sur le port ${port} (préfixe /api)`);
-  console.log(`Documentation Swagger : /api/docs`);
+  const logger = new Logger('Bootstrap');
+  logger.log(`API Resto d'ici démarrée sur le port ${port} (préfixe /api)`);
+  if (process.env.NODE_ENV !== 'production') {
+    logger.log('Documentation Swagger : /api/docs');
+  }
 }
 void bootstrap();

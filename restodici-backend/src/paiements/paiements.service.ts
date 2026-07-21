@@ -3,6 +3,7 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -410,6 +411,48 @@ export class PaiementsService implements OnModuleInit {
       }));
 
     return { methods, configured: gateways.length > 0 };
+  }
+
+  // ── Statut d'un paiement (pour le front : polling léger) ──────────────────
+  // Priorité : cache Redis (frais, écrit au webhook) → table Payment → commande.
+  async getPaymentStatus(
+    commandeId: string,
+    requester: { id: string; role: string; restaurant?: { id?: string } },
+  ): Promise<{ commandeId: string; status: string; source: string }> {
+    const commande = await this.commandeRepo.findOne({
+      where: { id: commandeId },
+      relations: ['client', 'restaurant'],
+    });
+    if (!commande) throw new NotFoundException('Commande introuvable');
+
+    // [SÉCURITÉ] Ownership : ADMIN voit tout ; GERANT/STAFF bornés à leur
+    // restaurant ; tout autre rôle doit être le client propriétaire.
+    const isAdmin = requester.role === 'ADMIN';
+    const isStaff =
+      requester.role === 'GERANT' || requester.role === 'STAFF';
+    if (!isAdmin) {
+      const allowed = isStaff
+        ? commande.restaurant?.id === requester.restaurant?.id
+        : commande.client?.id === requester.id;
+      if (!allowed) throw new ForbiddenException('Accès refusé à cette commande');
+    }
+
+    const cached = await this.paymentLock.getCachedStatus(commandeId);
+    if (cached) return { commandeId, status: cached, source: 'cache' };
+
+    const payment = await this.paymentRepo.findOne({
+      where: { reference: commandeId },
+      order: { createdAt: 'DESC' },
+    });
+    if (payment)
+      return { commandeId, status: payment.status, source: 'db' };
+
+    // Aucune trace → on se base sur l'état de la commande.
+    return {
+      commandeId,
+      status: commande.estPaye ? PaymentStatus.SUCCESS : PaymentStatus.PENDING,
+      source: 'commande',
+    };
   }
 
   async handleCinetpayWebhook(body: any): Promise<void> {

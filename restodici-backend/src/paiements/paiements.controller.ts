@@ -63,6 +63,16 @@ export class PaiementsController {
     return { status: 'ok', simulated: true };
   }
 
+  // ── Statut d'un paiement (polling front) ────────────────────────────────────
+  @Get('statut/:commandeId')
+  @UseGuards(AuthGuard('jwt'))
+  async getStatut(
+    @Param('commandeId') commandeId: string,
+    @Req() req: any,
+  ) {
+    return this.paiementsService.getPaymentStatus(commandeId, req.user);
+  }
+
   // ── Webhook NovaSend (appelé par NovaSend après paiement) ───────────────────
   @Public() // authentifié par signature HMAC, pas par JWT
   @Post('webhook/novasend')

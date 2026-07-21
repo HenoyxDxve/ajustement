@@ -5,6 +5,8 @@
    uniquement en développement.
    ═══════════════════════════════════════════════════════════════ */
 
+import { Logger } from '@nestjs/common';
+
 /** Origines autorisées en développement (front Vite, proxies locaux). */
 const DEV_ORIGINS: string[] = [
   'http://localhost:5173',
@@ -47,9 +49,8 @@ export function validateEnv(): void {
   const recommended = ['DB_HOST', 'DB_DATABASE', 'REDIS_HOST'];
   const missingRecommended = recommended.filter((k) => !process.env[k]);
   if (missingRecommended.length) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      `[config] Variables recommandées absentes (valeurs par défaut utilisées) : ${missingRecommended.join(', ')}`,
+    new Logger('Config').warn(
+      `Variables recommandées absentes (valeurs par défaut utilisées) : ${missingRecommended.join(', ')}`,
     );
   }
 

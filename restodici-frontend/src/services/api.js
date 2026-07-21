@@ -358,6 +358,8 @@ export const paiementsAPI = {
   initier:    (data) => api.post("/paiements/initier", data),
   // POST /paiements/simuler — déclenche le webhook en dev uniquement
   simuler:    (data) => api.post("/paiements/simuler", data),
+  // GET /paiements/statut/:commandeId → { commandeId, status, source }
+  getStatut:  (commandeId) => api.get(`/paiements/statut/${commandeId}`),
 };
 
 // uploads

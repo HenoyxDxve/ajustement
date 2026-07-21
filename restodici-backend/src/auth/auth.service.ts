@@ -1,6 +1,7 @@
 // src/auth/auth.service.ts
 import {
   Injectable,
+  Logger,
   ConflictException,
   BadRequestException,
   UnauthorizedException,
@@ -30,6 +31,8 @@ import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -336,9 +339,8 @@ export class AuthService {
       );
     } catch (emailErr) {
       // Ne pas bloquer l'inscription si l'envoi d'email échoue
-      console.error(
-        'Failed to send verification email:',
-        (emailErr as Error).message,
+      this.logger.error(
+        `Échec envoi email de vérification : ${(emailErr as Error).message}`,
       );
     }
 
@@ -418,9 +420,8 @@ export class AuthService {
     try {
       await this.emailService.sendPasswordReset(userEmail, token, frontendUrl);
     } catch (emailErr) {
-      console.error(
-        'Failed to send password reset email:',
-        (emailErr as Error).message,
+      this.logger.error(
+        `Échec envoi email de réinitialisation : ${(emailErr as Error).message}`,
       );
     }
 
@@ -508,9 +509,8 @@ export class AuthService {
           frontendUrl,
         );
       } catch (emailErr) {
-        console.error(
-          'Failed to resend verification email:',
-          (emailErr as Error).message,
+        this.logger.error(
+          `Échec renvoi email de vérification : ${(emailErr as Error).message}`,
         );
       }
     }

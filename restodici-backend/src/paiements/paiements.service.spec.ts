@@ -8,6 +8,7 @@ import { Commande, ModePaiementCommande } from '../commandes/entities/commande.e
 import { FactureMensuelleB2B } from '../b2b/entities/facture-mensuelle-b2b.entity';
 import { PaymentMethod } from './entities/payment-method.entity';
 import { Payment } from './entities/payment.entity';
+import { PaymentLockService } from './payment-lock.service';
 import { CommandesGateway } from '../commandes/commandes.gateway';
 import { SmsService } from '../notifications/sms.service';
 import { FcmService } from '../notifications/fcm.service';
@@ -30,6 +31,13 @@ const mockPaymentRepo = {
   create: jest.fn((x) => x),
   save: jest.fn().mockResolvedValue({}),
   findOne: jest.fn().mockResolvedValue(null),
+};
+
+const mockPaymentLock = {
+  acquire: jest.fn().mockResolvedValue(true),
+  release: jest.fn().mockResolvedValue(undefined),
+  cacheStatus: jest.fn().mockResolvedValue(undefined),
+  getCachedStatus: jest.fn().mockResolvedValue(null),
 };
 
 const mockReceiptQueue = {
@@ -102,6 +110,7 @@ async function buildModule(): Promise<TestingModule> {
         },
       },
       { provide: getRepositoryToken(Payment), useValue: mockPaymentRepo },
+      { provide: PaymentLockService, useValue: mockPaymentLock },
       { provide: getQueueToken(RECEIPT_QUEUE), useValue: mockReceiptQueue },
       { provide: CommandesGateway, useValue: mockCommandesGateway },
       { provide: SmsService, useValue: mockSmsService },
@@ -181,6 +190,20 @@ describe('PaiementsService initiatePayment()', () => {
     expect(mockNovaSend.initiate).toHaveBeenCalledWith(
       expect.objectContaining({ customerName: 'Traoré' }),
     );
+  });
+
+  it('lève BadRequestException si un paiement est déjà en cours (verrou Redis)', async () => {
+    mockCommandeRepo.findOne.mockResolvedValue(makeCommande());
+    mockPaymentLock.acquire.mockResolvedValueOnce(false);
+
+    await expect(
+      service.initiatePayment({
+        commandeId: 'cmd-uuid-1',
+        montant: 5000,
+        provider: 'WAVE',
+      } as any),
+    ).rejects.toThrow('Un paiement est déjà en cours');
+    expect(mockNovaSend.initiate).not.toHaveBeenCalled();
   });
 
   it('lève NotFoundException quand la commande est introuvable', async () => {

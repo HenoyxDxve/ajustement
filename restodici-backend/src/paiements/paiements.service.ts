@@ -16,6 +16,7 @@ import { FactureMensuelleB2B } from '../b2b/entities/facture-mensuelle-b2b.entit
 import { PaymentMethod } from './entities/payment-method.entity';
 import { ensurePaymentMethodsSeeded } from './payment-methods.seed';
 import { Payment, PaymentStatus } from './entities/payment.entity';
+import { PaymentLockService } from './payment-lock.service';
 import { CommandesGateway } from '../commandes/commandes.gateway';
 import { SmsService } from '../notifications/sms.service';
 import { FcmService } from '../notifications/fcm.service';
@@ -52,6 +53,7 @@ export class PaiementsService {
     private paymentMethodRepo: Repository<PaymentMethod>,
     @InjectRepository(Payment)
     private paymentRepo: Repository<Payment>,
+    private paymentLock: PaymentLockService,
     @InjectQueue(RECEIPT_QUEUE)
     private receiptQueue: Queue,
     private commandesGateway: CommandesGateway,
@@ -84,43 +86,62 @@ export class PaiementsService {
       );
     }
 
-    let result: InitiatePaymentResult;
-
-    // Si une intégration est spécifiée, passer par le registry (Strategy pattern)
-    if (dto.integrationName) {
-      const gateway = await this.gatewayRegistry.getGateway(dto.integrationName);
-      const gwResult = await gateway.initiate({
-        amount: montant,
-        provider: dto.provider,
-        phone: dto.telephone,
-        metadata: {
-          reference: dto.commandeId,
-          commandeId: dto.commandeId,
-          customerName: dto.customerName || commande.client?.nom || 'Client',
-          otp: dto.otp,
-        },
-      });
-      result = {
-        sessionId: gwResult.transactionId,
-        paymentUrl: gwResult.paymentUrl,
-        simulated: gwResult.transactionId.startsWith('sim_'),
-      };
-    } else {
-      // Comportement par défaut : NovaSendService direct (rétrocompatibilité)
-      result = await this.novaSend.initiate({
-        reference: dto.commandeId,
-        amount: montant,
-        customerName: dto.customerName || commande.client?.nom || 'Client',
-        telephone: dto.telephone,
-        provider: dto.provider,
-        otp: dto.otp,
-      });
+    // [SÉCURITÉ] Verrou distribué anti-double-paiement : bloque une seconde
+    // initiation concurrente pour la même commande. Gardé en cas de succès
+    // (fenêtre de paiement), libéré si l'initiation échoue ou au webhook.
+    const locked = await this.paymentLock.acquire(dto.commandeId);
+    if (!locked) {
+      throw new BadRequestException(
+        'Un paiement est déjà en cours pour cette commande.',
+      );
     }
 
-    // Trace transactionnelle (PENDING) — non bloquant.
-    await this.recordPayment(dto, commande, montant, result);
+    try {
+      let result: InitiatePaymentResult;
 
-    return result;
+      // Si une intégration est spécifiée, passer par le registry (Strategy pattern)
+      if (dto.integrationName) {
+        const gateway = await this.gatewayRegistry.getGateway(
+          dto.integrationName,
+        );
+        const gwResult = await gateway.initiate({
+          amount: montant,
+          provider: dto.provider,
+          phone: dto.telephone,
+          metadata: {
+            reference: dto.commandeId,
+            commandeId: dto.commandeId,
+            customerName: dto.customerName || commande.client?.nom || 'Client',
+            otp: dto.otp,
+          },
+        });
+        result = {
+          sessionId: gwResult.transactionId,
+          paymentUrl: gwResult.paymentUrl,
+          simulated: gwResult.transactionId.startsWith('sim_'),
+        };
+      } else {
+        // Comportement par défaut : NovaSendService direct (rétrocompatibilité)
+        result = await this.novaSend.initiate({
+          reference: dto.commandeId,
+          amount: montant,
+          customerName: dto.customerName || commande.client?.nom || 'Client',
+          telephone: dto.telephone,
+          provider: dto.provider,
+          otp: dto.otp,
+        });
+      }
+
+      // Trace transactionnelle (PENDING) — non bloquant.
+      await this.recordPayment(dto, commande, montant, result);
+      await this.paymentLock.cacheStatus(dto.commandeId, PaymentStatus.PENDING);
+
+      return result;
+    } catch (e) {
+      // Échec d'initiation → on libère le verrou pour permettre un retry immédiat.
+      await this.paymentLock.release(dto.commandeId);
+      throw e;
+    }
   }
 
   /** Historise un paiement initié (statut PENDING). Ne casse jamais le flux. */
@@ -240,6 +261,8 @@ export class PaiementsService {
       }
       this.logger.warn(`Paiement échoué: CMD ${commandeId} — statut ${status}`);
       await this.updatePaymentStatus(reference, PaymentStatus.FAILED);
+      await this.paymentLock.cacheStatus(reference, PaymentStatus.FAILED);
+      await this.paymentLock.release(reference); // retry possible
       return;
     }
 
@@ -298,6 +321,8 @@ export class PaiementsService {
       modePaiement,
     });
     await this.updatePaymentStatus(reference, PaymentStatus.SUCCESS);
+    await this.paymentLock.cacheStatus(reference, PaymentStatus.SUCCESS);
+    await this.paymentLock.release(reference);
 
     const paymentPayload = {
       id: commandeId,

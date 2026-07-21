@@ -4,6 +4,7 @@ import { PaiementsController } from './paiements.controller';
 import { PaiementsService } from './paiements.service';
 import { NovaSendService } from './novasend.service';
 import { PaymentGatewayRegistry } from './gateways/payment-gateway.registry';
+import { PaymentLockService } from './payment-lock.service';
 import { Commande } from '../commandes/entities/commande.entity';
 import { FactureMensuelleB2B } from '../b2b/entities/facture-mensuelle-b2b.entity';
 import { Integration } from '../common/entities/integration.entity';
@@ -27,7 +28,12 @@ import { ReceiptQueueModule } from '../receipt-queue/receipt-queue.module';
     ReceiptQueueModule,
   ],
   controllers: [PaiementsController],
-  providers: [PaiementsService, NovaSendService, PaymentGatewayRegistry],
+  providers: [
+    PaiementsService,
+    NovaSendService,
+    PaymentGatewayRegistry,
+    PaymentLockService,
+  ],
   exports: [PaiementsService, NovaSendService, PaymentGatewayRegistry],
 })
 export class PaiementsModule {}
